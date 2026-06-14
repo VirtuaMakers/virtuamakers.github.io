@@ -133,11 +133,11 @@ main {
 }
 
 .hero-logo {
-  width: min(240px, 56vw);
+  width: min(420px, 72vw);
   height: auto;
-  border-radius: 22px;
+  border-radius: 26px;
   margin-bottom: 1.9rem;
-  box-shadow: 0 22px 52px -22px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 24px 56px -22px rgba(0, 0, 0, 0.7);
 }
 
 .eyebrow {
