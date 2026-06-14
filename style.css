@@ -290,6 +290,14 @@ main {
   margin-left: 0.15em;
 }
 
+.card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin: 0.3rem 0 0.9rem;
+}
+
 .card-link {
   display: inline-block;
   margin: 0.1rem 0 0.7rem;
