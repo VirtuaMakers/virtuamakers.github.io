@@ -133,7 +133,7 @@ main {
 }
 
 .hero-logo {
-  width: min(420px, 72vw);
+  width: calc(min(420px, 72vw) - 20px);
   height: auto;
   border-radius: 26px;
   margin-bottom: 1.9rem;
