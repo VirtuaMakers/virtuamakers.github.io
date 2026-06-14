@@ -298,6 +298,28 @@ main {
   margin: 0.3rem 0 0.9rem;
 }
 
+/* Dimonds: red diamond peeking from behind the wordmark image */
+.dimonds-art {
+  position: relative;
+}
+
+.dimonds-bg {
+  position: absolute;
+  left: 50%;
+  top: -1.4rem;
+  transform: translateX(-50%);
+  font-size: 4rem;
+  line-height: 1;
+  z-index: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18));
+}
+
+.dimonds-art .card-image {
+  position: relative;
+  z-index: 1;
+}
+
 .card-link {
   display: inline-block;
   margin: 0.1rem 0 0.7rem;
