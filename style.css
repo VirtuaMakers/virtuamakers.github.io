@@ -290,6 +290,19 @@ main {
   margin-left: 0.15em;
 }
 
+.card-link {
+  display: inline-block;
+  margin: 0.1rem 0 0.7rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+
+.card-link:hover {
+  color: var(--teal-deep);
+  text-decoration: underline;
+}
+
 .card p {
   color: var(--muted);
   font-size: 0.95rem;
