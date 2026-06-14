@@ -119,10 +119,10 @@ main {
   width: 100vw;
   margin-left: calc(50% - 50vw);
   padding: 4.5rem 1.5rem 5rem;
-  text-align: center;
+  text-align: left;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(4, 22, 14, 0.82), rgba(3, 18, 24, 0.9)),
+    linear-gradient(90deg, rgba(3, 20, 12, 0.66) 0%, rgba(3, 20, 12, 0.34) 55%, rgba(3, 20, 12, 0.16) 100%),
     url("assets/hero-bg.png") center / cover no-repeat;
 }
 
@@ -133,11 +133,11 @@ main {
 }
 
 .hero-logo {
-  width: min(300px, 64vw);
+  width: min(210px, 52vw);
   height: auto;
-  border-radius: 26px;
-  margin-bottom: 2rem;
-  box-shadow: 0 26px 60px -22px rgba(0, 0, 0, 0.7);
+  border-radius: 22px;
+  margin-bottom: 1.9rem;
+  box-shadow: 0 22px 52px -22px rgba(0, 0, 0, 0.7);
 }
 
 .eyebrow {
@@ -157,16 +157,12 @@ main {
   font-weight: 700;
   color: #ffffff;
   margin-bottom: 1.3rem;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 
 .hero .lede {
-  color: rgba(255, 255, 255, 0.82);
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.hero-actions {
-  justify-content: center;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 }
 
 .hero .btn-ghost {
