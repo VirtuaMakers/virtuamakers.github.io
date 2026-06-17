@@ -300,6 +300,10 @@ main {
   margin: 0.3rem 0 0.9rem;
 }
 
+.card-image-half {
+  width: 50%;
+}
+
 .card-link {
   display: inline-block;
   margin: 0.1rem 0 0.7rem;
