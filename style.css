@@ -162,6 +162,7 @@ main {
 
 .hero .lede {
   color: rgba(255, 255, 255, 0.9);
+  font-weight: 700;
   margin-bottom: 1.5rem;
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 }
