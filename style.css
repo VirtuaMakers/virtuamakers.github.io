@@ -31,7 +31,7 @@ body {
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
@@ -77,7 +77,7 @@ a {
 }
 
 .brand-name {
-  font-family: "Quicksand", "Inter", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-weight: 700;
   font-size: 1.2rem;
   letter-spacing: -0.005em;
@@ -150,7 +150,7 @@ main {
 }
 
 .hero h1 {
-  font-family: "Quicksand", "Inter", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-size: clamp(2.3rem, 6.5vw, 3.9rem);
   line-height: 1.08;
   letter-spacing: -0.02em;
@@ -229,7 +229,7 @@ main {
 }
 
 .section-title {
-  font-family: "Quicksand", "Inter", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -279,7 +279,7 @@ main {
 }
 
 .card h3 {
-  font-family: "Quicksand", "Inter", sans-serif;
+  font-family: "Hanken Grotesk", sans-serif;
   font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: -0.01em;
