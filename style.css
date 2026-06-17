@@ -122,7 +122,7 @@ main {
   text-align: left;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(3, 20, 12, 0.66) 0%, rgba(3, 20, 12, 0.34) 55%, rgba(3, 20, 12, 0.16) 100%),
+    linear-gradient(90deg, rgba(3, 20, 12, 0.8) 0%, rgba(3, 20, 12, 0.56) 55%, rgba(3, 20, 12, 0.4) 100%),
     url("assets/hero-bg.png") center / cover no-repeat;
 }
 
@@ -306,6 +306,10 @@ main {
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--teal);
+}
+
+.card-cta {
+  margin-top: 0.5rem;
 }
 
 .card-link:hover {
