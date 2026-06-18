@@ -350,18 +350,17 @@ main {
 
 .about-wordmark {
   display: block;
-  width: 70%;
-  max-width: 460px;
+  width: 100%;
   height: auto;
-  margin-bottom: 1.6rem;
+  margin: 0 auto 1.6rem;
 }
 
 .about-image {
   display: block;
-  width: 75%;
+  width: 100%;
   height: auto;
   border-radius: 10px;
-  margin-top: 1.5rem;
+  margin: 1.5rem auto 0;
 }
 
 .credit-label {
