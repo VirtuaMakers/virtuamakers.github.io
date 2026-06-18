@@ -1,0 +1,245 @@
+:root {
+  --bg: #fbfcfb;
+  --surface: #ffffff;
+  --text: #15323a;
+  --muted: #5f7178;
+  --line: #e4ece9;
+  /* Brand palette shared with VirtuaMakers */
+  --green: #61a138;
+  --teal: #167082;
+  --teal-deep: #01566b;
+  --accent: var(--teal);
+  --accent-soft: #e7f1f1;
+  --radius: 14px;
+  --maxw: 960px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60rem 40rem at 82% -12%, rgba(22, 112, 130, 0.12), transparent 60%),
+    radial-gradient(50rem 40rem at -10% 8%, rgba(97, 161, 56, 0.10), transparent 55%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Header */
+.site-header {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+}
+
+.brand-globe {
+  font-size: 1rem;
+}
+
+.word-assembl {
+  color: var(--teal);
+}
+
+.word-ai {
+  color: var(--green);
+}
+
+.word-virtua {
+  color: var(--green);
+}
+
+.word-makers {
+  color: var(--teal);
+}
+
+.back-link {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+/* Layout */
+main {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.hero {
+  padding: 3rem 0 3.5rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 1rem;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  margin-bottom: 1.1rem;
+}
+
+.lede {
+  font-size: 1.18rem;
+  color: var(--muted);
+  max-width: 38rem;
+}
+
+/* Sections */
+.section {
+  padding: 3rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.section-title {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--teal);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.intro {
+  font-size: 1.05rem;
+  color: var(--muted);
+  max-width: 40rem;
+  margin-bottom: 1.8rem;
+}
+
+/* Cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.1rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  border-color: #d4e6dd;
+  box-shadow: 0 12px 30px -16px rgba(20, 80, 70, 0.28);
+}
+
+.member {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.member-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.member h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.member-org {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin-top: -0.35rem;
+}
+
+/* Pills */
+.pill {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+}
+
+.pill-soon {
+  color: var(--teal);
+  background: var(--accent-soft);
+}
+
+/* Footer */
+.site-footer {
+  max-width: var(--maxw);
+  margin: 2rem auto 0;
+  padding: 2rem 1.5rem 3rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.site-footer a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 560px) {
+  .site-header {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+}
