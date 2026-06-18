@@ -457,6 +457,10 @@ main {
   background: #5865f2;
 }
 
+.social-github {
+  background: #181717;
+}
+
 .site-footer {
   max-width: var(--maxw);
   margin: 2rem auto 0;
