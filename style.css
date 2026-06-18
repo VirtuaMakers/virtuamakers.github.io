@@ -334,6 +334,13 @@ main {
   gap: 0.6rem;
 }
 
+.install-note {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 32rem;
+}
+
 .card-link:hover {
   color: var(--teal-deep);
   text-decoration: underline;
