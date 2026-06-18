@@ -327,8 +327,11 @@ main {
   gap: 0.6rem;
 }
 
-.card-cta {
-  margin-top: 0.5rem;
+.card-cta-row {
+  margin-top: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .card-link:hover {
