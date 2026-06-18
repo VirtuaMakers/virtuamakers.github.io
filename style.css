@@ -348,6 +348,14 @@ main {
   padding: 1.6rem;
 }
 
+.about-wordmark {
+  display: block;
+  width: 70%;
+  max-width: 460px;
+  height: auto;
+  margin-bottom: 1.6rem;
+}
+
 .about-image {
   display: block;
   width: 75%;
