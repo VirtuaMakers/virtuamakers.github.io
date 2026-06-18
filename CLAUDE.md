@@ -12,7 +12,7 @@ published via GitHub Pages at https://virtuamakers.github.io.
   plan — so the site repo (and Dimonds) may need to remain public unless on
   GitHub Pro or hosting the built output elsewhere.
 - [ ] Replace the placeholder **Social** links with real URLs:
-  - X — currently `href="#"`
-  - Discord — currently `href="#"`
+  - X — ✅ `https://x.com/VirtuaMakers`
+  - Discord — ✅ `https://discord.gg/PCdHq4gryJ`
   - GitHub — currently points at `https://github.com/VirtuaMakers` (confirm org vs.
     a personal profile if a "Follow" button is wanted).
