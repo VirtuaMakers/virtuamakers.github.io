@@ -481,8 +481,10 @@ main {
   opacity: 0.5;
 }
 
-@media (max-width: 560px) {
-  .site-nav {
-    gap: 1rem;
+@media (max-width: 600px) {
+  /* On phones, let the Play card description and picture fill the card */
+  .play-desc,
+  .card-image-half {
+    width: 100%;
   }
 }
