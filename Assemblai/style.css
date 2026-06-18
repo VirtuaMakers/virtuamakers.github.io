@@ -110,6 +110,17 @@ main {
   padding: 3rem 0 3.5rem;
 }
 
+.construction-note {
+  margin-top: 0.6rem;
+  background: #fff7e6;
+  border: 1px solid #f3dca6;
+  color: #8a6d23;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.14em;
