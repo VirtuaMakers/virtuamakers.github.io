@@ -303,6 +303,15 @@ main {
   width: 50%;
 }
 
+.game-image-link {
+  display: block;
+}
+
+/* Match the description width to the half-size picture above/below it */
+.play-desc {
+  width: 50%;
+}
+
 .card-link {
   display: inline-block;
   margin: 0.1rem 0 0.7rem;
