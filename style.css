@@ -406,6 +406,57 @@ main {
 }
 
 /* Footer */
+/* Social */
+.social-links {
+  display: flex;
+  gap: 1.8rem;
+  flex-wrap: wrap;
+}
+
+.social-link {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.social-link:hover {
+  color: var(--text);
+}
+
+.social-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.5);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.social-link:hover .social-icon {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 26px -12px rgba(0, 0, 0, 0.55);
+}
+
+.social-icon svg {
+  width: 28px;
+  height: 28px;
+  fill: #ffffff;
+}
+
+.social-x {
+  background: #000000;
+}
+
+.social-discord {
+  background: #5865f2;
+}
+
 .site-footer {
   max-width: var(--maxw);
   margin: 2rem auto 0;
