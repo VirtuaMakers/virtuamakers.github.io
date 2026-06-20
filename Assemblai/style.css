@@ -110,6 +110,13 @@ main {
   padding: 3rem 0 3.5rem;
 }
 
+.page-logo {
+  display: block;
+  width: min(260px, 60vw);
+  height: auto;
+  margin: 0.5rem auto 1.4rem;
+}
+
 .construction-note {
   margin-top: 0.6rem;
   background: #fff7e6;
