@@ -1,5 +1,5 @@
 :root {
-  --bg: #fbfcfb;
+  --bg: #ffffff;
   --surface: #ffffff;
   --text: #15323a;
   --muted: #5f7178;
@@ -39,9 +39,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(60rem 40rem at 82% -12%, rgba(22, 112, 130, 0.12), transparent 60%),
-    radial-gradient(50rem 40rem at -10% 8%, rgba(97, 161, 56, 0.10), transparent 55%);
+  background: #ffffff;
 }
 
 a {
@@ -73,11 +71,11 @@ a {
 }
 
 .word-assembl {
-  color: var(--teal);
+  color: #224587;
 }
 
 .word-ai {
-  color: var(--green);
+  color: #337ca2;
 }
 
 .word-virtua {
@@ -112,7 +110,7 @@ main {
 
 .page-logo {
   display: block;
-  width: min(260px, 60vw);
+  width: min(520px, 90vw);
   height: auto;
   margin: 0.5rem auto 1.4rem;
 }
