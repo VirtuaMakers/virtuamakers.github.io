@@ -422,6 +422,11 @@ main {
   flex: none;
 }
 
+.credit-logo-grok {
+  width: 20px;
+  height: 20px;
+}
+
 /* Footer */
 /* Social */
 .social-links {
