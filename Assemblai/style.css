@@ -206,6 +206,24 @@ main {
   object-fit: contain;
 }
 
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
+}
+
+.card:nth-child(even) .avatar {
+  background: var(--green);
+}
+
 .member h3 {
   font-size: 1.15rem;
   font-weight: 700;
