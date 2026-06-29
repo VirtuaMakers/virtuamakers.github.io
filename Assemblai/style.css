@@ -149,6 +149,14 @@ main {
   max-width: 38rem;
 }
 
+.hero-fine {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 42rem;
+  margin-top: 1rem;
+}
+
 /* Sections */
 .section {
   padding: 3rem 0;
