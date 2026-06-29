@@ -146,6 +146,21 @@ main {
   margin-top: 1rem;
 }
 
+.feature-grid {
+  margin-top: 2.2rem;
+}
+
+.card.feature {
+  padding: 0.9rem;
+}
+
+.feature-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
 /* Sections */
 .section {
   padding: 3rem 0;
