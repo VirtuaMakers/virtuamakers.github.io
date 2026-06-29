@@ -193,6 +193,21 @@ a.card.feature {
   margin-bottom: 1rem;
 }
 
+.pillar-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 0.7rem;
+}
+
+/* Sub-sections nested under a pillar: no divider, tucked closer */
+.subsection {
+  border-top: none;
+  padding-top: 0.6rem;
+  padding-bottom: 1.4rem;
+}
+
 .intro {
   font-size: 1.05rem;
   color: var(--muted);
