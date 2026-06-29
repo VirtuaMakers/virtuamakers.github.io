@@ -234,6 +234,17 @@ a.card.feature {
   margin: 0.35rem 0;
 }
 
+.body-quote {
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--text);
+  max-width: 42rem;
+  margin-top: 0.6rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--teal);
+  line-height: 1.6;
+}
+
 /* Cards */
 .cards {
   display: grid;
