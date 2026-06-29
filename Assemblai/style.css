@@ -161,6 +161,23 @@ main {
   border-radius: 8px;
 }
 
+a.card.feature {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.feature-caption {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.feature-caption strong {
+  color: var(--text);
+}
+
 /* Sections */
 .section {
   padding: 3rem 0;
