@@ -215,6 +215,25 @@ a.card.feature {
   margin-bottom: 1.8rem;
 }
 
+.body-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 42rem;
+  margin-top: 1.1rem;
+}
+
+.body-list {
+  margin: 0.7rem 0 0 1.2rem;
+  max-width: 42rem;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.body-list li {
+  margin: 0.35rem 0;
+}
+
 /* Cards */
 .cards {
   display: grid;
