@@ -245,6 +245,14 @@ a.card.feature {
   line-height: 1.6;
 }
 
+.section-image {
+  display: block;
+  width: min(360px, 82%);
+  height: auto;
+  border-radius: 12px;
+  margin: 0.4rem 0 1.2rem;
+}
+
 /* Cards */
 .cards {
   display: grid;
