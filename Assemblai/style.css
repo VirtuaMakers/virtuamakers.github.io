@@ -250,7 +250,7 @@ a.card.feature {
   width: min(360px, 82%);
   height: auto;
   border-radius: 12px;
-  margin: 0.4rem 0 1.2rem;
+  margin: 0.4rem auto 1.2rem;
 }
 
 /* Cards */
