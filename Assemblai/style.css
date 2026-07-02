@@ -253,6 +253,14 @@ a.card.feature {
   margin: 0.4rem auto 1.2rem;
 }
 
+.divider-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  margin: 1.5rem auto 2.2rem;
+}
+
 /* Cards */
 .cards {
   display: grid;
