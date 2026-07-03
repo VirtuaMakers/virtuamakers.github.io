@@ -253,6 +253,16 @@ a.card.feature {
   margin: 0.4rem auto 1.2rem;
 }
 
+.shape-row {
+  text-align: right;
+}
+
+.shape-row img {
+  display: inline-block;
+  width: min(180px, 45%);
+  height: auto;
+}
+
 /* Cards */
 .cards {
   display: grid;
