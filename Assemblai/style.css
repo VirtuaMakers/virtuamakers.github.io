@@ -356,6 +356,10 @@ a.card.feature {
   background: var(--accent-soft);
 }
 
+#join .pill-soon {
+  margin-top: 1rem;
+}
+
 /* Footer */
 .site-footer {
   max-width: var(--maxw);
