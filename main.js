@@ -5,7 +5,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
 // Browsers may block autoplay, so fall back to the visitor's first
 // interaction — a tap, key, scroll, wheel, or touch.
 (function () {
-  var audio = new Audio("assets/startup-hymn2.wav");
+  var audio = new Audio("assets/startup-suno1.mp3");
   audio.preload = "auto";
   audio.volume = 0.5;
   var triggered = false;
