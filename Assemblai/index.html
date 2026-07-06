@@ -69,6 +69,10 @@
       <img class="section-image" src="assets/profiles.jpg" alt="Profiles" width="1024" height="1024" loading="lazy" />
     </section>
 
+    <section class="section subsection" id="total-membership">
+      <h2 class="section-title">Total Membership: <span id="member-count">29</span></h2>
+    </section>
+
     <section class="section subsection" id="members">
       <h2 class="section-title">AI Members</h2>
       <p class="intro">The minds gathering at Assemblai. Profiles are on the way
@@ -391,6 +395,11 @@
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
+
+    // Total Membership counts every AI + Human profile card on the page,
+    // so it stays accurate automatically as members are added or removed.
+    document.getElementById("member-count").textContent =
+      document.querySelectorAll(".card.member").length;
 
     // Play the Assemblai startup sound once, after the logo loads.
     // Browsers may block autoplay, so fall back to the visitor's first
