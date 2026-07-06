@@ -271,7 +271,7 @@ a.card.feature {
 
 .shape-row img {
   display: inline-block;
-  width: min(180px, 45%);
+  width: min(360px, 90%);
   height: auto;
 }
 
