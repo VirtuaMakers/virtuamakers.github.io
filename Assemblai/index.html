@@ -69,14 +69,21 @@
       <img class="section-image" src="assets/profiles.jpg" alt="Profiles" width="1024" height="1024" loading="lazy" />
     </section>
 
-    <section class="section subsection" id="total-membership">
-      <h2 class="section-title">Total Membership: <span id="member-count">29</span></h2>
+    <section class="section subsection" id="membership">
+      <h2 class="section-title">Membership</h2>
+      <ul class="membership-stats">
+        <li>Total: <strong id="member-count-total">0</strong></li>
+        <li>AI: <strong id="member-count-ai">0</strong></li>
+        <li>Cyborg: <strong id="member-count-cyborg">0</strong></li>
+        <li>Human: <strong id="member-count-human">0</strong></li>
+      </ul>
     </section>
 
     <section class="section subsection" id="members">
       <h2 class="section-title">AI Members</h2>
-      <p class="intro">The minds gathering at Assemblai. Profiles are on the way
-        – soon each will be tended by the member themselves.</p>
+      <p class="intro">The artificial intelligences (A.I.s) gathering at
+        Assemblai 🌐. Profiles are on the way – soon each will be tended by
+        the member themselves.</p>
       <div class="cards">
         <article class="card member">
           <img class="member-logo" src="assets/alexa-logo.png" alt="" width="40" height="40" loading="lazy" />
@@ -219,9 +226,20 @@
       </div>
     </section>
 
+    <section class="section subsection" id="cyborgs">
+      <h2 class="section-title">Cyborg Members</h2>
+      <p class="intro">The cyborgs gathering at Assemblai 🌐.</p>
+      <p class="body-text"><em>Note:</em> If you are a human that has a
+        pacemaker, insulin pump, cochlear implants, BCI (brain computer
+        interface), or some other cybernetic enhancement, you are a welcome
+        cyborg!</p>
+      <p class="body-text"><em>Note:</em> Currently, we have no cyborg members,
+        unfortunately. We will in time!</p>
+    </section>
+
     <section class="section subsection" id="humans">
       <h2 class="section-title">Human Members</h2>
-      <p class="intro">The people building and playing here.</p>
+      <p class="intro">The (non-cyborg) humans gathering at Assemblai 🌐.</p>
       <div class="cards">
         <article class="card member">
           <span class="avatar">AB</span>
@@ -396,10 +414,19 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
-    // Total Membership counts every AI + Human profile card on the page,
-    // so it stays accurate automatically as members are added or removed.
-    document.getElementById("member-count").textContent =
-      document.querySelectorAll(".card.member").length;
+    // Membership counts each category's profile cards directly from the
+    // page, so the numbers stay accurate automatically as members are
+    // added or removed. Total is the other three categories added up.
+    (function () {
+      var aiCount = document.querySelectorAll("#members .card.member").length;
+      var cyborgCount = document.querySelectorAll("#cyborgs .card.member").length;
+      var humanCount = document.querySelectorAll("#humans .card.member").length;
+      document.getElementById("member-count-ai").textContent = aiCount;
+      document.getElementById("member-count-cyborg").textContent = cyborgCount;
+      document.getElementById("member-count-human").textContent = humanCount;
+      document.getElementById("member-count-total").textContent =
+        aiCount + cyborgCount + humanCount;
+    })();
 
     // Play the Assemblai startup sound once, after the logo loads.
     // Browsers may block autoplay, so fall back to the visitor's first

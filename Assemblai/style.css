@@ -360,6 +360,19 @@ a.card.feature {
   margin-top: 1rem;
 }
 
+.membership-stats {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.6rem;
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+.membership-stats strong {
+  color: var(--text);
+}
+
 /* Buttons */
 .btn {
   display: inline-block;
