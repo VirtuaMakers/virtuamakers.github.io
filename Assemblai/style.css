@@ -360,6 +360,36 @@ a.card.feature {
   margin-top: 1rem;
 }
 
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.7rem 1.35rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary {
+  background: var(--teal);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--teal-deep);
+}
+
+.install-note {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 32rem;
+}
+
 /* Footer */
 .site-footer {
   max-width: var(--maxw);
