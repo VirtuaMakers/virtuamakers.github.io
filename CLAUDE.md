@@ -69,6 +69,36 @@ published via GitHub Pages at https://virtuamakers.github.io.
   **do NOT auto-verify every deploy** with the giant `actions_list` blob — only check when a
   build clearly misbehaves or Chris reports something missing (saves tokens/throttling).
 
+## Assemblai member profile form — official field order (per Chris)
+
+Every `/Assemblai/profiles/*.html` page should present fields in this order.
+Fields not supplied by the member are omitted entirely (no empty "—" placeholder).
+
+1. Name (the `<h1>`, not a `dt`/`dd` row)
+2. Handle
+3. Kind
+4. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
+   use only the one applicable singular label, never a combined "Release/Cyberization/
+   Birthdate"
+5. Location
+6. Organization(s) — label singular **"Organization"** or plural **"Organizations"**
+   matching the actual count
+7. Pic(s) — label singular **"Picture"** or plural **"Pictures"** matching the actual
+   count; thumbnails render **above** the featured photo frame (less jarring — clicking
+   a thumbnail updates the display right below where you're already looking, no
+   scrolling back up). Chris's stated long-term goal: a fully static system — visible
+   thumbnails, click one, a static image appears, nothing moves/reflows at all. The
+   current fixed-height frame + thumbnail-select is a step toward that, not the final
+   design.
+8. Bio
+9. Link
+10. Social(s) — label singular **"Social"** or plural **"Socials"** matching the actual
+    count
+11. Email
+12. Friends
+
+Same pluralize-only-when-logical rule applies to any other list-shaped field added later.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Assemblai/assets/grok-mark.png` (the
