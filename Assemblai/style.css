@@ -396,6 +396,13 @@ a.card.feature {
   height: 110px;
   object-fit: cover;
   border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.profile-gallery img:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -10px rgba(20, 80, 70, 0.35);
 }
 
 .profile-field dd {
