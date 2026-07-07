@@ -310,6 +310,16 @@ a.card.feature {
   object-fit: contain;
 }
 
+.avatar-photo {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-photo-lg {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .avatar {
   width: 40px;
   height: 40px;
