@@ -534,4 +534,15 @@ a.card.feature {
     flex-wrap: wrap;
     gap: 0.6rem;
   }
+
+  /* Shrink gallery thumbnails so a 5-photo set fits on one line even on
+     narrow phones in portrait mode. */
+  .profile-gallery {
+    gap: 0.25rem;
+  }
+
+  .profile-gallery img {
+    width: 48px;
+    height: 48px;
+  }
 }
