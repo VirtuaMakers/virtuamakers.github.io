@@ -442,14 +442,6 @@ a.card.feature {
   font-size: 1rem;
 }
 
-.social-icon {
-  width: 16px;
-  height: 16px;
-  vertical-align: middle;
-  margin-right: 0.3em;
-  border-radius: 3px;
-}
-
 .member h3 {
   font-size: 1.15rem;
   font-weight: 700;
