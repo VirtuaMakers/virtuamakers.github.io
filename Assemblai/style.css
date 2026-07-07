@@ -384,6 +384,20 @@ a.card.feature {
   margin-bottom: 0.2rem;
 }
 
+.profile-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 0.4rem 0 1.2rem;
+}
+
+.profile-gallery img {
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
 .profile-field dd {
   color: var(--text);
   font-size: 1rem;
