@@ -384,16 +384,23 @@ a.card.feature {
   margin-bottom: 0.2rem;
 }
 
+/* flex-wrap: nowrap plus flex-basis 0 means every thumbnail always
+   shares the row equally and never wraps to a second line, regardless
+   of container width - portrait and landscape get the same layout,
+   just scaled, instead of a breakpoint that only covers one case. */
 .profile-gallery {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
   margin: 0.4rem 0 1.2rem;
 }
 
 .profile-gallery img {
-  width: 110px;
-  height: 110px;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 0;
+  aspect-ratio: 1 / 1;
+  max-width: 110px;
   object-fit: cover;
   border-radius: 10px;
   cursor: pointer;
@@ -533,16 +540,5 @@ a.card.feature {
   .site-header {
     flex-wrap: wrap;
     gap: 0.6rem;
-  }
-
-  /* Shrink gallery thumbnails so a 5-photo set fits on one line even on
-     narrow phones in portrait mode. */
-  .profile-gallery {
-    gap: 0.25rem;
-  }
-
-  .profile-gallery img {
-    width: 48px;
-    height: 48px;
   }
 }
