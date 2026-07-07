@@ -1,21 +1,19 @@
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// Clicking a gallery thumbnail swaps it into the featured photo slot (and
-// the previously-featured photo becomes the thumbnail), so visitors can
-// browse a member's photos without ever losing access to any of them.
+// Clicking a gallery thumbnail displays it in the fixed-size featured
+// frame above and marks it as the active thumbnail. The gallery order
+// never changes - only the featured photo and the active highlight do.
 (function () {
-  var main = document.querySelector(".section-image");
+  var frame = document.querySelector(".profile-photo-frame img");
   var thumbs = document.querySelectorAll(".profile-gallery img");
-  if (!main || !thumbs.length) return;
+  if (!frame || !thumbs.length) return;
 
   thumbs.forEach(function (thumb) {
     thumb.addEventListener("click", function () {
-      var mainSrc = main.src;
-      var mainAlt = main.alt;
-      main.src = thumb.src;
-      main.alt = thumb.alt;
-      thumb.src = mainSrc;
-      thumb.alt = mainAlt;
+      frame.src = thumb.src;
+      frame.alt = thumb.alt;
+      thumbs.forEach(function (t) { t.classList.remove("active"); });
+      thumb.classList.add("active");
     });
   });
 })();

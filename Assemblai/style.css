@@ -405,6 +405,31 @@ a.card.feature {
   box-shadow: 0 8px 20px -10px rgba(20, 80, 70, 0.35);
 }
 
+.profile-gallery img.active {
+  box-shadow: 0 0 0 3px var(--teal);
+}
+
+/* Fixed-height frame so the featured photo doesn't resize the page as
+   visitors click through different-aspect-ratio photos. Height is sized
+   to fully contain the tallest photo in a typical 5-photo set. */
+.profile-photo-frame {
+  width: min(360px, 82%);
+  height: 540px;
+  margin: 0.4rem auto 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.profile-photo-frame img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .profile-field dd {
   color: var(--text);
   font-size: 1rem;
