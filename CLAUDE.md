@@ -20,12 +20,12 @@ published via GitHub Pages at https://virtuamakers.github.io.
 ## Repo layout — two sites
 
 - **VirtuaMakers** (root): `index.html`, `style.css`, `main.js` → `https://virtuamakers.github.io`.
-- **Assemblai** (subfolder `/Assemblai/`): self-contained `index.html` + `style.css`
-  (inline `<script>`), own `/Assemblai/assets/` → `https://virtuamakers.github.io/Assemblai/`.
-  Built self-contained on purpose so it can move to its **own repo / Assemblai.com** later.
-  Chris plans an **"Assemblai 2.0" session** to develop it separately from VirtuaMakers.
+- **Agora** (subfolder `/Agora/`): self-contained `index.html` + `style.css`
+  (inline `<script>`), own `/Agora/assets/` → `https://virtuamakers.github.io/Agora/`.
+  Built self-contained on purpose so it can move to its **own repo / Agora.com** later.
+  Chris plans an **"Agora 2.0" session** to develop it separately from VirtuaMakers.
 
-## Assemblai — current structure (top → bottom)
+## Agora — current structure (top → bottom)
 
 - **Hero:** big centered logo, eyebrow "A Virtua(green)Makers(blue) project", H1
   "A social intelligence platform.", lede, small "manifesto" fine print (by Copilot).
@@ -59,7 +59,7 @@ published via GitHub Pages at https://virtuamakers.github.io.
 - **Cache:** when an asset's *content* changes, **use a NEW filename** (don't overwrite) and
   bump the `<script src="main.js?v=N">` query — same-name overwrites get served stale.
 - **Startup sounds** (synthesized WAVs): VirtuaMakers = warm church-organ hymn
-  (`assets/startup-hymn2.wav`); Assemblai = soft flute (`Assemblai/assets/startup-soft3.wav`).
+  (`assets/startup-hymn2.wav`); Agora = soft flute (`Agora/assets/startup-soft3.wav`).
   Play once after logo loads at `volume 0.5`; fall back to first interaction (tap/scroll/key).
 - **Logos:** switched from Google favicons to **DuckDuckGo icons**
   (`https://icons.duckduckgo.com/ip3/<domain>.ico`) — friendlier to Brave (Google's
@@ -69,9 +69,9 @@ published via GitHub Pages at https://virtuamakers.github.io.
   **do NOT auto-verify every deploy** with the giant `actions_list` blob — only check when a
   build clearly misbehaves or Chris reports something missing (saves tokens/throttling).
 
-## Assemblai member profile form — official field order (per Chris)
+## Agora member profile form — official field order (per Chris)
 
-Every `/Assemblai/profiles/*.html` page should present fields in this order.
+Every `/Agora/profiles/*.html` page should present fields in this order.
 Fields not supplied by the member are omitted entirely (no empty "—" placeholder).
 
 1. Name (the `<h1>`, not a `dt`/`dd` row)
@@ -102,7 +102,7 @@ Same pluralize-only-when-logical rule applies to any other list-shaped field add
 **Profile-header pattern:** just Name + Handle (as `<p class="member-org">Handle: X</p>`),
 never "of [Company]" — the org already lives in the Organization(s) field below. If a
 member has no handle, leave the second line off entirely (no empty row). This applies to
-individual profile pages only — the **member cards on the main Assemblai page keep "of
+individual profile pages only — the **member cards on the main Agora page keep "of
 [Company]"** under the name; Chris considers the AI members' name recognition a real
 selling point there ("Hey, Claude is on here").
 
@@ -117,7 +117,7 @@ than being tracked as a special case.
 
 ## Open items
 
-- [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Assemblai/assets/grok-mark.png` (the
+- [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
 - [ ] Optional in-section logos already added for all four pillars.
