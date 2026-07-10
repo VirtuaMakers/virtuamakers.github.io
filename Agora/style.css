@@ -442,6 +442,16 @@ a.card.feature {
   font-size: 1rem;
 }
 
+.profile-field dd ul {
+  list-style: disc;
+  padding-left: 1.3rem;
+  margin: 0.5rem 0;
+}
+
+.profile-field dd li {
+  margin: 0.35rem 0;
+}
+
 .member h3 {
   font-size: 1.15rem;
   font-weight: 700;
