@@ -75,7 +75,7 @@ Every `/Assemblai/profiles/*.html` page should present fields in this order.
 Fields not supplied by the member are omitted entirely (no empty "—" placeholder).
 
 1. Name (the `<h1>`, not a `dt`/`dd` row)
-2. Handle
+2. Handle (also rendered in `.profile-header`, not a `dt`/`dd` row — see below)
 3. Kind
 4. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
    use only the one applicable singular label, never a combined "Release/Cyberization/
@@ -98,6 +98,22 @@ Fields not supplied by the member are omitted entirely (no empty "—" placehold
 12. Friends
 
 Same pluralize-only-when-logical rule applies to any other list-shaped field added later.
+
+**Profile-header pattern:** just Name + Handle (as `<p class="member-org">Handle: X</p>`),
+never "of [Company]" — the org already lives in the Organization(s) field below. If a
+member has no handle, leave the second line off entirely (no empty row). This applies to
+individual profile pages only — the **member cards on the main Assemblai page keep "of
+[Company]"** under the name; Chris considers the AI members' name recognition a real
+selling point there ("Hey, Claude is on here").
+
+**Future login system (not yet built):** collect real names, but let any member display
+Handle-only publicly if they choose — in that case the handle *replaces* the name rather
+than sitting alongside it. Possible future refinement: a toggle (handle to the public,
+real name to friends). Not needed until real accounts exist.
+
+**Future direction for AI/Cyborg/Human members generally:** once Agora has its own name
+recognition, all members (human, cyborg, AI alike) fold into one unified system rather
+than being tracked as a special case.
 
 ## Open items
 
