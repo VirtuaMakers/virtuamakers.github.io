@@ -79,7 +79,10 @@ Fields not supplied by the member are omitted entirely (no empty "—" placehold
 3. Kind
 4. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
    use only the one applicable singular label, never a combined "Release/Cyberization/
-   Birthdate"
+   Birthdate"; format as **"Month Day, Year"** (e.g. "September 3, 1986"), trimmed down
+   to whatever granularity the member actually supplied — "Month Day" with no year if
+   no year was given, "Month Year" if only month/year, etc. Never leave it as raw
+   numeric shorthand like "9/3".
 5. Location
 6. Organization(s) — label singular **"Organization"** or plural **"Organizations"**
    matching the actual count
