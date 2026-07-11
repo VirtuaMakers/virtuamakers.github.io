@@ -431,6 +431,15 @@ a.card.feature {
   border-bottom: 1px solid var(--line);
 }
 
+.news-image {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 0.7rem;
+}
+
 .news-item a {
   font-weight: 600;
   color: var(--text);
