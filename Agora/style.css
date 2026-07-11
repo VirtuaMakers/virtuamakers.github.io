@@ -420,6 +420,33 @@ a.card.feature {
   margin: 0.35rem 0;
 }
 
+.news-list {
+  list-style: none;
+  margin: 0.9rem 0 0;
+  max-width: 42rem;
+}
+
+.news-item {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.news-item a {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.news-item a:hover {
+  color: var(--teal);
+}
+
+.news-source {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .body-quote {
   font-size: 1.1rem;
   font-style: italic;
