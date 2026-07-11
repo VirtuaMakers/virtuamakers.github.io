@@ -146,6 +146,10 @@ a {
   padding: 1rem;
 }
 
+.signin-modal-backdrop[hidden] {
+  display: none;
+}
+
 .signin-modal {
   position: relative;
   width: min(360px, 100%);
