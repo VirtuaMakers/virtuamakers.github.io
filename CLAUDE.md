@@ -125,24 +125,36 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
 (1) first; (2) and (3) are separate, larger systems for later.
 
 - **Own Firebase project**, separate from Dimonds' (which is scoped to game state).
-  Auth (Email/Password + Google) + Firestore.
-- `Agora/firebase-config.js` - holds `AGORA_FIREBASE_CONFIG` (currently placeholder
-  values) and initializes `AgoraAuth` / `AgoraDB`. **Chris still needs to create the
-  actual Firebase project in console and hand over the real config values** - swap
-  them in, then wire the `<script>` tags (firebase-app-compat.js,
-  firebase-auth-compat.js, firebase-firestore-compat.js, this file) into
-  `index.html` and the profile pages to go live. Uses the same `compat` SDK style
-  as Dimonds' `index.html` (global `firebase` namespace, no build step) for
-  consistency.
-- `Agora/auth.js` - sign-in/sign-up/sign-out helper functions. No UI wiring yet.
+  Project: `agora-firebase-f4240`. Auth (Email/Password + Google) + Firestore, both
+  enabled in console. Real config values are live in `Agora/firebase-config.js`.
+- `Agora/firebase-config.js` - holds `AGORA_FIREBASE_CONFIG` (real values) and
+  initializes `AgoraAuth` / `AgoraDB`. Uses the same `compat` SDK style as Dimonds'
+  `index.html` (global `firebase` namespace, no build step) for consistency.
+- `Agora/auth.js` - sign-in/sign-up/sign-out helper functions
+  (`agoraSignInWithGoogle`, `agoraSignUpWithEmail`, `agoraSignInWithEmail`,
+  `agoraSignOut`, `agoraOnAuthChange`).
+- `Agora/auth-ui.js` - wires the header's Sign in/Sign out controls
+  (`#agora-signin-btn`, `#agora-signout-btn`, `#agora-user-info`,
+  `#agora-user-email`) to auth state. Currently only wired to Google sign-in
+  (button click -> popup); email/password has no UI yet, helpers exist but unused.
 - `Agora/firestore.rules` - reference doc (not auto-deployed - Agora has no
   Firebase CLI step) to paste into the console's Rules editor. One `profiles/{uid}`
   doc per member: world-readable, owner-only write.
-- **Not yet done:** header sign-in/out UI, the generic profile template that reads
-  from Firestore instead of hardcoded HTML per page, the profile-edit form, and the
-  one-time import script to seed Firestore from the existing real profile pages
-  (Claude, Christopher, Alice, Cory Campbell, ChatGPT, Command R, Copilot,
-  DeepSeek, Falcon, Brittany York) so nothing already published is lost.
+- **Header sign-in/out UI is live** on `index.html` and all 31 profile pages (inside
+  a new `.header-right` wrapper alongside the existing back-link). Firebase SDK
+  scripts load from `gstatic.com` - this CDN is unreachable from the sandboxed dev
+  environment (proxy blocks it, same as the Google-favicon issue), so local
+  Playwright checks will always show "firebase is not defined" console errors -
+  that's a sandbox artifact, not a real bug - verify on the live GitHub Pages site
+  instead.
+- **Sign-out is currently unauthenticated-friendly:** anonymous visitors just see
+  "Sign in"; nothing yet gates any page behind auth (all profiles remain publicly
+  readable, matching the rules file).
+- **Not yet done:** the generic profile template that reads from Firestore instead
+  of hardcoded HTML per page, the profile-edit form, and the one-time import script
+  to seed Firestore from the existing real profile pages (Claude, Christopher,
+  Alice, Cory Campbell, ChatGPT, Command R, Copilot, DeepSeek, Falcon, Brittany
+  York) so nothing already published is lost.
 
 ## Open items
 
