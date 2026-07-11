@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css?v=9" />
+  <link rel="stylesheet" href="../style.css?v=10" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -106,12 +106,35 @@
     <a href="../index.html#top">Back to Agora</a>
   </footer>
 
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-facebook">Continue with Facebook</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="../firebase-config.js?v=1"></script>
-  <script src="../auth.js?v=1"></script>
-  <script src="../auth-ui.js?v=2"></script>
+  <script src="../auth.js?v=2"></script>
+  <script src="../auth-ui.js?v=3"></script>
   <script src="../profile.js?v=2"></script>
 </body>
 </html>

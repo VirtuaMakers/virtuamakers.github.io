@@ -135,6 +135,132 @@ a {
   font-size: inherit;
 }
 
+.signin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 20, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 1rem;
+}
+
+.signin-modal {
+  position: relative;
+  width: min(360px, 100%);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.4);
+}
+
+.signin-modal h2 {
+  font-size: 1.3rem;
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.signin-modal-close {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.9rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.signin-modal-close:hover {
+  color: var(--text);
+}
+
+.signin-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.signin-provider-btn {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.signin-provider-btn:hover {
+  border-color: var(--teal);
+  background: var(--accent-soft);
+}
+
+.signin-divider {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+
+.signin-divider::before,
+.signin-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+
+.signin-divider span {
+  padding: 0 0.7rem;
+}
+
+.signin-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.signin-email-form input {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.signin-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+}
+
+.signin-submit-btn {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--teal);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.signin-submit-btn:hover {
+  opacity: 0.9;
+}
+
+.signin-toggle {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 /* Layout */
 main {
   max-width: var(--maxw);
