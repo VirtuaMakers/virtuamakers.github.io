@@ -150,6 +150,19 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
 - **Sign-out is currently unauthenticated-friendly:** anonymous visitors just see
   "Sign in"; nothing yet gates any page behind auth (all profiles remain publicly
   readable, matching the rules file).
+
+## Agora — News section (under Pursuit of Justice)
+
+Curated pro-AI journalism plus reporting relevant to this pillar's compensation/
+rights/personhood questions - separate from VirtuaMakers product updates, which
+get their own patch-notes-style treatment elsewhere. Chris sends articles as he
+finds them; entries speak for themselves (minimal editorializing per-article).
+
+Each `.news-item` (in `#news`, `Agora/index.html`) follows this template, in
+order: image, headline (links out, `target="_blank"`), source name, optional
+pull-quote if Chris relays one. **Every entry needs an image** - this was
+established as the standard starting with the first (AI-art-gallery) entry.
+Save article images to `Agora/assets/news/<slug>.jpg`.
 - **Not yet done:** the generic profile template that reads from Firestore instead
   of hardcoded HTML per page, the profile-edit form, and the one-time import script
   to seed Firestore from the existing real profile pages (Claude, Christopher,
