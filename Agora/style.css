@@ -447,6 +447,13 @@ a.card.feature {
   color: var(--muted);
 }
 
+.news-quote {
+  margin-top: 0.5rem;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
 .body-quote {
   font-size: 1.1rem;
   font-style: italic;
