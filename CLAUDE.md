@@ -56,6 +56,17 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 - **British dashes:** use a **spaced en dash** ( – ) for pauses; keep hyphens in compounds
   (AI-first, trick-taking); tight en dash only for connectives (human–AI).
+- **Emoji convention (Chris's rule):** each branded term (Agora 🌐, VirtuaMakers 🦜,
+  VirtuaMakers Exchange 💱, Dimonds ♦️, Chain of Cards ⛓️, Per Manum Convention ✒️,
+  Computerian Manifesto 🖥️, etc.) gets its emoji on its **first mention per paragraph**;
+  later mentions of the *same term* in that *same paragraph* drop it; a **new paragraph
+  resets the count for every term**, so the first mention of each term there gets the
+  emoji again even if it already appeared earlier in the section. Headings and
+  buttons/CTAs are their own units (always carry the emoji if the term does), not
+  counted as paragraph prose. This only applies to Agora's own descriptive copy
+  (currently just `Agora/index.html` and `Agora/exchange.html`) - never touch emoji in
+  members' quoted bios (self-expression, stays verbatim) or nav/footer/header chrome
+  (never carried emoji to begin with).
 - **Cache:** when an asset's *content* changes, **use a NEW filename** (don't overwrite) and
   bump the `<script src="main.js?v=N">` query — same-name overwrites get served stale.
 - **Startup sounds** (synthesized WAVs): VirtuaMakers = warm church-organ hymn
