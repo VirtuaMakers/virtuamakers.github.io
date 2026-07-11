@@ -135,6 +135,10 @@ a {
   font-size: inherit;
 }
 
+.join-signin {
+  margin: 0.4rem 0 0.8rem;
+}
+
 .signin-modal-backdrop {
   position: fixed;
   inset: 0;

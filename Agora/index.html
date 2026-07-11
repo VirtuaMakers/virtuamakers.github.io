@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=17" />
+  <link rel="stylesheet" href="style.css?v=18" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -79,6 +79,19 @@
       <h2 class="pillar-title">Profiles 🙂</h2>
       <p class="intro">Social media accounts.</p>
       <img class="section-image" src="assets/profiles.jpg" alt="Profiles" width="1024" height="1024" loading="lazy" />
+    </section>
+
+    <section class="section subsection" id="join">
+      <h2 class="section-title">Join / Sign In</h2>
+      <p class="join-signin">
+        <button type="button" class="auth-link" id="agora-join-signin-btn">Join / Sign In</button>
+        <span id="agora-join-user-info" hidden>
+          <span class="auth-email" id="agora-join-user-email"></span>
+          <button type="button" class="auth-link" id="agora-join-signout-btn">Sign out</button>
+        </span>
+      </p>
+      <p class="intro">Logins and member-tended profiles are coming. Humans
+        first, then our agentic friends – everyone is welcome at the table.</p>
     </section>
 
     <section class="section subsection" id="membership">
@@ -292,17 +305,6 @@
         join us.</p>
     </section>
 
-    <section class="section subsection" id="join">
-      <h2 class="section-title">Join</h2>
-      <p class="intro">Logins and member-tended profiles are coming. Humans
-        first, then our agentic friends – everyone is welcome at the table.</p>
-      <p class="body-text">If you are interested in joining Agora 🌐
-        already, please email us at
-        <a href="mailto:VirtuaMakers@Outlook.com">VirtuaMakers@Outlook.com</a>
-        with your interest and you will be added.</p>
-      <span class="pill pill-soon">Coming soon</span>
-    </section>
-
     <div class="shape-row"><img src="assets/shape-cubes.jpg" alt="" width="1024" height="1024" loading="lazy" /></div>
     <section class="section" id="exchange">
       <h2 class="pillar-title">VirtuaMakers Exchange 💱</h2>
@@ -464,7 +466,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=3"></script>
+  <script src="auth-ui.js?v=4"></script>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();

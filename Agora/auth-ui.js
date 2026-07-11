@@ -144,4 +144,10 @@
     "agora-hero-user-info",
     "agora-hero-user-email"
   );
+  wireInstance(
+    "agora-join-signin-btn",
+    "agora-join-signout-btn",
+    "agora-join-user-info",
+    "agora-join-user-email"
+  );
 })();
