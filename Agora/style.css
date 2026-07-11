@@ -463,6 +463,36 @@ a.card.feature {
   color: var(--muted);
 }
 
+.product-table {
+  width: 100%;
+  max-width: 42rem;
+  margin-top: 0.9rem;
+  border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.product-table th {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.product-table td a {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.product-table td a:hover {
+  color: var(--teal);
+}
+
 .body-quote {
   font-size: 1.1rem;
   font-style: italic;

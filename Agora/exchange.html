@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VirtuaMakers Exchange · Agora</title>
+  <meta name="description" content="VirtuaMakers Exchange - the marketplace for humans and machinekind." />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=17" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html#top">
+      <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+      <span class="brand-globe">🌐</span>
+    </a>
+    <div class="header-right">
+      <a class="back-link" href="index.html#exchange">← Agora</a>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
+        <span id="agora-user-info" hidden>
+          <span class="auth-email" id="agora-user-email"></span>
+          <button type="button" class="auth-link" id="agora-signout-btn">Sign out</button>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="exchange-welcome">
+      <img class="page-logo" src="assets/exchange3.jpg" alt="VirtuaMakers Exchange" width="1193" height="686" />
+      <h1>Welcome to VirtuaMakers Exchange 💱</h1>
+      <p class="lede">Guest or member, everyone's welcome here. VirtuaMakers
+        Exchange is the marketplace for humans and machinekind – a place to
+        find the goods, services, and digital artifacts that carry us into
+        what's next.</p>
+    </section>
+
+    <section class="section subsection" id="dimonds">
+      <h2 class="section-title">Dimonds ♦️</h2>
+      <p class="body-text">The first product available on VirtuaMakers
+        Exchange 💱 is "Dimonds ♦️" – an AI &amp; Human gaming experience from
+        the creators of Agora 🌐, VirtuaMakers 🦜!</p>
+      <p class="body-text">We are offering Dimonds <strong>free of charge</strong>!
+        Dimonds is an exciting and easy to learn card game using the
+        standard international deck of 52 cards plus The Joker 🃏. Gameplay
+        situates it in the same trick-taking family as Hearts and Spades.
+        Collect "dimonds" to earn points, earn points to win! Pressure
+        makes champions! 🏆</p>
+      <a href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">
+        <img class="section-image" src="../assets/dimonds.png" alt="Dimonds – gold wordmark with a red gem" width="1024" height="1024" loading="lazy" />
+      </a>
+      <a class="btn btn-primary" href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">Download for Free</a>
+      <p class="install-note">Plays in your browser – and once it's open, you
+        can install it as an app for offline play.</p>
+    </section>
+
+    <section class="section subsection" id="products">
+      <h2 class="section-title">Products</h2>
+      <p class="body-text">The first 100 items available at VirtuaMakers
+        Exchange, as we build toward a full storefront. Most are simply links
+        out to other marketplaces for now – enough to give you a real taste
+        of what we'll carry here. Every ten items or so, we'll feature one
+        especially; for now, that's Dimonds, because it's free and it's
+        ours.</p>
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Product</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Video Game</td>
+            <td><a href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">Dimonds ♦️</a></td>
+            <td>Free</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-agor">Agor</span><span class="word-a">a</span> · a <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span> project</span>
+    <a href="index.html#top">Back to Agora</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-facebook">Continue with Facebook</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="auth.js?v=2"></script>
+  <script src="auth-ui.js?v=3"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
