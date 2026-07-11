@@ -322,10 +322,15 @@ main {
   padding: 0.9rem;
 }
 
+/* aspect-ratio + object-fit:contain keeps every feature tile's image the
+   same height (and centered within that box) regardless of the source
+   image's native aspect ratio, so captions line up across the row even
+   when one tile's artwork isn't a perfect square like the others. */
 .feature-image {
   display: block;
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
   border-radius: 8px;
 }
 
