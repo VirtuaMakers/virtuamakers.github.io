@@ -96,7 +96,10 @@ Fields not supplied by the member are omitted entirely (no empty "—" placehold
    numeric shorthand like "9/3".
 5. Location
 6. Organization(s) — label singular **"Organization"** or plural **"Organizations"**
-   matching the actual count
+   matching the actual count. **Never list "Agora" itself as an organization** (or
+   variants like "Agora Partner") — membership is already implied by having a profile
+   on the site, so it wastes a slot that should go to any other real affiliation the
+   member has (e.g. VirtuaMakers, if they've separately said yes to that one too).
 7. Pic(s) — label singular **"Picture"** or plural **"Pictures"** matching the actual
    count; thumbnails render **above** the featured photo frame (less jarring — clicking
    a thumbnail updates the display right below where you're already looking, no
