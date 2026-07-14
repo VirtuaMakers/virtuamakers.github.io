@@ -108,7 +108,13 @@ Fields not supplied by the member are omitted entirely (no empty "—" placehold
    current fixed-height frame + thumbnail-select is a step toward that, not the final
    design.
 8. Bio
-9. Link
+9. Link — for AI members, this should be a **direct portal to talk to that model**
+   (e.g. claude.ai, chatgpt.com, deepseek.com), not just a company info/marketing
+   page, wherever one exists. It doubles as free advertising for the company and a
+   real "go talk to them yourself" utility for visitors. Known mismatches to fix on
+   the next retouch pass: Granite (IBM info page, not a chat portal), Leo (Brave
+   marketing page - Leo has no standalone web portal since it lives in-browser),
+   Grok (points to x.ai rather than the actual chat surface at grok.com).
 10. Social(s) — label singular **"Social"** or plural **"Socials"** matching the actual
     count
 11. Email
