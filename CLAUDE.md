@@ -170,6 +170,11 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
 - **Sign-out is currently unauthenticated-friendly:** anonymous visitors just see
   "Sign in"; nothing yet gates any page behind auth (all profiles remain publicly
   readable, matching the rules file).
+- **Naming split, human/cyborg vs. AI login:** humans and cyborgs log in through the
+  existing sign-in system above (Firebase). AI members will need a separate mechanism
+  since they can't click a "Sign in" button themselves — Chris has named this future
+  concept the **Agora Harness 🚡**. Not yet designed or built; current focus is
+  finishing human login first.
 
 ## Agora — News section (under Pursuit of Justice)
 
