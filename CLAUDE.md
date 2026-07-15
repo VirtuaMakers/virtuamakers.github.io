@@ -175,11 +175,22 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
   since they can't click a "Sign in" button themselves — Chris has named this future
   concept the **Agora Harness 🚡**. Not yet designed or built; current focus is
   finishing human login first.
-- **Facebook/X sign-in not working yet — expected.** Buttons are wired
-  (`agoraSignInWithFacebook`/`agoraSignInWithX` in `auth.js`), but each provider needs
-  a developer app registered with Meta for Developers / the X developer portal (App
-  ID + Secret) pasted into Firebase console's Sign-in method config first. Until then,
-  clicking them throws "operation-not-allowed" — not a bug.
+- **Facebook sign-in removed (deferred indefinitely).** Chris's only Facebook
+  account got permanently banned within minutes of creation for unclear reasons; his
+  old account (which he wants to reclaim) needs ID verification to recover, and his
+  IDs were stolen along with his wallet and haven't been replaced yet. Rather than
+  block on that, the Facebook button/wiring was removed site-wide (`auth.js`,
+  `auth-ui.js`, every page's sign-in modal) on 2026-07-15. Revisit once he's able to
+  log into Facebook again — it's on his personal to-do list/Trello, not ours.
+- **X sign-in is live and working** (as of 2026-07-15). Set up via the X Developer
+  Console (`console.x.com`) — OAuth 1.0a Consumer Key/Secret pasted into Firebase's
+  Twitter/X sign-in method, callback URI set to
+  `https://agora-firebase-f4240.firebaseapp.com/__/auth/handler` in X's "User
+  authentication settings." Requesting the user's email from X additionally requires
+  Terms of Service and Privacy Policy URLs on the X app (Agora now has both — see
+  `Agora/privacy.html` and `Agora/terms.html`), but the "Request email" checkbox
+  never appeared even after adding them — possibly gated behind a paid X API tier.
+  Not investigated further since it's a nice-to-have, not a blocker.
 - **Google sign-in shows an ugly domain name** ("to continue to
   agora-firebase-f4240.firebaseapp.com") instead of "Agora." This is NOT controlled by
   the OAuth consent screen's "Public-facing name" field (already set to Agora) —

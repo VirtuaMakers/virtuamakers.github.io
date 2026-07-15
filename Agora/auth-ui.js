@@ -15,7 +15,6 @@
   var toggleModeBtn = document.getElementById("agora-toggle-mode");
   var toggleText = document.getElementById("agora-toggle-text");
   var googleBtn = document.getElementById("agora-provider-google");
-  var facebookBtn = document.getElementById("agora-provider-facebook");
   var xBtn = document.getElementById("agora-provider-x");
 
   var signUpMode = false;
@@ -70,14 +69,6 @@
   if (googleBtn) {
     googleBtn.addEventListener("click", function () {
       agoraSignInWithGoogle().then(closeModal).catch(function (err) {
-        showError(err.message);
-      });
-    });
-  }
-
-  if (facebookBtn) {
-    facebookBtn.addEventListener("click", function () {
-      agoraSignInWithFacebook().then(closeModal).catch(function (err) {
         showError(err.message);
       });
     });
