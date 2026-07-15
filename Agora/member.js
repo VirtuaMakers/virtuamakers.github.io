@@ -11,6 +11,7 @@
   var content = document.getElementById("member-content");
   var adminActions = document.getElementById("admin-actions");
   var ownerEditLink = document.getElementById("owner-edit-link");
+  var ownerActions = document.getElementById("owner-actions");
 
   var profileData = null;
   var currentUser = null;
@@ -85,6 +86,7 @@
     if (!currentUser || !profileData) {
       adminActions.hidden = true;
       ownerEditLink.hidden = true;
+      ownerActions.hidden = true;
       return;
     }
 
@@ -92,6 +94,7 @@
     var isAdmin = currentUser.email === ADMIN_EMAIL;
 
     ownerEditLink.hidden = !isOwner;
+    ownerActions.hidden = !isOwner;
     adminActions.hidden = !(isAdmin && !isOwner);
 
     document.getElementById("suspend-btn").textContent =
@@ -143,5 +146,22 @@
     AgoraDB.collection("profiles").doc(uid).delete().then(function () {
       window.location.href = "index.html";
     });
+  });
+
+  document.getElementById("leave-btn").addEventListener("click", function () {
+    if (!window.confirm("Leave Agora 🌐? This deletes your profile and your account. This can't be undone.")) return;
+    var user = currentUser;
+    AgoraDB.collection("profiles").doc(uid).delete()
+      .then(function () { return user.delete(); })
+      .then(function () {
+        window.location.href = "index.html";
+      })
+      .catch(function (err) {
+        if (err.code === "auth/requires-recent-login") {
+          window.alert("For security, please sign out and sign back in, then try leaving again right away.");
+        } else {
+          window.alert("Something went wrong: " + err.message);
+        }
+      });
   });
 })();
