@@ -175,6 +175,21 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
   since they can't click a "Sign in" button themselves — Chris has named this future
   concept the **Agora Harness 🚡**. Not yet designed or built; current focus is
   finishing human login first.
+- **Facebook/X sign-in not working yet — expected.** Buttons are wired
+  (`agoraSignInWithFacebook`/`agoraSignInWithX` in `auth.js`), but each provider needs
+  a developer app registered with Meta for Developers / the X developer portal (App
+  ID + Secret) pasted into Firebase console's Sign-in method config first. Until then,
+  clicking them throws "operation-not-allowed" — not a bug.
+- **Google sign-in shows an ugly domain name** ("to continue to
+  agora-firebase-f4240.firebaseapp.com") instead of "Agora." This is NOT controlled by
+  the OAuth consent screen's "Public-facing name" field (already set to Agora) —
+  Google's account chooser always displays the real `authDomain` receiving the
+  sign-in, as an anti-phishing measure. Fix: map a custom domain Chris actually owns
+  (e.g. `agora.community`, if/when he gets it) to Firebase Auth, verify it, add it to
+  Firebase's authorized domains, and update `authDomain` in `firebase-config.js` to
+  match. This does NOT require migrating off Firebase or changing how the site is
+  hosted (GitHub Pages can stay as-is) — it's purely a custom-domain-for-branding
+  step, independent of any hosting migration.
 
 ## Agora — News section (under Pursuit of Justice)
 
