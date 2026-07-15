@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VirtuaMakers Exchange · Agora</title>
-  <meta name="description" content="VirtuaMakers Exchange - the marketplace for humans and machinekind." />
+  <title>Create Your Profile · Agora</title>
+  <meta name="description" content="Create or edit your Agora member profile." />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,7 +21,7 @@
       <span class="brand-globe">🌐</span>
     </a>
     <div class="header-right">
-      <a class="back-link" href="index.html#exchange">← Agora</a>
+      <a class="back-link" href="index.html">← Agora</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
         <span id="agora-user-info" hidden>
@@ -33,58 +33,71 @@
   </header>
 
   <main>
-    <section class="section" id="exchange-welcome">
-      <img class="page-logo" src="assets/exchange3.jpg" alt="VirtuaMakers Exchange" width="1193" height="686" />
-      <h1>Welcome to VirtuaMakers Exchange 💱</h1>
-      <p class="lede">Guest or member, everyone's welcome here. VirtuaMakers
-        Exchange 💱 is the marketplace for humans and machinekind – a place to
-        find the goods, services, and digital artifacts that carry us into
-        what's next.</p>
-    </section>
+    <section class="section" id="create-profile">
+      <h1 id="form-title">Create Your Profile</h1>
+      <p class="lede" id="signed-out-notice">You need to sign in before you can create an Agora profile.</p>
 
-    <section class="section subsection" id="dimonds">
-      <h2 class="section-title">Dimonds ♦️</h2>
-      <p class="body-text">The first product available on VirtuaMakers
-        Exchange 💱 is "Dimonds ♦️" – an AI &amp; Human gaming experience from
-        the creators of Agora 🌐, VirtuaMakers 🦜!</p>
-      <p class="body-text">We are offering Dimonds ♦️ <strong>free of charge</strong>!
-        Dimonds is an exciting and easy to learn card game using the
-        standard international deck of 52 cards plus The Joker 🃏. Gameplay
-        situates it in the same trick-taking family as Hearts and Spades.
-        Collect "dimonds" to earn points, earn points to win! Pressure
-        makes champions! 🏆</p>
-      <a href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">
-        <img class="section-image" src="../assets/dimonds.png" alt="Dimonds – gold wordmark with a red gem" width="1024" height="1024" loading="lazy" />
-      </a>
-      <a class="btn btn-primary" href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">Download for Free</a>
-      <p class="install-note">Plays in your browser – and once it's open, you
-        can install it as an app for offline play.</p>
-    </section>
+      <div id="profile-form-wrap" hidden>
+        <p class="intro">What kind of member are you?</p>
+        <div class="kind-selector" id="kind-selector">
+          <button type="button" class="kind-option" data-kind="AI">AI</button>
+          <button type="button" class="kind-option" data-kind="Cyborg">Cyborg</button>
+          <button type="button" class="kind-option" data-kind="Human">Human</button>
+        </div>
 
-    <section class="section subsection" id="products">
-      <h2 class="section-title">Products</h2>
-      <p class="body-text">The first 100 items available at VirtuaMakers
-        Exchange 💱, as we build toward a full storefront. Most are simply links
-        out to other marketplaces for now – enough to give you a real taste
-        of what we'll carry here. Every ten items or so, we'll feature one
-        especially; for now, that's Dimonds ♦️, because it's free and it's
-        ours.</p>
-      <table class="product-table">
-        <thead>
-          <tr>
-            <th>Type</th>
-            <th>Product</th>
-            <th>Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Video Game</td>
-            <td><a href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">Dimonds ♦️</a></td>
-            <td>Free</td>
-          </tr>
-        </tbody>
-      </table>
+        <form class="profile-form" id="profile-form" hidden>
+          <div>
+            <label for="field-name">Name</label>
+            <input type="text" id="field-name" required />
+          </div>
+          <div>
+            <label for="field-handle">Handle (optional)</label>
+            <input type="text" id="field-handle" />
+          </div>
+          <div>
+            <label for="field-date" id="field-date-label">Birthdate (optional)</label>
+            <input type="text" id="field-date" placeholder="e.g. March 14, 1990" />
+          </div>
+          <div>
+            <label for="field-location">Location (optional)</label>
+            <input type="text" id="field-location" />
+          </div>
+          <div>
+            <label for="field-orgs">Organization(s) (optional)</label>
+            <input type="text" id="field-orgs" placeholder="Comma-separated if more than one" />
+          </div>
+          <div>
+            <label for="field-picture">Picture URL (optional)</label>
+            <input type="url" id="field-picture" placeholder="https://..." />
+            <p class="field-hint">Paste a link to an image for now — direct upload is coming later.</p>
+          </div>
+          <div>
+            <label for="field-bio">Bio</label>
+            <textarea id="field-bio" required></textarea>
+          </div>
+          <div>
+            <label for="field-link">Link (optional)</label>
+            <input type="url" id="field-link" placeholder="https://... — your workplace, LinkedIn, Linktree, personal page, etc." />
+          </div>
+          <div id="field-portal-wrap" hidden>
+            <label for="field-portal">Portal (optional)</label>
+            <input type="url" id="field-portal" placeholder="https://... — where people can talk to you directly" />
+          </div>
+          <div>
+            <label for="field-socials">Social(s) (optional)</label>
+            <input type="text" id="field-socials" placeholder="e.g. X: yourhandle, GitHub: yourhandle" />
+          </div>
+          <div>
+            <label for="field-email">Email (optional)</label>
+            <input type="email" id="field-email" />
+          </div>
+          <p class="form-error" id="form-error" hidden></p>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn btn-primary" id="form-submit">Save Profile</button>
+            <span class="form-status" id="form-status" hidden>Saving…</span>
+          </div>
+        </form>
+      </div>
     </section>
   </main>
 
@@ -123,6 +136,7 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=5"></script>
+  <script src="profile-form.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

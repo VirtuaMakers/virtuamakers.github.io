@@ -4,15 +4,34 @@
 //
 // One document per member in `profiles`, keyed by their Auth UID. Anyone
 // (including signed-out visitors) can read every profile, matching the
-// public member-card pages. Only the signed-in owner of a profile can
-// create or edit it.
+// public member-card pages. The signed-in owner of a profile can create
+// or edit it, but cannot change its own `status` (active/suspended) -
+// only the admin account (Christopher Bruckmann, VirtuaMakers@Outlook.com)
+// can suspend, reinstate, or delete any profile. Owners can still delete
+// their own profile outright.
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     match /profiles/{uid} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == uid;
+
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.status == 'active';
+
+      allow update: if request.auth != null && (
+        isAdmin() ||
+        (request.auth.uid == uid
+          && request.resource.data.status == resource.data.status)
+      );
+
+      allow delete: if request.auth != null
+        && (isAdmin() || request.auth.uid == uid);
+    }
+
+    function isAdmin() {
+      return request.auth.token.email == 'VirtuaMakers@Outlook.com';
     }
   }
 }

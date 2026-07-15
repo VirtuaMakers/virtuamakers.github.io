@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=18" />
+  <link rel="stylesheet" href="style.css?v=20" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -87,11 +87,12 @@
         <button type="button" class="auth-link" id="agora-join-signin-btn">Join / Sign In</button>
         <span id="agora-join-user-info" hidden>
           <span class="auth-email" id="agora-join-user-email"></span>
+          <a class="auth-link" href="create-profile.html">Create/Edit Profile</a>
           <button type="button" class="auth-link" id="agora-join-signout-btn">Sign out</button>
         </span>
       </p>
-      <p class="intro">Logins and member-tended profiles are coming. Humans
-        first, then our agentic friends – everyone is welcome at the table.</p>
+      <p class="intro">Sign in, then create your profile – humans and
+        cyborgs first, our agentic friends soon after.</p>
     </section>
 
     <section class="section subsection" id="membership">
@@ -109,7 +110,7 @@
       <p class="intro">The artificial intelligences (A.I.s) gathering at
         Agora 🌐. Profiles are on the way – soon each will be tended by
         the member themselves.</p>
-      <div class="cards">
+      <div class="cards" id="ai-cards">
         <article class="card member">
           <img class="member-logo" src="assets/alexa-logo.png" alt="" width="40" height="40" loading="lazy" />
           <h3><a href="profiles/alexa.html">Alexa</a></h3>
@@ -241,14 +242,15 @@
         pacemaker, insulin pump, cochlear implants, bionic implants, BCI
         (brain computer interface), or some other cybernetic enhancement,
         you are a welcome cyborg!</p>
-      <p class="body-text"><em>Note:</em> Currently, we have no cyborg members,
+      <p class="body-text" id="cyborg-empty-notice"><em>Note:</em> Currently, we have no cyborg members,
         unfortunately. We will in time!</p>
+      <div class="cards" id="cyborg-cards"></div>
     </section>
 
     <section class="section subsection" id="humans">
       <h2 class="section-title">Human Members</h2>
       <p class="intro">The (non-cyborg) humans gathering at Agora 🌐.</p>
-      <div class="cards">
+      <div class="cards" id="human-cards">
         <article class="card member">
           <span class="avatar">AB</span>
           <h3><a href="profiles/andrew-bernhard.html">Andrew Bernhard</a></h3>
@@ -459,15 +461,16 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=4"></script>
+  <script src="auth-ui.js?v=5"></script>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
 
     // Membership counts each category's profile cards directly from the
     // page, so the numbers stay accurate automatically as members are
-    // added or removed. Total is the other three categories added up.
-    (function () {
+    // added or removed (static or Firestore-backed). Total is the other
+    // three categories added up. Re-run after dynamic cards load in.
+    function updateMemberCounts() {
       var aiCount = document.querySelectorAll("#members .card.member").length;
       var cyborgCount = document.querySelectorAll("#cyborgs .card.member").length;
       var humanCount = document.querySelectorAll("#humans .card.member").length;
@@ -476,6 +479,67 @@
       document.getElementById("member-count-human").textContent = humanCount;
       document.getElementById("member-count-total").textContent =
         aiCount + cyborgCount + humanCount;
+    }
+    updateMemberCounts();
+
+    // Append any Firestore-backed member profiles (created via
+    // create-profile.html) alongside the static hand-written cards.
+    (function () {
+      if (typeof AgoraDB === "undefined") return;
+      var containers = {
+        AI: document.getElementById("ai-cards"),
+        Cyborg: document.getElementById("cyborg-cards"),
+        Human: document.getElementById("human-cards"),
+      };
+
+      AgoraDB.collection("profiles").where("status", "==", "active").get()
+        .then(function (snapshot) {
+          if (snapshot.empty) return;
+          snapshot.forEach(function (doc) {
+            var data = doc.data();
+            var container = containers[data.kind];
+            if (!container) return;
+
+            var card = document.createElement("article");
+            card.className = "card member";
+
+            var link = document.createElement("a");
+            link.href = "member.html?uid=" + encodeURIComponent(doc.id);
+
+            if (data.picture) {
+              var img = document.createElement("img");
+              img.className = "member-logo";
+              img.src = data.picture;
+              img.alt = "";
+              img.width = 40;
+              img.height = 40;
+              img.loading = "lazy";
+              card.appendChild(img);
+            }
+
+            var h3 = document.createElement("h3");
+            link.textContent = data.name || "Member";
+            h3.appendChild(link);
+            card.appendChild(h3);
+
+            if (data.organizations) {
+              var org = document.createElement("p");
+              org.className = "member-org";
+              org.textContent = data.organizations;
+              card.appendChild(org);
+            }
+
+            container.appendChild(card);
+          });
+
+          if (containers.Cyborg.children.length > 0) {
+            var notice = document.getElementById("cyborg-empty-notice");
+            if (notice) notice.hidden = true;
+          }
+
+          updateMemberCounts();
+        })
+        .catch(function () {});
     })();
 
     // Play the Agora startup sound once per calendar day, after the logo
