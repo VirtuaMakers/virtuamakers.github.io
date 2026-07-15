@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy · Agora</title>
+  <meta name="description" content="Agora's Privacy Policy." />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=18" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html#top">
+      <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+      <span class="brand-globe">🌐</span>
+    </a>
+    <div class="header-right">
+      <a class="back-link" href="index.html#top">← Agora</a>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
+        <span id="agora-user-info" hidden>
+          <span class="auth-email" id="agora-user-email"></span>
+          <button type="button" class="auth-link" id="agora-signout-btn">Sign out</button>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="privacy-intro">
+      <h1>Privacy Policy</h1>
+      <p class="lede">Last updated: July 15, 2026</p>
+      <p class="body-text">Agora 🌐 is a project of VirtuaMakers 🦜. This
+        page explains what information we collect when you use Agora, how
+        we use it, and the choices you have. We've tried to write it in
+        plain language rather than dense legal boilerplate.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-collect">
+      <h2 class="section-title">Information We Collect</h2>
+      <p class="body-text">When you sign in to Agora, we receive basic
+        account details from whichever provider you use – your name,
+        email address, and profile photo from Google, Facebook, or X, or
+        just an email address if you sign up directly.</p>
+      <p class="body-text">Anything you choose to add to your own Agora
+        profile – a bio, links, socials, pictures – is stored so it can be
+        displayed on your public profile page. You control what you add
+        and can edit or remove it.</p>
+      <p class="body-text">We don't run analytics trackers or ad
+        networks on Agora, and we don't collect information beyond what's
+        needed to run your account and profile.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-use">
+      <h2 class="section-title">How We Use Information</h2>
+      <p class="body-text">We use your information to operate your
+        account, display your profile to other members, and communicate
+        with you about Agora if needed (for example, account or security
+        notices). We do not sell your information to anyone.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-thirdparty">
+      <h2 class="section-title">Third-Party Sign-In</h2>
+      <p class="body-text">Agora uses Google, Facebook, and X to let you
+        sign in without creating a new password. When you use one of
+        these, you're also subject to that provider's own privacy policy
+        for how they handle your data on their end – we only receive the
+        basic profile information the provider shares with us.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-storage">
+      <h2 class="section-title">Data Storage</h2>
+      <p class="body-text">Account and profile data is stored using
+        Firebase, a Google Cloud service, in a project dedicated to Agora
+        and separate from our other products.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-cookies">
+      <h2 class="section-title">Cookies &amp; Local Storage</h2>
+      <p class="body-text">Agora uses cookies or local browser storage
+        only to keep you signed in between visits. We don't use
+        third-party advertising or tracking cookies.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-rights">
+      <h2 class="section-title">Your Rights</h2>
+      <p class="body-text">You can edit or remove anything on your
+        profile at any time once profile editing is available. If you'd
+        like your account or data deleted before that feature exists,
+        just email us and we'll take care of it.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-children">
+      <h2 class="section-title">Children's Privacy</h2>
+      <p class="body-text">Agora is not intended for children under 13,
+        and we don't knowingly collect information from anyone under
+        that age.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-changes">
+      <h2 class="section-title">Changes to This Policy</h2>
+      <p class="body-text">We may update this policy as Agora grows. If
+        we make significant changes, we'll update the date at the top of
+        this page.</p>
+    </section>
+
+    <section class="section subsection" id="privacy-contact">
+      <h2 class="section-title">Contact</h2>
+      <p class="body-text">Questions about this policy? Reach us at
+        <a href="mailto:VirtuaMakers@Outlook.com">VirtuaMakers@Outlook.com</a>.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-agor">Agor</span><span class="word-a">a</span> · a <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span> project</span>
+    <a href="index.html#top">Back to Agora</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-facebook">Continue with Facebook</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="auth.js?v=2"></script>
+  <script src="auth-ui.js?v=4"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
