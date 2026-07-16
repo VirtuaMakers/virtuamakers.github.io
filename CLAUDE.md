@@ -203,12 +203,17 @@ Each `.news-item` (in `#news`, `Agora/index.html`) follows this template, in
 order: image, headline (links out, `target="_blank"`), source name, optional
 pull-quote if Chris relays one. **Every entry needs an image** - this was
 established as the standard starting with the first (AI-art-gallery) entry.
-Save article images to `Agora/assets/news/<slug>.jpg`.
-- **Not yet done:** the generic profile template that reads from Firestore instead
-  of hardcoded HTML per page, the profile-edit form, and the one-time import script
-  to seed Firestore from the existing real profile pages (Claude, Christopher,
-  Alice, Cory Campbell, ChatGPT, Command R, Copilot, DeepSeek, Falcon, Brittany
-  York) so nothing already published is lost.
+Save article images to `Agora/assets/news/<slug>.jpg`. New entries go at the
+**top** of `.news-list` (newest first).
+
+**Cadence goal:** at least one pro-AI article published per week, on
+Wednesdays after 5:00pm.
+
+- **Done:** Firestore-backed profile creation/editing (`create-profile.html`,
+  `member.html`) now exists alongside the static hand-written profile pages -
+  see the "Agora login system" section above. The static pages (Claude,
+  Christopher, Alice, etc.) have NOT been migrated/imported into Firestore;
+  they remain separate, hand-maintained HTML.
 
 ## Open items
 
