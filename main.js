@@ -1,10 +1,20 @@
 // Keep the footer year current without touching the markup.
 document.getElementById("year").textContent = new Date().getFullYear();
 
-// Play the VirtuaMakers startup sound once, after the logo loads.
-// Browsers may block autoplay, so fall back to the visitor's first
+// Play the VirtuaMakers startup sound once per calendar day, after the logo
+// loads. Browsers may block autoplay, so fall back to the visitor's first
 // interaction — a tap, key, scroll, wheel, or touch.
 (function () {
+  var STORAGE_KEY = "vmStartupSoundLastPlayed";
+  var today = new Date().toISOString().slice(0, 10);
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === today) return;
+  } catch (e) {}
+
+  function markPlayedToday() {
+    try { localStorage.setItem(STORAGE_KEY, today); } catch (e) {}
+  }
+
   var audio = new Audio("assets/startup-suno1.mp3");
   audio.preload = "auto";
   audio.volume = 0.5;
@@ -17,7 +27,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
       triggered = true;
       events.forEach(function (e) { window.removeEventListener(e, onFirst); });
       try { audio.currentTime = 0; } catch (e) {}
-      audio.play().catch(function () {});
+      audio.play().then(markPlayedToday).catch(function () {});
     };
     events.forEach(function (e) {
       window.addEventListener(e, onFirst, { once: true, passive: true });
@@ -28,8 +38,10 @@ document.getElementById("year").textContent = new Date().getFullYear();
     if (triggered) return;
     triggered = true;
     var p = audio.play();
-    if (p && p.catch) {
-      p.catch(function () { triggered = false; startOnInteract(); });
+    if (p && p.then) {
+      p.then(markPlayedToday).catch(function () { triggered = false; startOnInteract(); });
+    } else {
+      markPlayedToday();
     }
   }
 
