@@ -97,11 +97,20 @@
     });
   }
 
-  function wireInstance(signInId, signOutId, userInfoId, userEmailId, formatText) {
+  // Agora never shows a signed-in visitor's raw email address – only
+  // their Agora profile name (or handle, once a name/handle preference
+  // exists), falling back to their provider display name before their
+  // profile has loaded. The name doubles as a link to their own profile.
+  function memberUrl(uid) {
+    var base = window.location.pathname.indexOf("/profiles/") !== -1 ? "../member.html" : "member.html";
+    return base + "?uid=" + encodeURIComponent(uid);
+  }
+
+  function wireInstance(signInId, signOutId, userInfoId, userNameId) {
     var signInBtn = document.getElementById(signInId);
     var signOutBtn = document.getElementById(signOutId);
     var userInfo = document.getElementById(userInfoId);
-    var userEmail = document.getElementById(userEmailId);
+    var nameLink = document.getElementById(userNameId);
     if (!signInBtn) return;
 
     signInBtn.addEventListener("click", openModal);
@@ -112,18 +121,26 @@
     }
 
     agoraOnAuthChange(function (user) {
-      if (user) {
-        signInBtn.hidden = true;
-        if (userInfo) userInfo.hidden = false;
-        if (userEmail) {
-          userEmail.textContent = formatText
-            ? formatText(user)
-            : (user.email || user.displayName || "");
-        }
-      } else {
+      if (!user) {
         signInBtn.hidden = false;
         if (userInfo) userInfo.hidden = true;
+        return;
       }
+
+      signInBtn.hidden = true;
+      if (userInfo) userInfo.hidden = false;
+      if (!nameLink) return;
+
+      nameLink.textContent = user.displayName || "friend";
+      nameLink.removeAttribute("href");
+
+      if (typeof AgoraDB === "undefined") return;
+      AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+        if (!doc.exists) return;
+        var data = doc.data();
+        nameLink.textContent = data.name || data.handle || user.displayName || "friend";
+        nameLink.href = memberUrl(user.uid);
+      }).catch(function () {});
     });
   }
 
@@ -137,8 +154,7 @@
     "agora-hero-signin-btn",
     "agora-hero-signout-btn",
     "agora-hero-user-info",
-    "agora-hero-user-email",
-    function (user) { return "Welcome, " + (user.displayName || user.email || "friend") + "!"; }
+    "agora-hero-user-email"
   );
   wireInstance(
     "agora-join-signin-btn",
