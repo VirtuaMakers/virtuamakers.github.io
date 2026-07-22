@@ -436,6 +436,10 @@ main {
   height: 20px;
 }
 
+.credit-emoji {
+  text-decoration: none;
+}
+
 /* Footer */
 /* Social */
 .social-links {
