@@ -97,7 +97,7 @@
     });
   }
 
-  function wireInstance(signInId, signOutId, userInfoId, userEmailId) {
+  function wireInstance(signInId, signOutId, userInfoId, userEmailId, formatText) {
     var signInBtn = document.getElementById(signInId);
     var signOutBtn = document.getElementById(signOutId);
     var userInfo = document.getElementById(userInfoId);
@@ -115,7 +115,11 @@
       if (user) {
         signInBtn.hidden = true;
         if (userInfo) userInfo.hidden = false;
-        if (userEmail) userEmail.textContent = user.email || user.displayName || "";
+        if (userEmail) {
+          userEmail.textContent = formatText
+            ? formatText(user)
+            : (user.email || user.displayName || "");
+        }
       } else {
         signInBtn.hidden = false;
         if (userInfo) userInfo.hidden = true;
@@ -133,7 +137,8 @@
     "agora-hero-signin-btn",
     "agora-hero-signout-btn",
     "agora-hero-user-info",
-    "agora-hero-user-email"
+    "agora-hero-user-email",
+    function (user) { return "Welcome, " + (user.displayName || user.email || "friend") + "!"; }
   );
   wireInstance(
     "agora-join-signin-btn",
