@@ -15,6 +15,9 @@
   var locationInput = document.getElementById("field-location");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
+  var pictureInput = document.getElementById("field-picture");
+  var pictureUpload = document.getElementById("field-picture-upload");
+  var pictureUploadStatus = document.getElementById("field-picture-upload-status");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
@@ -52,6 +55,36 @@
       selectKind(btn.dataset.kind);
     });
   });
+
+  // Uploads go to Firebase Storage, which only exists once the project is
+  // on the Blaze plan and this has been deployed. Until then this fails
+  // and members fall back to pasting a Picture URL directly, same as today.
+  if (pictureUpload) {
+    pictureUpload.addEventListener("change", function () {
+      var file = pictureUpload.files[0];
+      if (!file || !currentUser) return;
+
+      if (typeof firebase === "undefined" || !firebase.storage) {
+        pictureUploadStatus.textContent = "Uploads aren't available yet — please paste a link above instead.";
+        pictureUploadStatus.hidden = false;
+        return;
+      }
+
+      pictureUploadStatus.textContent = "Uploading…";
+      pictureUploadStatus.hidden = false;
+
+      var ref = firebase.storage().ref("profile-pictures/" + currentUser.uid + "/" + file.name);
+      ref.put(file)
+        .then(function (snapshot) { return snapshot.ref.getDownloadURL(); })
+        .then(function (url) {
+          pictureInput.value = url;
+          pictureUploadStatus.textContent = "Uploaded! The Picture URL field above has been filled in.";
+        })
+        .catch(function () {
+          pictureUploadStatus.textContent = "Uploads aren't available yet — please paste a link above instead.";
+        });
+    });
+  }
 
   function fillForm(data) {
     document.getElementById("field-name").value = data.name || "";

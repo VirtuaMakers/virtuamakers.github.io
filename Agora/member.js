@@ -133,19 +133,44 @@
     loadProfile();
   });
 
+  // Both admin actions call the adminBanUser/adminDeleteUser Cloud
+  // Functions first, which also lock or delete the member's actual
+  // Firebase Auth login (not just their profile doc) - but those
+  // functions only exist once deployed on the Blaze plan. Until then,
+  // the call fails and we fall back to today's Firestore-only behavior,
+  // so this file doesn't need to change again when that's deployed.
   document.getElementById("suspend-btn").addEventListener("click", function () {
     var newStatus = profileData.status === "suspended" ? "active" : "suspended";
-    AgoraDB.collection("profiles").doc(uid).update({ status: newStatus }).then(function () {
-      profileData.status = newStatus;
-      refreshControls();
-    });
+    var disable = newStatus === "suspended";
+
+    var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
+      ? firebase.functions().httpsCallable("adminBanUser")({ uid: uid, disabled: disable })
+      : Promise.reject(new Error("adminBanUser not available"));
+
+    viaFunction
+      .catch(function () {
+        return AgoraDB.collection("profiles").doc(uid).update({ status: newStatus });
+      })
+      .then(function () {
+        profileData.status = newStatus;
+        refreshControls();
+      });
   });
 
   document.getElementById("delete-btn").addEventListener("click", function () {
     if (!window.confirm("Delete this member's profile permanently? This can't be undone.")) return;
-    AgoraDB.collection("profiles").doc(uid).delete().then(function () {
-      window.location.href = "index.html";
-    });
+
+    var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
+      ? firebase.functions().httpsCallable("adminDeleteUser")({ uid: uid })
+      : Promise.reject(new Error("adminDeleteUser not available"));
+
+    viaFunction
+      .catch(function () {
+        return AgoraDB.collection("profiles").doc(uid).delete();
+      })
+      .then(function () {
+        window.location.href = "index.html";
+      });
   });
 
   document.getElementById("leave-btn").addEventListener("click", function () {

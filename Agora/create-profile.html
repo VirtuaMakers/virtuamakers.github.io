@@ -78,7 +78,9 @@
           <div>
             <label for="field-picture">Picture URL (optional)</label>
             <input type="url" id="field-picture" placeholder="https://..." />
-            <p class="field-hint">Paste a link to an image for now — direct upload is coming later.</p>
+            <p class="field-hint">Paste a link to an image, or upload one below.</p>
+            <input type="file" id="field-picture-upload" accept="image/*" />
+            <p class="field-hint" id="field-picture-upload-status" hidden></p>
           </div>
           <div>
             <label for="field-bio">Bio</label>
@@ -142,10 +144,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=8"></script>
-  <script src="profile-form.js?v=2"></script>
+  <script src="profile-form.js?v=3"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
