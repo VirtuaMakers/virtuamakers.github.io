@@ -21,6 +21,7 @@
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
+  var dangerZone = document.getElementById("danger-zone");
 
   var currentUser = null;
   var selectedKind = null;
@@ -149,6 +150,7 @@
         kindSelector.hidden = true;
         fillForm(existingDoc);
         selectKind(existingDoc.kind || "Human");
+        dangerZone.hidden = false;
       } else {
         document.getElementById("field-name").value = user.displayName || "";
         document.getElementById("field-email").value = user.email || "";
@@ -238,5 +240,22 @@
         ? "That handle is already taken – please choose another."
         : err.message);
     });
+  });
+
+  document.getElementById("leave-btn").addEventListener("click", function () {
+    if (!window.confirm("Leave Agora 🌐? This permanently deletes your profile and your account. This can't be undone.")) return;
+    var user = currentUser;
+    AgoraDB.collection("profiles").doc(user.uid).delete()
+      .then(function () { return user.delete(); })
+      .then(function () {
+        window.location.href = "index.html";
+      })
+      .catch(function (err) {
+        if (err.code === "auth/requires-recent-login") {
+          window.alert("For security, please sign out and sign back in, then try leaving again right away.");
+        } else {
+          window.alert("Something went wrong: " + err.message);
+        }
+      });
   });
 })();

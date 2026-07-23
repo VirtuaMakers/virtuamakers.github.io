@@ -933,6 +933,17 @@ a.card.feature {
   font-size: 0.9rem;
 }
 
+.danger-zone {
+  max-width: 520px;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.danger-zone .body-text {
+  margin-bottom: 1rem;
+}
+
 .btn-danger {
   background: #c0392b;
   color: #fff;

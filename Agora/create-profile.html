@@ -108,6 +108,15 @@
             <span class="form-status" id="form-status" hidden>Saving…</span>
           </div>
         </form>
+
+        <div class="danger-zone" id="danger-zone" hidden>
+          <h2 class="section-title">Leave Agora 🌐</h2>
+          <p class="body-text"><strong>Warning:</strong> this permanently deletes your
+            profile and your account. It can't be undone, and you'd have to
+            start over from scratch. You're always welcome to sign up again
+            later if you change your mind.</p>
+          <button type="button" class="btn btn-danger" id="leave-btn">Leave Agora 🌐</button>
+        </div>
       </div>
     </section>
   </main>
@@ -148,7 +157,7 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=8"></script>
-  <script src="profile-form.js?v=3"></script>
+  <script src="profile-form.js?v=4"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
