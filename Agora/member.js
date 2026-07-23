@@ -44,8 +44,12 @@
 
     document.getElementById("member-date-label").textContent =
       data.kind === "AI" ? "Release Date" : "Birthdate";
-    setOptionalField("member-date-wrap", data.date);
+    setOptionalField("member-date-wrap", data.showDate !== false ? data.date : "");
     document.getElementById("member-date").textContent = data.date || "";
+
+    setOptionalField("member-cyberization-wrap",
+      (data.kind === "Cyborg" && data.showCyberizationDate !== false) ? data.cyberizationDate : "");
+    document.getElementById("member-cyberization-date").textContent = data.cyberizationDate || "";
 
     setOptionalField("member-location-wrap", data.location);
     document.getElementById("member-location").textContent = data.location || "";

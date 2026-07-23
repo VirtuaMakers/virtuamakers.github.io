@@ -12,6 +12,11 @@
   var formTitle = document.getElementById("form-title");
   var dateLabel = document.getElementById("field-date-label");
   var dateInput = document.getElementById("field-date");
+  var dateVisible = document.getElementById("field-date-visible");
+  var dateVisibleLabel = document.getElementById("field-date-visible-label");
+  var cyberizationWrap = document.getElementById("field-cyberization-wrap");
+  var cyberizationInput = document.getElementById("field-cyberization-date");
+  var cyberizationVisible = document.getElementById("field-cyberization-visible");
   var locationInput = document.getElementById("field-location");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
@@ -45,8 +50,11 @@
     kindButtons.forEach(function (btn) {
       btn.classList.toggle("selected", btn.dataset.kind === kind);
     });
-    dateLabel.textContent = kind === "AI" ? "Release Date (optional)" : "Birthdate (optional)";
+    var dateName = kind === "AI" ? "Release Date" : "Birthdate";
+    dateLabel.textContent = dateName;
+    dateVisibleLabel.textContent = "Display " + dateName + "?";
     portalWrap.hidden = kind !== "AI";
+    cyberizationWrap.hidden = kind !== "Cyborg";
     form.hidden = false;
     formIntro.hidden = false;
   }
@@ -92,6 +100,9 @@
     handleInput.value = data.handle || "";
     document.getElementById("field-prefer-handle").checked = !!data.preferHandle;
     dateInput.value = data.date || "";
+    dateVisible.checked = data.showDate !== false;
+    cyberizationInput.value = data.cyberizationDate || "";
+    cyberizationVisible.checked = data.showCyberizationDate !== false;
     locationInput.value = data.location || "";
     document.getElementById("field-orgs").value = data.organizations || "";
     document.getElementById("field-picture").value = data.picture || "";
@@ -172,12 +183,29 @@
       return;
     }
 
+    var dateName = selectedKind === "AI" ? "Release Date" : "Birthdate";
     var rawDate = dateInput.value.trim();
-    var parsedDate = null;
-    if (rawDate) {
-      parsedDate = parseDateInput(rawDate);
-      if (!parsedDate) {
-        showError("Please enter the date as YYYY-MM-DD (or just YYYY, or YYYY-MM).");
+    if (!rawDate) {
+      showError("Please enter your " + dateName + ".");
+      return;
+    }
+    var parsedDate = parseDateInput(rawDate);
+    if (!parsedDate) {
+      showError("Please enter your " + dateName + " as YYYY-MM-DD (or just YYYY, or YYYY-MM).");
+      return;
+    }
+
+    var rawCyberizationDate = "";
+    var parsedCyberizationDate = null;
+    if (selectedKind === "Cyborg") {
+      rawCyberizationDate = cyberizationInput.value.trim();
+      if (!rawCyberizationDate) {
+        showError("Please enter your Cyberization Date.");
+        return;
+      }
+      parsedCyberizationDate = parseDateInput(rawCyberizationDate);
+      if (!parsedCyberizationDate) {
+        showError("Please enter your Cyberization Date as YYYY-MM-DD (or just YYYY, or YYYY-MM).");
         return;
       }
     }
@@ -190,6 +218,9 @@
       preferHandle: document.getElementById("field-prefer-handle").checked,
       kind: selectedKind,
       date: rawDate,
+      showDate: dateVisible.checked,
+      cyberizationDate: selectedKind === "Cyborg" ? rawCyberizationDate : "",
+      showCyberizationDate: selectedKind === "Cyborg" ? cyberizationVisible.checked : true,
       location: normalizeLocation(locationInput.value.trim()),
       organizations: document.getElementById("field-orgs").value.trim(),
       picture: document.getElementById("field-picture").value.trim(),
@@ -211,10 +242,11 @@
       return;
     }
 
-    if (parsedDate) {
-      var confirmed = window.confirm("You entered: " + humanizeDate(parsedDate) + ". Is that correct?");
-      if (!confirmed) return;
+    var confirmLines = [dateName + ": " + humanizeDate(parsedDate)];
+    if (parsedCyberizationDate) {
+      confirmLines.push("Cyberization Date: " + humanizeDate(parsedCyberizationDate));
     }
+    if (!window.confirm("You entered —\n" + confirmLines.join("\n") + "\nIs that correct?")) return;
 
     submitBtn.disabled = true;
     statusEl.hidden = false;

@@ -60,10 +60,23 @@
             <label><input type="checkbox" id="field-prefer-handle" /> Display Handle Instead of Name?</label>
           </div>
           <div>
-            <label for="field-date" id="field-date-label">Birthdate (optional)</label>
-            <input type="text" id="field-date" placeholder="YYYY-MM-DD" />
+            <label for="field-date" id="field-date-label">Birthdate</label>
+            <input type="text" id="field-date" placeholder="YYYY-MM-DD" required />
             <p class="field-hint">Format: YYYY-MM-DD (Year-Month-Day), e.g. 1990-03-14. If you
               only know part of it, a year alone (1990) or year and month (1990-03) works too.</p>
+            <div class="field-checkbox">
+              <label><input type="checkbox" id="field-date-visible" checked />
+                <span id="field-date-visible-label">Display Birthdate?</span></label>
+            </div>
+          </div>
+          <div id="field-cyberization-wrap" hidden>
+            <label for="field-cyberization-date">Cyberization Date</label>
+            <input type="text" id="field-cyberization-date" placeholder="YYYY-MM-DD" />
+            <p class="field-hint">When you received your cybernetic enhancement, same
+              YYYY-MM-DD format as above.</p>
+            <div class="field-checkbox">
+              <label><input type="checkbox" id="field-cyberization-visible" checked /> Display Cyberization Date?</label>
+            </div>
           </div>
           <div>
             <label for="field-location">Location (optional)</label>
@@ -157,7 +170,7 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=8"></script>
-  <script src="profile-form.js?v=4"></script>
+  <script src="profile-form.js?v=5"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
