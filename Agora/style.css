@@ -542,6 +542,11 @@ a.card.feature {
   margin: 0.4rem auto 1.2rem;
 }
 
+.section-image-left {
+  margin-left: 0;
+  margin-right: auto;
+}
+
 .shape-row {
   text-align: right;
 }
