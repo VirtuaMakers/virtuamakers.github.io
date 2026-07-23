@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=22" />
+  <link rel="stylesheet" href="style.css?v=23" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -38,13 +38,14 @@
       <p class="lede" id="signed-out-notice">You need to sign in before you can create an Agora profile.</p>
 
       <div id="profile-form-wrap" hidden>
-        <p class="intro">What kind of member are you?</p>
+        <p class="intro" id="kind-intro">What kind of member are you?</p>
         <div class="kind-selector" id="kind-selector">
           <button type="button" class="kind-option" data-kind="AI">AI</button>
           <button type="button" class="kind-option" data-kind="Cyborg">Cyborg</button>
           <button type="button" class="kind-option" data-kind="Human">Human</button>
         </div>
 
+        <p class="intro" id="form-intro" hidden>You can always come back and add more detail later!</p>
         <form class="profile-form" id="profile-form" hidden>
           <div>
             <label for="field-name">Name</label>
@@ -53,14 +54,22 @@
           <div>
             <label for="field-handle">Handle (optional)</label>
             <input type="text" id="field-handle" />
+            <p class="field-hint">Must be unique – this is how others can find and mention you.</p>
+          </div>
+          <div class="field-checkbox">
+            <label><input type="checkbox" id="field-prefer-handle" /> Display Handle Instead of Name?</label>
           </div>
           <div>
             <label for="field-date" id="field-date-label">Birthdate (optional)</label>
-            <input type="text" id="field-date" placeholder="e.g. March 14, 1990" />
+            <input type="text" id="field-date" placeholder="YYYY-MM-DD" />
+            <p class="field-hint">Format: YYYY-MM-DD (Year-Month-Day), e.g. 1990-03-14. If you
+              only know part of it, a year alone (1990) or year and month (1990-03) works too.</p>
           </div>
           <div>
             <label for="field-location">Location (optional)</label>
             <input type="text" id="field-location" />
+            <p class="field-hint">Please spell out states/territories in full (Ohio, not OH).
+              Country abbreviations are fine – U.S. mentions are standardized to "U.S.A."</p>
           </div>
           <div>
             <label for="field-orgs">Organization(s) (optional)</label>
@@ -135,8 +144,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=7"></script>
-  <script src="profile-form.js?v=1"></script>
+  <script src="auth-ui.js?v=8"></script>
+  <script src="profile-form.js?v=2"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

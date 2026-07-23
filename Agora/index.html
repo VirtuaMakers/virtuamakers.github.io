@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=22" />
+  <link rel="stylesheet" href="style.css?v=23" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -510,7 +510,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=7"></script>
+  <script src="auth-ui.js?v=8"></script>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
@@ -579,7 +579,7 @@
             }
 
             var h3 = document.createElement("h3");
-            link.textContent = data.name || "Member";
+            link.textContent = (data.preferHandle && data.handle) ? data.handle : (data.name || "Member");
             h3.appendChild(link);
             card.appendChild(h3);
 

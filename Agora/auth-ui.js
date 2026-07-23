@@ -138,7 +138,9 @@
       AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
         if (!doc.exists) return;
         var data = doc.data();
-        nameLink.textContent = data.name || data.handle || user.displayName || "friend";
+        nameLink.textContent = (data.preferHandle && data.handle)
+          ? data.handle
+          : (data.name || data.handle || user.displayName || "friend");
         nameLink.href = memberUrl(user.uid);
       }).catch(function () {});
     });

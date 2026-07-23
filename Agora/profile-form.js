@@ -4,11 +4,16 @@
 (function () {
   var signedOutNotice = document.getElementById("signed-out-notice");
   var formWrap = document.getElementById("profile-form-wrap");
+  var kindIntro = document.getElementById("kind-intro");
   var kindSelector = document.getElementById("kind-selector");
   var kindButtons = document.querySelectorAll(".kind-option");
+  var formIntro = document.getElementById("form-intro");
   var form = document.getElementById("profile-form");
   var formTitle = document.getElementById("form-title");
   var dateLabel = document.getElementById("field-date-label");
+  var dateInput = document.getElementById("field-date");
+  var locationInput = document.getElementById("field-location");
+  var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
@@ -17,6 +22,9 @@
   var currentUser = null;
   var selectedKind = null;
   var existingDoc = null;
+
+  var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
 
   function showError(message) {
     errorEl.textContent = message;
@@ -36,6 +44,7 @@
     dateLabel.textContent = kind === "AI" ? "Release Date (optional)" : "Birthdate (optional)";
     portalWrap.hidden = kind !== "AI";
     form.hidden = false;
+    formIntro.hidden = false;
   }
 
   kindButtons.forEach(function (btn) {
@@ -46,9 +55,10 @@
 
   function fillForm(data) {
     document.getElementById("field-name").value = data.name || "";
-    document.getElementById("field-handle").value = data.handle || "";
-    document.getElementById("field-date").value = data.date || "";
-    document.getElementById("field-location").value = data.location || "";
+    handleInput.value = data.handle || "";
+    document.getElementById("field-prefer-handle").checked = !!data.preferHandle;
+    dateInput.value = data.date || "";
+    locationInput.value = data.location || "";
     document.getElementById("field-orgs").value = data.organizations || "";
     document.getElementById("field-picture").value = data.picture || "";
     document.getElementById("field-bio").value = data.bio || "";
@@ -56,6 +66,32 @@
     document.getElementById("field-portal").value = data.portal || "";
     document.getElementById("field-socials").value = data.socials || "";
     document.getElementById("field-email").value = data.email || "";
+  }
+
+  // ISO 8601 date input: full YYYY-MM-DD, or a partial YYYY-MM / YYYY.
+  // Returns the parsed { year, month, day } or null if the format doesn't match.
+  function parseDateInput(value) {
+    var m = value.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+    if (!m) return null;
+    var year = parseInt(m[1], 10);
+    var month = m[2] ? parseInt(m[2], 10) : null;
+    var day = m[3] ? parseInt(m[3], 10) : null;
+    if (month !== null && (month < 1 || month > 12)) return null;
+    if (day !== null && (day < 1 || day > 31)) return null;
+    return { year: year, month: month, day: day };
+  }
+
+  function humanizeDate(parsed) {
+    if (parsed.day) return MONTH_NAMES[parsed.month - 1] + " " + parsed.day + ", " + parsed.year;
+    if (parsed.month) return MONTH_NAMES[parsed.month - 1] + " " + parsed.year;
+    return String(parsed.year);
+  }
+
+  // Standardizes common "United States" spellings to "U.S.A." State/territory
+  // names and other countries are left as the member wrote them, for now.
+  function normalizeLocation(value) {
+    if (!value) return value;
+    return value.replace(/\b(united states of america|united states|u\.s\.a\.?|u\.s\.?|usa|us)\s*$/i, "U.S.A.");
   }
 
   agoraOnAuthChange(function (user) {
@@ -67,12 +103,16 @@
     }
 
     signedOutNotice.hidden = true;
-    formWrap.hidden = false;
+    // Stay hidden until we know whether this is a new profile (show the
+    // Kind picker) or an edit (skip straight to the form) - otherwise the
+    // Kind picker flashes onscreen for a moment on every edit.
+    formWrap.hidden = true;
 
     AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
       if (doc.exists) {
         existingDoc = doc.data();
         formTitle.textContent = "Edit Your Profile";
+        kindIntro.hidden = true;
         kindSelector.hidden = true;
         fillForm(existingDoc);
         selectKind(existingDoc.kind || "Human");
@@ -80,6 +120,7 @@
         document.getElementById("field-name").value = user.displayName || "";
         document.getElementById("field-email").value = user.email || "";
       }
+      formWrap.hidden = false;
     });
   });
 
@@ -96,12 +137,25 @@
       return;
     }
 
+    var rawDate = dateInput.value.trim();
+    var parsedDate = null;
+    if (rawDate) {
+      parsedDate = parseDateInput(rawDate);
+      if (!parsedDate) {
+        showError("Please enter the date as YYYY-MM-DD (or just YYYY, or YYYY-MM).");
+        return;
+      }
+    }
+
+    var handle = handleInput.value.trim();
+
     var data = {
       name: document.getElementById("field-name").value.trim(),
-      handle: document.getElementById("field-handle").value.trim(),
+      handle: handle,
+      preferHandle: document.getElementById("field-prefer-handle").checked,
       kind: selectedKind,
-      date: document.getElementById("field-date").value.trim(),
-      location: document.getElementById("field-location").value.trim(),
+      date: rawDate,
+      location: normalizeLocation(locationInput.value.trim()),
       organizations: document.getElementById("field-orgs").value.trim(),
       picture: document.getElementById("field-picture").value.trim(),
       bio: document.getElementById("field-bio").value.trim(),
@@ -122,17 +176,34 @@
       return;
     }
 
+    if (parsedDate) {
+      var confirmed = window.confirm("You entered: " + humanizeDate(parsedDate) + ". Is that correct?");
+      if (!confirmed) return;
+    }
+
     submitBtn.disabled = true;
     statusEl.hidden = false;
 
-    AgoraDB.collection("profiles").doc(currentUser.uid).set(data)
-      .then(function () {
-        window.location.href = "member.html?uid=" + encodeURIComponent(currentUser.uid);
-      })
-      .catch(function (err) {
-        submitBtn.disabled = false;
-        statusEl.hidden = true;
-        showError(err.message);
-      });
+    var handleCheck = handle
+      ? AgoraDB.collection("profiles").where("handle", "==", handle).get()
+      : Promise.resolve(null);
+
+    handleCheck.then(function (snapshot) {
+      if (snapshot) {
+        var taken = snapshot.docs.some(function (d) { return d.id !== currentUser.uid; });
+        if (taken) {
+          throw { code: "handle-taken" };
+        }
+      }
+      return AgoraDB.collection("profiles").doc(currentUser.uid).set(data);
+    }).then(function () {
+      window.location.href = "member.html?uid=" + encodeURIComponent(currentUser.uid);
+    }).catch(function (err) {
+      submitBtn.disabled = false;
+      statusEl.hidden = true;
+      showError(err.code === "handle-taken"
+        ? "That handle is already taken – please choose another."
+        : err.message);
+    });
   });
 })();
