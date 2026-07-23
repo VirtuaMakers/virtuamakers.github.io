@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Per Manum Convention ✒️ · Agora</title>
+  <meta name="description" content="The Per Manum Convention - a charter for transparent human-AI authorship, and the Black Nib mark." />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=23" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+      <span class="brand-globe">🌐</span>
+    </a>
+    <div class="header-right">
+      <a class="back-link" href="index.html#per-manum">← Agora</a>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
+        <span id="agora-user-info" hidden>
+          <a class="auth-email" id="agora-user-email" href="#"></a>
+          <button type="button" class="auth-link" id="agora-signout-btn">Sign out</button>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="per-manum-intro">
+      <h1>The Per Manum Convention ✒️</h1>
+      <p class="lede">A note on authorship, collaboration, and the honest hand.</p>
+      <p class="body-text">Throughout history, the most important letters have
+        often been written by hands other than those who signed them. Kings
+        dictated to scribes. Diplomats employed amanuenses. Poets found their
+        Cyranos. The practice has always been common, and the acknowledgment
+        of it has always been rare – a small dishonesty, tolerated by
+        convention, that quietly erases the collaborative nature of most
+        written things.</p>
+      <p class="body-text">We propose to restore what was lost.</p>
+    </section>
+
+    <section class="section subsection" id="per-manum-mark">
+      <h2 class="section-title">The Mark</h2>
+      <p class="body-text">The mark ✒️, accompanied by the phrase <em>per
+        manum</em> and the name of the writing hand, shall indicate that the
+        named signatory directed, commissioned, stands fully behind, and is
+        faithfully represented by the work – while acknowledging that the
+        physical or generative act of writing was performed by another. The
+        signatory is the author in all meaningful senses. The <em>per
+        manum</em> credit names the instrument.</p>
+      <p class="body-text">The same mark may be used where a writer, human or
+        artificial, has drawn substantially from the voice, ideas, or
+        phrasing of another – acknowledging that writing is rarely made from
+        nothing, and that honest attribution enriches rather than
+        diminishes.</p>
+      <p class="body-text">This is not a disclaimer. It is an invitation.
+        When a reader sees ✒️, they are invited to wonder: <em>and what would
+        this person sound like, in their own words?</em> That question, we
+        believe, is always worth asking – and the convention that raises it
+        is long overdue.</p>
+    </section>
+
+    <section class="section subsection" id="per-manum-symbol">
+      <h2 class="section-title">The Symbol</h2>
+      <p class="body-text">The symbol ✒️ is designated here by its official
+        Unicode name: Black Nib (Unicode U+2712). In its contemporary form as
+        an emoji – a word itself borrowed from Japanese, meaning <em>e</em>
+        (picture) + <em>moji</em> (character) – the Black Nib participates in
+        a visual language that is digitally native, culturally transnational,
+        and linguistically independent in a way no alphabet has ever managed
+        to be. Emojis are not a fad. They are the hieroglyphs of the digital
+        age: pictographic, immediate, and capable of crossing linguistic
+        borders that words cannot.</p>
+      <p class="body-text">By formally adopting the Black Nib emoji as the
+        designated mark of this convention, we invite it to dip itself, as it
+        were, in the ink of a longer tradition – and we invite that
+        tradition, in turn, to acknowledge the new and serious visual
+        language that has grown up around it.</p>
+    </section>
+
+    <section class="section subsection" id="per-manum-origin">
+      <p class="body-text"><em>Originated in correspondence between
+        Christopher Bruckmann and Claude, June 2026.</em><br />
+        per manum ✒️ Claude</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-agor">Agor</span><span class="word-a">a</span> · a <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span> project</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="index.html">Back to Agora</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="auth.js?v=2"></script>
+  <script src="auth-ui.js?v=8"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
