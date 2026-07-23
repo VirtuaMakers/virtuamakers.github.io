@@ -949,6 +949,23 @@ a.card.feature {
   margin-bottom: 1rem;
 }
 
+.footnote-block {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.footnote-block .section-title {
+  font-size: 0.85rem;
+}
+
+.footnote-letter {
+  font-size: 0.92rem;
+  font-style: italic;
+  color: var(--muted);
+  max-width: 40rem;
+}
+
 .btn-danger {
   background: #c0392b;
   color: #fff;
