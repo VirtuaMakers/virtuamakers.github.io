@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=30" />
+  <link rel="stylesheet" href="style.css?v=31" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -21,7 +21,7 @@
       <span class="brand-globe">🌐</span>
     </a>
     <div class="header-right">
-      <a class="back-link" href="index.html">← Agora</a>
+      <a class="back-link" href="index.html#profiles">← Agora</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
         <span id="agora-user-info" hidden>
@@ -38,7 +38,8 @@
 
       <div id="member-content" hidden>
         <div class="profile-header">
-          <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" />
+          <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" hidden />
+          <div class="profile-avatar profile-avatar-empty" id="member-avatar-empty"></div>
           <div>
             <h1 id="member-name"></h1>
             <p class="member-org" id="member-handle" hidden></p>
@@ -49,10 +50,6 @@
           <button type="button" class="btn" id="suspend-btn">Suspend</button>
           <button type="button" class="btn btn-danger" id="delete-btn">Delete</button>
         </div>
-
-        <p class="lede" id="owner-edit-link" hidden>
-          <a href="create-profile.html">Edit your profile</a>
-        </p>
 
         <dl class="profile-fields">
           <div class="profile-field">
@@ -75,7 +72,7 @@
             <dt>Organization(s)</dt>
             <dd id="member-orgs"></dd>
           </div>
-          <div class="profile-field">
+          <div class="profile-field" id="member-bio-wrap">
             <dt>Bio</dt>
             <dd id="member-bio"></dd>
           </div>
@@ -100,6 +97,10 @@
             <dd id="member-friends"></dd>
           </div>
         </dl>
+
+        <p class="body-text" id="owner-edit-link" hidden>
+          <a href="create-profile.html">Edit your profile.</a>
+        </p>
       </div>
     </section>
   </main>

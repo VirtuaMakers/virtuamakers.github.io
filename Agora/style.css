@@ -547,6 +547,10 @@ a.card.feature {
   margin-right: auto;
 }
 
+.section-image-spaced {
+  margin-bottom: 2.8rem;
+}
+
 .shape-row {
   text-align: right;
 }
@@ -581,7 +585,8 @@ a.card.feature {
 .member {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  text-align: center;
   gap: 0.5rem;
 }
 
@@ -634,6 +639,11 @@ a.card.feature {
   border-radius: 12px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+.profile-avatar-empty {
+  background: var(--surface);
+  border: 1px solid var(--line);
 }
 
 .avatar-lg {

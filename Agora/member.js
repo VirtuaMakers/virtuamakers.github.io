@@ -31,15 +31,28 @@
   }
 
   function render(data) {
-    document.getElementById("member-name").textContent = data.name || "Member";
-    if (data.handle) {
+    var preferringHandle = !!(data.preferHandle && data.handle);
+    document.getElementById("member-name").textContent =
+      preferringHandle ? data.handle : (data.name || "Member");
+    if (data.handle && !preferringHandle) {
       document.getElementById("member-handle").textContent = "Handle: " + data.handle;
       document.getElementById("member-handle").hidden = false;
+    } else {
+      document.getElementById("member-handle").hidden = true;
     }
+
+    var avatarImg = document.getElementById("member-avatar");
+    var avatarEmpty = document.getElementById("member-avatar-empty");
     if (data.picture1) {
-      document.getElementById("member-avatar").src = data.picture1;
-      document.getElementById("member-avatar").alt = data.name || "";
+      avatarImg.src = data.picture1;
+      avatarImg.alt = data.name || "";
+      avatarImg.hidden = false;
+      avatarEmpty.hidden = true;
+    } else {
+      avatarImg.hidden = true;
+      avatarEmpty.hidden = false;
     }
+
     document.getElementById("member-kind").textContent = data.kind || "";
 
     document.getElementById("member-date-label").textContent =
@@ -60,6 +73,7 @@
     setOptionalField("member-orgs-wrap", data.organizations);
     document.getElementById("member-orgs").textContent = data.organizations || "";
 
+    setOptionalField("member-bio-wrap", data.bio);
     document.getElementById("member-bio").textContent = data.bio || "";
 
     setOptionalField("member-link-wrap", data.link);
