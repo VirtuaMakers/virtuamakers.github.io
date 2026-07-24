@@ -8,6 +8,7 @@
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const sgMail = require("@sendgrid/mail");
 
 admin.initializeApp();
 
@@ -50,3 +51,35 @@ exports.adminBanUser = functions.https.onCall(async (data, context) => {
   });
   return { success: true };
 });
+
+// Emails Chris once when a profile's socialsFlagged flips to true (an
+// unrecognized social-media domain was saved - see social-format.js),
+// so the rubric in social-format.js can be expanded to cover it. Fires
+// only on the transition to flagged, not on every subsequent save, so
+// re-saving an already-flagged profile doesn't spam another email.
+//
+// Requires a SendGrid account (free tier: 100 emails/day, plenty for
+// this) with a verified sender, and the API key set via:
+//   firebase functions:config:set sendgrid.key="YOUR_KEY" sendgrid.from="verified@sender.com"
+exports.notifyFlaggedSocial = functions.firestore
+  .document("profiles/{uid}")
+  .onWrite(async (change, context) => {
+    const after = change.after.exists ? change.after.data() : null;
+    const before = change.before.exists ? change.before.data() : null;
+    if (!after || !after.socialsFlagged) return null;
+    if (before && before.socialsFlagged) return null;
+
+    const config = functions.config().sendgrid || {};
+    if (!config.key || !config.from) return null;
+
+    sgMail.setApiKey(config.key);
+    return sgMail.send({
+      to: ADMIN_EMAIL,
+      from: config.from,
+      subject: "Agora: a social link needs a look",
+      text: "A member's profile has an unrecognized social-media link "
+        + "(uid: " + context.params.uid + "). Check its social1/social2/"
+        + "social3 fields in Firestore, and add the platform to "
+        + "social-format.js if it's a real, recognizable one.",
+    });
+  });
