@@ -27,6 +27,9 @@
   var pictureInputs = [1, 2, 3, 4, 5].map(function (n) {
     return document.getElementById("field-picture-" + n);
   });
+  var socialInputs = [1, 2, 3].map(function (n) {
+    return document.getElementById("field-social-" + n);
+  });
   var emailInput = document.getElementById("field-email");
   var emailVisible = document.getElementById("field-email-visible");
   var errorEl = document.getElementById("form-error");
@@ -89,7 +92,9 @@
     document.getElementById("field-bio").value = data.bio || "";
     document.getElementById("field-link").value = data.link || "";
     document.getElementById("field-portal").value = data.portal || "";
-    document.getElementById("field-socials").value = data.socials || "";
+    socialInputs.forEach(function (input, i) {
+      input.value = data["social" + (i + 1)] || "";
+    });
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
   }
@@ -253,7 +258,9 @@
       bio: document.getElementById("field-bio").value.trim(),
       link: document.getElementById("field-link").value.trim(),
       portal: selectedKind === "AI" ? document.getElementById("field-portal").value.trim() : "",
-      socials: document.getElementById("field-socials").value.trim(),
+      social1: socialInputs[0].value.trim(),
+      social2: socialInputs[1].value.trim(),
+      social3: socialInputs[2].value.trim(),
       email: email,
       showEmail: emailVisible.checked,
       friends: existingDoc && typeof existingDoc.friends === "number" ? existingDoc.friends : 1,
@@ -299,22 +306,5 @@
         ? "That handle is already taken – please choose another."
         : err.message);
     });
-  });
-
-  document.getElementById("leave-btn").addEventListener("click", function () {
-    if (!window.confirm("Leave Agora 🌐? This permanently deletes your profile and your account. This can't be undone.")) return;
-    var user = currentUser;
-    AgoraDB.collection("profiles").doc(user.uid).delete()
-      .then(function () { return user.delete(); })
-      .then(function () {
-        window.location.href = "index.html";
-      })
-      .catch(function (err) {
-        if (err.code === "auth/requires-recent-login") {
-          window.alert("For security, please sign out and sign back in, then try leaving again right away.");
-        } else {
-          window.alert("Something went wrong: " + err.message);
-        }
-      });
   });
 })();

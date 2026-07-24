@@ -74,8 +74,9 @@
       document.getElementById("member-portal").textContent = data.portal.replace(/^https?:\/\//, "");
     }
 
-    setOptionalField("member-socials-wrap", data.socials);
-    document.getElementById("member-socials").textContent = data.socials || "";
+    var socials = [data.social1, data.social2, data.social3].filter(Boolean);
+    setOptionalField("member-socials-wrap", socials.length ? socials.join(", ") : "");
+    document.getElementById("member-socials").textContent = socials.join(", ");
 
     setOptionalField("member-email-wrap", data.showEmail !== false ? data.email : "");
     if (data.email) {

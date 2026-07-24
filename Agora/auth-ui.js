@@ -168,7 +168,8 @@
   // First-time sign-ins with no Firestore profile yet get sent to create
   // one, unless they're already on the create/edit or member-view page.
   var path = window.location.pathname;
-  var onFormPage = path.indexOf("create-profile.html") !== -1 || path.indexOf("member.html") !== -1;
+  var onFormPage = path.indexOf("create-profile.html") !== -1 || path.indexOf("member.html") !== -1
+    || path.indexOf("leave-agora.html") !== -1;
   if (!onFormPage && typeof AgoraDB !== "undefined") {
     agoraOnAuthChange(function (user) {
       if (!user) return;

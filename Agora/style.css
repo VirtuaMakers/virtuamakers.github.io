@@ -784,6 +784,7 @@ a.card.feature {
   display: inline-block;
   padding: 0.7rem 1.35rem;
   border-radius: 999px;
+  border: none;
   font-weight: 600;
   font-size: 0.95rem;
   transition: transform 0.12s ease, background 0.15s ease;
@@ -852,7 +853,7 @@ a.card.feature {
 .kind-option {
   padding: 0.65rem 1.2rem;
   border-radius: 999px;
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   background: var(--surface);
   color: var(--text);
   font-weight: 600;

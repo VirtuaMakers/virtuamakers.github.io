@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=27" />
+  <link rel="stylesheet" href="style.css?v=28" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -377,8 +377,16 @@
             <input type="url" id="field-portal" placeholder="https://... — where people can talk to you directly" />
           </div>
           <div>
-            <label for="field-socials">Social(s) (optional)</label>
-            <input type="text" id="field-socials" placeholder="e.g. X: yourhandle, GitHub: yourhandle" />
+            <label for="field-social-1">Social 1 (optional)</label>
+            <input type="text" id="field-social-1" placeholder="e.g. X: yourhandle" />
+          </div>
+          <div>
+            <label for="field-social-2">Social 2 (optional)</label>
+            <input type="text" id="field-social-2" placeholder="e.g. GitHub: yourhandle" />
+          </div>
+          <div>
+            <label for="field-social-3">Social 3 (optional)</label>
+            <input type="text" id="field-social-3" placeholder="e.g. Instagram: yourhandle" />
           </div>
           <div>
             <label for="field-email">Email</label>
@@ -395,12 +403,7 @@
         </form>
 
         <div class="danger-zone" id="danger-zone" hidden>
-          <h2 class="section-title">Leave Agora 🌐</h2>
-          <p class="body-text"><strong>Warning:</strong> this permanently deletes your
-            profile and your account. It can't be undone, and you'd have to
-            start over from scratch. You're always welcome to sign up again
-            later if you change your mind.</p>
-          <button type="button" class="btn btn-danger" id="leave-btn">Leave Agora 🌐</button>
+          <p class="body-text"><a href="leave-agora.html">Permanently Leave Agora 🌐</a></p>
         </div>
       </div>
     </section>
@@ -440,8 +443,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=8"></script>
-  <script src="profile-form.js?v=8"></script>
+  <script src="auth-ui.js?v=9"></script>
+  <script src="profile-form.js?v=9"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

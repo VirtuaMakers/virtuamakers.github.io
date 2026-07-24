@@ -1,0 +1,41 @@
+// Drives leave-agora.html: the dedicated page for permanently deleting a
+// member's own profile and Firebase Auth login. Reached only via the
+// "Permanently Leave Agora" link at the bottom of create-profile.html.
+
+(function () {
+  var signedOutNotice = document.getElementById("signed-out-notice");
+  var content = document.getElementById("leave-content");
+  var leaveBtn = document.getElementById("leave-btn");
+  var statusEl = document.getElementById("leave-status");
+
+  var currentUser = null;
+
+  agoraOnAuthChange(function (user) {
+    currentUser = user;
+    signedOutNotice.hidden = !!user;
+    content.hidden = !user;
+  });
+
+  leaveBtn.addEventListener("click", function () {
+    var user = currentUser;
+    if (!user) return;
+
+    leaveBtn.disabled = true;
+    statusEl.hidden = false;
+
+    AgoraDB.collection("profiles").doc(user.uid).delete()
+      .then(function () { return user.delete(); })
+      .then(function () {
+        window.location.href = "index.html";
+      })
+      .catch(function (err) {
+        leaveBtn.disabled = false;
+        statusEl.hidden = true;
+        if (err.code === "auth/requires-recent-login") {
+          window.alert("For security, please sign out and sign back in, then try leaving again right away.");
+        } else {
+          window.alert("Something went wrong: " + err.message);
+        }
+      });
+  });
+})();
