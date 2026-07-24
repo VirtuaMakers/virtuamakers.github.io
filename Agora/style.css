@@ -961,6 +961,10 @@ a.card.feature {
   margin-bottom: 1rem;
 }
 
+#leave-btn {
+  margin-top: 1rem;
+}
+
 .footnote-block {
   margin-top: 2.5rem;
   padding-top: 1.5rem;
