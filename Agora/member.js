@@ -139,6 +139,12 @@
 
     document.getElementById("member-friends").textContent = data.friends != null ? data.friends : "1";
 
+    var joinedText = (data.createdAt && data.createdAt.toDate)
+      ? data.createdAt.toDate().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
+      : "";
+    setOptionalField("member-joined-wrap", joinedText);
+    document.getElementById("member-joined").textContent = joinedText;
+
     content.hidden = false;
   }
 
