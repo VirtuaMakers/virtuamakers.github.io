@@ -66,9 +66,19 @@
     });
   }
 
+  // Marks that a sign-in just happened in this tab, so the new-profile
+  // redirect below fires once, right after signing in - not on every
+  // later page visit for as long as the session happens to lack a profile.
+  function markJustSignedIn() {
+    try { sessionStorage.setItem("agoraJustSignedIn", "1"); } catch (e) {}
+  }
+
   if (googleBtn) {
     googleBtn.addEventListener("click", function () {
-      agoraSignInWithGoogle().then(closeModal).catch(function (err) {
+      agoraSignInWithGoogle().then(function () {
+        markJustSignedIn();
+        closeModal();
+      }).catch(function (err) {
         showError(err.message);
       });
     });
@@ -76,7 +86,10 @@
 
   if (xBtn) {
     xBtn.addEventListener("click", function () {
-      agoraSignInWithX().then(closeModal).catch(function (err) {
+      agoraSignInWithX().then(function () {
+        markJustSignedIn();
+        closeModal();
+      }).catch(function (err) {
         showError(err.message);
       });
     });
@@ -91,7 +104,10 @@
       var action = signUpMode
         ? agoraSignUpWithEmail(email, password)
         : agoraSignInWithEmail(email, password);
-      action.then(closeModal).catch(function (err) {
+      action.then(function () {
+        markJustSignedIn();
+        closeModal();
+      }).catch(function (err) {
         showError(err.message);
       });
     });
@@ -165,14 +181,21 @@
     "agora-join-user-email"
   );
 
-  // First-time sign-ins with no Firestore profile yet get sent to create
-  // one, unless they're already on the create/edit or member-view page.
+  // Right after a fresh sign-in with no Firestore profile yet, send the
+  // visitor to create one - but only that once. Without the just-signed-in
+  // check, this would fire on every later page visit for as long as the
+  // account lacks a profile, turning "← Agora" into a redirect loop back to
+  // create-profile.html instead of actually leaving the page.
   var path = window.location.pathname;
   var onFormPage = path.indexOf("create-profile.html") !== -1 || path.indexOf("member.html") !== -1
     || path.indexOf("leave-agora.html") !== -1;
   if (!onFormPage && typeof AgoraDB !== "undefined") {
     agoraOnAuthChange(function (user) {
       if (!user) return;
+      var justSignedIn = false;
+      try { justSignedIn = sessionStorage.getItem("agoraJustSignedIn") === "1"; } catch (e) {}
+      if (!justSignedIn) return;
+      try { sessionStorage.removeItem("agoraJustSignedIn"); } catch (e) {}
       AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
         if (!doc.exists) window.location.href = "create-profile.html";
       });
