@@ -60,7 +60,7 @@
       btn.classList.toggle("selected", btn.dataset.kind === kind);
     });
     var dateName = kind === "AI" ? "Release Date" : "Birthdate";
-    dateLabel.textContent = dateName;
+    dateLabel.textContent = dateName + " (required)";
     dateVisibleLabel.textContent = "Display " + dateName + "?";
     portalWrap.hidden = kind !== "AI";
     cyberizationWrap.hidden = kind !== "Cyborg";
@@ -224,10 +224,6 @@
 
     var city = cityInput.value.trim();
     var country = countryInput.value;
-    if (!city || !country) {
-      showError("Please enter your City and select your Country.");
-      return;
-    }
 
     var email = emailInput.value.trim();
     if (!email) {
@@ -236,6 +232,25 @@
     }
 
     var handle = handleInput.value.trim();
+
+    var linkValue = document.getElementById("field-link").value.trim();
+    var portalValue = selectedKind === "AI" ? document.getElementById("field-portal").value.trim() : "";
+    var socialValues = socialInputs.map(function (input) { return input.value.trim(); });
+
+    var blockedCandidates = [linkValue, portalValue].concat(socialValues).filter(Boolean);
+    var hasBlockedLink = blockedCandidates.some(function (v) {
+      return AgoraSocialFormat.isBlockedDomain(v);
+    });
+    if (hasBlockedLink) {
+      showError("That link isn't allowed here – please remove it.");
+      return;
+    }
+
+    var socialsFlagged = socialValues.some(function (v) {
+      if (!v) return false;
+      var info = AgoraSocialFormat.format(v);
+      return info && info.unrecognized;
+    });
 
     var data = {
       name: document.getElementById("field-name").value.trim(),
@@ -256,11 +271,12 @@
       picture4: pictureInputs[3].value.trim(),
       picture5: pictureInputs[4].value.trim(),
       bio: document.getElementById("field-bio").value.trim(),
-      link: document.getElementById("field-link").value.trim(),
-      portal: selectedKind === "AI" ? document.getElementById("field-portal").value.trim() : "",
-      social1: socialInputs[0].value.trim(),
-      social2: socialInputs[1].value.trim(),
-      social3: socialInputs[2].value.trim(),
+      link: linkValue,
+      portal: portalValue,
+      social1: socialValues[0],
+      social2: socialValues[1],
+      social3: socialValues[2],
+      socialsFlagged: socialsFlagged,
       email: email,
       showEmail: emailVisible.checked,
       friends: existingDoc && typeof existingDoc.friends === "number" ? existingDoc.friends : 1,

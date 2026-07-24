@@ -897,12 +897,33 @@ a.card.feature {
 }
 
 .profile-form textarea {
-  min-height: 7rem;
+  min-height: 14rem;
   resize: vertical;
 }
 
 .profile-form input + select {
   margin-top: 0.6rem;
+}
+
+.field-group {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+}
+
+.field-group-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 0.9rem;
+}
+
+.field-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .profile-form .field-hint {

@@ -75,8 +75,25 @@
     }
 
     var socials = [data.social1, data.social2, data.social3].filter(Boolean);
-    setOptionalField("member-socials-wrap", socials.length ? socials.join(", ") : "");
-    document.getElementById("member-socials").textContent = socials.join(", ");
+    setOptionalField("member-socials-wrap", socials.length ? "x" : "");
+    var socialsDD = document.getElementById("member-socials");
+    socialsDD.textContent = "";
+    socials.forEach(function (raw, i) {
+      var info = AgoraSocialFormat.format(raw);
+      if (!info) return;
+      var node;
+      if (info.href) {
+        node = document.createElement("a");
+        node.href = info.href;
+        node.target = "_blank";
+        node.rel = "noopener noreferrer";
+        node.textContent = info.label;
+      } else {
+        node = document.createTextNode(info.label);
+      }
+      socialsDD.appendChild(node);
+      if (i < socials.length - 1) socialsDD.appendChild(document.createTextNode(", "));
+    });
 
     setOptionalField("member-email-wrap", data.showEmail !== false ? data.email : "");
     if (data.email) {

@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=29" />
+  <link rel="stylesheet" href="style.css?v=30" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -48,11 +48,11 @@
         <p class="intro" id="form-intro" hidden>Please answer to the best of your ability. You can always add or change details later.</p>
         <form class="profile-form" id="profile-form" hidden>
           <div>
-            <label for="field-name">Name</label>
+            <label for="field-name">Name (required)</label>
             <input type="text" id="field-name" required />
           </div>
           <div>
-            <label for="field-handle">Handle (optional)</label>
+            <label for="field-handle">Handle</label>
             <input type="text" id="field-handle" />
             <p class="field-hint">Must be unique – this is how others can find and mention you.</p>
           </div>
@@ -70,7 +70,7 @@
             </div>
           </div>
           <div id="field-cyberization-wrap" hidden>
-            <label for="field-cyberization-date">Cyberization Date</label>
+            <label for="field-cyberization-date">Cyberization Date (required)</label>
             <input type="text" id="field-cyberization-date" placeholder="YYYY-MM-DD" inputmode="numeric" maxlength="10" />
             <p class="field-hint">When you received your cybernetic enhancement, same
               YYYY-MM-DD format as above. Just type the numbers.</p>
@@ -81,8 +81,8 @@
           </div>
           <div>
             <label for="field-city">Location</label>
-            <input type="text" id="field-city" placeholder="City" required />
-            <select id="field-country" required>
+            <input type="text" id="field-city" placeholder="City" />
+            <select id="field-country">
               <option value="">Country…</option>
               <option value="Afghanistan">Afghanistan</option>
               <option value="Albania">Albania</option>
@@ -339,57 +339,67 @@
             </div>
           </div>
           <div>
-            <label for="field-orgs">Organization(s) (optional)</label>
+            <label for="field-orgs">Organization(s)</label>
             <input type="text" id="field-orgs" placeholder="Comma-separated if more than one" />
           </div>
-          <div>
-            <label for="field-picture-1">Picture 1 (optional)</label>
-            <input type="url" id="field-picture-1" placeholder="https://..." />
-            <p class="field-hint">Paste a link to an image for now – direct upload is coming later.</p>
+          <div class="field-group">
+            <h3 class="field-group-title">Pictures</h3>
+            <div class="field-group-items">
+              <div>
+                <label for="field-picture-1">Profile Picture</label>
+                <input type="url" id="field-picture-1" placeholder="https://..." />
+                <p class="field-hint">Paste a link to an image for now – direct upload is coming later.</p>
+              </div>
+              <div>
+                <label for="field-picture-2">Picture 2</label>
+                <input type="url" id="field-picture-2" placeholder="https://..." />
+              </div>
+              <div>
+                <label for="field-picture-3">Picture 3</label>
+                <input type="url" id="field-picture-3" placeholder="https://..." />
+              </div>
+              <div>
+                <label for="field-picture-4">Picture 4</label>
+                <input type="url" id="field-picture-4" placeholder="https://..." />
+              </div>
+              <div>
+                <label for="field-picture-5">Picture 5</label>
+                <input type="url" id="field-picture-5" placeholder="https://..." />
+              </div>
+            </div>
           </div>
           <div>
-            <label for="field-picture-2">Picture 2 (optional)</label>
-            <input type="url" id="field-picture-2" placeholder="https://..." />
-          </div>
-          <div>
-            <label for="field-picture-3">Picture 3 (optional)</label>
-            <input type="url" id="field-picture-3" placeholder="https://..." />
-          </div>
-          <div>
-            <label for="field-picture-4">Picture 4 (optional)</label>
-            <input type="url" id="field-picture-4" placeholder="https://..." />
-          </div>
-          <div>
-            <label for="field-picture-5">Picture 5 (optional)</label>
-            <input type="url" id="field-picture-5" placeholder="https://..." />
-          </div>
-          <div>
-            <label for="field-bio">Bio (optional)</label>
+            <label for="field-bio">Bio</label>
             <textarea id="field-bio" maxlength="9999"></textarea>
             <p class="field-hint">Up to 9,999 Characters</p>
           </div>
           <div>
-            <label for="field-link">Link (optional)</label>
+            <label for="field-link">Link</label>
             <input type="url" id="field-link" placeholder="https://... — your workplace, LinkedIn, Linktree, personal page, etc." />
           </div>
           <div id="field-portal-wrap" hidden>
-            <label for="field-portal">Portal (optional)</label>
+            <label for="field-portal">Portal</label>
             <input type="url" id="field-portal" placeholder="https://... — where people can talk to you directly" />
           </div>
-          <div>
-            <label for="field-social-1">Social 1 (optional)</label>
-            <input type="text" id="field-social-1" placeholder="e.g. X: yourhandle" />
+          <div class="field-group">
+            <h3 class="field-group-title">Socials</h3>
+            <div class="field-group-items">
+              <div>
+                <label for="field-social-1">Social 1</label>
+                <input type="text" id="field-social-1" placeholder="e.g. X: yourhandle" />
+              </div>
+              <div>
+                <label for="field-social-2">Social 2</label>
+                <input type="text" id="field-social-2" placeholder="e.g. GitHub: yourhandle" />
+              </div>
+              <div>
+                <label for="field-social-3">Social 3</label>
+                <input type="text" id="field-social-3" placeholder="e.g. Instagram: yourhandle" />
+              </div>
+            </div>
           </div>
           <div>
-            <label for="field-social-2">Social 2 (optional)</label>
-            <input type="text" id="field-social-2" placeholder="e.g. GitHub: yourhandle" />
-          </div>
-          <div>
-            <label for="field-social-3">Social 3 (optional)</label>
-            <input type="text" id="field-social-3" placeholder="e.g. Instagram: yourhandle" />
-          </div>
-          <div>
-            <label for="field-email">Email</label>
+            <label for="field-email">Email (required)</label>
             <input type="email" id="field-email" required />
             <div class="field-checkbox">
               <label><input type="checkbox" id="field-email-visible" checked /> Display Email?</label>
@@ -444,7 +454,8 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=10"></script>
-  <script src="profile-form.js?v=9"></script>
+  <script src="social-format.js?v=1"></script>
+  <script src="profile-form.js?v=10"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
