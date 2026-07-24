@@ -24,9 +24,11 @@
   var locationVisible = document.getElementById("field-location-visible");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
-  var pictureInput = document.getElementById("field-picture");
-  var pictureUpload = document.getElementById("field-picture-upload");
-  var pictureUploadStatus = document.getElementById("field-picture-upload-status");
+  var pictureInputs = [1, 2, 3, 4, 5].map(function (n) {
+    return document.getElementById("field-picture-" + n);
+  });
+  var emailInput = document.getElementById("field-email");
+  var emailVisible = document.getElementById("field-email-visible");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
@@ -69,36 +71,6 @@
     });
   });
 
-  // Uploads go to Firebase Storage, which only exists once the project is
-  // on the Blaze plan and this has been deployed. Until then this fails
-  // and members fall back to pasting a Picture URL directly, same as today.
-  if (pictureUpload) {
-    pictureUpload.addEventListener("change", function () {
-      var file = pictureUpload.files[0];
-      if (!file || !currentUser) return;
-
-      if (typeof firebase === "undefined" || !firebase.storage) {
-        pictureUploadStatus.textContent = "Uploads aren't available yet — please paste a link above instead.";
-        pictureUploadStatus.hidden = false;
-        return;
-      }
-
-      pictureUploadStatus.textContent = "Uploading…";
-      pictureUploadStatus.hidden = false;
-
-      var ref = firebase.storage().ref("profile-pictures/" + currentUser.uid + "/" + file.name);
-      ref.put(file)
-        .then(function (snapshot) { return snapshot.ref.getDownloadURL(); })
-        .then(function (url) {
-          pictureInput.value = url;
-          pictureUploadStatus.textContent = "Uploaded! The Picture URL field above has been filled in.";
-        })
-        .catch(function () {
-          pictureUploadStatus.textContent = "Uploads aren't available yet — please paste a link above instead.";
-        });
-    });
-  }
-
   function fillForm(data) {
     document.getElementById("field-name").value = data.name || "";
     handleInput.value = data.handle || "";
@@ -111,12 +83,15 @@
     countryInput.value = data.country || "";
     locationVisible.checked = data.showLocation !== false;
     document.getElementById("field-orgs").value = data.organizations || "";
-    document.getElementById("field-picture").value = data.picture || "";
+    pictureInputs.forEach(function (input, i) {
+      input.value = data["picture" + (i + 1)] || "";
+    });
     document.getElementById("field-bio").value = data.bio || "";
     document.getElementById("field-link").value = data.link || "";
     document.getElementById("field-portal").value = data.portal || "";
     document.getElementById("field-socials").value = data.socials || "";
-    document.getElementById("field-email").value = data.email || "";
+    emailInput.value = data.email || "";
+    emailVisible.checked = data.showEmail !== false;
   }
 
   // ISO 8601 date input: full YYYY-MM-DD, or a partial YYYY-MM / YYYY.
@@ -249,6 +224,12 @@
       return;
     }
 
+    var email = emailInput.value.trim();
+    if (!email) {
+      showError("Please enter your Email.");
+      return;
+    }
+
     var handle = handleInput.value.trim();
 
     var data = {
@@ -264,12 +245,17 @@
       country: country,
       showLocation: locationVisible.checked,
       organizations: document.getElementById("field-orgs").value.trim(),
-      picture: document.getElementById("field-picture").value.trim(),
+      picture1: pictureInputs[0].value.trim(),
+      picture2: pictureInputs[1].value.trim(),
+      picture3: pictureInputs[2].value.trim(),
+      picture4: pictureInputs[3].value.trim(),
+      picture5: pictureInputs[4].value.trim(),
       bio: document.getElementById("field-bio").value.trim(),
       link: document.getElementById("field-link").value.trim(),
       portal: selectedKind === "AI" ? document.getElementById("field-portal").value.trim() : "",
       socials: document.getElementById("field-socials").value.trim(),
-      email: document.getElementById("field-email").value.trim(),
+      email: email,
+      showEmail: emailVisible.checked,
       friends: existingDoc && typeof existingDoc.friends === "number" ? existingDoc.friends : 1,
       status: existingDoc ? existingDoc.status : "active",
       createdAt: existingDoc && existingDoc.createdAt
@@ -278,8 +264,8 @@
       updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
     };
 
-    if (!data.name || !data.bio) {
-      showError("Name and Bio are required.");
+    if (!data.name) {
+      showError("Name is required.");
       return;
     }
 

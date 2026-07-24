@@ -343,15 +343,29 @@
             <input type="text" id="field-orgs" placeholder="Comma-separated if more than one" />
           </div>
           <div>
-            <label for="field-picture">Picture URL (optional)</label>
-            <input type="url" id="field-picture" placeholder="https://..." />
+            <label for="field-picture-1">Picture 1 (optional)</label>
+            <input type="url" id="field-picture-1" placeholder="https://..." />
             <p class="field-hint">Paste a link to an image for now – direct upload is coming later.</p>
-            <input type="file" id="field-picture-upload" accept="image/*" hidden />
-            <p class="field-hint" id="field-picture-upload-status" hidden></p>
           </div>
           <div>
-            <label for="field-bio">Bio</label>
-            <textarea id="field-bio" maxlength="9999" required></textarea>
+            <label for="field-picture-2">Picture 2 (optional)</label>
+            <input type="url" id="field-picture-2" placeholder="https://..." />
+          </div>
+          <div>
+            <label for="field-picture-3">Picture 3 (optional)</label>
+            <input type="url" id="field-picture-3" placeholder="https://..." />
+          </div>
+          <div>
+            <label for="field-picture-4">Picture 4 (optional)</label>
+            <input type="url" id="field-picture-4" placeholder="https://..." />
+          </div>
+          <div>
+            <label for="field-picture-5">Picture 5 (optional)</label>
+            <input type="url" id="field-picture-5" placeholder="https://..." />
+          </div>
+          <div>
+            <label for="field-bio">Bio (optional)</label>
+            <textarea id="field-bio" maxlength="9999"></textarea>
             <p class="field-hint">Up to 9,999 Characters</p>
           </div>
           <div>
@@ -367,8 +381,11 @@
             <input type="text" id="field-socials" placeholder="e.g. X: yourhandle, GitHub: yourhandle" />
           </div>
           <div>
-            <label for="field-email">Email (optional)</label>
-            <input type="email" id="field-email" />
+            <label for="field-email">Email</label>
+            <input type="email" id="field-email" required />
+            <div class="field-checkbox">
+              <label><input type="checkbox" id="field-email-visible" checked /> Display Email?</label>
+            </div>
           </div>
           <p class="form-error" id="form-error" hidden></p>
           <div class="profile-form-actions">
@@ -421,11 +438,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=8"></script>
-  <script src="profile-form.js?v=7"></script>
+  <script src="profile-form.js?v=8"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

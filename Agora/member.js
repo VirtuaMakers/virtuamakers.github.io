@@ -36,8 +36,8 @@
       document.getElementById("member-handle").textContent = "Handle: " + data.handle;
       document.getElementById("member-handle").hidden = false;
     }
-    if (data.picture) {
-      document.getElementById("member-avatar").src = data.picture;
+    if (data.picture1) {
+      document.getElementById("member-avatar").src = data.picture1;
       document.getElementById("member-avatar").alt = data.name || "";
     }
     document.getElementById("member-kind").textContent = data.kind || "";
@@ -77,7 +77,7 @@
     setOptionalField("member-socials-wrap", data.socials);
     document.getElementById("member-socials").textContent = data.socials || "";
 
-    setOptionalField("member-email-wrap", data.email);
+    setOptionalField("member-email-wrap", data.showEmail !== false ? data.email : "");
     if (data.email) {
       document.getElementById("member-email").href = "mailto:" + data.email;
       document.getElementById("member-email").textContent = data.email;
