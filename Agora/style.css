@@ -772,6 +772,46 @@ a.card.feature {
   background: var(--accent-soft);
 }
 
+.pill-catalogue {
+  color: var(--teal);
+  background: var(--accent-soft);
+}
+
+.catalogue-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.catalogue-item h3 {
+  margin: 0;
+}
+
+.catalogue-item-pending {
+  border-style: dashed;
+  color: var(--muted);
+  cursor: default;
+}
+
+.catalogue-item-pending:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--line);
+}
+
+.index-category {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--teal-deep);
+  margin: 1.8rem 0 0.6rem;
+}
+
+.index-category:first-of-type {
+  margin-top: 1rem;
+}
+
 #join .pill-soon {
   margin-top: 1rem;
 }
