@@ -37,6 +37,11 @@
   var submitBtn = document.getElementById("form-submit");
   var dangerZone = document.getElementById("danger-zone");
 
+  var bioTagsHint = document.getElementById("field-bio-tags-hint");
+  if (bioTagsHint && typeof AgoraBioTags !== "undefined") {
+    bioTagsHint.textContent = AgoraBioTags.hint;
+  }
+
   var currentUser = null;
   var selectedKind = null;
   var existingDoc = null;

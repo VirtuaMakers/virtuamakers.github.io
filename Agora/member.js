@@ -15,6 +15,20 @@
   var profileData = null;
   var currentUser = null;
 
+  // Bio allows a small, deliberately-expanding allowlist of HTML tags (see
+  // bio-tags.js) - sanitized here at render time rather than at save time,
+  // so widening the allowlist later makes older bios light up with newly
+  // allowed tags automatically. Force target/rel on any link a member
+  // includes, matching how every other outbound link on the site behaves.
+  if (typeof DOMPurify !== "undefined") {
+    DOMPurify.addHook("afterSanitizeAttributes", function (node) {
+      if (node.tagName === "A") {
+        node.setAttribute("target", "_blank");
+        node.setAttribute("rel", "noopener noreferrer");
+      }
+    });
+  }
+
   function showNotice(message) {
     statusNotice.textContent = message;
     statusNotice.hidden = false;
@@ -74,7 +88,15 @@
     document.getElementById("member-orgs").textContent = data.organizations || "";
 
     setOptionalField("member-bio-wrap", data.bio);
-    document.getElementById("member-bio").textContent = data.bio || "";
+    var bioEl = document.getElementById("member-bio");
+    if (data.bio && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
+      bioEl.innerHTML = DOMPurify.sanitize(data.bio, {
+        ALLOWED_TAGS: AgoraBioTags.ALLOWED_TAGS,
+        ALLOWED_ATTR: AgoraBioTags.ALLOWED_ATTR,
+      });
+    } else {
+      bioEl.textContent = data.bio || "";
+    }
 
     setOptionalField("member-link-wrap", data.link);
     if (data.link) {
