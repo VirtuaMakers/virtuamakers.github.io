@@ -14,9 +14,11 @@
   var dateInput = document.getElementById("field-date");
   var dateVisible = document.getElementById("field-date-visible");
   var dateVisibleLabel = document.getElementById("field-date-visible-label");
+  var dateInlineError = document.getElementById("field-date-inline-error");
   var cyberizationWrap = document.getElementById("field-cyberization-wrap");
   var cyberizationInput = document.getElementById("field-cyberization-date");
   var cyberizationVisible = document.getElementById("field-cyberization-visible");
+  var cyberizationInlineError = document.getElementById("field-cyberization-inline-error");
   var locationInput = document.getElementById("field-location");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
@@ -131,6 +133,39 @@
     if (parsed.month) return MONTH_NAMES[parsed.month - 1] + " " + parsed.year;
     return String(parsed.year);
   }
+
+  // Auto-inserts the YYYY-MM-DD dashes as the member types digits, so
+  // everyone's dates use the exact same separator without having to know
+  // the format up front - and flags an out-of-range month/day immediately,
+  // rather than waiting for Save.
+  function attachDateMask(input, inlineError) {
+    input.addEventListener("input", function () {
+      var digits = input.value.replace(/\D/g, "").slice(0, 8);
+      var formatted = digits;
+      if (digits.length > 6) {
+        formatted = digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6);
+      } else if (digits.length > 4) {
+        formatted = digits.slice(0, 4) + "-" + digits.slice(4);
+      }
+      input.value = formatted;
+      input.setSelectionRange(formatted.length, formatted.length);
+
+      var month = digits.length >= 6 ? parseInt(digits.slice(4, 6), 10) : null;
+      var day = digits.length >= 8 ? parseInt(digits.slice(6, 8), 10) : null;
+      if (month !== null && (month < 1 || month > 12)) {
+        inlineError.textContent = "Month must be between 01 and 12.";
+        inlineError.hidden = false;
+      } else if (day !== null && (day < 1 || day > 31)) {
+        inlineError.textContent = "Day must be between 01 and 31.";
+        inlineError.hidden = false;
+      } else {
+        inlineError.hidden = true;
+      }
+    });
+  }
+
+  attachDateMask(dateInput, dateInlineError);
+  attachDateMask(cyberizationInput, cyberizationInlineError);
 
   // Standardizes common "United States" spellings to "U.S.A." State/territory
   // names and other countries are left as the member wrote them, for now.

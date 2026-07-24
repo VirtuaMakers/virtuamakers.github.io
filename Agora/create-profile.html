@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=25" />
+  <link rel="stylesheet" href="style.css?v=26" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -61,9 +61,11 @@
           </div>
           <div>
             <label for="field-date" id="field-date-label">Birthdate</label>
-            <input type="text" id="field-date" placeholder="YYYY-MM-DD" required />
+            <input type="text" id="field-date" placeholder="YYYY-MM-DD" inputmode="numeric" maxlength="10" required />
             <p class="field-hint">Format: YYYY-MM-DD (Year-Month-Day), e.g. 1990-03-14. If you
-              only know part of it, a year alone (1990) or year and month (1990-03) works too.</p>
+              only know part of it, a year alone (1990) or year and month (1990-03) works too.
+              Just type the numbers – the dashes are added for you.</p>
+            <p class="field-error-inline" id="field-date-inline-error" hidden></p>
             <div class="field-checkbox">
               <label><input type="checkbox" id="field-date-visible" checked />
                 <span id="field-date-visible-label">Display Birthdate?</span></label>
@@ -71,9 +73,10 @@
           </div>
           <div id="field-cyberization-wrap" hidden>
             <label for="field-cyberization-date">Cyberization Date</label>
-            <input type="text" id="field-cyberization-date" placeholder="YYYY-MM-DD" />
+            <input type="text" id="field-cyberization-date" placeholder="YYYY-MM-DD" inputmode="numeric" maxlength="10" />
             <p class="field-hint">When you received your cybernetic enhancement, same
-              YYYY-MM-DD format as above.</p>
+              YYYY-MM-DD format as above. Just type the numbers.</p>
+            <p class="field-error-inline" id="field-cyberization-inline-error" hidden></p>
             <div class="field-checkbox">
               <label><input type="checkbox" id="field-cyberization-visible" checked /> Display Cyberization Date?</label>
             </div>
@@ -170,7 +173,7 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=8"></script>
-  <script src="profile-form.js?v=5"></script>
+  <script src="profile-form.js?v=6"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
