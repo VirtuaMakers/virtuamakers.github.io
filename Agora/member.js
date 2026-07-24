@@ -51,8 +51,11 @@
       (data.kind === "Cyborg" && data.showCyberizationDate !== false) ? data.cyberizationDate : "");
     document.getElementById("member-cyberization-date").textContent = data.cyberizationDate || "";
 
-    setOptionalField("member-location-wrap", data.location);
-    document.getElementById("member-location").textContent = data.location || "";
+    var locationText = (data.city && data.country)
+      ? (data.city + ", " + data.country)
+      : (data.city || data.country || data.location || "");
+    setOptionalField("member-location-wrap", data.showLocation !== false ? locationText : "");
+    document.getElementById("member-location").textContent = locationText;
 
     setOptionalField("member-orgs-wrap", data.organizations);
     document.getElementById("member-orgs").textContent = data.organizations || "";

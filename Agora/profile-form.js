@@ -19,7 +19,9 @@
   var cyberizationInput = document.getElementById("field-cyberization-date");
   var cyberizationVisible = document.getElementById("field-cyberization-visible");
   var cyberizationInlineError = document.getElementById("field-cyberization-inline-error");
-  var locationInput = document.getElementById("field-location");
+  var cityInput = document.getElementById("field-city");
+  var countryInput = document.getElementById("field-country");
+  var locationVisible = document.getElementById("field-location-visible");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
   var pictureInput = document.getElementById("field-picture");
@@ -105,7 +107,9 @@
     dateVisible.checked = data.showDate !== false;
     cyberizationInput.value = data.cyberizationDate || "";
     cyberizationVisible.checked = data.showCyberizationDate !== false;
-    locationInput.value = data.location || "";
+    cityInput.value = data.city || "";
+    countryInput.value = data.country || "";
+    locationVisible.checked = data.showLocation !== false;
     document.getElementById("field-orgs").value = data.organizations || "";
     document.getElementById("field-picture").value = data.picture || "";
     document.getElementById("field-bio").value = data.bio || "";
@@ -166,13 +170,6 @@
 
   attachDateMask(dateInput, dateInlineError);
   attachDateMask(cyberizationInput, cyberizationInlineError);
-
-  // Standardizes common "United States" spellings to "U.S.A." State/territory
-  // names and other countries are left as the member wrote them, for now.
-  function normalizeLocation(value) {
-    if (!value) return value;
-    return value.replace(/\b(united states of america|united states|u\.s\.a\.?|u\.s\.?|usa|us)\s*$/i, "U.S.A.");
-  }
 
   agoraOnAuthChange(function (user) {
     currentUser = user;
@@ -245,6 +242,13 @@
       }
     }
 
+    var city = cityInput.value.trim();
+    var country = countryInput.value;
+    if (!city || !country) {
+      showError("Please enter your City and select your Country.");
+      return;
+    }
+
     var handle = handleInput.value.trim();
 
     var data = {
@@ -256,7 +260,9 @@
       showDate: dateVisible.checked,
       cyberizationDate: selectedKind === "Cyborg" ? rawCyberizationDate : "",
       showCyberizationDate: selectedKind === "Cyborg" ? cyberizationVisible.checked : true,
-      location: normalizeLocation(locationInput.value.trim()),
+      city: city,
+      country: country,
+      showLocation: locationVisible.checked,
       organizations: document.getElementById("field-orgs").value.trim(),
       picture: document.getElementById("field-picture").value.trim(),
       bio: document.getElementById("field-bio").value.trim(),

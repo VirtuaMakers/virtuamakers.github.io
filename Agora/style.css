@@ -884,6 +884,7 @@ a.card.feature {
 }
 
 .profile-form input,
+.profile-form select,
 .profile-form textarea {
   width: 100%;
   padding: 0.6rem 0.8rem;
@@ -897,6 +898,10 @@ a.card.feature {
 .profile-form textarea {
   min-height: 7rem;
   resize: vertical;
+}
+
+.profile-form input + select {
+  margin-top: 0.6rem;
 }
 
 .profile-form .field-hint {
