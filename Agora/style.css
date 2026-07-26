@@ -561,6 +561,40 @@ a.card.feature {
   height: auto;
 }
 
+.hit-counter-row {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0 1rem;
+}
+
+.hit-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #0c1f22;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+}
+
+.hit-counter-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fd8c9;
+}
+
+.hit-counter-digits {
+  font-family: "Courier New", monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #4be3a0;
+  background: #051315;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
 /* Cards */
 .cards {
   display: grid;

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=32" />
+  <link rel="stylesheet" href="style.css?v=33" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -481,6 +481,13 @@
     </section>
 
     <div class="shape-row"><img src="assets/shape-cylinders.jpg" alt="" width="1024" height="1024" loading="lazy" /></div>
+
+    <div class="hit-counter-row">
+      <span class="hit-counter" aria-label="Page view count">
+        <span class="hit-counter-label">Visitors</span>
+        <span class="hit-counter-digits" id="hit-counter-digits">000000</span>
+      </span>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -518,6 +525,7 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=10"></script>
+  <script src="hit-counter.js?v=1"></script>
 
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
