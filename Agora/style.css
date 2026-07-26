@@ -313,6 +313,10 @@ main {
   margin: 0.5rem auto 1.4rem;
 }
 
+#exchange-welcome .page-logo {
+  margin-bottom: 3.5625rem;
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.14em;
