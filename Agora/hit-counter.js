@@ -24,7 +24,7 @@
 
   AgoraDB.runTransaction(function (tx) {
     return tx.get(ref).then(function (doc) {
-      var next = (doc.exists ? doc.data().count : 0) + 1;
+      var next = doc.exists ? doc.data().count + 1 : 100;
       tx.set(ref, { count: next });
       return next;
     });
