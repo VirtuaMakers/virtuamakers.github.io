@@ -565,6 +565,40 @@ a.card.feature {
   height: auto;
 }
 
+.hit-counter-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.6rem 0 1rem;
+}
+
+.hit-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #0c1f22;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem;
+}
+
+.hit-counter-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9fd8c9;
+}
+
+.hit-counter-digits {
+  font-family: "Courier New", monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #4be3a0;
+  background: #051315;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
 /* Cards */
 .cards {
   display: grid;
@@ -779,6 +813,28 @@ a.card.feature {
 .pill-catalogue {
   color: var(--teal);
   background: var(--accent-soft);
+}
+
+.pillar-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.8rem;
+  margin-top: 1.6rem;
+}
+
+.pillar-toc a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal-deep);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  text-decoration: none;
+}
+
+.pillar-toc a:hover {
+  background: var(--teal);
+  color: #fff;
 }
 
 .catalogue-item {
