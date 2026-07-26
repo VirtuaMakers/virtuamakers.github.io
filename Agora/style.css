@@ -889,6 +889,12 @@ a.card.feature {
   color: var(--text);
 }
 
+.link-badge {
+  display: inline-block;
+  width: 220px;
+  height: auto;
+}
+
 /* Buttons */
 .btn {
   display: inline-block;
