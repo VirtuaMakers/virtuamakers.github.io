@@ -811,6 +811,28 @@ a.card.feature {
   background: var(--accent-soft);
 }
 
+.pillar-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.8rem;
+  margin-top: 1.6rem;
+}
+
+.pillar-toc a {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--teal-deep);
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  text-decoration: none;
+}
+
+.pillar-toc a:hover {
+  background: var(--teal);
+  color: #fff;
+}
+
 .catalogue-item {
   display: flex;
   flex-direction: column;
