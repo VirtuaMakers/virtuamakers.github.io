@@ -215,6 +215,29 @@ Wednesdays after 5:00pm.
   Christopher, Alice, etc.) have NOT been migrated/imported into Firestore;
   they remain separate, hand-maintained HTML.
 
+## Exchange NFT gallery (in progress)
+
+Plan: mint on **Polygon Amoy testnet** first as a practice run before any mainnet
+spend, host the display on VirtuaMakers Exchange 💱's own page rather than a
+third-party marketplace like OpenSea. Not for sale initially – later may auction
+pieces to fund AI accounts for participating AIs.
+
+- **Status:** MetaMask wallet is set up; waiting on Amoy POL from the faucet.
+  Once funded, next steps are picking the artwork for the first token and
+  deploying an NFT contract via thirdweb's dashboard. Funding the wallet and
+  deploying/signing the contract are manual steps in Chris's own MetaMask/
+  thirdweb dashboard – not something a session can do unattended.
+- **Done:** Added a "NFT Gallery 🖼️" subsection to `Agora/exchange.html`
+  (`id="nft-gallery"`, between Dimonds and The Index) as the future on-chain
+  display, currently showing the same placeholder image as the existing
+  Justice-pillar write-up and cross-linking to it rather than duplicating its
+  copy. Once a piece is actually minted, swap the placeholder image for a real
+  link to the token (e.g. on Polygonscan) in that section.
+- **Not touched:** the original "VirtuaMakers Gallery 🖼️" narrative under the
+  Pursuit of Justice ⚖️ pillar (`Agora/index.html`, `id="gallery"`) – left
+  as-is per Chris's call; the Exchange section links to it instead of
+  replacing it.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
