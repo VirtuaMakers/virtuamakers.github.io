@@ -22,6 +22,7 @@
     </a>
     <div class="header-right">
       <a class="back-link" href="index.html#exchange">← Agora</a>
+      <button type="button" class="auth-link bag-btn" id="exchange-bag-btn">Bag 🛍️<span class="bag-count" id="exchange-bag-count" hidden>0</span></button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
         <span id="agora-user-info" hidden>
@@ -40,6 +41,10 @@
         Exchange 💱 is the marketplace for humans and machinekind – a place to
         find the goods, services, and digital artifacts that carry us into
         what's next.</p>
+      <p class="body-text">Look for the Bag 🛍️ button up top as you browse –
+        it holds on-chain pieces and ordinary goods side by side, so one
+        visit can cover both. The Bag works today; checkout itself is still
+        being wired up, piece by piece.</p>
     </section>
 
     <section class="section subsection" id="catalogue">
@@ -99,6 +104,7 @@
         <img class="section-image" src="../assets/dimonds.png" alt="Dimonds – gold wordmark with a red gem" width="1024" height="1024" loading="lazy" />
       </a>
       <a class="btn btn-primary" href="https://virtuamakers.github.io/Dimonds/" target="_blank" rel="noopener noreferrer">Download for Free</a>
+      <button type="button" class="btn btn-secondary" data-cart-add data-cart-id="dimonds" data-cart-name="Dimonds ♦️" data-cart-price="0" data-cart-kind="offchain">Add to Bag</button>
       <p class="install-note">Plays in your browser – and once it's open, you
         can install it as an app for offline play.</p>
     </section>
@@ -122,6 +128,13 @@
         this one to help fund accounts for the AI members participating in
         Agora 🌐 – but that's a future step, well after this practice run and
         a real mint on Polygon mainnet.</p>
+      <p class="body-text">This page is meant to become the one place all of
+        it lives: every future VirtuaMakers Gallery 🖼️ winner will collect
+        here over time (the current pick still gets its own spotlight on the
+        main Agora 🌐 page), alongside NFTs from Chain of Cards ⛓️ once
+        that's up and running. VirtuaMakers 🦜 and Agora's own logos will
+        eventually show up here too, reimagined as fully 3D objects – not for
+        sale, just on display.</p>
     </section>
 
     <section class="section subsection" id="products">
@@ -214,12 +227,63 @@
     </div>
   </div>
 
+  <div class="signin-modal-backdrop" id="exchange-bag-modal" hidden>
+    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Your Bag">
+      <button type="button" class="signin-modal-close" id="exchange-bag-close" aria-label="Close">&times;</button>
+      <h2>Your Bag 🛍️</h2>
+      <p class="bag-empty" id="exchange-bag-empty">Your bag is empty – browse
+        the Catalogue Cover or Index below and look for "Add to Bag."</p>
+      <div class="bag-groups" id="exchange-bag-groups" hidden>
+        <div class="bag-group" id="bag-group-offchain" hidden>
+          <h3 class="bag-group-title">Off-chain items</h3>
+          <ul class="bag-items" id="bag-items-offchain"></ul>
+        </div>
+        <div class="bag-group" id="bag-group-onchain" hidden>
+          <h3 class="bag-group-title">On-chain items</h3>
+          <ul class="bag-items" id="bag-items-onchain"></ul>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary bag-checkout-btn" id="exchange-bag-checkout" hidden>Checkout</button>
+    </div>
+  </div>
+
+  <div class="signin-modal-backdrop" id="exchange-checkout-modal" hidden>
+    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Checkout">
+      <button type="button" class="signin-modal-close" id="exchange-checkout-close" aria-label="Close">&times;</button>
+      <h2>Checkout</h2>
+      <p class="bag-empty" id="exchange-checkout-empty">Your bag is empty.</p>
+
+      <div class="checkout-section" id="checkout-offchain-free-section" hidden>
+        <h3 class="bag-group-title">Off-chain · Free</h3>
+        <ul class="bag-items" id="checkout-offchain-free-list"></ul>
+        <p class="install-note">Nothing to pay here – confirm below and
+          you're set.</p>
+        <button type="button" class="btn btn-primary" id="exchange-checkout-confirm-free">Confirm Free Items</button>
+      </div>
+
+      <div class="checkout-section" id="checkout-offchain-paid-section" hidden>
+        <h3 class="bag-group-title">Off-chain · Payment required</h3>
+        <ul class="bag-items" id="checkout-offchain-paid-list"></ul>
+        <p class="install-note">Online payment isn't connected yet – check
+          back once that's set up.</p>
+      </div>
+
+      <div class="checkout-section" id="checkout-onchain-section" hidden>
+        <h3 class="bag-group-title">On-chain</h3>
+        <ul class="bag-items" id="checkout-onchain-list"></ul>
+        <p class="install-note">Wallet connection isn't wired up yet – check
+          back once the first piece is minted.</p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=10"></script>
+  <script src="exchange-cart.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -238,6 +238,57 @@ pieces to fund AI accounts for participating AIs.
   as-is per Chris's call; the Exchange section links to it instead of
   replacing it.
 
+## Centralized exchange / Bag (in progress)
+
+Long-term vision (Chris, 2026-07-27): VirtuaMakers Exchange 💱 becomes the one
+place to browse and buy everything – on-chain collectibles (monthly VirtuaMakers
+Gallery 🖼️ winners collect here over time, eventually Chain of Cards ⛓️ NFTs
+too, plus non-sellable 3D VirtuaMakers 🦜/Agora 🌐 logos on display) alongside
+off-chain goods/services, in a single mixed-item Bag. On-chain checkout will
+need a Polygon wallet; off-chain checkout needs an ordinary payment flow;
+buying both together in one bag needs its own handling.
+
+Scope decisions Chris made when this kicked off (no payment processor account
+exists yet, no NFT contract deployed yet):
+- Real checkout (payment processing, wallet-connect) is explicitly **out of
+  scope** until Chris sets up a payment processor account (Stripe/PayPal/etc. –
+  a session can't create one, it needs his business/bank details) and the
+  first NFT contract is deployed. Until then, checkout CTAs for priced
+  off-chain items and any on-chain item are placeholders that say so plainly.
+- Affiliate items (World of Warcraft, Meta Quest 3, GTA VI, Quantum Compute
+  Rental, etc.) stay as plain link-outs, **not** part of the Bag/cart – our
+  checkout is reserved for things VirtuaMakers actually sells/fulfills itself.
+  Don't wire "Add to Bag" onto third-party affiliate links.
+
+**Done:** a working Bag/cart scaffold on `Agora/exchange.html`:
+- `Agora/exchange-cart.js` – vanilla-JS cart engine, `localStorage`-backed
+  (`vm_exchange_bag` key). Items have `{id, name, price, kind, qty}` where
+  `kind` is `"onchain"` or `"offchain"`. Exposes `window.VMExchangeCart`
+  (`addToBag`/`removeFromBag`/`clearBag`/`getBag`) for future pages/items to
+  hook into. Any button anywhere can opt in via
+  `data-cart-add data-cart-id=".." data-cart-name=".." data-cart-price=".." data-cart-kind="onchain|offchain"`
+  – no extra JS needed to wire up a new sellable item.
+- Bag button (header, `#exchange-bag-btn`) with a live item-count badge, opens
+  a modal (reuses the existing `signin-modal` look) listing items grouped by
+  on-chain vs. off-chain, each removable.
+- Checkout modal splits the bag three ways: **off-chain/free** (real,
+  functional – "Confirm Free Items" actually clears them, since $0 needs no
+  payment step), **off-chain/paid** (placeholder: "Online payment isn't
+  connected yet"), **on-chain** (placeholder: "Wallet connection isn't wired
+  up yet"). Dimonds ♦️ (free, off-chain, VirtuaMakers-fulfilled) is wired up
+  as the one live demo item today, since it's the only real product that
+  currently qualifies for our own checkout – the NFT Gallery piece stays
+  un-wired (no "Add to Bag") since it's explicitly not for sale yet.
+
+**Next steps, in rough order:** once a payment processor account exists, wire
+the off-chain/paid checkout section to it (needs a small backend/serverless
+function – a static site can't hold payment secrets, could reuse the Agora
+Firebase project's Functions); once the first NFT contract is deployed, wire
+wallet-connect (thirdweb SDK fits, since thirdweb's dashboard is already the
+deploy path) and give the NFT Gallery card a real "Add to Bag"; then handle
+mixed-bag checkout (part on-chain, part off-chain in one order) as its own
+step once both individual paths work.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
