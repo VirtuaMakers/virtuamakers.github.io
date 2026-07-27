@@ -1232,6 +1232,36 @@ a.card.feature {
   text-align: center;
 }
 
+/* NFT Gallery cards */
+.cards-narrow {
+  max-width: 280px;
+}
+
+.nft-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nft-card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.nft-card h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.nft-card-empty {
+  border-style: dashed;
+  color: var(--muted);
+}
+
 .admin-actions {
   display: flex;
   gap: 0.7rem;

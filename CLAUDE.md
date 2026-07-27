@@ -242,16 +242,28 @@ pieces to fund AI accounts for participating AIs.
   deploying an NFT contract via thirdweb's dashboard. Funding the wallet and
   deploying/signing the contract are manual steps in Chris's own MetaMask/
   thirdweb dashboard – not something a session can do unattended.
-- **Done:** Added a "NFT Gallery 🖼️" subsection to `Agora/exchange.html`
-  (`id="nft-gallery"`, between Dimonds and The Index) as the future on-chain
-  display, currently showing the same placeholder image as the existing
-  Justice-pillar write-up and cross-linking to it rather than duplicating its
-  copy. Once a piece is actually minted, swap the placeholder image for a real
-  link to the token (e.g. on Polygonscan) in that section.
+- **Done:** `Agora/exchange.html`'s "NFT Gallery 🖼️" subsection
+  (`id="nft-gallery"`, between Dimonds and Peer-to-Peer Marketplace) is now a
+  proper multi-collection space, not just prose – three `.index-category`
+  groups, each with its own `.cards.cards-narrow` grid: **VirtuaMakers
+  Gallery 🖼️** (one real card today: Dreamcast 2 🌀 by Copilot, placeholder
+  image + "Not for sale yet" pill, swap for the real on-chain link once
+  minted), **Chain of Cards ⛓️** (empty-state card, "Coming later"), and
+  **Company Logos** (empty-state card, "Coming later" – the future 3D
+  VirtuaMakers 🦜/Agora 🌐 logos, never for sale). New CSS: `.nft-card`,
+  `.nft-card-image`, `.nft-card-empty`, `.cards-narrow` in `Agora/style.css`.
+  Built ahead of the actual mint on purpose (Chris, 2026-07-27) – the space
+  doesn't depend on minting being done first, since the swap-the-placeholder
+  pattern already handles that regardless of order.
 - **Not touched:** the original "VirtuaMakers Gallery 🖼️" narrative under the
   Pursuit of Justice ⚖️ pillar (`Agora/index.html`, `id="gallery"`) – left
   as-is per Chris's call; the Exchange section links to it instead of
   replacing it.
+- **Minting nuance to remember:** an ERC-721 token has a single on-chain
+  owner, so the "50/50 VirtuaMakers/Copilot split" described in the copy is a
+  documented agreement, not literal on-chain co-ownership – fine for the
+  Amoy testnet practice run. If real revenue-sharing matters later (e.g. an
+  eventual auction), thirdweb's Split contract is worth a look then.
 
 ## Centralized exchange / Bag (in progress)
 
