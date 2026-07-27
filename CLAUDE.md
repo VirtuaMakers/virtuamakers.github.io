@@ -316,6 +316,19 @@ deploy path) and give the NFT Gallery card a real "Add to Bag"; then handle
 mixed-bag checkout (part on-chain, part off-chain in one order) as its own
 step once both individual paths work.
 
+**Chain of Cards ⛓️ minting flow (Chris, 2026-07-27):** unlike the curated
+VirtuaMakers Gallery 🖼️ pieces above, Chain of Cards ⛓️ cards are meant to be
+user-minted from inside the app itself, not staff-picked. Planned flow: a
+member submits a selfie/photo → the app content-scans it for inappropriate
+material → a $0.99 mint fee covers both listing the card for sale on
+VirtuaMakers Exchange 💱 and the card's usage rights in the game itself → a
+short button/prompt flow delivers the finished "Selfie Card 🤳🏻" to the
+Exchange, listed at an asking price. This is a different pipeline from the
+Gallery's (user-generated, paid-per-mint, needs its own moderation + payment
++ mint steps once the Chain of Cards app actually exists) – doesn't change
+today's empty-state Chain of Cards card in `Agora/exchange.html`'s NFT
+Gallery section, but matters once that app's design work starts for real.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
