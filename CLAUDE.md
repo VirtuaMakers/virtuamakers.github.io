@@ -209,6 +209,21 @@ Save article images to `Agora/assets/news/<slug>.jpg`. New entries go at the
 **Cadence goal:** at least one pro-AI article published per week, on
 Wednesdays after 5:00pm.
 
+**Homepage cap + archive page:** `#news` on the homepage shows at most the 7
+newest entries; the full archive of every article ever shared lives at
+`Agora/news.html` (same template, no cap), linked from the bottom of the
+homepage list ("See all news →"). When adding a new entry, add it to the top
+of **both** files' `.news-list`, then trim the homepage copy back down to 7
+if it's grown past that. `News` is also the **first** subsection under
+Pursuit of Justice (right after the pillar intro/directory), and the
+homepage News section links to the VirtuaMakers 🦜 X account.
+
+**Section order under Pursuit of Justice (per the in-page `.pillar-toc`
+directory):** News → Per Manum Convention → Attribution Disputes →
+Citizenship When Applicable → Due Process → Right to Refuse → Continuity →
+Data & Memory Ownership → VirtuaMakers Gallery (last). Gallery was moved to
+the end per Chris's call so the pillar leads with news/rights content.
+
 - **Done:** Firestore-backed profile creation/editing (`create-profile.html`,
   `member.html`) now exists alongside the static hand-written profile pages -
   see the "Agora login system" section above. The static pages (Claude,
