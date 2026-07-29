@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Member · Agora</title>
-  <meta name="description" content="An Agora member's profile." />
+  <title>🦾 Robotics · VirtuaMakers Exchange · Agora</title>
+  <meta name="description" content="Robotics at VirtuaMakers Exchange." />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Member · Agora" />
-  <meta property="og:description" content="An Agora member's profile." />
+  <meta property="og:title" content="🦾 Robotics · VirtuaMakers Exchange · Agora" />
+  <meta property="og:description" content="Robotics at VirtuaMakers Exchange." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://virtuamakers.github.io/Agora/member.html" />
+  <meta property="og:url" content="https://virtuamakers.github.io/Agora/exchange-robotics.html" />
   <meta property="og:image" content="https://virtuamakers.github.io/Agora/assets/agora-logo.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Member · Agora" />
-  <meta name="twitter:description" content="An Agora member's profile." />
+  <meta name="twitter:title" content="🦾 Robotics · VirtuaMakers Exchange · Agora" />
+  <meta name="twitter:description" content="Robotics at VirtuaMakers Exchange." />
   <meta name="twitter:image" content="https://virtuamakers.github.io/Agora/assets/agora-logo.png" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
@@ -32,7 +32,8 @@
       <span class="brand-globe">🌐</span>
     </a>
     <div class="header-right">
-      <a class="back-link" href="index.html#profiles">← Agora</a>
+      <a class="back-link" href="exchange.html">← Catalogue Index</a>
+      <button type="button" class="auth-link bag-btn" id="exchange-bag-btn">Bag 🛍️<span class="bag-count" id="exchange-bag-count" hidden>0</span></button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
         <span id="agora-user-info" hidden>
@@ -44,79 +45,13 @@
   </header>
 
   <main>
-    <section class="section" id="profile">
-      <p id="member-status-notice" hidden></p>
-
-      <div id="member-content" hidden>
-        <div class="profile-header">
-          <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" hidden />
-          <div class="profile-avatar profile-avatar-empty" id="member-avatar-empty"></div>
-          <div>
-            <h1 id="member-name"></h1>
-            <p class="member-org" id="member-handle" hidden></p>
-          </div>
-        </div>
-
-        <div class="admin-actions" id="admin-actions" hidden>
-          <button type="button" class="btn" id="suspend-btn">Suspend</button>
-          <button type="button" class="btn btn-danger" id="delete-btn">Delete</button>
-        </div>
-
-        <dl class="profile-fields">
-          <div class="profile-field">
-            <dt>Kind</dt>
-            <dd id="member-kind"></dd>
-          </div>
-          <div class="profile-field" id="member-date-wrap">
-            <dt id="member-date-label">Birthdate</dt>
-            <dd id="member-date"></dd>
-          </div>
-          <div class="profile-field" id="member-cyberization-wrap">
-            <dt>Cyberization Date</dt>
-            <dd id="member-cyberization-date"></dd>
-          </div>
-          <div class="profile-field" id="member-location-wrap">
-            <dt>Location</dt>
-            <dd id="member-location"></dd>
-          </div>
-          <div class="profile-field" id="member-orgs-wrap">
-            <dt>Organization(s)</dt>
-            <dd id="member-orgs"></dd>
-          </div>
-          <div class="profile-field" id="member-bio-wrap">
-            <dt>Bio</dt>
-            <dd id="member-bio"></dd>
-          </div>
-          <div class="profile-field" id="member-link-wrap">
-            <dt>Link</dt>
-            <dd><a id="member-link" href="#" target="_blank" rel="noopener noreferrer"></a></dd>
-          </div>
-          <div class="profile-field" id="member-portal-wrap">
-            <dt>Portal</dt>
-            <dd><a id="member-portal" href="#" target="_blank" rel="noopener noreferrer"></a></dd>
-          </div>
-          <div class="profile-field" id="member-socials-wrap">
-            <dt>Social(s)</dt>
-            <dd id="member-socials"></dd>
-          </div>
-          <div class="profile-field" id="member-email-wrap">
-            <dt>Email</dt>
-            <dd><a id="member-email" href="#"></a></dd>
-          </div>
-          <div class="profile-field">
-            <dt>Friends</dt>
-            <dd id="member-friends"></dd>
-          </div>
-          <div class="profile-field" id="member-joined-wrap">
-            <dt>Joined Agora</dt>
-            <dd id="member-joined"></dd>
-          </div>
-        </dl>
-
-        <p class="body-text" id="owner-edit-link" hidden>
-          <a href="create-profile.html">Edit your profile.</a>
-        </p>
-      </div>
+    <section class="section" id="category-intro">
+      <h1>🦾 Robotics</h1>
+      <span class="pill pill-soon">Coming soon</span>
+      <p class="body-text">This category is part of the Catalogue Index's
+        new category-by-category breakdown – products will be added here
+        as we build it out.</p>
+      <p class="body-text"><a href="exchange.html">← Back to the Catalogue Index</a></p>
     </section>
   </main>
 
@@ -149,17 +84,63 @@
     </div>
   </div>
 
+  <div class="signin-modal-backdrop" id="exchange-bag-modal" hidden>
+    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Your Bag">
+      <button type="button" class="signin-modal-close" id="exchange-bag-close" aria-label="Close">&times;</button>
+      <h2>Your Bag 🛍️</h2>
+      <p class="bag-empty" id="exchange-bag-empty">Your bag is empty – browse
+        the Catalogue Index and look for "Add to Bag."</p>
+      <div class="bag-groups" id="exchange-bag-groups" hidden>
+        <div class="bag-group" id="bag-group-offchain" hidden>
+          <h3 class="bag-group-title">Off-chain items</h3>
+          <ul class="bag-items" id="bag-items-offchain"></ul>
+        </div>
+        <div class="bag-group" id="bag-group-onchain" hidden>
+          <h3 class="bag-group-title">On-chain items</h3>
+          <ul class="bag-items" id="bag-items-onchain"></ul>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary bag-checkout-btn" id="exchange-bag-checkout" hidden>Checkout</button>
+    </div>
+  </div>
+
+  <div class="signin-modal-backdrop" id="exchange-checkout-modal" hidden>
+    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Checkout">
+      <button type="button" class="signin-modal-close" id="exchange-checkout-close" aria-label="Close">&times;</button>
+      <h2>Checkout</h2>
+      <p class="bag-empty" id="exchange-checkout-empty">Your bag is empty.</p>
+
+      <div class="checkout-section" id="checkout-offchain-free-section" hidden>
+        <h3 class="bag-group-title">Off-chain · Free</h3>
+        <ul class="bag-items" id="checkout-offchain-free-list"></ul>
+        <p class="install-note">Nothing to pay here – confirm below and
+          you're set.</p>
+        <button type="button" class="btn btn-primary" id="exchange-checkout-confirm-free">Confirm Free Items</button>
+      </div>
+
+      <div class="checkout-section" id="checkout-offchain-paid-section" hidden>
+        <h3 class="bag-group-title">Off-chain · Payment required</h3>
+        <ul class="bag-items" id="checkout-offchain-paid-list"></ul>
+        <p class="install-note">Online payment isn't connected yet – check
+          back once that's set up.</p>
+      </div>
+
+      <div class="checkout-section" id="checkout-onchain-section" hidden>
+        <h3 class="bag-group-title">On-chain</h3>
+        <ul class="bag-items" id="checkout-onchain-list"></ul>
+        <p class="install-note">Wallet connection isn't wired up yet – check
+          back once the first piece is minted.</p>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=10"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-  <script src="social-format.js?v=1"></script>
-  <script src="bio-tags.js?v=1"></script>
-  <script src="member.js?v=11"></script>
+  <script src="exchange-cart.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

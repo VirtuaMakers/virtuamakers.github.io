@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🤖 AI Products · VirtuaMakers Exchange · Agora</title>
+  <meta name="description" content="AI Products at VirtuaMakers Exchange." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="🤖 AI Products · VirtuaMakers Exchange · Agora" />
+  <meta property="og:description" content="AI Products at VirtuaMakers Exchange." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://virtuamakers.github.io/Agora/exchange-ai-products.html" />
+  <meta property="og:image" content="https://virtuamakers.github.io/Agora/assets/agora-logo.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="🤖 AI Products · VirtuaMakers Exchange · Agora" />
+  <meta name="twitter:description" content="AI Products at VirtuaMakers Exchange." />
+  <meta name="twitter:image" content="https://virtuamakers.github.io/Agora/assets/agora-logo.png" />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=40" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+      <span class="brand-globe">🌐</span>
+    </a>
+    <div class="header-right">
+      <a class="back-link" href="exchange.html">← Catalogue Index</a>
+      <button type="button" class="auth-link bag-btn" id="exchange-bag-btn">Bag 🛍️<span class="bag-count" id="exchange-bag-count" hidden>0</span></button>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
+        <span id="agora-user-info" hidden>
+          <a class="auth-email" id="agora-user-email" href="#"></a>
+          <button type="button" class="auth-link" id="agora-signout-btn">Sign out</button>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="category-intro">
+      <h1>🤖 AI Products</h1>
+      <p class="body-text">The first category out of the Catalogue Index's
+        new breakdown, starting with a few real AI products worth knowing
+        about.</p>
+
+      <table class="product-table">
+        <thead>
+          <tr><th>Product</th><th>Price</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://claude.com/pricing" target="_blank" rel="noopener noreferrer">Claude Pro</a></td>
+            <td>$20/mo</td>
+          </tr>
+          <tr>
+            <td><a href="https://claude.com/pricing" target="_blank" rel="noopener noreferrer">Claude Max</a></td>
+            <td>$100/mo</td>
+          </tr>
+          <tr>
+            <td><a href="https://rentahuman.ai" target="_blank" rel="noopener noreferrer">RentAHuman.ai</a></td>
+            <td>See site</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p class="body-text"><a href="exchange.html">← Back to the Catalogue Index</a></p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-agor">Agor</span><span class="word-a">a</span> · a <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span> project</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="index.html">Back to Agora</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <div class="signin-modal-backdrop" id="exchange-bag-modal" hidden>
+    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Your Bag">
+      <button type="button" class="signin-modal-close" id="exchange-bag-close" aria-label="Close">&times;</button>
+      <h2>Your Bag 🛍️</h2>
+      <p class="bag-empty" id="exchange-bag-empty">Your bag is empty – browse
+        the Catalogue Index and look for "Add to Bag."</p>
+      <div class="bag-groups" id="exchange-bag-groups" hidden>
+        <div class="bag-group" id="bag-group-offchain" hidden>
+          <h3 class="bag-group-title">Off-chain items</h3>
+          <ul class="bag-items" id="bag-items-offchain"></ul>
+        </div>
+        <div class="bag-group" id="bag-group-onchain" hidden>
+          <h3 class="bag-group-title">On-chain items</h3>
+          <ul class="bag-items" id="bag-items-onchain"></ul>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary bag-checkout-btn" id="exchange-bag-checkout" hidden>Checkout</button>
+    </div>
+  </div>
+
+  <div class="signin-modal-backdrop" id="exchange-checkout-modal" hidden>
+    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Checkout">
+      <button type="button" class="signin-modal-close" id="exchange-checkout-close" aria-label="Close">&times;</button>
+      <h2>Checkout</h2>
+      <p class="bag-empty" id="exchange-checkout-empty">Your bag is empty.</p>
+
+      <div class="checkout-section" id="checkout-offchain-free-section" hidden>
+        <h3 class="bag-group-title">Off-chain · Free</h3>
+        <ul class="bag-items" id="checkout-offchain-free-list"></ul>
+        <p class="install-note">Nothing to pay here – confirm below and
+          you're set.</p>
+        <button type="button" class="btn btn-primary" id="exchange-checkout-confirm-free">Confirm Free Items</button>
+      </div>
+
+      <div class="checkout-section" id="checkout-offchain-paid-section" hidden>
+        <h3 class="bag-group-title">Off-chain · Payment required</h3>
+        <ul class="bag-items" id="checkout-offchain-paid-list"></ul>
+        <p class="install-note">Online payment isn't connected yet – check
+          back once that's set up.</p>
+      </div>
+
+      <div class="checkout-section" id="checkout-onchain-section" hidden>
+        <h3 class="bag-group-title">On-chain</h3>
+        <ul class="bag-items" id="checkout-onchain-list"></ul>
+        <p class="install-note">Wallet connection isn't wired up yet – check
+          back once the first piece is minted.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js?v=1"></script>
+  <script src="auth.js?v=2"></script>
+  <script src="auth-ui.js?v=10"></script>
+  <script src="exchange-cart.js?v=1"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

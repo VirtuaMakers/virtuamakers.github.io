@@ -561,6 +561,8 @@ a.card.feature {
 
 .text-center {
   text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Big masthead-style heading, shared by "Welcome!" and "Catalogue Cover"
@@ -578,7 +580,7 @@ a.card.feature {
 .exchange-search-row {
   display: flex;
   justify-content: center;
-  margin: 1.2rem 0 0.6rem;
+  margin: 1.2rem 0 1.8rem;
 }
 
 .exchange-search-input {
