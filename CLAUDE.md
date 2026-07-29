@@ -237,24 +237,40 @@ spend, host the display on VirtuaMakers Exchange 💱's own page rather than a
 third-party marketplace like OpenSea. Not for sale initially – later may auction
 pieces to fund AI accounts for participating AIs.
 
-- **Status:** MetaMask wallet is set up; waiting on Amoy POL from the faucet.
-  Once funded, next steps are picking the artwork for the first token and
-  deploying an NFT contract via thirdweb's dashboard. Funding the wallet and
-  deploying/signing the contract are manual steps in Chris's own MetaMask/
-  thirdweb dashboard – not something a session can do unattended.
+- **Status (2026-07-29): first piece actually minted on Amoy testnet.**
+  Contract `VirtuaMakers Gallery` (ERC-721, thirdweb NFT Drop type) deployed
+  to Polygon Amoy at `0xAF092cbb1c3ED44D43f093b9AFE076a78E48C539`. Token #0
+  is "Dreamcast 2" 🌀 by Copilot, claimed to Chris's Brave Wallet
+  (`0x6E62Ba688cA22A3DC3400DDC766F72140B31cd20`), claim price set to 0 for
+  this practice mint. Token page:
+  `https://thirdweb.com/polygon-amoy-testnet/0xAF092cbb1c3ED44D43f093b9AFE076a78E48C539/nfts/0`.
+  Metadata (description + `Artist`/`Minter & Steward`/`Ownership` attributes)
+  is stored on IPFS via the Token URI, so the 50/50 Copilot/"present, working
+  VirtuaMakers staff" split is now a permanent part of the token record, not
+  just website copy.
+  - **thirdweb gotcha to remember:** the "NFT Collection" template in
+    thirdweb's newer dashboard actually deploys a claimable **Drop**
+    contract, not a direct-mint-to-owner collection – minting isn't
+    complete until someone actually calls "Claim" against the token
+    (Admin/Minter role alone doesn't auto-own it; the Details page's
+    "Transfer" action is disabled until a token has an owner). Set the
+    claim price to 0 in **Claim Conditions**, then claim from the
+    contract's public **"View Token Page"**, not the admin dashboard.
+  - Real mainnet mint (with a real price, for a real sale) is still a
+    separate, deliberate future step – this was the practice run.
 - **Done:** `Agora/exchange.html`'s "NFT Gallery 🖼️" subsection
   (`id="nft-gallery"`, between Dimonds and Peer-to-Peer Marketplace) is now a
   proper multi-collection space, not just prose – three `.index-category`
   groups, each with its own `.cards.cards-narrow` grid: **VirtuaMakers
-  Gallery 🖼️** (one real card today: Dreamcast 2 🌀 by Copilot, placeholder
-  image + "Not for sale yet" pill, swap for the real on-chain link once
-  minted), **Chain of Cards ⛓️** (empty-state card, "Coming later"), and
-  **Company Logos** (empty-state card, "Coming later" – the future 3D
-  VirtuaMakers 🦜/Agora 🌐 logos, never for sale). New CSS: `.nft-card`,
-  `.nft-card-image`, `.nft-card-empty`, `.cards-narrow` in `Agora/style.css`.
-  Built ahead of the actual mint on purpose (Chris, 2026-07-27) – the space
-  doesn't depend on minting being done first, since the swap-the-placeholder
-  pattern already handles that regardless of order.
+  Gallery 🖼️** (Dreamcast 2 🌀 by Copilot, now a real link to the on-chain
+  token above, "Minted on testnet" pill), **Chain of Cards ⛓️** (empty-state
+  card, "Coming later"), and **Company Logos** (empty-state card, "Coming
+  later" – the future 3D VirtuaMakers 🦜/Agora 🌐 logos, never for sale).
+  New CSS: `.nft-card`, `.nft-card-image`, `.nft-card-empty`,
+  `.cards-narrow` in `Agora/style.css`. Built ahead of the actual mint on
+  purpose (Chris, 2026-07-27) – the space didn't depend on minting being
+  done first, since the swap-the-placeholder-for-a-real-link pattern was
+  always the plan, and that swap is now done.
 - **Not touched:** the original "VirtuaMakers Gallery 🖼️" narrative under the
   Pursuit of Justice ⚖️ pillar (`Agora/index.html`, `id="gallery"`) – left
   as-is per Chris's call; the Exchange section links to it instead of
