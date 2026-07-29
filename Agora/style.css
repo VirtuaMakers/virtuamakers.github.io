@@ -559,6 +559,10 @@ a.card.feature {
   margin-bottom: 2.8rem;
 }
 
+.section-image-top-spaced {
+  margin-top: 2rem;
+}
+
 .text-center {
   text-align: center;
   margin-left: auto;
