@@ -10,6 +10,10 @@
   --teal-deep: #01566b;
   --accent: var(--teal);
   --accent-soft: #e7f1f1;
+  /* The vivid blue used in the Agora shape-render images (cylinders,
+     spheres, cubes, pyramids) */
+  --blue: #2b57d6;
+  --blue-light: #4d8df0;
   --radius: 14px;
   --maxw: 960px;
 }
@@ -575,8 +579,8 @@ a.card.feature {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  background: #0c1f22;
-  border: 1px solid var(--line);
+  background: #ffffff;
+  border: 1px solid var(--blue-light);
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
 }
@@ -585,7 +589,7 @@ a.card.feature {
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #9fd8c9;
+  color: var(--blue);
 }
 
 .hit-counter-digits {
@@ -593,8 +597,8 @@ a.card.feature {
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: #4be3a0;
-  background: #051315;
+  color: #ffffff;
+  background: var(--blue-light);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
 }
@@ -922,6 +926,21 @@ a.card.feature {
 
 .btn-primary:hover {
   background: var(--teal-deep);
+}
+
+.btn-blue {
+  background: var(--blue-light);
+  color: #fff;
+}
+
+.btn-blue:hover {
+  background: var(--blue);
+}
+
+.btn-row-centered {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
 }
 
 .install-note {
