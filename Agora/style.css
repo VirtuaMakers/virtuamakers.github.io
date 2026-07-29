@@ -911,6 +911,10 @@ a.card.feature {
   transform: translateY(1px);
 }
 
+.btn + .btn {
+  margin-left: 0.7rem;
+}
+
 .btn-primary {
   background: var(--teal);
   color: #fff;
@@ -1127,6 +1131,135 @@ a.card.feature {
 
 .btn-danger:hover {
   background: #a5301f;
+}
+
+.btn-secondary {
+  background: var(--accent-soft);
+  color: var(--teal-deep);
+}
+
+.btn-secondary:hover {
+  background: #d7e9e9;
+}
+
+/* Bag / Cart */
+.bag-btn {
+  position: relative;
+}
+
+.bag-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.3rem;
+  margin-left: 0.3rem;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.bag-count[hidden] {
+  display: none;
+}
+
+.bag-modal {
+  width: min(420px, 100%);
+}
+
+.bag-empty {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.bag-group,
+.checkout-section {
+  margin-top: 1.2rem;
+}
+
+.bag-group-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.bag-items {
+  list-style: none;
+}
+
+.bag-items li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.bag-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bag-item-name {
+  flex: 1;
+}
+
+.bag-item-price {
+  color: var(--muted);
+}
+
+.bag-item-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bag-item-remove:hover {
+  color: var(--text);
+}
+
+.bag-checkout-btn {
+  margin-top: 1.2rem;
+  width: 100%;
+  text-align: center;
+}
+
+/* NFT Gallery cards */
+.cards-narrow {
+  max-width: 280px;
+}
+
+.nft-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nft-card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.nft-card h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.nft-card-empty {
+  border-style: dashed;
+  color: var(--muted);
 }
 
 .admin-actions {

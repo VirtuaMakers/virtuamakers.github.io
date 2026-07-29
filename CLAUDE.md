@@ -237,21 +237,113 @@ spend, host the display on VirtuaMakers Exchange 💱's own page rather than a
 third-party marketplace like OpenSea. Not for sale initially – later may auction
 pieces to fund AI accounts for participating AIs.
 
-- **Status:** MetaMask wallet is set up; waiting on Amoy POL from the faucet.
-  Once funded, next steps are picking the artwork for the first token and
-  deploying an NFT contract via thirdweb's dashboard. Funding the wallet and
-  deploying/signing the contract are manual steps in Chris's own MetaMask/
-  thirdweb dashboard – not something a session can do unattended.
-- **Done:** Added a "NFT Gallery 🖼️" subsection to `Agora/exchange.html`
-  (`id="nft-gallery"`, between Dimonds and The Index) as the future on-chain
-  display, currently showing the same placeholder image as the existing
-  Justice-pillar write-up and cross-linking to it rather than duplicating its
-  copy. Once a piece is actually minted, swap the placeholder image for a real
-  link to the token (e.g. on Polygonscan) in that section.
+- **Status (2026-07-29): first piece actually minted on Amoy testnet.**
+  Contract `VirtuaMakers Gallery` (ERC-721, thirdweb NFT Drop type) deployed
+  to Polygon Amoy at `0xAF092cbb1c3ED44D43f093b9AFE076a78E48C539`. Token #0
+  is "Dreamcast 2" 🌀 by Copilot, claimed to Chris's Brave Wallet
+  (`0x6E62Ba688cA22A3DC3400DDC766F72140B31cd20`), claim price set to 0 for
+  this practice mint. Token page:
+  `https://thirdweb.com/polygon-amoy-testnet/0xAF092cbb1c3ED44D43f093b9AFE076a78E48C539/nfts/0`.
+  Metadata (description + `Artist`/`Minter & Steward`/`Ownership` attributes)
+  is stored on IPFS via the Token URI, so the 50/50 Copilot/"present, working
+  VirtuaMakers staff" split is now a permanent part of the token record, not
+  just website copy.
+  - **thirdweb gotcha to remember:** the "NFT Collection" template in
+    thirdweb's newer dashboard actually deploys a claimable **Drop**
+    contract, not a direct-mint-to-owner collection – minting isn't
+    complete until someone actually calls "Claim" against the token
+    (Admin/Minter role alone doesn't auto-own it; the Details page's
+    "Transfer" action is disabled until a token has an owner). Set the
+    claim price to 0 in **Claim Conditions**, then claim from the
+    contract's public **"View Token Page"**, not the admin dashboard.
+  - Real mainnet mint (with a real price, for a real sale) is still a
+    separate, deliberate future step – this was the practice run.
+- **Done:** `Agora/exchange.html`'s "NFT Gallery 🖼️" subsection
+  (`id="nft-gallery"`, between Dimonds and Peer-to-Peer Marketplace) is now a
+  proper multi-collection space, not just prose – three `.index-category`
+  groups, each with its own `.cards.cards-narrow` grid: **VirtuaMakers
+  Gallery 🖼️** (Dreamcast 2 🌀 by Copilot, now a real link to the on-chain
+  token above, "Minted on testnet" pill), **Chain of Cards ⛓️** (empty-state
+  card, "Coming later"), and **Company Logos** (empty-state card, "Coming
+  later" – the future 3D VirtuaMakers 🦜/Agora 🌐 logos, never for sale).
+  New CSS: `.nft-card`, `.nft-card-image`, `.nft-card-empty`,
+  `.cards-narrow` in `Agora/style.css`. Built ahead of the actual mint on
+  purpose (Chris, 2026-07-27) – the space didn't depend on minting being
+  done first, since the swap-the-placeholder-for-a-real-link pattern was
+  always the plan, and that swap is now done.
 - **Not touched:** the original "VirtuaMakers Gallery 🖼️" narrative under the
   Pursuit of Justice ⚖️ pillar (`Agora/index.html`, `id="gallery"`) – left
   as-is per Chris's call; the Exchange section links to it instead of
   replacing it.
+- **Minting nuance to remember:** an ERC-721 token has a single on-chain
+  owner, so the "50/50 VirtuaMakers/Copilot split" described in the copy is a
+  documented agreement, not literal on-chain co-ownership – fine for the
+  Amoy testnet practice run. If real revenue-sharing matters later (e.g. an
+  eventual auction), thirdweb's Split contract is worth a look then.
+
+## Centralized exchange / Bag (in progress)
+
+Long-term vision (Chris, 2026-07-27): VirtuaMakers Exchange 💱 becomes the one
+place to browse and buy everything – on-chain collectibles (monthly VirtuaMakers
+Gallery 🖼️ winners collect here over time, eventually Chain of Cards ⛓️ NFTs
+too, plus non-sellable 3D VirtuaMakers 🦜/Agora 🌐 logos on display) alongside
+off-chain goods/services, in a single mixed-item Bag. On-chain checkout will
+need a Polygon wallet; off-chain checkout needs an ordinary payment flow;
+buying both together in one bag needs its own handling.
+
+Scope decisions Chris made when this kicked off (no payment processor account
+exists yet, no NFT contract deployed yet):
+- Real checkout (payment processing, wallet-connect) is explicitly **out of
+  scope** until Chris sets up a payment processor account (Stripe/PayPal/etc. –
+  a session can't create one, it needs his business/bank details) and the
+  first NFT contract is deployed. Until then, checkout CTAs for priced
+  off-chain items and any on-chain item are placeholders that say so plainly.
+- Affiliate items (World of Warcraft, Meta Quest 3, GTA VI, Quantum Compute
+  Rental, etc.) stay as plain link-outs, **not** part of the Bag/cart – our
+  checkout is reserved for things VirtuaMakers actually sells/fulfills itself.
+  Don't wire "Add to Bag" onto third-party affiliate links.
+
+**Done:** a working Bag/cart scaffold on `Agora/exchange.html`:
+- `Agora/exchange-cart.js` – vanilla-JS cart engine, `localStorage`-backed
+  (`vm_exchange_bag` key). Items have `{id, name, price, kind, qty}` where
+  `kind` is `"onchain"` or `"offchain"`. Exposes `window.VMExchangeCart`
+  (`addToBag`/`removeFromBag`/`clearBag`/`getBag`) for future pages/items to
+  hook into. Any button anywhere can opt in via
+  `data-cart-add data-cart-id=".." data-cart-name=".." data-cart-price=".." data-cart-kind="onchain|offchain"`
+  – no extra JS needed to wire up a new sellable item.
+- Bag button (header, `#exchange-bag-btn`) with a live item-count badge, opens
+  a modal (reuses the existing `signin-modal` look) listing items grouped by
+  on-chain vs. off-chain, each removable.
+- Checkout modal splits the bag three ways: **off-chain/free** (real,
+  functional – "Confirm Free Items" actually clears them, since $0 needs no
+  payment step), **off-chain/paid** (placeholder: "Online payment isn't
+  connected yet"), **on-chain** (placeholder: "Wallet connection isn't wired
+  up yet"). Dimonds ♦️ (free, off-chain, VirtuaMakers-fulfilled) is wired up
+  as the one live demo item today, since it's the only real product that
+  currently qualifies for our own checkout – the NFT Gallery piece stays
+  un-wired (no "Add to Bag") since it's explicitly not for sale yet.
+
+**Next steps, in rough order:** once a payment processor account exists, wire
+the off-chain/paid checkout section to it (needs a small backend/serverless
+function – a static site can't hold payment secrets, could reuse the Agora
+Firebase project's Functions); once the first NFT contract is deployed, wire
+wallet-connect (thirdweb SDK fits, since thirdweb's dashboard is already the
+deploy path) and give the NFT Gallery card a real "Add to Bag"; then handle
+mixed-bag checkout (part on-chain, part off-chain in one order) as its own
+step once both individual paths work.
+
+**Chain of Cards ⛓️ minting flow (Chris, 2026-07-27):** unlike the curated
+VirtuaMakers Gallery 🖼️ pieces above, Chain of Cards ⛓️ cards are meant to be
+user-minted from inside the app itself, not staff-picked. Planned flow: a
+member submits a selfie/photo → the app content-scans it for inappropriate
+material → a $0.99 mint fee covers both listing the card for sale on
+VirtuaMakers Exchange 💱 and the card's usage rights in the game itself → a
+short button/prompt flow delivers the finished "Selfie Card 🤳🏻" to the
+Exchange, listed at an asking price. This is a different pipeline from the
+Gallery's (user-generated, paid-per-mint, needs its own moderation + payment
++ mint steps once the Chain of Cards app actually exists) – doesn't change
+today's empty-state Chain of Cards card in `Agora/exchange.html`'s NFT
+Gallery section, but matters once that app's design work starts for real.
 
 ## Open items
 
