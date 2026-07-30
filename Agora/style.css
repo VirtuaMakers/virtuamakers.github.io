@@ -576,7 +576,7 @@ a.card.feature {
   font-weight: 800;
   letter-spacing: -0.01em;
   text-transform: none;
-  text-align: left;
+  text-align: center;
   color: var(--text);
   margin-bottom: 0.6rem;
 }
@@ -1023,7 +1023,10 @@ a.card.feature {
 
 .pillar-toc--vertical {
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .pillar-toc--vertical a {
