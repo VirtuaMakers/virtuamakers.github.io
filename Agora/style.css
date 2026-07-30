@@ -435,6 +435,10 @@ a.card.feature {
   margin-top: 1.1rem;
 }
 
+.body-text-spaced {
+  margin-bottom: 1.6rem;
+}
+
 .body-text a,
 .intro a {
   color: var(--teal);
