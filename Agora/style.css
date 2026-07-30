@@ -451,6 +451,20 @@ a.card.feature {
   color: var(--teal-deep);
 }
 
+#justice .body-text a,
+#justice .intro a,
+#justice ~ .subsection .body-text a,
+#justice ~ .subsection .intro a {
+  color: var(--blue-light);
+}
+
+#justice .body-text a:hover,
+#justice .intro a:hover,
+#justice ~ .subsection .body-text a:hover,
+#justice ~ .subsection .intro a:hover {
+  color: var(--blue);
+}
+
 .body-list {
   margin: 0.7rem 0 0 1.2rem;
   max-width: 42rem;
