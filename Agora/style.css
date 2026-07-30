@@ -6,6 +6,8 @@
   --line: #e4ece9;
   /* Brand palette shared with VirtuaMakers */
   --green: #61a138;
+  --green-deep: #3f7024;
+  --green-soft: #eaf3e2;
   --teal: #167082;
   --teal-deep: #01566b;
   --accent: var(--teal);
@@ -1061,6 +1063,16 @@ a.card.feature {
 
 #justice .pillar-toc a:hover {
   background: var(--blue-light);
+  color: #fff;
+}
+
+#index-pagination .pillar-toc a {
+  color: var(--green-deep);
+  background: var(--green-soft);
+}
+
+#index-pagination .pillar-toc a:hover {
+  background: var(--green);
   color: #fff;
 }
 
