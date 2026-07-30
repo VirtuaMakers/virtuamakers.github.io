@@ -1021,12 +1021,20 @@ a.card.feature {
   color: #fff;
 }
 
+.pillar-toc-columns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.6rem;
+  margin-top: 1.6rem;
+}
+
 .pillar-toc--vertical {
   flex-direction: column;
   align-items: stretch;
-  max-width: 480px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 420px;
+  flex: 1 1 320px;
+  margin-top: 0;
 }
 
 .pillar-toc--vertical a {
