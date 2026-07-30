@@ -1033,8 +1033,18 @@ a.card.feature {
   text-align: left;
 }
 
+.catalogue-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.1rem;
+  margin-top: 1rem;
+}
+
 .catalogue-item {
   display: flex;
+  flex: 1 1 200px;
+  max-width: 240px;
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -1043,6 +1053,14 @@ a.card.feature {
 
 .catalogue-item h3 {
   margin: 0;
+}
+
+.catalogue-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .catalogue-item-pending {
