@@ -15,6 +15,7 @@
     { name: "Grand Theft Auto VI", url: "https://www.rockstargames.com/VI", external: true },
     { name: "ReBoot", url: "https://www.amazon.com/gp/video/detail/B07YLBMMBH/", external: true },
     { name: "RENDER", url: "https://www.coingecko.com/en/coins/render", external: true },
+    { name: "E-Books", url: "exchange-ebooks.html", external: false },
     { name: "The Logo", url: "exchange-the-logo.html", external: false },
     { name: "VirtuaMakers Gallery", url: "exchange-virtuamakers-gallery.html", external: false },
     { name: "Chain of Cards", url: "exchange-chain-of-cards.html", external: false },
