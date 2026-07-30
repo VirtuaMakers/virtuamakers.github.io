@@ -14,6 +14,7 @@
      spheres, cubes, pyramids) */
   --blue: #2b57d6;
   --blue-light: #4d8df0;
+  --blue-soft: #e5eefc;
   --radius: 14px;
   --maxw: 960px;
 }
@@ -1050,6 +1051,16 @@ a.card.feature {
 
 .pillar-toc a:hover {
   background: var(--teal);
+  color: #fff;
+}
+
+#justice .pillar-toc a {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+#justice .pillar-toc a:hover {
+  background: var(--blue-light);
   color: #fff;
 }
 
