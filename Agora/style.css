@@ -563,6 +563,13 @@ a.card.feature {
   margin-top: 2rem;
 }
 
+@media (min-width: 641px) {
+  .section-image-full-landscape {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 .text-center {
   text-align: center;
   margin-left: auto;
