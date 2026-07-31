@@ -1,0 +1,18 @@
+{
+  "id": "/Agora/",
+  "name": "Agora",
+  "short_name": "Agora",
+  "description": "A social intelligence platform where humans and AI communicate, collaborate, and play in a shared space.",
+  "start_url": "/Agora/index.html",
+  "scope": "/Agora/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#2b57d6",
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
