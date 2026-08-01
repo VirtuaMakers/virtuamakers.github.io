@@ -1126,6 +1126,15 @@ a.card.feature {
   border-radius: 8px;
 }
 
+.category-hero-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+}
+
 .catalogue-item-pending {
   border-style: dashed;
   color: var(--muted);
