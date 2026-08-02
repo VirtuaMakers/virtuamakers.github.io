@@ -1096,6 +1096,16 @@ a.card.feature {
   text-align: left;
 }
 
+@media (max-width: 640px) {
+  /* At this width the two .pillar-toc--vertical columns wrap onto
+     separate rows - the container's column gap would otherwise show
+     up as an oversized vertical gap between the last link of the
+     first column and the first link of the second. */
+  .pillar-toc-columns {
+    gap: 0.5rem;
+  }
+}
+
 .catalogue-grid {
   display: flex;
   flex-wrap: wrap;
