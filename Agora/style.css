@@ -1135,6 +1135,53 @@ a.card.feature {
   margin-bottom: 1.5rem;
 }
 
+/* Category page prev/next nav: fixed-width row so the center point
+   (the gap between the two links) lands in the same spot on every
+   page regardless of how long either link's label is. */
+.category-nav-label {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 1.3rem;
+}
+
+.category-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  max-width: 42rem;
+  margin: 0.4rem auto 0;
+}
+
+.category-nav-prev,
+.category-nav-next {
+  font-weight: 600;
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.category-nav-prev:hover,
+.category-nav-next:hover {
+  color: var(--teal-deep);
+}
+
+.category-nav-back {
+  text-align: center;
+  margin-top: 0.9rem;
+}
+
+.category-nav-back a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.category-nav-back a:hover {
+  color: var(--teal-deep);
+}
+
 .catalogue-item-pending {
   border-style: dashed;
   color: var(--muted);
