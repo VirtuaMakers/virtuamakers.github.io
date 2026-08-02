@@ -1135,6 +1135,75 @@ a.card.feature {
   margin-bottom: 1.5rem;
 }
 
+/* Product row: the listing style for anything with a real description or
+   promotion (VirtuaMakers' own products first) - Name/Picture/Description/
+   Price as one line, as opposed to the plain .catalogue-item cards used for
+   simple link-outs with no description. */
+.product-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 1.4rem;
+  align-items: start;
+  padding: 1.4rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.product-row:first-of-type {
+  border-top: none;
+}
+
+.product-row-image {
+  display: block;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.product-row-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.product-row-description {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  max-width: 38rem;
+}
+
+.product-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.product-row-actions .btn {
+  margin-left: 0;
+}
+
+.product-row-price {
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .product-row {
+    grid-template-columns: 90px 1fr;
+  }
+
+  .product-row-price {
+    grid-column: 1 / -1;
+    text-align: left;
+    margin-top: 0.4rem;
+  }
+}
+
 /* Category page prev/next nav: fixed-width row so the center point
    (the gap between the two links) lands in the same spot on every
    page regardless of how long either link's label is. */
