@@ -1135,6 +1135,15 @@ a.card.feature {
   margin-bottom: 1.5rem;
 }
 
+/* Modifier for hero photos where the full frame matters more than
+   filling the box (e.g. product shots on a white background) - shows
+   the whole image, letting empty space around it read as page background
+   instead of cropping in tight. */
+.category-hero-image-contain {
+  object-fit: contain;
+  background: var(--bg);
+}
+
 /* Product row: the listing style for anything with a real description or
    promotion (VirtuaMakers' own products first) - Name/Picture/Description/
    Price as one line, as opposed to the plain .catalogue-item cards used for
