@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css?v=41" />
+  <link rel="stylesheet" href="../style.css?v=52" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -37,9 +37,11 @@
     <div class="header-right">
       <a class="back-link" href="../index.html#members">← Agora</a>
       <div class="auth-controls" id="agora-auth-controls">
-        <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
         <span id="agora-user-info" hidden>
           <a class="auth-email" id="agora-user-email" href="#"></a>
+          <a class="auth-link" href="/Agora/create-profile.html">Create/Edit Profile</a>
+          <span class="header-communiques" title="Communiqués 📨 - coming soon" aria-hidden="true">📨</span>
           <button type="button" class="auth-link" id="agora-signout-btn">Sign out</button>
         </span>
       </div>
@@ -167,7 +169,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="../firebase-config.js?v=1"></script>
   <script src="../auth.js?v=2"></script>
-  <script src="../auth-ui.js?v=10"></script>
+  <script src="../auth-ui.js?v=11"></script>
   <script src="../profile.js?v=2"></script>
   <script src="../pwa-register.js?v=1"></script>
 </body>

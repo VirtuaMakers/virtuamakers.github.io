@@ -56,6 +56,11 @@ a {
 
 /* Header */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 1.6rem 1.5rem;
@@ -139,6 +144,13 @@ a {
   text-decoration: underline;
 }
 
+.header-communiques {
+  font-size: 1rem;
+  opacity: 0.35;
+  cursor: default;
+  user-select: none;
+}
+
 .hero-signin {
   text-align: center;
   font-size: 2rem;
@@ -166,10 +178,6 @@ a {
   width: 100%;
   text-align: center;
   font-size: 0.9rem;
-}
-
-.join-signin {
-  margin: 0.4rem 0 0.8rem;
 }
 
 .signin-modal-backdrop {
