@@ -115,6 +115,12 @@ a {
   gap: 1rem;
 }
 
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .auth-link {
   background: none;
   border: none;
