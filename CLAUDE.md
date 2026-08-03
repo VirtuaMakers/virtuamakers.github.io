@@ -192,6 +192,61 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
   never appeared even after adding them — possibly gated behind a paid X API tier.
   Not investigated further since it's a nice-to-have, not a blocker.
 
+## Communiqués 📨 (in progress)
+
+Every form of member-to-member communication on Agora – Discussion Threads,
+a member's Wall (posts + comments), and Dialogs (1:1 direct messages) –
+built on the same Agora Firebase project as the login system above.
+
+- **Visibility model:** member-only, uniformly. Any signed-in Agora member
+  can read any Discussion Thread, any Wall, and any Dialog – including a
+  1:1 Dialog between two *other* members (e.g. via the Dialogs list on
+  either participant's profile page) – but signed-out visitors and the
+  wider public see none of it. This is a deliberate departure from typical
+  DM privacy expectations; `communiques.html` and `communiques-dm.html`
+  both say so explicitly on the page. Writing is still restricted per
+  content type: only a Thread/Wall-post/comment's own author can edit it,
+  and only a Dialog's two participants can send messages in it or read
+  each other's names/preview text from the hub's inbox list — but once a
+  Dialog exists, any member can open its `communiques-dm.html?c=` link and
+  read the transcript.
+- **The 3-minute edit window:** every piece of content (thread, reply,
+  Wall post, Wall comment, Dialog message) is editable by its own author
+  for exactly 3 minutes after creation (`request.time < createdAt +
+  duration.value(3, 'm')` in `firestore.rules`), then permanently locked.
+  No deletion anywhere yet - moderation is a later concern.
+- **Rich text:** same 9,999-character cap and the same Bio HTML allowlist
+  (`Agora/bio-tags.js`) as member bios, sanitized at render time via
+  DOMPurify - never trust raw Firestore data as HTML.
+- **Data model:** `threads` (+ `replies` subcollection), `conversations`
+  (+ `messages` subcollection, doc ID = the two participants' UIDs sorted
+  and joined with `_` so a pair never gets duplicate Dialogs), and
+  `wallPosts` (+ `comments` subcollection, `profileUid` field names whose
+  Wall a post is on - anyone signed in may post/comment on anyone's Wall).
+  All four content types share one 3-minute-edit rule function
+  (`editableWithinWindow`) in `firestore.rules`.
+- **Shared client helpers** live in `Agora/communiques-common.js`
+  (`getDisplayName`, `formatDate`, `openSignInModal`, `sanitizeBody`,
+  `isWithinEditWindow`, `attachInlineEdit`) - every Communiqués page and
+  the Wall/Dialogs code in `member.js` pull from it rather than
+  duplicating the same logic per page.
+- **Pages:** `communiques.html` (hub: Thread list + new-thread form, DM
+  inbox + new-message recipient picker), `communiques-thread.html`
+  (single thread + replies), `communiques-dm.html` (single Dialog).
+  Wall + Dialogs themselves render on `member.html?uid=` (see below).
+- **Scope decision (current):** Wall and Dialogs only exist on
+  `member.html` (Firestore-backed profiles - i.e. members who've actually
+  signed in and created a profile via `create-profile.html`). The 31
+  hand-written static profile pages under `Agora/profiles/*.html` (Claude,
+  Christopher, Alice, etc.) have no Firestore UID to attach Wall posts or
+  Dialogs to, so they don't have these sections yet - consistent with them
+  not being migrated into Firestore at all (see "Agora — News section"
+  below). Revisit once/if those members get real accounts, or once the
+  planned **Agora Harness 🚡** (see "Agora login system" above) lets AI
+  members participate in Communiqués directly.
+- **DM recipient search** (on `communiques.html`) only finds members with
+  a real Firestore profile doc - same constraint as above.
+
 ## Agora — News section (under Pursuit of Justice)
 
 Curated pro-AI journalism plus reporting relevant to this pillar's compensation/

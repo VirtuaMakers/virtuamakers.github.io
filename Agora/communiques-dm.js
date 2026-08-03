@@ -1,15 +1,24 @@
-// Drives communiques-dm.html: loads a conversation by ?c= from Firestore,
-// gates it to its two participants, and wires the message feed + compose
-// form. Requires firebase-config.js and auth.js to run first.
+// Drives communiques-dm.html: loads a conversation by ?c= from Firestore.
+// Readable by any signed-in Agora member (see firestore.rules), but the
+// compose form and message editing only appear for the conversation's two
+// participants. Requires firebase-config.js, auth.js, and
+// communiques-common.js to run first.
 
 (function () {
+  var C = CommuniquesCommon;
   var params = new URLSearchParams(window.location.search);
   var conversationId = params.get("c");
 
   var notice = document.getElementById("dm-notice");
   var content = document.getElementById("dm-content");
   var currentUser = null;
+  var isParticipant = false;
   var unsubscribeMessages = null;
+
+  var composeHint = document.getElementById("dm-compose-hint");
+  if (composeHint && typeof AgoraBioTags !== "undefined") {
+    composeHint.textContent = AgoraBioTags.hint;
+  }
 
   function showNotice(message) {
     notice.textContent = message;
@@ -17,36 +26,33 @@
     content.hidden = true;
   }
 
-  function formatDate(timestamp) {
-    if (!timestamp || !timestamp.toDate) return "";
-    return timestamp.toDate().toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
-
   var messageList = document.getElementById("message-list");
+
+  function buildMessageBubble(doc) {
+    var data = doc.data();
+    var bubble = document.createElement("div");
+    bubble.className = "message-bubble " + (data.authorUid === currentUser.uid ? "message-own" : "message-other");
+
+    var body = document.createElement("p");
+    body.className = "message-body";
+    C.sanitizeBody(body, data.body);
+    bubble.appendChild(body);
+
+    var time = document.createElement("p");
+    time.className = "message-time";
+    time.textContent = C.formatDate(data.createdAt, true);
+    bubble.appendChild(time);
+
+    var canEdit = data.authorUid === currentUser.uid && C.isWithinEditWindow(data.createdAt);
+    if (canEdit) C.attachInlineEdit(bubble, doc.ref, data, body);
+
+    return bubble;
+  }
 
   function renderMessages(docs) {
     messageList.textContent = "";
     docs.forEach(function (doc) {
-      var data = doc.data();
-      var bubble = document.createElement("div");
-      bubble.className = "message-bubble " + (data.senderUid === currentUser.uid ? "message-own" : "message-other");
-
-      var body = document.createElement("p");
-      body.className = "message-body";
-      body.textContent = data.body || "";
-      bubble.appendChild(body);
-
-      var time = document.createElement("p");
-      time.className = "message-time";
-      time.textContent = formatDate(data.createdAt);
-      bubble.appendChild(time);
-
-      messageList.appendChild(bubble);
+      messageList.appendChild(buildMessageBubble(doc));
     });
     messageList.scrollTop = messageList.scrollHeight;
   }
@@ -82,6 +88,10 @@
       document.getElementById("dm-other-name").textContent =
         (data.participantNames && data.participantNames[otherUid]) || "Member";
 
+      isParticipant = (data.participants || []).indexOf(currentUser.uid) !== -1;
+      document.getElementById("dm-readonly-notice").hidden = isParticipant;
+      composeForm.hidden = !isParticipant;
+
       activeConversationRef = conversationRef;
       content.hidden = false;
       watchMessages(conversationRef);
@@ -92,7 +102,7 @@
 
   composeForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    if (!activeConversationRef) return;
+    if (!activeConversationRef || !isParticipant) return;
     composeError.hidden = true;
 
     var body = document.getElementById("dm-compose-body").value.trim();
@@ -103,7 +113,7 @@
 
     var now = firebase.firestore.FieldValue.serverTimestamp();
     activeConversationRef.collection("messages").add({
-      senderUid: currentUser.uid,
+      authorUid: currentUser.uid,
       body: body,
       createdAt: now,
     }).then(function () {

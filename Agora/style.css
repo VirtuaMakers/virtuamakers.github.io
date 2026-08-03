@@ -1250,3 +1250,84 @@ a.card.feature {
   color: var(--muted);
   margin-top: 0.25rem;
 }
+
+/* Inline editing - Threads, replies, Wall posts/comments, DM messages */
+
+.edit-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--teal);
+  cursor: pointer;
+  margin-top: 0.3rem;
+}
+
+.edit-toggle:hover {
+  color: var(--teal-deep);
+  text-decoration: underline;
+}
+
+.edit-form {
+  margin-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.edit-form textarea {
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  resize: vertical;
+}
+
+/* Wall (Communiqués 📨, on member.html) */
+
+.wall-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+}
+
+.wall-post {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+}
+
+.wall-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--line);
+}
+
+.wall-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.wall-comment-form textarea {
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  resize: vertical;
+}
+
+.wall-comment-form .btn {
+  align-self: flex-start;
+}

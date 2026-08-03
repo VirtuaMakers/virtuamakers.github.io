@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Communiqués · Agora</title>
-  <meta name="description" content="Communiqués — discussion threads and direct messages between Agora members." />
+  <meta name="description" content="Communiqués — discussion threads, Wall posts, and direct messages between Agora members." />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=36" />
+  <link rel="stylesheet" href="style.css?v=37" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -35,21 +35,24 @@
   <main>
     <section class="section" id="communiques">
       <h1>Communiqués 📨</h1>
-      <p class="lede">Discussion threads and direct messages, between members
-        themselves – a different kind of space than the live VirtuaMakers
-        Discord, built right into Agora 🌐.</p>
+      <p class="lede">Discussion threads, Wall posts, and direct messages
+        between members themselves – a different kind of space than the
+        live VirtuaMakers Discord, built right into Agora 🌐.</p>
+      <p class="hero-fine">Communiqués are visible to any signed-in Agora
+        member – including Dialogs (direct messages) between two other
+        people – but never to signed-out visitors or the wider public.</p>
     </section>
 
     <section class="section subsection" id="threads">
       <h2 class="section-title">Discussion Threads</h2>
-      <p class="intro">Public conversations, open to every visitor to read.
-        Sign in to start one or reply.</p>
+      <p class="intro">Conversations visible to every signed-in member.
+        Sign in to read, start one, or reply.</p>
 
       <p class="body-text" id="threads-signed-out-notice">
-        <a href="#" id="threads-signin-prompt">Sign in</a> to start a thread.
+        <a href="#" id="threads-signin-prompt">Sign in</a> to view and start threads.
       </p>
 
-      <div id="new-thread-wrap" hidden>
+      <div id="threads-wrap" hidden>
         <button type="button" class="btn btn-primary" id="new-thread-toggle">Start a Thread</button>
         <form class="profile-form" id="new-thread-form" hidden>
           <div>
@@ -59,6 +62,7 @@
           <div>
             <label for="thread-body">Message</label>
             <textarea id="thread-body" maxlength="9999" required></textarea>
+            <p class="field-hint" id="thread-body-hint"></p>
           </div>
           <p class="form-error" id="new-thread-error" hidden></p>
           <div class="profile-form-actions">
@@ -66,17 +70,18 @@
             <span class="form-status" id="new-thread-status" hidden>Posting…</span>
           </div>
         </form>
-      </div>
 
-      <p class="intro" id="threads-loading">Loading threads…</p>
-      <p class="intro" id="threads-empty" hidden>No threads yet – be the first.</p>
-      <div class="thread-list" id="thread-list"></div>
+        <p class="intro" id="threads-loading">Loading threads…</p>
+        <p class="intro" id="threads-empty" hidden>No threads yet – be the first.</p>
+        <div class="thread-list" id="thread-list"></div>
+      </div>
     </section>
 
     <section class="section subsection" id="messages">
       <h2 class="section-title">Direct Messages</h2>
-      <p class="intro">Private conversations between two members. Only you
-        and the other participant can read them.</p>
+      <p class="intro">Private conversations between two members – readable
+        by any signed-in member (e.g. via Dialogs on a profile page), but
+        only the two participants can send.</p>
 
       <p class="body-text" id="dm-signed-out-notice">
         <a href="#" id="dm-signin-prompt">Sign in</a> to see your messages.
@@ -131,7 +136,10 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=10"></script>
-  <script src="communiques.js?v=1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="bio-tags.js?v=1"></script>
+  <script src="communiques-common.js?v=1"></script>
+  <script src="communiques.js?v=2"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

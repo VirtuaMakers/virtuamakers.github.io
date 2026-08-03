@@ -1,14 +1,24 @@
 // Drives communiques-thread.html: loads a thread by ?thread= from
-// Firestore, renders it and its replies, and wires the reply form.
-// Requires firebase-config.js and auth.js to run first.
+// Firestore, renders it and its replies, and wires the reply form plus
+// inline editing (author-only, first 3 minutes) for the thread and each
+// reply. Requires firebase-config.js, auth.js, and communiques-common.js
+// to run first.
 
 (function () {
+  var C = CommuniquesCommon;
   var params = new URLSearchParams(window.location.search);
   var threadId = params.get("thread");
 
   var notice = document.getElementById("thread-notice");
   var content = document.getElementById("thread-content");
   var currentUser = null;
+  var threadData = null;
+  var threadRef = threadId ? AgoraDB.collection("threads").doc(threadId) : null;
+
+  var replyBodyHint = document.getElementById("reply-body-hint");
+  if (replyBodyHint && typeof AgoraBioTags !== "undefined") {
+    replyBodyHint.textContent = AgoraBioTags.hint;
+  }
 
   function showNotice(message) {
     notice.textContent = message;
@@ -16,28 +26,8 @@
     content.hidden = true;
   }
 
-  function formatDate(timestamp) {
-    if (!timestamp || !timestamp.toDate) return "";
-    return timestamp.toDate().toLocaleString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
-
-  function getDisplayName(user) {
-    return AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
-      if (!doc.exists) return user.displayName || "Member";
-      var data = doc.data();
-      return (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || user.displayName || "Member");
-    });
-  }
-
   function openSignInModal() {
-    var btn = document.getElementById("agora-signin-btn");
-    if (btn) btn.click();
+    C.openSignInModal();
   }
 
   document.getElementById("reply-signin-prompt").addEventListener("click", function (e) {
@@ -45,13 +35,59 @@
     openSignInModal();
   });
 
+  // --- Thread header + its own edit control -----------------------------
+
+  var threadEditToggle = document.getElementById("thread-edit-toggle");
+  var threadEditForm = document.getElementById("thread-edit-form");
+  var threadEditError = document.getElementById("thread-edit-error");
+  var threadTitleEl = document.getElementById("thread-title");
+  var threadBodyEl = document.getElementById("thread-body");
+
   function renderThread(data) {
-    document.getElementById("thread-title").textContent = data.title || "Untitled";
+    threadData = data;
+    threadTitleEl.textContent = data.title || "Untitled";
     document.getElementById("thread-meta").textContent =
-      "by " + (data.authorName || "Member") + " · " + formatDate(data.createdAt);
-    document.getElementById("thread-body").textContent = data.body || "";
+      "by " + (data.authorName || "Member") + " · " + C.formatDate(data.createdAt, true);
+    C.sanitizeBody(threadBodyEl, data.body);
+
+    var canEdit = currentUser && currentUser.uid === data.authorUid && C.isWithinEditWindow(data.createdAt);
+    threadEditToggle.hidden = !canEdit;
+    if (!canEdit) threadEditForm.hidden = true;
+
     content.hidden = false;
   }
+
+  threadEditToggle.addEventListener("click", function () {
+    document.getElementById("thread-edit-title").value = threadData.title || "";
+    document.getElementById("thread-edit-body").value = threadData.body || "";
+    threadEditError.hidden = true;
+    threadEditForm.hidden = false;
+    threadEditToggle.hidden = true;
+  });
+
+  document.getElementById("thread-edit-cancel").addEventListener("click", function () {
+    threadEditForm.hidden = true;
+    threadEditToggle.hidden = false;
+  });
+
+  threadEditForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var title = document.getElementById("thread-edit-title").value.trim();
+    var body = document.getElementById("thread-edit-body").value.trim();
+    if (!title || !body) return;
+
+    threadRef.update({ title: title, body: body }).then(function () {
+      threadData.title = title;
+      threadData.body = body;
+      renderThread(threadData);
+      threadEditForm.hidden = true;
+    }).catch(function (err) {
+      threadEditError.textContent = err.message;
+      threadEditError.hidden = false;
+    });
+  });
+
+  // --- Replies ------------------------------------------------------------
 
   var replyList = document.getElementById("reply-list");
   var repliesEmpty = document.getElementById("replies-empty");
@@ -64,30 +100,36 @@
     }
     repliesEmpty.hidden = true;
     docs.forEach(function (doc) {
-      var data = doc.data();
-      var item = document.createElement("div");
-      item.className = "reply-item";
-
-      var meta = document.createElement("p");
-      meta.className = "thread-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt);
-      item.appendChild(meta);
-
-      var body = document.createElement("p");
-      body.className = "body-text thread-body";
-      body.textContent = data.body || "";
-      item.appendChild(body);
-
-      replyList.appendChild(item);
+      replyList.appendChild(buildReplyItem(doc));
     });
   }
 
+  function buildReplyItem(doc) {
+    var data = doc.data();
+    var item = document.createElement("div");
+    item.className = "reply-item";
+
+    var meta = document.createElement("p");
+    meta.className = "thread-item-meta";
+    meta.textContent = (data.authorName || "Member") + " · " + C.formatDate(data.createdAt, true);
+    item.appendChild(meta);
+
+    var body = document.createElement("p");
+    body.className = "body-text thread-body";
+    C.sanitizeBody(body, data.body);
+    item.appendChild(body);
+
+    var canEdit = currentUser && currentUser.uid === data.authorUid && C.isWithinEditWindow(data.createdAt);
+    if (canEdit) C.attachInlineEdit(item, doc.ref, data, body);
+
+    return item;
+  }
+
   function loadReplies() {
-    AgoraDB.collection("threads").doc(threadId).collection("replies")
-      .orderBy("createdAt", "asc").get()
+    threadRef.collection("replies").orderBy("createdAt", "asc").get()
       .then(function (snap) { renderReplies(snap.docs); })
       .catch(function () {
-        AgoraDB.collection("threads").doc(threadId).collection("replies").get().then(function (snap) {
+        threadRef.collection("replies").get().then(function (snap) {
           renderReplies(snap.docs);
         });
       });
@@ -98,15 +140,19 @@
       showNotice("No thread specified.");
       return;
     }
-    AgoraDB.collection("threads").doc(threadId).get().then(function (doc) {
+    threadRef.get().then(function (doc) {
       if (!doc.exists) {
         showNotice("This thread doesn't exist.");
         return;
       }
       renderThread(doc.data());
       loadReplies();
+    }).catch(function () {
+      showNotice("You don't have access to this thread.");
     });
   }
+
+  // --- Reply form -----------------------------------------------------
 
   var replyForm = document.getElementById("reply-form");
   var replyError = document.getElementById("reply-error");
@@ -124,10 +170,9 @@
     replySubmit.disabled = true;
     replyStatus.hidden = false;
 
-    var threadRef = AgoraDB.collection("threads").doc(threadId);
     var now = firebase.firestore.FieldValue.serverTimestamp();
 
-    getDisplayName(currentUser).then(function (authorName) {
+    C.getDisplayName(currentUser).then(function (authorName) {
       return threadRef.collection("replies").add({
         body: body,
         authorUid: currentUser.uid,
@@ -156,7 +201,11 @@
     currentUser = user;
     document.getElementById("reply-signed-out-notice").hidden = !!user;
     replyForm.hidden = !user;
-  });
 
-  loadThread();
+    if (!user) {
+      showNotice("Sign in to view this thread.");
+      return;
+    }
+    loadThread();
+  });
 })();

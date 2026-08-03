@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=36" />
+  <link rel="stylesheet" href="style.css?v=37" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -106,6 +106,40 @@
         <p class="body-text" id="owner-edit-link" hidden>
           <a href="create-profile.html">Edit your profile.</a>
         </p>
+
+        <p class="body-text" id="communiques-signed-out-notice">
+          <a href="#" id="communiques-signin-prompt">Sign in</a> to view this
+          member's Wall and Dialogs – visible to signed-in Agora members only.
+        </p>
+
+        <div id="member-communiques" hidden>
+          <div class="subsection" id="member-wall">
+            <h2 class="section-title">Wall</h2>
+            <form class="profile-form" id="wall-post-form">
+              <div>
+                <label for="wall-post-body">Post to this Wall</label>
+                <textarea id="wall-post-body" maxlength="9999" required></textarea>
+                <p class="field-hint" id="wall-post-hint"></p>
+              </div>
+              <p class="form-error" id="wall-post-error" hidden></p>
+              <div class="profile-form-actions">
+                <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
+                <span class="form-status" id="wall-post-status" hidden>Posting…</span>
+              </div>
+            </form>
+
+            <p class="intro" id="wall-loading">Loading Wall…</p>
+            <p class="intro" id="wall-empty" hidden>No posts yet.</p>
+            <div class="wall-list" id="wall-list"></div>
+          </div>
+
+          <div class="subsection" id="member-dialogs">
+            <h2 class="section-title">Dialogs</h2>
+            <p class="intro" id="dialogs-loading">Loading Dialogs…</p>
+            <p class="intro" id="dialogs-empty" hidden>No Dialogs yet.</p>
+            <div class="dm-list" id="dialogs-list"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -149,7 +183,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="member.js?v=11"></script>
+  <script src="communiques-common.js?v=1"></script>
+  <script src="member.js?v=12"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

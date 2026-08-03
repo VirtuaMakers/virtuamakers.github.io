@@ -1,43 +1,24 @@
 // Drives communiques.html: the Discussion Threads list + new-thread form,
 // and the Direct Messages inbox + new-message recipient picker. Requires
-// firebase-config.js and auth.js to run first.
+// firebase-config.js, auth.js, and communiques-common.js to run first.
 
 (function () {
+  var C = CommuniquesCommon;
   var currentUser = null;
   var profileCache = null; // loaded once, lazily, for the DM recipient picker
 
-  function formatDate(timestamp) {
-    if (!timestamp || !timestamp.toDate) return "";
-    return timestamp.toDate().toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
-
-  // Mirrors the name-resolution auth-ui.js already uses for the header:
-  // handle-preference first, then name, then the auth provider's display
-  // name, so a member never shows up as a raw UID.
-  function getDisplayName(user) {
-    return AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
-      if (!doc.exists) return user.displayName || "Member";
-      var data = doc.data();
-      return (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || user.displayName || "Member");
-    });
-  }
-
-  function openSignInModal() {
-    var btn = document.getElementById("agora-signin-btn");
-    if (btn) btn.click();
+  var threadBodyHint = document.getElementById("thread-body-hint");
+  if (threadBodyHint && typeof AgoraBioTags !== "undefined") {
+    threadBodyHint.textContent = AgoraBioTags.hint;
   }
 
   document.getElementById("threads-signin-prompt").addEventListener("click", function (e) {
     e.preventDefault();
-    openSignInModal();
+    C.openSignInModal();
   });
   document.getElementById("dm-signin-prompt").addEventListener("click", function (e) {
     e.preventDefault();
-    openSignInModal();
+    C.openSignInModal();
   });
 
   // --- Threads ---------------------------------------------------------
@@ -70,7 +51,7 @@
       var replyCount = data.replyCount || 0;
       meta.textContent = "by " + (data.authorName || "Member") + " · "
         + replyCount + (replyCount === 1 ? " reply" : " replies")
-        + " · " + formatDate(data.lastActivityAt || data.createdAt);
+        + " · " + C.formatDate(data.lastActivityAt || data.createdAt);
       item.appendChild(meta);
 
       threadList.appendChild(item);
@@ -78,6 +59,8 @@
   }
 
   function loadThreads() {
+    threadsLoading.hidden = false;
+    threadsEmpty.hidden = true;
     AgoraDB.collection("threads").orderBy("lastActivityAt", "desc").get()
       .then(function (snap) { renderThreads(snap.docs); })
       .catch(function () {
@@ -112,7 +95,7 @@
     newThreadSubmit.disabled = true;
     newThreadStatus.hidden = false;
 
-    getDisplayName(currentUser).then(function (authorName) {
+    C.getDisplayName(currentUser).then(function (authorName) {
       var now = firebase.firestore.FieldValue.serverTimestamp();
       return AgoraDB.collection("threads").add({
         title: title,
@@ -170,7 +153,7 @@
 
       var preview = document.createElement("p");
       preview.className = "dm-item-preview";
-      preview.textContent = (data.lastMessage || "No messages yet") + " · " + formatDate(data.lastMessageAt || data.createdAt);
+      preview.textContent = (data.lastMessage || "No messages yet") + " · " + C.formatDate(data.lastMessageAt || data.createdAt, true);
       item.appendChild(preview);
 
       dmList.appendChild(item);
@@ -178,6 +161,8 @@
   }
 
   function loadConversations() {
+    dmLoading.hidden = false;
+    dmEmpty.hidden = true;
     AgoraDB.collection("conversations")
       .where("participants", "array-contains", currentUser.uid)
       .get()
@@ -220,7 +205,7 @@
         window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
         return;
       }
-      getDisplayName(currentUser).then(function (myName) {
+      C.getDisplayName(currentUser).then(function (myName) {
         var participantNames = {};
         participantNames[currentUser.uid] = myName;
         participantNames[other.uid] = other.name;
@@ -269,15 +254,13 @@
 
     var signedOut = !user;
     document.getElementById("threads-signed-out-notice").hidden = !signedOut;
-    document.getElementById("new-thread-wrap").hidden = signedOut;
+    document.getElementById("threads-wrap").hidden = signedOut;
     document.getElementById("dm-signed-out-notice").hidden = !signedOut;
     document.getElementById("dm-wrap").hidden = signedOut;
 
     if (user) {
-      dmLoading.hidden = false;
+      loadThreads();
       loadConversations();
     }
   });
-
-  loadThreads();
 })();
