@@ -191,17 +191,6 @@
     });
   }
 
-  // Chris's call: the "Communiqués 📨" nav link is only useful for
-  // signed-out visitors discovering the feature - once signed in, a
-  // member has other ways in (Wall/Dialogs on their own profile, the
-  // Edit Profile link, etc.), so it drops out of the header entirely.
-  var communiquesLink = document.getElementById("agora-communiques-link");
-  if (communiquesLink) {
-    agoraOnAuthChange(function (user) {
-      communiquesLink.hidden = !!user;
-    });
-  }
-
   // A signed-in visitor with no Firestore profile yet isn't a fully
   // accepted Agora member - Chris's rule is that an account only "counts"
   // once its required fields and Terms of Service are submitted. So this
