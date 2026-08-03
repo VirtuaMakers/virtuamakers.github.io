@@ -16,6 +16,8 @@
   var toggleText = document.getElementById("agora-toggle-text");
   var googleBtn = document.getElementById("agora-provider-google");
   var xBtn = document.getElementById("agora-provider-x");
+  var termsCheckRow = document.getElementById("agora-terms-check-row");
+  var termsCheckbox = document.getElementById("agora-terms-checkbox");
 
   var signUpMode = false;
 
@@ -50,6 +52,8 @@
     if (emailSubmitBtn) emailSubmitBtn.textContent = isSignUp ? "Create account" : "Sign in";
     if (toggleText) toggleText.textContent = isSignUp ? "Already have an account?" : "Don't have an account?";
     if (toggleModeBtn) toggleModeBtn.textContent = isSignUp ? "Sign in" : "Create one";
+    if (termsCheckRow) termsCheckRow.hidden = !isSignUp;
+    if (termsCheckbox) termsCheckbox.checked = false;
   }
 
   if (modalClose) modalClose.addEventListener("click", closeModal);
@@ -99,6 +103,10 @@
     emailForm.addEventListener("submit", function (e) {
       e.preventDefault();
       clearError();
+      if (signUpMode && termsCheckbox && !termsCheckbox.checked) {
+        showError("Please agree to the Terms of Service to create an account.");
+        return;
+      }
       var email = emailInput.value.trim();
       var password = passwordInput.value;
       var action = signUpMode

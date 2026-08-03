@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=52" />
+  <link rel="stylesheet" href="style.css?v=53" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -144,6 +144,10 @@
       <form id="agora-email-form" class="signin-email-form">
         <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
         <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <label class="signin-terms-check" id="agora-terms-check-row" hidden>
+          <input type="checkbox" id="agora-terms-checkbox" />
+          I agree to the <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+        </label>
         <p class="signin-error" id="agora-signin-error" hidden></p>
         <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
       </form>
@@ -151,6 +155,8 @@
         <span id="agora-toggle-text">Don't have an account?</span>
         <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
       </p>
+      <p class="signin-fine-print">By continuing, you agree to Agora's
+        <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</p>
     </div>
   </div>
 
@@ -160,7 +166,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=11"></script>
+  <script src="auth-ui.js?v=12"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>

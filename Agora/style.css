@@ -310,6 +310,40 @@ a {
   color: var(--muted);
 }
 
+.signin-terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.signin-terms-check[hidden] {
+  display: none;
+}
+
+.signin-terms-check input[type="checkbox"] {
+  margin-top: 0.2rem;
+}
+
+.signin-terms-check a {
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+.signin-fine-print {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.8rem;
+}
+
+.signin-fine-print a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
 /* Layout */
 main {
   max-width: var(--maxw);
