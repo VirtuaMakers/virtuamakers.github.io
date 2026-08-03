@@ -160,16 +160,43 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
 - `Agora/firestore.rules` - reference doc (not auto-deployed - Agora has no
   Firebase CLI step) to paste into the console's Rules editor. One `profiles/{uid}`
   doc per member: world-readable, owner-only write.
-- **Header sign-in/out UI is live** on `index.html` and all 31 profile pages (inside
-  a new `.header-right` wrapper alongside the existing back-link). Firebase SDK
-  scripts load from `gstatic.com` - this CDN is unreachable from the sandboxed dev
-  environment (proxy blocks it, same as the Google-favicon issue), so local
-  Playwright checks will always show "firebase is not defined" console errors -
-  that's a sandbox artifact, not a real bug - verify on the live GitHub Pages site
-  instead.
+- **Header sign-in/out UI is live** on every Agora page (inside a `.header-right`
+  wrapper alongside the existing back-link). Firebase SDK scripts load from
+  `gstatic.com` - this CDN is unreachable from the sandboxed dev environment (proxy
+  blocks it, same as the Google-favicon issue), so local Playwright checks will
+  always show "firebase is not defined" console errors - that's a sandbox artifact,
+  not a real bug - verify on the live GitHub Pages site instead.
+- **Header layout (as of 2026-08-04):** the signed-in "Welcome, Name!" line lives on
+  the *left*, in a `.brand-group` wrapper right next to the Agora 🌐 logo (`#agora-
+  user-info`/`#agora-user-email`) - not on the right anymore. The right-side
+  `.header-right` auth-controls only ever show a bare "Sign in" or "Sign out"
+  button now, no name. `auth-ui.js`'s `wireInstance()` toggles both independently
+  (they're siblings in different DOM locations for the header instance, still
+  nested for the hero/join instances on `index.html`, which are unaffected by this
+  and keep their own separate "Welcome, Name!" line).
 - **Sign-out is currently unauthenticated-friendly:** anonymous visitors just see
   "Sign in"; nothing yet gates any page behind auth (all profiles remain publicly
   readable, matching the rules file).
+- **An account only "counts" once its profile is saved** (Chris's rule): required
+  fields (Name, Kind, Date, Email) plus a required Terms of Service checkbox
+  (`#field-tos` in `create-profile.html`, stored as `tosAgreedAt` on the profile
+  doc - set once on first save, preserved as-is on every edit after that so
+  returning members aren't asked to re-check it). Until that first save succeeds,
+  `auth-ui.js` redirects a signed-in visitor with no Firestore profile doc back to
+  `create-profile.html` on *every* page load, not just once right after sign-up -
+  so an incomplete account can't use any other part of Agora. `create-profile.html`
+  also offers an explicit "Cancel and delete this account" link for exactly this
+  state (`!existingDoc`), which calls `user.delete()` directly - a real, working,
+  one-click way to back out. What this does **not** do: guarantee cleanup of
+  someone who just closes the tab without clicking Cancel - that would need a
+  scheduled Cloud Function sweeping Auth for old accounts with no matching profile
+  doc, same as `adminBanUser`/`adminDeleteUser`, which requires the paid Blaze plan
+  and isn't set up. Until/unless Chris wants to enable that, an abandoned signup is
+  a harmless, permanently-locked-out Auth account, not a deleted one.
+- **Never say "Create/Edit Profile"** - because of the point above, by the time
+  anyone would see that link again they already have a profile (sign-up always
+  routes through creating one first), so the link and page copy should always just
+  say **"Edit Profile"**.
 - **Naming split, human/cyborg vs. AI login:** humans and cyborgs log in through the
   existing sign-in system above (Firebase). AI members will need a separate mechanism
   since they can't click a "Sign in" button themselves — Chris has named this future

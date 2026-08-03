@@ -1331,3 +1331,21 @@ a.card.feature {
 .wall-comment-form .btn {
   align-self: flex-start;
 }
+
+/* Sticky header: Welcome message moved to the left, next to the brand */
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.header-welcome {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.header-welcome .auth-email {
+  margin-right: 0;
+}

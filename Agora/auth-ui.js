@@ -66,17 +66,9 @@
     });
   }
 
-  // Marks that a sign-in just happened in this tab, so the new-profile
-  // redirect below fires once, right after signing in - not on every
-  // later page visit for as long as the session happens to lack a profile.
-  function markJustSignedIn() {
-    try { sessionStorage.setItem("agoraJustSignedIn", "1"); } catch (e) {}
-  }
-
   if (googleBtn) {
     googleBtn.addEventListener("click", function () {
       agoraSignInWithGoogle().then(function () {
-        markJustSignedIn();
         closeModal();
       }).catch(function (err) {
         showError(err.message);
@@ -87,7 +79,6 @@
   if (xBtn) {
     xBtn.addEventListener("click", function () {
       agoraSignInWithX().then(function () {
-        markJustSignedIn();
         closeModal();
       }).catch(function (err) {
         showError(err.message);
@@ -105,7 +96,6 @@
         ? agoraSignUpWithEmail(email, password)
         : agoraSignInWithEmail(email, password);
       action.then(function () {
-        markJustSignedIn();
         closeModal();
       }).catch(function (err) {
         showError(err.message);
@@ -139,11 +129,18 @@
     agoraOnAuthChange(function (user) {
       if (!user) {
         signInBtn.hidden = false;
+        if (signOutBtn) signOutBtn.hidden = true;
         if (userInfo) userInfo.hidden = true;
         return;
       }
 
       signInBtn.hidden = true;
+      // signOutBtn and userInfo (the "Welcome, Name!" text) toggle
+      // together but aren't necessarily nested inside one another - the
+      // sticky header keeps them in different DOM locations (name on the
+      // left, sign-out on the right) while the hero/join instances still
+      // nest signOutBtn inside userInfo, so both are set independently.
+      if (signOutBtn) signOutBtn.hidden = false;
       if (userInfo) userInfo.hidden = false;
       if (!nameLink) return;
 
@@ -181,21 +178,20 @@
     "agora-join-user-email"
   );
 
-  // Right after a fresh sign-in with no Firestore profile yet, send the
-  // visitor to create one - but only that once. Without the just-signed-in
-  // check, this would fire on every later page visit for as long as the
-  // account lacks a profile, turning "← Agora" into a redirect loop back to
-  // create-profile.html instead of actually leaving the page.
+  // A signed-in visitor with no Firestore profile yet isn't a fully
+  // accepted Agora member - Chris's rule is that an account only "counts"
+  // once its required fields and Terms of Service are submitted. So this
+  // redirect fires on every page load for as long as that's true, not just
+  // once right after sign-in - an incomplete account can't wander the rest
+  // of Agora. create-profile.html/member.html/leave-agora.html are
+  // exempted so the flow itself (and viewing/leaving) isn't a redirect
+  // loop back to itself.
   var path = window.location.pathname;
   var onFormPage = path.indexOf("create-profile.html") !== -1 || path.indexOf("member.html") !== -1
     || path.indexOf("leave-agora.html") !== -1;
   if (!onFormPage && typeof AgoraDB !== "undefined") {
     agoraOnAuthChange(function (user) {
       if (!user) return;
-      var justSignedIn = false;
-      try { justSignedIn = sessionStorage.getItem("agoraJustSignedIn") === "1"; } catch (e) {}
-      if (!justSignedIn) return;
-      try { sessionStorage.removeItem("agoraJustSignedIn"); } catch (e) {}
       AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
         if (!doc.exists) window.location.href = "create-profile.html";
       });

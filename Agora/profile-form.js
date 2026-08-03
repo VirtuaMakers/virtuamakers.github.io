@@ -32,10 +32,13 @@
   });
   var emailInput = document.getElementById("field-email");
   var emailVisible = document.getElementById("field-email-visible");
+  var tosInput = document.getElementById("field-tos");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
   var dangerZone = document.getElementById("danger-zone");
+  var cancelSignupWrap = document.getElementById("cancel-signup-wrap");
+  var cancelSignupLink = document.getElementById("cancel-signup-link");
 
   var bioTagsHint = document.getElementById("field-bio-tags-hint");
   if (bioTagsHint && typeof AgoraBioTags !== "undefined") {
@@ -102,6 +105,11 @@
     });
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
+    // Already agreed once, as part of getting this profile created in the
+    // first place - don't make a returning member re-check this on every
+    // edit. Profiles that predate this field get asked once, on their next
+    // edit, same as a first-time signup.
+    tosInput.checked = !!data.tosAgreedAt;
   }
 
   // ISO 8601 date input: full YYYY-MM-DD, or a partial YYYY-MM / YYYY.
@@ -179,9 +187,15 @@
         fillForm(existingDoc);
         selectKind(existingDoc.kind || "Human");
         dangerZone.hidden = false;
+        cancelSignupWrap.hidden = true;
       } else {
         document.getElementById("field-name").value = user.displayName || "";
         document.getElementById("field-email").value = user.email || "";
+        // No profile yet - an account only counts as accepted once one's
+        // saved (required fields + Terms of Service), so offer a clean way
+        // to back out rather than leaving a signed-in, permanently
+        // unfinished account behind.
+        cancelSignupWrap.hidden = false;
       }
       formWrap.hidden = false;
     });
@@ -236,6 +250,11 @@
       return;
     }
 
+    if (!tosInput.checked) {
+      showError("Please agree to the Terms of Service.");
+      return;
+    }
+
     var handle = handleInput.value.trim();
 
     var linkValue = document.getElementById("field-link").value.trim();
@@ -286,6 +305,9 @@
       showEmail: emailVisible.checked,
       friends: existingDoc && typeof existingDoc.friends === "number" ? existingDoc.friends : 1,
       status: existingDoc ? existingDoc.status : "active",
+      tosAgreedAt: existingDoc && existingDoc.tosAgreedAt
+        ? existingDoc.tosAgreedAt
+        : firebase.firestore.FieldValue.serverTimestamp(),
       createdAt: existingDoc && existingDoc.createdAt
         ? existingDoc.createdAt
         : firebase.firestore.FieldValue.serverTimestamp(),
@@ -326,6 +348,18 @@
       showError(err.code === "handle-taken"
         ? "That handle is already taken – please choose another."
         : err.message);
+    });
+  });
+
+  cancelSignupLink.addEventListener("click", function (e) {
+    e.preventDefault();
+    if (!currentUser || existingDoc) return;
+    if (!window.confirm("Cancel and delete this account? You can always sign up again later.")) return;
+
+    currentUser.delete().then(function () {
+      window.location.href = "index.html";
+    }).catch(function (err) {
+      window.alert("Something went wrong: " + err.message);
     });
   });
 })();

@@ -10,25 +10,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=37" />
+  <link rel="stylesheet" href="style.css?v=38" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
 
   <header class="site-header">
-    <a class="brand" href="index.html">
-      <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
-      <span class="brand-globe">🌐</span>
-    </a>
+    <div class="brand-group">
+      <a class="brand" href="index.html">
+        <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+        <span class="brand-globe">🌐</span>
+      </a>
+      <span class="header-welcome" id="agora-user-info" hidden>Welcome, <a class="auth-email" id="agora-user-email" href="#"></a>!</span>
+    </div>
     <div class="header-right">
       <a class="back-link" href="index.html">← Agora</a>
       <a class="back-link" href="communiques.html">Communiqués 📨</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
-        <span id="agora-user-info" hidden>
-          <a class="auth-email" id="agora-user-email" href="#"></a>
-          <button type="button" class="auth-link" id="agora-signout-btn">Sign out</button>
-        </span>
+        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
       </div>
     </div>
   </header>
