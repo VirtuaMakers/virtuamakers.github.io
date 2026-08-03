@@ -1979,19 +1979,3 @@ a.card.feature {
 .header-welcome .auth-email {
   margin-right: 0;
 }
-
-.header-communiques-logo {
-  display: inline-flex;
-  align-items: center;
-}
-
-.header-communiques-logo img {
-  display: block;
-  height: 60px;
-  width: auto;
-  transition: opacity 0.15s ease;
-}
-
-.header-communiques-logo:hover img {
-  opacity: 0.8;
-}

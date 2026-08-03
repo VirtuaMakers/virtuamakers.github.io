@@ -202,8 +202,11 @@ diverge from `main` for many commits.
 - **An account only "counts" once its profile is saved** (Chris's rule): required
   fields (Name, Kind, Date, Email) plus a required Terms of Service checkbox
   (`#field-tos` in `create-profile.html`, stored as `tosAgreedAt` on the profile
-  doc - set once on first save, preserved as-is on every edit after that so
-  returning members aren't asked to re-check it). Until that first save succeeds,
+  doc). The checkbox only appears for a first-time signup (`!existingDoc`) -
+  editing an existing profile hides `#field-tos-wrap` entirely and drops the
+  `required` attribute, so a returning member is never asked again. Profiles
+  that predate this field silently get `tosAgreedAt` backfilled on their next
+  save regardless. Until that first save succeeds,
   `auth-ui.js` redirects a signed-in visitor with no Firestore profile doc back to
   `create-profile.html` on *every* page load, not just once right after sign-up -
   so an incomplete account can't use any other part of Agora. `create-profile.html`

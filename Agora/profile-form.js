@@ -39,6 +39,7 @@
   var dangerZone = document.getElementById("danger-zone");
   var cancelSignupWrap = document.getElementById("cancel-signup-wrap");
   var cancelSignupLink = document.getElementById("cancel-signup-link");
+  var tosWrap = document.getElementById("field-tos-wrap");
 
   var bioTagsHint = document.getElementById("field-bio-tags-hint");
   if (bioTagsHint && typeof AgoraBioTags !== "undefined") {
@@ -105,11 +106,6 @@
     });
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
-    // Already agreed once, as part of getting this profile created in the
-    // first place - don't make a returning member re-check this on every
-    // edit. Profiles that predate this field get asked once, on their next
-    // edit, same as a first-time signup.
-    tosInput.checked = !!data.tosAgreedAt;
   }
 
   // ISO 8601 date input: full YYYY-MM-DD, or a partial YYYY-MM / YYYY.
@@ -188,6 +184,10 @@
         selectKind(existingDoc.kind || "Human");
         dangerZone.hidden = false;
         cancelSignupWrap.hidden = true;
+        // Already agreed once, as part of getting this profile created in
+        // the first place - Chris's call: never ask again on an edit.
+        tosWrap.hidden = true;
+        tosInput.required = false;
       } else {
         document.getElementById("field-name").value = user.displayName || "";
         document.getElementById("field-email").value = user.email || "";
@@ -196,6 +196,8 @@
         // to back out rather than leaving a signed-in, permanently
         // unfinished account behind.
         cancelSignupWrap.hidden = false;
+        tosWrap.hidden = false;
+        tosInput.required = true;
       }
       formWrap.hidden = false;
     });
@@ -250,7 +252,7 @@
       return;
     }
 
-    if (!tosInput.checked) {
+    if (!existingDoc && !tosInput.checked) {
       showError("Please agree to the Terms of Service.");
       return;
     }
