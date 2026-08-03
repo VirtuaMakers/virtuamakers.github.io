@@ -45,6 +45,68 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Communiqués 📨 - forum threads. World-readable like profiles; only
+    // signed-in members can start a thread or reply. No editing or
+    // deleting after posting (moderation is a later concern).
+    match /threads/{threadId} {
+      allow read: if true;
+
+      allow create: if request.auth != null
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 9999;
+
+      // Any signed-in member replying bumps the parent thread's counters -
+      // not just the thread's own author - so this is intentionally not
+      // restricted to request.auth.uid == resource.data.authorUid. Locked
+      // to exactly these two fields so a reply can't rewrite the title,
+      // body, or authorship of someone else's thread.
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replyCount', 'lastActivityAt']);
+
+      match /replies/{replyId} {
+        allow read: if true;
+
+        allow create: if request.auth != null
+          && request.resource.data.authorUid == request.auth.uid
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 9999;
+      }
+    }
+
+    // Communiqués 📨 - direct messages. A conversation is only readable
+    // and writable by its two participants; the participant list itself
+    // can't be changed after creation.
+    match /conversations/{conversationId} {
+      allow read: if request.auth != null
+        && request.auth.uid in resource.data.participants;
+
+      allow create: if request.auth != null
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.participants.size() == 2;
+
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.participants == resource.data.participants;
+
+      match /messages/{messageId} {
+        allow read: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+
+        allow create: if request.auth != null
+          && request.resource.data.senderUid == request.auth.uid
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 9999;
+      }
+    }
+
     function isAdmin() {
       return request.auth.token.email == 'VirtuaMakers@Outlook.com';
     }

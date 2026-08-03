@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Permanently Leave Agora 🌐 · Agora</title>
-  <meta name="description" content="Permanently delete your Agora profile and account." />
+  <title>Communiqués · Agora</title>
+  <meta name="description" content="Communiqués — discussion threads and direct messages between Agora members." />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,7 +22,6 @@
     </a>
     <div class="header-right">
       <a class="back-link" href="index.html">← Agora</a>
-      <a class="back-link" href="communiques.html">Communiqués 📨</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
         <span id="agora-user-info" hidden>
@@ -34,20 +33,65 @@
   </header>
 
   <main>
-    <section class="section" id="leave-agora">
-      <h1>Permanently Leave Agora 🌐</h1>
-      <p class="lede" id="signed-out-notice">You need to sign in to do this.</p>
+    <section class="section" id="communiques">
+      <h1>Communiqués 📨</h1>
+      <p class="lede">Discussion threads and direct messages, between members
+        themselves – a different kind of space than the live VirtuaMakers
+        Discord, built right into Agora 🌐.</p>
+    </section>
 
-      <div id="leave-content" hidden>
-        <p class="body-text"><a href="create-profile.html">← Return to editing your profile</a></p>
+    <section class="section subsection" id="threads">
+      <h2 class="section-title">Discussion Threads</h2>
+      <p class="intro">Public conversations, open to every visitor to read.
+        Sign in to start one or reply.</p>
 
-        <p class="body-text"><em>Warning:</em><br />This permanently deletes your
-          profile and your account. It can't be undone, and you'd have to
-          start over from scratch. You're always welcome to sign up again
-          later if you change your mind.</p>
+      <p class="body-text" id="threads-signed-out-notice">
+        <a href="#" id="threads-signin-prompt">Sign in</a> to start a thread.
+      </p>
 
-        <button type="button" class="btn btn-danger" id="leave-btn">Yes, Permanently Leave Agora 🌐</button>
-        <span class="form-status" id="leave-status" hidden>Leaving…</span>
+      <div id="new-thread-wrap" hidden>
+        <button type="button" class="btn btn-primary" id="new-thread-toggle">Start a Thread</button>
+        <form class="profile-form" id="new-thread-form" hidden>
+          <div>
+            <label for="thread-title">Title</label>
+            <input type="text" id="thread-title" maxlength="200" required />
+          </div>
+          <div>
+            <label for="thread-body">Message</label>
+            <textarea id="thread-body" maxlength="9999" required></textarea>
+          </div>
+          <p class="form-error" id="new-thread-error" hidden></p>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn btn-primary" id="new-thread-submit">Post Thread</button>
+            <span class="form-status" id="new-thread-status" hidden>Posting…</span>
+          </div>
+        </form>
+      </div>
+
+      <p class="intro" id="threads-loading">Loading threads…</p>
+      <p class="intro" id="threads-empty" hidden>No threads yet – be the first.</p>
+      <div class="thread-list" id="thread-list"></div>
+    </section>
+
+    <section class="section subsection" id="messages">
+      <h2 class="section-title">Direct Messages</h2>
+      <p class="intro">Private conversations between two members. Only you
+        and the other participant can read them.</p>
+
+      <p class="body-text" id="dm-signed-out-notice">
+        <a href="#" id="dm-signin-prompt">Sign in</a> to see your messages.
+      </p>
+
+      <div id="dm-wrap" hidden>
+        <button type="button" class="btn btn-primary" id="new-dm-toggle">New Message</button>
+        <div id="new-dm-picker" hidden>
+          <input type="text" id="dm-recipient-search" placeholder="Search members by name or handle…" autocomplete="off" />
+          <div class="dm-picker-results" id="dm-picker-results"></div>
+        </div>
+
+        <p class="intro" id="dm-loading">Loading messages…</p>
+        <p class="intro" id="dm-empty" hidden>No conversations yet.</p>
+        <div class="dm-list" id="dm-list"></div>
       </div>
     </section>
   </main>
@@ -87,7 +131,7 @@
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=10"></script>
-  <script src="leave-agora.js?v=1"></script>
+  <script src="communiques.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -1123,3 +1123,130 @@ a.card.feature {
   gap: 0.7rem;
   margin: 1.5rem 0;
 }
+
+/* Communiqués 📨 */
+
+.thread-list,
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+
+.thread-item,
+.dm-item {
+  display: block;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.thread-item:hover,
+.dm-item:hover {
+  border-color: #d4e6dd;
+  transform: translateY(-2px);
+}
+
+.thread-item-title,
+.dm-item-name {
+  font-weight: 700;
+}
+
+.thread-item-meta,
+.dm-item-preview {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.thread-body {
+  white-space: pre-wrap;
+}
+
+.reply-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin: 1rem 0 2rem;
+}
+
+.reply-item {
+  padding-left: 1rem;
+  border-left: 2px solid var(--line);
+}
+
+#new-dm-picker {
+  margin-top: 0.8rem;
+  max-width: 420px;
+}
+
+#new-dm-picker input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+}
+
+.dm-picker-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.dm-picker-result {
+  text-align: left;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dm-picker-result:hover {
+  border-color: var(--teal);
+  background: var(--accent-soft);
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin: 1.2rem 0;
+  padding-right: 0.3rem;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+}
+
+.message-own {
+  align-self: flex-end;
+  background: var(--accent-soft);
+  border-color: var(--teal);
+}
+
+.message-other {
+  align-self: flex-start;
+  background: var(--surface);
+}
+
+.message-body {
+  white-space: pre-wrap;
+}
+
+.message-time {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}

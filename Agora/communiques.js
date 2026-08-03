@@ -1,0 +1,283 @@
+// Drives communiques.html: the Discussion Threads list + new-thread form,
+// and the Direct Messages inbox + new-message recipient picker. Requires
+// firebase-config.js and auth.js to run first.
+
+(function () {
+  var currentUser = null;
+  var profileCache = null; // loaded once, lazily, for the DM recipient picker
+
+  function formatDate(timestamp) {
+    if (!timestamp || !timestamp.toDate) return "";
+    return timestamp.toDate().toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  // Mirrors the name-resolution auth-ui.js already uses for the header:
+  // handle-preference first, then name, then the auth provider's display
+  // name, so a member never shows up as a raw UID.
+  function getDisplayName(user) {
+    return AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+      if (!doc.exists) return user.displayName || "Member";
+      var data = doc.data();
+      return (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || user.displayName || "Member");
+    });
+  }
+
+  function openSignInModal() {
+    var btn = document.getElementById("agora-signin-btn");
+    if (btn) btn.click();
+  }
+
+  document.getElementById("threads-signin-prompt").addEventListener("click", function (e) {
+    e.preventDefault();
+    openSignInModal();
+  });
+  document.getElementById("dm-signin-prompt").addEventListener("click", function (e) {
+    e.preventDefault();
+    openSignInModal();
+  });
+
+  // --- Threads ---------------------------------------------------------
+
+  var threadList = document.getElementById("thread-list");
+  var threadsLoading = document.getElementById("threads-loading");
+  var threadsEmpty = document.getElementById("threads-empty");
+
+  function renderThreads(docs) {
+    threadsLoading.hidden = true;
+    threadList.textContent = "";
+    if (!docs.length) {
+      threadsEmpty.hidden = false;
+      return;
+    }
+    threadsEmpty.hidden = true;
+    docs.forEach(function (doc) {
+      var data = doc.data();
+      var item = document.createElement("a");
+      item.className = "thread-item";
+      item.href = "communiques-thread.html?thread=" + encodeURIComponent(doc.id);
+
+      var title = document.createElement("p");
+      title.className = "thread-item-title";
+      title.textContent = data.title || "Untitled";
+      item.appendChild(title);
+
+      var meta = document.createElement("p");
+      meta.className = "thread-item-meta";
+      var replyCount = data.replyCount || 0;
+      meta.textContent = "by " + (data.authorName || "Member") + " · "
+        + replyCount + (replyCount === 1 ? " reply" : " replies")
+        + " · " + formatDate(data.lastActivityAt || data.createdAt);
+      item.appendChild(meta);
+
+      threadList.appendChild(item);
+    });
+  }
+
+  function loadThreads() {
+    AgoraDB.collection("threads").orderBy("lastActivityAt", "desc").get()
+      .then(function (snap) { renderThreads(snap.docs); })
+      .catch(function () {
+        // Composite index not provisioned yet, or another transient
+        // error - fall back to an unordered read rather than showing
+        // nothing.
+        AgoraDB.collection("threads").get().then(function (snap) {
+          renderThreads(snap.docs);
+        });
+      });
+  }
+
+  var newThreadToggle = document.getElementById("new-thread-toggle");
+  var newThreadForm = document.getElementById("new-thread-form");
+  var newThreadError = document.getElementById("new-thread-error");
+  var newThreadStatus = document.getElementById("new-thread-status");
+  var newThreadSubmit = document.getElementById("new-thread-submit");
+
+  newThreadToggle.addEventListener("click", function () {
+    newThreadForm.hidden = !newThreadForm.hidden;
+  });
+
+  newThreadForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    newThreadError.hidden = true;
+
+    var title = document.getElementById("thread-title").value.trim();
+    var body = document.getElementById("thread-body").value.trim();
+    if (!title || !body) return;
+
+    newThreadSubmit.disabled = true;
+    newThreadStatus.hidden = false;
+
+    getDisplayName(currentUser).then(function (authorName) {
+      var now = firebase.firestore.FieldValue.serverTimestamp();
+      return AgoraDB.collection("threads").add({
+        title: title,
+        body: body,
+        authorUid: currentUser.uid,
+        authorName: authorName,
+        createdAt: now,
+        lastActivityAt: now,
+        replyCount: 0,
+      });
+    }).then(function (docRef) {
+      window.location.href = "communiques-thread.html?thread=" + encodeURIComponent(docRef.id);
+    }).catch(function (err) {
+      newThreadSubmit.disabled = false;
+      newThreadStatus.hidden = true;
+      newThreadError.textContent = err.message;
+      newThreadError.hidden = false;
+    });
+  });
+
+  // --- Direct Messages ---------------------------------------------------
+
+  var dmList = document.getElementById("dm-list");
+  var dmLoading = document.getElementById("dm-loading");
+  var dmEmpty = document.getElementById("dm-empty");
+
+  function renderConversations(docs) {
+    dmLoading.hidden = true;
+    dmList.textContent = "";
+    if (!docs.length) {
+      dmEmpty.hidden = false;
+      return;
+    }
+    dmEmpty.hidden = true;
+
+    docs.sort(function (a, b) {
+      var aTime = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
+      var bTime = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
+      return bTime - aTime;
+    });
+
+    docs.forEach(function (doc) {
+      var data = doc.data();
+      var otherUid = (data.participants || []).filter(function (uid) { return uid !== currentUser.uid; })[0];
+      var otherName = (data.participantNames && data.participantNames[otherUid]) || "Member";
+
+      var item = document.createElement("a");
+      item.className = "dm-item";
+      item.href = "communiques-dm.html?c=" + encodeURIComponent(doc.id);
+
+      var name = document.createElement("p");
+      name.className = "dm-item-name";
+      name.textContent = otherName;
+      item.appendChild(name);
+
+      var preview = document.createElement("p");
+      preview.className = "dm-item-preview";
+      preview.textContent = (data.lastMessage || "No messages yet") + " · " + formatDate(data.lastMessageAt || data.createdAt);
+      item.appendChild(preview);
+
+      dmList.appendChild(item);
+    });
+  }
+
+  function loadConversations() {
+    AgoraDB.collection("conversations")
+      .where("participants", "array-contains", currentUser.uid)
+      .get()
+      .then(function (snap) { renderConversations(snap.docs); });
+  }
+
+  var newDmToggle = document.getElementById("new-dm-toggle");
+  var newDmPicker = document.getElementById("new-dm-picker");
+  var dmSearch = document.getElementById("dm-recipient-search");
+  var dmResults = document.getElementById("dm-picker-results");
+
+  newDmToggle.addEventListener("click", function () {
+    newDmPicker.hidden = !newDmPicker.hidden;
+    if (!newDmPicker.hidden) loadProfilesForPicker();
+  });
+
+  function loadProfilesForPicker() {
+    if (profileCache) return;
+    AgoraDB.collection("profiles").get().then(function (snap) {
+      profileCache = snap.docs
+        .filter(function (doc) { return doc.id !== currentUser.uid; })
+        .map(function (doc) {
+          var data = doc.data();
+          var name = (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || "Member");
+          return { uid: doc.id, name: name, handle: data.handle || "" };
+        });
+    });
+  }
+
+  function conversationIdFor(uidA, uidB) {
+    return [uidA, uidB].sort().join("_");
+  }
+
+  function openOrCreateConversation(other) {
+    var conversationId = conversationIdFor(currentUser.uid, other.uid);
+    var ref = AgoraDB.collection("conversations").doc(conversationId);
+
+    ref.get().then(function (doc) {
+      if (doc.exists) {
+        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+        return;
+      }
+      getDisplayName(currentUser).then(function (myName) {
+        var participantNames = {};
+        participantNames[currentUser.uid] = myName;
+        participantNames[other.uid] = other.name;
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        return ref.set({
+          participants: [currentUser.uid, other.uid],
+          participantNames: participantNames,
+          lastMessage: "",
+          lastMessageAt: now,
+          createdAt: now,
+        });
+      }).then(function () {
+        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      });
+    });
+  }
+
+  function renderPickerResults(query) {
+    dmResults.textContent = "";
+    if (!profileCache || !query) return;
+    var q = query.toLowerCase();
+    var matches = profileCache.filter(function (p) {
+      return p.name.toLowerCase().indexOf(q) !== -1 || p.handle.toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 8);
+
+    matches.forEach(function (p) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "dm-picker-result";
+      btn.textContent = p.name;
+      btn.addEventListener("click", function () {
+        openOrCreateConversation(p);
+      });
+      dmResults.appendChild(btn);
+    });
+  }
+
+  dmSearch.addEventListener("input", function () {
+    renderPickerResults(dmSearch.value.trim());
+  });
+
+  // --- Auth-driven visibility --------------------------------------------
+
+  agoraOnAuthChange(function (user) {
+    currentUser = user;
+
+    var signedOut = !user;
+    document.getElementById("threads-signed-out-notice").hidden = !signedOut;
+    document.getElementById("new-thread-wrap").hidden = signedOut;
+    document.getElementById("dm-signed-out-notice").hidden = !signedOut;
+    document.getElementById("dm-wrap").hidden = signedOut;
+
+    if (user) {
+      dmLoading.hidden = false;
+      loadConversations();
+    }
+  });
+
+  loadThreads();
+})();
