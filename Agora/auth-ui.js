@@ -16,6 +16,8 @@
   var toggleText = document.getElementById("agora-toggle-text");
   var googleBtn = document.getElementById("agora-provider-google");
   var xBtn = document.getElementById("agora-provider-x");
+  var termsCheckRow = document.getElementById("agora-terms-check-row");
+  var termsCheckbox = document.getElementById("agora-terms-checkbox");
 
   var signUpMode = false;
 
@@ -50,6 +52,8 @@
     if (emailSubmitBtn) emailSubmitBtn.textContent = isSignUp ? "Create account" : "Sign in";
     if (toggleText) toggleText.textContent = isSignUp ? "Already have an account?" : "Don't have an account?";
     if (toggleModeBtn) toggleModeBtn.textContent = isSignUp ? "Sign in" : "Create one";
+    if (termsCheckRow) termsCheckRow.hidden = !isSignUp;
+    if (termsCheckbox) termsCheckbox.checked = false;
   }
 
   if (modalClose) modalClose.addEventListener("click", closeModal);
@@ -90,6 +94,10 @@
     emailForm.addEventListener("submit", function (e) {
       e.preventDefault();
       clearError();
+      if (signUpMode && termsCheckbox && !termsCheckbox.checked) {
+        showError("Please agree to the Terms of Service to create an account.");
+        return;
+      }
       var email = emailInput.value.trim();
       var password = passwordInput.value;
       var action = signUpMode
@@ -171,12 +179,17 @@
     "agora-hero-user-info",
     "agora-hero-user-email"
   );
-  wireInstance(
-    "agora-join-signin-btn",
-    "agora-join-signout-btn",
-    "agora-join-user-info",
-    "agora-join-user-email"
-  );
+
+  // The header's "Edit Profile" link - the only place Agora ever offers to
+  // create/edit a profile now that a signed-in visitor's name lives on the
+  // left and the right side only ever shows Sign in/Edit Profile/Sign out.
+  // Relative-path-aware since profile pages sit one directory deeper.
+  var editProfileLink = document.getElementById("agora-edit-profile-link");
+  if (editProfileLink) {
+    agoraOnAuthChange(function (user) {
+      editProfileLink.hidden = !user;
+    });
+  }
 
   // A signed-in visitor with no Firestore profile yet isn't a fully
   // accepted Agora member - Chris's rule is that an account only "counts"

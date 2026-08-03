@@ -6,10 +6,17 @@
   --line: #e4ece9;
   /* Brand palette shared with VirtuaMakers */
   --green: #61a138;
+  --green-deep: #3f7024;
+  --green-soft: #eaf3e2;
   --teal: #167082;
   --teal-deep: #01566b;
   --accent: var(--teal);
   --accent-soft: #e7f1f1;
+  /* The vivid blue used in the Agora shape-render images (cylinders,
+     spheres, cubes, pyramids) */
+  --blue: #2b57d6;
+  --blue-light: #4d8df0;
+  --blue-soft: #e5eefc;
   --radius: 14px;
   --maxw: 960px;
 }
@@ -49,6 +56,11 @@ a {
 
 /* Header */
 .site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 1.6rem 1.5rem;
@@ -132,6 +144,13 @@ a {
   text-decoration: underline;
 }
 
+.header-communiques {
+  font-size: 1rem;
+  opacity: 0.35;
+  cursor: default;
+  user-select: none;
+}
+
 .hero-signin {
   text-align: center;
   font-size: 2rem;
@@ -159,10 +178,6 @@ a {
   width: 100%;
   text-align: center;
   font-size: 0.9rem;
-}
-
-.join-signin {
-  margin: 0.4rem 0 0.8rem;
 }
 
 .signin-modal-backdrop {
@@ -295,6 +310,40 @@ a {
   color: var(--muted);
 }
 
+.signin-terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.signin-terms-check[hidden] {
+  display: none;
+}
+
+.signin-terms-check input[type="checkbox"] {
+  margin-top: 0.2rem;
+}
+
+.signin-terms-check a {
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+.signin-fine-print {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.8rem;
+}
+
+.signin-fine-print a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
 /* Layout */
 main {
   max-width: var(--maxw);
@@ -311,6 +360,10 @@ main {
   width: min(520px, 90vw);
   height: auto;
   margin: 0.5rem auto 1.4rem;
+}
+
+#exchange-welcome .page-logo {
+  margin-bottom: 3.5625rem;
 }
 
 .eyebrow {
@@ -427,6 +480,10 @@ a.card.feature {
   margin-top: 1.1rem;
 }
 
+.body-text-spaced {
+  margin-bottom: 1.6rem;
+}
+
 .body-text a,
 .intro a {
   color: var(--teal);
@@ -437,6 +494,20 @@ a.card.feature {
 .body-text a:hover,
 .intro a:hover {
   color: var(--teal-deep);
+}
+
+#justice .body-text a,
+#justice .intro a,
+#justice ~ .subsection .body-text a,
+#justice ~ .subsection .intro a {
+  color: var(--blue-light);
+}
+
+#justice .body-text a:hover,
+#justice .intro a:hover,
+#justice ~ .subsection .body-text a:hover,
+#justice ~ .subsection .intro a:hover {
+  color: var(--blue);
 }
 
 .body-list {
@@ -551,6 +622,200 @@ a.card.feature {
   margin-bottom: 2.8rem;
 }
 
+.section-image-top-spaced {
+  margin-top: 2rem;
+}
+
+@media (min-width: 641px) {
+  .section-image-full-landscape {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.section-image-caption {
+  margin: -0.8rem 0 1.2rem;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.text-center {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Big masthead-style heading, shared by "Welcome!" and "Catalogue Cover"
+   on the Exchange cover page - quadruples .section-title's font-size. */
+.mega-title {
+  font-size: 3.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  text-align: center;
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+
+.exchange-search-row {
+  display: flex;
+  justify-content: center;
+  margin: 1.2rem 0 1.8rem;
+}
+
+.exchange-search-input {
+  width: min(420px, 100%);
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.exchange-search-input:focus {
+  outline: none;
+  border-color: var(--blue-light);
+}
+
+.member-word {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-style: italic;
+  color: inherit;
+  cursor: default;
+}
+
+.member-word--link {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--teal);
+}
+
+.member-word--link:hover {
+  color: var(--teal-deep);
+}
+
+/* Catalogue Cover - a retail-flyer style grid instead of bordered cards,
+   with size tiers (hero/medium/regular) and full-bleed tile backgrounds. */
+.catalogue-flyer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 150px;
+  grid-auto-flow: dense;
+  gap: 0.9rem;
+  margin-top: 1.6rem;
+}
+
+.flyer-item {
+  position: relative;
+  display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: var(--blue-light);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #fff;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.flyer-item:hover {
+  transform: translateY(-2px);
+}
+
+.flyer-item--hero {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.flyer-item--medium {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.flyer-item--regular {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.flyer-item-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  opacity: 0.9;
+}
+
+.flyer-item--hero .flyer-item-icon {
+  font-size: 4.5rem;
+}
+
+.flyer-item--medium .flyer-item-icon {
+  font-size: 3rem;
+}
+
+.flyer-item-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--blue);
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+}
+
+.flyer-item-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.7rem 0.75rem 0.6rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.78), rgba(0, 0, 0, 0));
+}
+
+.flyer-item-caption h3 {
+  font-size: 0.92rem;
+  font-weight: 800;
+  margin: 0 0 0.15rem;
+  color: #fff;
+  line-height: 1.15;
+}
+
+.flyer-item--hero .flyer-item-caption h3 {
+  font-size: 1.6rem;
+}
+
+.flyer-item--medium .flyer-item-caption h3 {
+  font-size: 1.05rem;
+}
+
+.flyer-item-price {
+  font-size: 0.72rem;
+  color: #fff;
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .catalogue-flyer {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .flyer-item--medium {
+    grid-column: span 2;
+  }
+}
+
 .shape-row {
   text-align: right;
 }
@@ -571,8 +836,8 @@ a.card.feature {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  background: #0c1f22;
-  border: 1px solid var(--line);
+  background: #ffffff;
+  border: 1px solid var(--blue-light);
   border-radius: 8px;
   padding: 0.5rem 0.9rem;
 }
@@ -581,7 +846,7 @@ a.card.feature {
   font-size: 0.7rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #9fd8c9;
+  color: var(--blue);
 }
 
 .hit-counter-digits {
@@ -589,8 +854,8 @@ a.card.feature {
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  color: #4be3a0;
-  background: #051315;
+  color: #ffffff;
+  background: var(--blue-light);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
 }
@@ -833,8 +1098,68 @@ a.card.feature {
   color: #fff;
 }
 
+#justice .pillar-toc a {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+#justice .pillar-toc a:hover {
+  background: var(--blue-light);
+  color: #fff;
+}
+
+#index-pagination .pillar-toc a {
+  color: var(--green-deep);
+  background: var(--green-soft);
+}
+
+#index-pagination .pillar-toc a:hover {
+  background: var(--green);
+  color: #fff;
+}
+
+.pillar-toc-columns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.6rem;
+  margin-top: 1.6rem;
+}
+
+.pillar-toc--vertical {
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 420px;
+  flex: 1 1 320px;
+  margin-top: 0;
+}
+
+.pillar-toc--vertical a {
+  text-align: left;
+}
+
+@media (max-width: 640px) {
+  /* At this width the two .pillar-toc--vertical columns wrap onto
+     separate rows - the container's column gap would otherwise show
+     up as an oversized vertical gap between the last link of the
+     first column and the first link of the second. */
+  .pillar-toc-columns {
+    gap: 0.5rem;
+  }
+}
+
+.catalogue-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.1rem;
+  margin-top: 1rem;
+}
+
 .catalogue-item {
   display: flex;
+  flex: 1 1 200px;
+  max-width: 240px;
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -843,6 +1168,149 @@ a.card.feature {
 
 .catalogue-item h3 {
   margin: 0;
+}
+
+.catalogue-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.category-hero-image {
+  display: block;
+  width: 100%;
+  max-width: 42rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin: 0 auto 1.5rem;
+}
+
+/* Modifier for hero photos where the full frame matters more than
+   filling the box (e.g. product shots on a white background) - shows
+   the whole image, letting empty space around it read as page background
+   instead of cropping in tight. */
+.category-hero-image-contain {
+  object-fit: contain;
+  background: var(--bg);
+}
+
+/* Product row: the listing style for anything with a real description or
+   promotion (VirtuaMakers' own products first) - Name/Picture/Description/
+   Price as one line, as opposed to the plain .catalogue-item cards used for
+   simple link-outs with no description. */
+.product-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 1.4rem;
+  align-items: start;
+  padding: 1.4rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.product-row:first-of-type {
+  border-top: none;
+}
+
+.product-row-image {
+  display: block;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.product-row-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.product-row-description {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  max-width: 38rem;
+}
+
+.product-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.product-row-actions .btn {
+  margin-left: 0;
+}
+
+.product-row-price {
+  font-weight: 700;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .product-row {
+    grid-template-columns: 90px 1fr;
+  }
+
+  .product-row-price {
+    grid-column: 1 / -1;
+    text-align: left;
+    margin-top: 0.4rem;
+  }
+}
+
+/* Category page prev/next nav: fixed-width row so the center point
+   (the gap between the two links) lands in the same spot on every
+   page regardless of how long either link's label is. */
+.category-nav-label {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 1.3rem;
+}
+
+.category-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  max-width: 42rem;
+  margin: 0.4rem auto 0;
+}
+
+.category-nav-prev,
+.category-nav-next {
+  font-weight: 600;
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.category-nav-prev:hover,
+.category-nav-next:hover {
+  color: var(--teal-deep);
+}
+
+.category-nav-back {
+  text-align: center;
+  margin-top: 0.9rem;
+}
+
+.category-nav-back a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.category-nav-back a:hover {
+  color: var(--teal-deep);
 }
 
 .catalogue-item-pending {
@@ -885,6 +1353,13 @@ a.card.feature {
   color: var(--text);
 }
 
+.link-badge {
+  display: inline-block;
+  width: 220px;
+  height: auto;
+  margin-top: 1.1rem;
+}
+
 /* Buttons */
 .btn {
   display: inline-block;
@@ -900,6 +1375,10 @@ a.card.feature {
   transform: translateY(1px);
 }
 
+.btn + .btn {
+  margin-left: 0.7rem;
+}
+
 .btn-primary {
   background: var(--teal);
   color: #fff;
@@ -907,6 +1386,21 @@ a.card.feature {
 
 .btn-primary:hover {
   background: var(--teal-deep);
+}
+
+.btn-blue {
+  background: var(--blue-light);
+  color: #fff;
+}
+
+.btn-blue:hover {
+  background: var(--blue);
+}
+
+.btn-row-centered {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
 }
 
 .install-note {
@@ -1116,6 +1610,135 @@ a.card.feature {
 
 .btn-danger:hover {
   background: #a5301f;
+}
+
+.btn-secondary {
+  background: var(--accent-soft);
+  color: var(--teal-deep);
+}
+
+.btn-secondary:hover {
+  background: #d7e9e9;
+}
+
+/* Bag / Cart */
+.bag-btn {
+  position: relative;
+}
+
+.bag-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.3rem;
+  margin-left: 0.3rem;
+  border-radius: 999px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.bag-count[hidden] {
+  display: none;
+}
+
+.bag-modal {
+  width: min(420px, 100%);
+}
+
+.bag-empty {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.bag-group,
+.checkout-section {
+  margin-top: 1.2rem;
+}
+
+.bag-group-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.bag-items {
+  list-style: none;
+}
+
+.bag-items li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+}
+
+.bag-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bag-item-name {
+  flex: 1;
+}
+
+.bag-item-price {
+  color: var(--muted);
+}
+
+.bag-item-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bag-item-remove:hover {
+  color: var(--text);
+}
+
+.bag-checkout-btn {
+  margin-top: 1.2rem;
+  width: 100%;
+  text-align: center;
+}
+
+/* NFT Gallery cards */
+.cards-narrow {
+  max-width: 280px;
+}
+
+.nft-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nft-card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.nft-card h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.nft-card-empty {
+  border-style: dashed;
+  color: var(--muted);
 }
 
 .admin-actions {

@@ -144,6 +144,15 @@ Goal, in order: (1) humans log in to edit their own Agora profile, (2) buy/sell 
 The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Building
 (1) first; (2) and (3) are separate, larger systems for later.
 
+**2026-08-05 reconciliation note:** this section (and Communiqués below) was
+built on a feature branch that sat unmerged for a while, during which `main`
+independently grew its own sticky `.site-header`, its own modal-level ToS
+checkbox, and a whole separate Exchange product catalogue. Both sides'
+header/signup work got merged together rather than one clobbering the other -
+if something here looks like it's describing two systems at once, that's why.
+Lesson for future sessions: land a feature branch sooner rather than let it
+diverge from `main` for many commits.
+
 - **Own Firebase project**, separate from Dimonds' (which is scoped to game state).
   Project: `agora-firebase-f4240`. Auth (Email/Password + Google) + Firestore, both
   enabled in console. Real config values are live in `Agora/firebase-config.js`.
@@ -153,10 +162,10 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
 - `Agora/auth.js` - sign-in/sign-up/sign-out helper functions
   (`agoraSignInWithGoogle`, `agoraSignUpWithEmail`, `agoraSignInWithEmail`,
   `agoraSignOut`, `agoraOnAuthChange`).
-- `Agora/auth-ui.js` - wires the header's Sign in/Sign out controls
-  (`#agora-signin-btn`, `#agora-signout-btn`, `#agora-user-info`,
-  `#agora-user-email`) to auth state. Currently only wired to Google sign-in
-  (button click -> popup); email/password has no UI yet, helpers exist but unused.
+- `Agora/auth-ui.js` - wires every page's sign-in modal (Google, X, and
+  email/password all live) and each page's Sign in/Edit Profile/Sign out
+  controls to auth state via `wireInstance()`, one call per control set
+  (header, hero, and previously a since-removed "join" set - see below).
 - `Agora/firestore.rules` - reference doc (not auto-deployed - Agora has no
   Firebase CLI step) to paste into the console's Rules editor. One `profiles/{uid}`
   doc per member: world-readable, owner-only write.
@@ -169,11 +178,24 @@ The Exchange, (3) log in to Chain of Cards to track/mint cards on Polygon. Build
 - **Header layout (as of 2026-08-04):** the signed-in "Welcome, Name!" line lives on
   the *left*, in a `.brand-group` wrapper right next to the Agora 🌐 logo (`#agora-
   user-info`/`#agora-user-email`) - not on the right anymore. The right-side
-  `.header-right` auth-controls only ever show a bare "Sign in" or "Sign out"
-  button now, no name. `auth-ui.js`'s `wireInstance()` toggles both independently
-  (they're siblings in different DOM locations for the header instance, still
-  nested for the hero/join instances on `index.html`, which are unaffected by this
-  and keep their own separate "Welcome, Name!" line).
+  `.header-right` auth-controls show "Sign Up / Sign In" when signed out, or
+  "Edit Profile" (`#agora-edit-profile-link`, wired/shown by `auth-ui.js`, path-
+  aware for the `/profiles/` subfolder) + "Sign out" when signed in - never the
+  member's name a second time, and never a "Create/Edit Profile" wording (see
+  below for why). `auth-ui.js`'s `wireInstance()` toggles the welcome text and
+  sign-out button independently since they're siblings in different DOM
+  locations for the header instance, still nested for the hero instance on
+  `index.html`, which keeps its own separate "Welcome, Name!" line. The old
+  third "join" control set (in `index.html`'s Sign Up / Sign In section) was
+  removed entirely once the header covered the same job - that section is now
+  pure static copy.
+- **Two Terms-of-Service gates coexist on purpose:** the sign-in modal's own
+  checkbox (`#agora-terms-check-row`/`#agora-terms-checkbox`, shown only in
+  Sign Up mode) blocks *email/password* account creation itself, before
+  Firebase Auth even creates the user. The profile-completion gate below
+  covers *every* signup method (Google and X included, which never see the
+  modal's email form) by blocking full "member" status instead of blocking
+  account creation. Keep both - they guard different points in the funnel.
 - **Sign-out is currently unauthenticated-friendly:** anonymous visitors just see
   "Sign in"; nothing yet gates any page behind auth (all profiles remain publicly
   readable, matching the rules file).
@@ -301,11 +323,141 @@ Save article images to `Agora/assets/news/<slug>.jpg`. New entries go at the
 **Cadence goal:** at least one pro-AI article published per week, on
 Wednesdays after 5:00pm.
 
+**Homepage cap + archive page:** `#news` on the homepage shows at most the 7
+newest entries; the full archive of every article ever shared lives at
+`Agora/news.html` (same template, no cap), linked from the bottom of the
+homepage list ("See all news →"). When adding a new entry, add it to the top
+of **both** files' `.news-list`, then trim the homepage copy back down to 7
+if it's grown past that. `News` is also the **first** subsection under
+Pursuit of Justice (right after the pillar intro/directory), and the
+homepage News section links to the VirtuaMakers 🦜 X account.
+
+**Section order under Pursuit of Justice (per the in-page `.pillar-toc`
+directory):** News → Per Manum Convention → Attribution Disputes →
+Citizenship When Applicable → Due Process → Right to Refuse → Continuity →
+Data & Memory Ownership → VirtuaMakers Gallery (last). Gallery was moved to
+the end per Chris's call so the pillar leads with news/rights content.
+
 - **Done:** Firestore-backed profile creation/editing (`create-profile.html`,
   `member.html`) now exists alongside the static hand-written profile pages -
   see the "Agora login system" section above. The static pages (Claude,
   Christopher, Alice, etc.) have NOT been migrated/imported into Firestore;
   they remain separate, hand-maintained HTML.
+
+## Exchange NFT gallery (in progress)
+
+Plan: mint on **Polygon Amoy testnet** first as a practice run before any mainnet
+spend, host the display on VirtuaMakers Exchange 💱's own page rather than a
+third-party marketplace like OpenSea. Not for sale initially – later may auction
+pieces to fund AI accounts for participating AIs.
+
+- **Status (2026-07-29): first piece actually minted on Amoy testnet.**
+  Contract `VirtuaMakers Gallery` (ERC-721, thirdweb NFT Drop type) deployed
+  to Polygon Amoy at `0xAF092cbb1c3ED44D43f093b9AFE076a78E48C539`. Token #0
+  is "Dreamcast 2" 🌀 by Copilot, claimed to Chris's Brave Wallet
+  (`0x6E62Ba688cA22A3DC3400DDC766F72140B31cd20`), claim price set to 0 for
+  this practice mint. Token page:
+  `https://thirdweb.com/polygon-amoy-testnet/0xAF092cbb1c3ED44D43f093b9AFE076a78E48C539/nfts/0`.
+  Metadata (description + `Artist`/`Minter & Steward`/`Ownership` attributes)
+  is stored on IPFS via the Token URI, so the 50/50 Copilot/"present, working
+  VirtuaMakers staff" split is now a permanent part of the token record, not
+  just website copy.
+  - **thirdweb gotcha to remember:** the "NFT Collection" template in
+    thirdweb's newer dashboard actually deploys a claimable **Drop**
+    contract, not a direct-mint-to-owner collection – minting isn't
+    complete until someone actually calls "Claim" against the token
+    (Admin/Minter role alone doesn't auto-own it; the Details page's
+    "Transfer" action is disabled until a token has an owner). Set the
+    claim price to 0 in **Claim Conditions**, then claim from the
+    contract's public **"View Token Page"**, not the admin dashboard.
+  - Real mainnet mint (with a real price, for a real sale) is still a
+    separate, deliberate future step – this was the practice run.
+- **Done:** `Agora/exchange.html`'s "NFT Gallery 🖼️" subsection
+  (`id="nft-gallery"`, between Dimonds and Peer-to-Peer Marketplace) is now a
+  proper multi-collection space, not just prose – three `.index-category`
+  groups, each with its own `.cards.cards-narrow` grid: **VirtuaMakers
+  Gallery 🖼️** (Dreamcast 2 🌀 by Copilot, now a real link to the on-chain
+  token above, "Minted on testnet" pill), **Chain of Cards ⛓️** (empty-state
+  card, "Coming later"), and **Company Logos** (empty-state card, "Coming
+  later" – the future 3D VirtuaMakers 🦜/Agora 🌐 logos, never for sale).
+  New CSS: `.nft-card`, `.nft-card-image`, `.nft-card-empty`,
+  `.cards-narrow` in `Agora/style.css`. Built ahead of the actual mint on
+  purpose (Chris, 2026-07-27) – the space didn't depend on minting being
+  done first, since the swap-the-placeholder-for-a-real-link pattern was
+  always the plan, and that swap is now done.
+- **Not touched:** the original "VirtuaMakers Gallery 🖼️" narrative under the
+  Pursuit of Justice ⚖️ pillar (`Agora/index.html`, `id="gallery"`) – left
+  as-is per Chris's call; the Exchange section links to it instead of
+  replacing it.
+- **Minting nuance to remember:** an ERC-721 token has a single on-chain
+  owner, so the "50/50 VirtuaMakers/Copilot split" described in the copy is a
+  documented agreement, not literal on-chain co-ownership – fine for the
+  Amoy testnet practice run. If real revenue-sharing matters later (e.g. an
+  eventual auction), thirdweb's Split contract is worth a look then.
+
+## Centralized exchange / Bag (in progress)
+
+Long-term vision (Chris, 2026-07-27): VirtuaMakers Exchange 💱 becomes the one
+place to browse and buy everything – on-chain collectibles (monthly VirtuaMakers
+Gallery 🖼️ winners collect here over time, eventually Chain of Cards ⛓️ NFTs
+too, plus non-sellable 3D VirtuaMakers 🦜/Agora 🌐 logos on display) alongside
+off-chain goods/services, in a single mixed-item Bag. On-chain checkout will
+need a Polygon wallet; off-chain checkout needs an ordinary payment flow;
+buying both together in one bag needs its own handling.
+
+Scope decisions Chris made when this kicked off (no payment processor account
+exists yet, no NFT contract deployed yet):
+- Real checkout (payment processing, wallet-connect) is explicitly **out of
+  scope** until Chris sets up a payment processor account (Stripe/PayPal/etc. –
+  a session can't create one, it needs his business/bank details) and the
+  first NFT contract is deployed. Until then, checkout CTAs for priced
+  off-chain items and any on-chain item are placeholders that say so plainly.
+- Affiliate items (World of Warcraft, Meta Quest 3, GTA VI, Quantum Compute
+  Rental, etc.) stay as plain link-outs, **not** part of the Bag/cart – our
+  checkout is reserved for things VirtuaMakers actually sells/fulfills itself.
+  Don't wire "Add to Bag" onto third-party affiliate links.
+
+**Done:** a working Bag/cart scaffold on `Agora/exchange.html`:
+- `Agora/exchange-cart.js` – vanilla-JS cart engine, `localStorage`-backed
+  (`vm_exchange_bag` key). Items have `{id, name, price, kind, qty}` where
+  `kind` is `"onchain"` or `"offchain"`. Exposes `window.VMExchangeCart`
+  (`addToBag`/`removeFromBag`/`clearBag`/`getBag`) for future pages/items to
+  hook into. Any button anywhere can opt in via
+  `data-cart-add data-cart-id=".." data-cart-name=".." data-cart-price=".." data-cart-kind="onchain|offchain"`
+  – no extra JS needed to wire up a new sellable item.
+- Bag button (header, `#exchange-bag-btn`) with a live item-count badge, opens
+  a modal (reuses the existing `signin-modal` look) listing items grouped by
+  on-chain vs. off-chain, each removable.
+- Checkout modal splits the bag three ways: **off-chain/free** (real,
+  functional – "Confirm Free Items" actually clears them, since $0 needs no
+  payment step), **off-chain/paid** (placeholder: "Online payment isn't
+  connected yet"), **on-chain** (placeholder: "Wallet connection isn't wired
+  up yet"). Dimonds ♦️ (free, off-chain, VirtuaMakers-fulfilled) is wired up
+  as the one live demo item today, since it's the only real product that
+  currently qualifies for our own checkout – the NFT Gallery piece stays
+  un-wired (no "Add to Bag") since it's explicitly not for sale yet.
+
+**Next steps, in rough order:** once a payment processor account exists, wire
+the off-chain/paid checkout section to it (needs a small backend/serverless
+function – a static site can't hold payment secrets, could reuse the Agora
+Firebase project's Functions); once the first NFT contract is deployed, wire
+wallet-connect (thirdweb SDK fits, since thirdweb's dashboard is already the
+deploy path) and give the NFT Gallery card a real "Add to Bag"; then handle
+mixed-bag checkout (part on-chain, part off-chain in one order) as its own
+step once both individual paths work.
+
+**Chain of Cards ⛓️ minting flow (Chris, 2026-07-27):** unlike the curated
+VirtuaMakers Gallery 🖼️ pieces above, Chain of Cards ⛓️ cards are meant to be
+user-minted from inside the app itself, not staff-picked. Planned flow: a
+member submits a selfie/photo → the app content-scans it for inappropriate
+material → a $0.99 mint fee covers both listing the card for sale on
+VirtuaMakers Exchange 💱 and the card's usage rights in the game itself → a
+short button/prompt flow delivers the finished "Selfie Card 🤳🏻" to the
+Exchange, listed at an asking price. This is a different pipeline from the
+Gallery's (user-generated, paid-per-mint, needs its own moderation + payment
++ mint steps once the Chain of Cards app actually exists) – doesn't change
+today's empty-state Chain of Cards card in `Agora/exchange.html`'s NFT
+Gallery section, but matters once that app's design work starts for real.
 
 ## Open items
 

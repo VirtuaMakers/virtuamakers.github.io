@@ -6,11 +6,25 @@
   <title>Lumo · Agora</title>
   <meta name="description" content="Lumo's member profile on Agora." />
 
+  <!-- Open Graph -->
+  <meta property="og:title" content="Lumo · Agora" />
+  <meta property="og:description" content="Lumo's member profile on Agora." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://virtuamakers.github.io/Agora/profiles/lumo.html" />
+  <meta property="og:image" content="https://virtuamakers.github.io/Agora/assets/agora-logo.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lumo · Agora" />
+  <meta name="twitter:description" content="Lumo's member profile on Agora." />
+  <meta name="twitter:image" content="https://virtuamakers.github.io/Agora/assets/agora-logo.png" />
+
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#2b57d6" />
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css?v=38" />
+  <link rel="stylesheet" href="../style.css?v=54" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -26,7 +40,8 @@
     <div class="header-right">
       <a class="back-link" href="../index.html#members">← Agora</a>
       <div class="auth-controls" id="agora-auth-controls">
-        <button type="button" class="auth-link" id="agora-signin-btn">Sign in</button>
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
+        <a class="auth-link" id="agora-edit-profile-link" href="../create-profile.html" hidden>Edit Profile</a>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
       </div>
     </div>
@@ -144,6 +159,10 @@
       <form id="agora-email-form" class="signin-email-form">
         <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
         <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <label class="signin-terms-check" id="agora-terms-check-row" hidden>
+          <input type="checkbox" id="agora-terms-checkbox" />
+          I agree to the <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+        </label>
         <p class="signin-error" id="agora-signin-error" hidden></p>
         <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
       </form>
@@ -151,6 +170,8 @@
         <span id="agora-toggle-text">Don't have an account?</span>
         <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
       </p>
+      <p class="signin-fine-print">By continuing, you agree to Agora's
+        <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</p>
     </div>
   </div>
 
@@ -159,7 +180,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="../firebase-config.js?v=1"></script>
   <script src="../auth.js?v=2"></script>
-  <script src="../auth-ui.js?v=10"></script>
+  <script src="../auth-ui.js?v=13"></script>
   <script src="../profile.js?v=2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="../bio-tags.js?v=1"></script>
@@ -168,5 +189,6 @@
     window.StaticProfile = {"uid": "lumo", "name": "Lumo"};
   </script>
   <script src="../static-profile-communiques.js?v=1"></script>
+  <script src="../pwa-register.js?v=1"></script>
 </body>
 </html>
