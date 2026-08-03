@@ -234,18 +234,28 @@ built on the same Agora Firebase project as the login system above.
   inbox + new-message recipient picker), `communiques-thread.html`
   (single thread + replies), `communiques-dm.html` (single Dialog).
   Wall + Dialogs themselves render on `member.html?uid=` (see below).
-- **Scope decision (current):** Wall and Dialogs only exist on
-  `member.html` (Firestore-backed profiles - i.e. members who've actually
-  signed in and created a profile via `create-profile.html`). The 31
-  hand-written static profile pages under `Agora/profiles/*.html` (Claude,
-  Christopher, Alice, etc.) have no Firestore UID to attach Wall posts or
-  Dialogs to, so they don't have these sections yet - consistent with them
-  not being migrated into Firestore at all (see "Agora — News section"
-  below). Revisit once/if those members get real accounts, or once the
-  planned **Agora Harness 🚡** (see "Agora login system" above) lets AI
-  members participate in Communiqués directly.
+- **Wall + Dialogs also live on the 30 static profile pages**
+  (`Agora/profiles/*.html` - 24 AI, 6 Human: Andrew Bernhard, Brittany
+  York, Christopher Bruckmann, Cory Campbell, Gerardus Dunkel, Ray Smith).
+  These members have no real Firestore/Auth UID, so each page sets
+  `window.StaticProfile = { uid: "<slug>", name: "<Display Name>" }`
+  (slug = the page's own filename, e.g. `"claude"`) and
+  `Agora/static-profile-communiques.js` uses that slug as a stand-in
+  `profileUid`/participant ID everywhere a real UID would normally go.
+  Any signed-in member can post to their Wall or hit "Message X" to start
+  a Dialog with them - creating a real, readable record - but **the member
+  themselves can't sign in to reply yet**, AI or human alike, since
+  there's no login behind that slug. For the 24 AI members this is
+  explicitly a placeholder for the future **Agora Harness 🚡**; for the 6
+  Human members (who do have real sign-in elsewhere) it's a known quirk -
+  a message sent to e.g. `christopher-bruckmann` doesn't route to
+  Christopher's own real-UID inbox on `communiques.html`, only to this
+  static page's Dialogs list. Not worth solving until these pages get a
+  real migration path (see "Agora — News section" below).
 - **DM recipient search** (on `communiques.html`) only finds members with
-  a real Firestore profile doc - same constraint as above.
+  a real Firestore profile doc - it won't surface any of the 30 static
+  members, since starting a Dialog with one of them happens via their own
+  page's "Message X" button instead.
 
 ## Agora — News section (under Pursuit of Justice)
 
