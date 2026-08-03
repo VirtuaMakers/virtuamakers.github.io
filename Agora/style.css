@@ -1979,3 +1979,8 @@ a.card.feature {
 .header-welcome .auth-email {
   margin-right: 0;
 }
+
+#new-thread-toggle,
+#new-dm-toggle {
+  margin-bottom: 1rem;
+}
