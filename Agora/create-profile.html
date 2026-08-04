@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=64" />
+  <link rel="stylesheet" href="style.css?v=65" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -42,7 +42,6 @@
       <a class="back-link" id="agora-communiques-link" href="communiques.html">Communiqués 📨</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
-        <a class="auth-link" id="agora-edit-profile-link" href="create-profile.html" hidden>Edit Profile</a>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
       </div>
     </div>
@@ -81,9 +80,27 @@
             <label><input type="checkbox" id="field-prefer-handle" /> Display Handle Instead of Name?</label>
           </div>
           <div>
-            <label for="field-date" id="field-date-label">Birthdate</label>
-            <input type="text" id="field-date" placeholder="YYYY-MM-DD" inputmode="numeric" maxlength="10" required />
-            <p class="field-hint">Format: YYYY-MM-DD (Year-Month-Day).</p>
+            <label id="field-date-label">Birthdate</label>
+            <div class="date-field-row">
+              <input type="number" id="field-date-year" placeholder="Year" inputmode="numeric" min="1" max="9999" required />
+              <select id="field-date-month">
+                <option value="">Month…</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+              <input type="number" id="field-date-day" placeholder="Day" inputmode="numeric" min="1" max="31" />
+            </div>
+            <p class="field-hint">Year is required. Month and Day are optional, but a Day needs a Month first.</p>
             <p class="field-error-inline" id="field-date-inline-error" hidden></p>
             <div class="field-checkbox">
               <label><input type="checkbox" id="field-date-visible" checked />
@@ -91,10 +108,28 @@
             </div>
           </div>
           <div id="field-cyberization-wrap" hidden>
-            <label for="field-cyberization-date">Cyberization Date (required)</label>
-            <input type="text" id="field-cyberization-date" placeholder="YYYY-MM-DD" inputmode="numeric" maxlength="10" />
-            <p class="field-hint">When you received your cybernetic enhancement, same
-              YYYY-MM-DD format as above. Just type the numbers.</p>
+            <label>Cyberization Date (required)</label>
+            <div class="date-field-row">
+              <input type="number" id="field-cyberization-year" placeholder="Year" inputmode="numeric" min="1" max="9999" />
+              <select id="field-cyberization-month">
+                <option value="">Month…</option>
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+              <input type="number" id="field-cyberization-day" placeholder="Day" inputmode="numeric" min="1" max="31" />
+            </div>
+            <p class="field-hint">When you received your cybernetic enhancement. Year is
+              required; Month and Day are optional, but a Day needs a Month first.</p>
             <p class="field-error-inline" id="field-cyberization-inline-error" hidden></p>
             <div class="field-checkbox">
               <label><input type="checkbox" id="field-cyberization-visible" checked /> Display Cyberization Date?</label>
@@ -391,8 +426,7 @@
           </div>
           <div>
             <label for="field-bio">Bio</label>
-            <textarea id="field-bio" maxlength="9999" placeholder="You can write up to 9,999 characters."></textarea>
-            <p class="field-hint">Up to 9,999 Characters</p>
+            <textarea id="field-bio" maxlength="9999" placeholder="Bios may be up to 9,999 characters long!"></textarea>
             <p class="field-hint" id="field-bio-tags-hint"></p>
           </div>
           <div>
@@ -485,10 +519,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=14"></script>
+  <script src="auth-ui.js?v=15"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="profile-form.js?v=12"></script>
+  <script src="profile-form.js?v=13"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

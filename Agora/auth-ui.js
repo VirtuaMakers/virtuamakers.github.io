@@ -149,21 +149,41 @@
       // left, sign-out on the right) while the hero/join instances still
       // nest signOutBtn inside userInfo, so both are set independently.
       if (signOutBtn) signOutBtn.hidden = false;
-      if (userInfo) userInfo.hidden = false;
-      if (!nameLink) return;
 
-      nameLink.textContent = user.displayName || "friend";
+      if (!nameLink) {
+        if (userInfo) userInfo.hidden = false;
+        return;
+      }
+
       nameLink.removeAttribute("href");
 
-      if (typeof AgoraDB === "undefined") return;
+      // Don't reveal userInfo until the Firestore-resolved name (handle,
+      // if preferred) is known - setting it to the Auth provider's raw
+      // displayName first and correcting it a moment later caused a
+      // visible flash of someone's real name before their handle
+      // resolved in (e.g. "Chris Bruckmann" flashing before "River").
+      function reveal(name) {
+        nameLink.textContent = name;
+        if (userInfo) userInfo.hidden = false;
+      }
+
+      if (typeof AgoraDB === "undefined") {
+        reveal(user.displayName || "friend");
+        return;
+      }
       AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
-        if (!doc.exists) return;
+        if (!doc.exists) {
+          reveal(user.displayName || "friend");
+          return;
+        }
         var data = doc.data();
-        nameLink.textContent = (data.preferHandle && data.handle)
+        reveal((data.preferHandle && data.handle)
           ? data.handle
-          : (data.name || data.handle || user.displayName || "friend");
+          : (data.name || data.handle || user.displayName || "friend"));
         nameLink.href = memberUrl(user.uid);
-      }).catch(function () {});
+      }).catch(function () {
+        reveal(user.displayName || "friend");
+      });
     });
   }
 
@@ -179,17 +199,6 @@
     "agora-hero-user-info",
     "agora-hero-user-email"
   );
-
-  // The header's "Edit Profile" link - the only place Agora ever offers to
-  // create/edit a profile now that a signed-in visitor's name lives on the
-  // left and the right side only ever shows Sign in/Edit Profile/Sign out.
-  // Relative-path-aware since profile pages sit one directory deeper.
-  var editProfileLink = document.getElementById("agora-edit-profile-link");
-  if (editProfileLink) {
-    agoraOnAuthChange(function (user) {
-      editProfileLink.hidden = !user;
-    });
-  }
 
   // A signed-in visitor with no Firestore profile yet isn't a fully
   // accepted Agora member - Chris's rule is that an account only "counts"

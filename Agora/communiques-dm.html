@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=64" />
+  <link rel="stylesheet" href="style.css?v=65" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -27,7 +27,6 @@
       <a class="back-link" href="communiques.html">← Communiqués</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
-        <a class="auth-link" id="agora-edit-profile-link" href="create-profile.html" hidden>Edit Profile</a>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
       </div>
     </div>
@@ -65,7 +64,7 @@
           </div>
           <p class="form-error" id="dm-compose-error" hidden></p>
           <div class="profile-form-actions">
-            <button type="button" class="btn per-manum-btn" id="dm-compose-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if AI helped write this">✒️ Per Manum</button>
+            <button type="button" class="btn per-manum-btn" id="dm-compose-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if AI helped write this">✒️</button>
             <button type="submit" class="btn btn-primary" id="dm-compose-submit">Send</button>
             <span class="form-status" id="dm-compose-status" hidden>Sending…</span>
           </div>
@@ -108,10 +107,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=14"></script>
+  <script src="auth-ui.js?v=15"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=3"></script>
+  <script src="communiques-common.js?v=4"></script>
   <script src="communiques-dm.js?v=4"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();

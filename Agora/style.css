@@ -958,10 +958,18 @@ a.card.feature {
   flex-shrink: 0;
 }
 
-.profile-header h1 {
+.profile-header h1,
+.profile-header h2 {
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.01em;
+}
+
+.page-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.4rem;
 }
 
 .profile-fields {
@@ -1513,6 +1521,21 @@ a.card.feature {
   margin-top: 0.6rem;
 }
 
+.date-field-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.date-field-row input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.date-field-row select {
+  flex: 1.6 1 0;
+  min-width: 0;
+}
+
 .field-group {
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -1800,39 +1823,14 @@ a.card.feature {
   white-space: pre-wrap;
 }
 
-#new-dm-picker {
-  margin-top: 0.8rem;
-  max-width: 420px;
-}
-
-#new-dm-picker input {
+#dialogs-friend-search {
   width: 100%;
+  max-width: 420px;
   padding: 0.6rem 0.8rem;
   border-radius: 8px;
   border: 1px solid var(--line);
   font: inherit;
-}
-
-.dm-picker-results {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-}
-
-.dm-picker-result {
-  text-align: left;
-  padding: 0.5rem 0.8rem;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  font: inherit;
-  cursor: pointer;
-}
-
-.dm-picker-result:hover {
-  border-color: var(--teal);
-  background: var(--accent-soft);
+  margin: 0.6rem 0;
 }
 
 .message-list {

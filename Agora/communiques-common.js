@@ -140,20 +140,22 @@
     });
   }
 
-  // Wires a "✒️ Per Manum" button to append a per-manum credit line to a
+  // Wires an icon-only "✒️" button to append a per-manum credit line to a
   // compose textarea, so a writer can flag AI-assisted authorship (per the
   // Per Manum Convention ✒️) with one click instead of having to remember
   // the convention exists and type it themselves. Appends on a blank line
-  // after any existing text, then focuses the textarea with the cursor
-  // right after the mark so the writer can type the writing hand's name.
+  // after any existing text, then selects the "[Add Name of Writer]"
+  // placeholder so typing the writing hand's name immediately replaces it.
   function attachPerManumButton(button, textarea) {
     if (!button || !textarea) return;
     button.addEventListener("click", function () {
       var existing = textarea.value.replace(/\s+$/, "");
-      var credit = "per manum ✒️ ";
+      var placeholder = "[Add Name of Writer]";
+      var credit = "Per Manum ✒️ " + placeholder;
+      var insertedAt = (existing ? existing + "\n\n" : "").length;
       textarea.value = (existing ? existing + "\n\n" : "") + credit;
       textarea.focus();
-      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      textarea.setSelectionRange(insertedAt + credit.length - placeholder.length, insertedAt + credit.length);
     });
   }
 

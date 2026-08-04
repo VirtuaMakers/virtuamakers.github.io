@@ -44,6 +44,24 @@
     wrap.hidden = false;
   }
 
+  var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+
+  // Dates are stored as YYYY-MM-DD (or a partial YYYY-MM / YYYY) - shown
+  // here as "Month Day, Year" (or whatever granularity was actually
+  // supplied) rather than the raw numeric shorthand, per CLAUDE.md.
+  function humanizeStoredDate(raw) {
+    if (!raw) return "";
+    var m = raw.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+    if (!m) return raw;
+    var year = m[1];
+    var month = m[2] ? parseInt(m[2], 10) : null;
+    var day = m[3] ? parseInt(m[3], 10) : null;
+    if (day) return MONTH_NAMES[month - 1] + " " + day + ", " + year;
+    if (month) return MONTH_NAMES[month - 1] + " " + year;
+    return year;
+  }
+
   function render(data) {
     var preferringHandle = !!(data.preferHandle && data.handle);
     document.getElementById("member-name").textContent =
@@ -72,11 +90,11 @@
     document.getElementById("member-date-label").textContent =
       data.kind === "AI" ? "Release Date" : "Birthdate";
     setOptionalField("member-date-wrap", data.showDate !== false ? data.date : "");
-    document.getElementById("member-date").textContent = data.date || "";
+    document.getElementById("member-date").textContent = humanizeStoredDate(data.date);
 
     setOptionalField("member-cyberization-wrap",
       (data.kind === "Cyborg" && data.showCyberizationDate !== false) ? data.cyberizationDate : "");
-    document.getElementById("member-cyberization-date").textContent = data.cyberizationDate || "";
+    document.getElementById("member-cyberization-date").textContent = humanizeStoredDate(data.cyberizationDate);
 
     var locationText = (data.city && data.country)
       ? (data.city + ", " + data.country)
@@ -86,6 +104,39 @@
 
     setOptionalField("member-orgs-wrap", data.organizations);
     document.getElementById("member-orgs").textContent = data.organizations || "";
+
+    var pictureUrls = [data.picture1, data.picture2, data.picture3, data.picture4, data.picture5].filter(Boolean);
+    var picturesWrap = document.getElementById("member-pictures-wrap");
+    var gallery = document.getElementById("member-gallery");
+    var frameImg = document.getElementById("member-photo-frame-img");
+    gallery.textContent = "";
+    if (pictureUrls.length) {
+      picturesWrap.hidden = false;
+      document.getElementById("member-pictures-label").textContent =
+        pictureUrls.length === 1 ? "Picture" : "Pictures";
+      pictureUrls.forEach(function (url, i) {
+        var thumb = document.createElement("img");
+        thumb.src = url;
+        thumb.alt = (data.name || "Member") + " picture " + (i + 1);
+        thumb.width = 110;
+        thumb.height = 110;
+        thumb.loading = "lazy";
+        if (i === 0) {
+          thumb.classList.add("active");
+          frameImg.src = url;
+          frameImg.alt = thumb.alt;
+        }
+        thumb.addEventListener("click", function () {
+          frameImg.src = url;
+          frameImg.alt = thumb.alt;
+          gallery.querySelectorAll("img").forEach(function (t) { t.classList.remove("active"); });
+          thumb.classList.add("active");
+        });
+        gallery.appendChild(thumb);
+      });
+    } else {
+      picturesWrap.hidden = true;
+    }
 
     setOptionalField("member-bio-wrap", data.bio);
     var bioEl = document.getElementById("member-bio");
@@ -289,7 +340,7 @@
     var textarea = document.createElement("textarea");
     textarea.maxLength = 9999;
     textarea.required = true;
-    textarea.placeholder = "Write a comment…";
+    textarea.placeholder = "Comments may be up to 9,999 characters long!";
     form.appendChild(textarea);
 
     var error = document.createElement("p");
@@ -301,7 +352,7 @@
     perManumBtn.type = "button";
     perManumBtn.className = "btn per-manum-btn";
     perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
-    perManumBtn.textContent = "✒️ Per Manum";
+    perManumBtn.textContent = "✒️";
     form.appendChild(perManumBtn);
     C.attachPerManumButton(perManumBtn, textarea);
 
@@ -383,7 +434,23 @@
         });
       });
 
-    if (currentUser) post.appendChild(buildCommentForm(doc.ref));
+    // Comments are optional, so the form stays tucked behind a toggle
+    // instead of sitting open under every single post.
+    if (currentUser) {
+      var commentToggle = document.createElement("button");
+      commentToggle.type = "button";
+      commentToggle.className = "btn";
+      commentToggle.textContent = "Comment";
+      post.appendChild(commentToggle);
+
+      var commentForm = buildCommentForm(doc.ref);
+      commentForm.hidden = true;
+      post.appendChild(commentForm);
+
+      commentToggle.addEventListener("click", function () {
+        commentForm.hidden = !commentForm.hidden;
+      });
+    }
 
     return post;
   }
@@ -458,56 +525,71 @@
     });
   });
 
-  // --- Dialogs -------------------------------------------------------------
+  // --- Dialogs ---------------------------------------------------------
+  // Friends-only, per Chris (2026-08-06): you can't Dialog with someone
+  // you're not friends with, so this section is entirely hidden until you
+  // have at least one accepted friend. What's shown is a search over your
+  // own friends (populated by loadFriendsList() below) rather than a list
+  // of existing conversations - click a friend to go to their profile,
+  // then use the "Dialog" button there (in friend-actions) to start or
+  // continue the conversation.
 
-  var dialogsList = document.getElementById("dialogs-list");
-  var dialogsLoading = document.getElementById("dialogs-loading");
-  var dialogsEmpty = document.getElementById("dialogs-empty");
+  var dialogsSection = document.getElementById("member-dialogs");
+  var dialogsSearch = document.getElementById("dialogs-friend-search");
+  var dialogsResults = document.getElementById("dialogs-friend-results");
 
-  function renderDialogs(docs) {
-    dialogsLoading.hidden = true;
-    dialogsList.textContent = "";
-    if (!docs.length) {
-      dialogsEmpty.hidden = false;
-      return;
-    }
-    dialogsEmpty.hidden = true;
-
-    docs.sort(function (a, b) {
-      var aTime = a.data().lastMessageAt ? a.data().lastMessageAt.toMillis() : 0;
-      var bTime = b.data().lastMessageAt ? b.data().lastMessageAt.toMillis() : 0;
-      return bTime - aTime;
-    });
-
-    docs.forEach(function (doc) {
-      var data = doc.data();
-      var otherUid = (data.participants || []).filter(function (p) { return p !== uid; })[0];
-      var otherName = (data.participantNames && data.participantNames[otherUid]) || "Member";
-
+  function renderDialogsSearchResults(query) {
+    dialogsResults.textContent = "";
+    var q = query.trim().toLowerCase();
+    var matches = q
+      ? friendsCache.filter(function (f) { return f.name.toLowerCase().indexOf(q) !== -1; })
+      : friendsCache;
+    matches.forEach(function (f) {
       var item = document.createElement("a");
       item.className = "dm-item";
-      item.href = "communiques-dm.html?c=" + encodeURIComponent(doc.id);
-
-      var name = document.createElement("p");
-      name.className = "dm-item-name";
-      name.textContent = otherName;
-      item.appendChild(name);
-
-      var preview = document.createElement("p");
-      preview.className = "dm-item-preview";
-      preview.textContent = (data.lastMessage || "No messages yet") + " · " + C.formatDate(data.lastMessageAt || data.createdAt, true);
-      item.appendChild(preview);
-
-      dialogsList.appendChild(item);
+      item.href = "member.html?uid=" + encodeURIComponent(f.uid);
+      item.textContent = f.name;
+      dialogsResults.appendChild(item);
     });
   }
 
-  function loadDialogs() {
-    dialogsLoading.hidden = false;
-    dialogsEmpty.hidden = true;
-    AgoraDB.collection("conversations").where("participants", "array-contains", uid).get()
-      .then(function (snap) { renderDialogs(snap.docs); });
+  dialogsSearch.addEventListener("input", function () {
+    renderDialogsSearchResults(dialogsSearch.value);
+  });
+
+  function conversationIdFor(uidA, uidB) {
+    return [uidA, uidB].sort().join("_");
   }
+
+  document.getElementById("friend-dialog-btn").addEventListener("click", function () {
+    if (!currentUser || !profileData) return;
+    var otherName = (profileData.preferHandle && profileData.handle)
+      ? profileData.handle : (profileData.name || profileData.handle || "Member");
+    var conversationId = conversationIdFor(currentUser.uid, uid);
+    var ref = AgoraDB.collection("conversations").doc(conversationId);
+
+    ref.get().then(function (doc) {
+      if (doc.exists) {
+        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+        return;
+      }
+      C.getDisplayName(currentUser).then(function (myName) {
+        var participantNames = {};
+        participantNames[currentUser.uid] = myName;
+        participantNames[uid] = otherName;
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        return ref.set({
+          participants: [currentUser.uid, uid].sort(),
+          participantNames: participantNames,
+          lastMessage: "",
+          lastMessageAt: now,
+          createdAt: now,
+        });
+      }).then(function () {
+        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      });
+    });
+  });
 
   agoraOnAuthChange(function (user) {
     var signedOut = !user;
@@ -515,7 +597,6 @@
     communiquesWrap.hidden = signedOut;
     if (user && uid) {
       loadWall();
-      loadDialogs();
     }
   });
 
@@ -536,6 +617,7 @@
   var friendsList = document.getElementById("friends-list");
   var friendsEmpty = document.getElementById("friends-empty");
   var unsubscribeFriendship = null;
+  var friendsCache = [];
 
   function friendshipIdFor(uidA, uidB) {
     return [uidA, uidB].sort().join("_");
@@ -614,18 +696,25 @@
 
   function renderFriendsList(docs) {
     friendsList.textContent = "";
+    friendsCache = docs.map(function (doc) {
+      var data = doc.data();
+      var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
+      return { uid: otherUid, name: (data.participantNames && data.participantNames[otherUid]) || "Member" };
+    });
+
+    dialogsSection.hidden = !friendsCache.length;
+    renderDialogsSearchResults(dialogsSearch.value);
+
     if (!docs.length) {
       friendsEmpty.hidden = false;
       return;
     }
     friendsEmpty.hidden = true;
-    docs.forEach(function (doc) {
-      var data = doc.data();
-      var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
+    friendsCache.forEach(function (f) {
       var item = document.createElement("a");
       item.className = "dm-item";
-      item.href = "member.html?uid=" + encodeURIComponent(otherUid);
-      item.textContent = (data.participantNames && data.participantNames[otherUid]) || "Member";
+      item.href = "member.html?uid=" + encodeURIComponent(f.uid);
+      item.textContent = f.name;
       friendsList.appendChild(item);
     });
   }
@@ -633,6 +722,7 @@
   function loadFriendsList() {
     var isOwner = currentUser && currentUser.uid === uid;
     friendsWrap.hidden = !isOwner;
+    dialogsSection.hidden = true;
     if (!isOwner) return;
 
     AgoraDB.collection("friendships")

@@ -11,12 +11,16 @@
   var form = document.getElementById("profile-form");
   var formTitle = document.getElementById("form-title");
   var dateLabel = document.getElementById("field-date-label");
-  var dateInput = document.getElementById("field-date");
+  var dateYearInput = document.getElementById("field-date-year");
+  var dateMonthSelect = document.getElementById("field-date-month");
+  var dateDayInput = document.getElementById("field-date-day");
   var dateVisible = document.getElementById("field-date-visible");
   var dateVisibleLabel = document.getElementById("field-date-visible-label");
   var dateInlineError = document.getElementById("field-date-inline-error");
   var cyberizationWrap = document.getElementById("field-cyberization-wrap");
-  var cyberizationInput = document.getElementById("field-cyberization-date");
+  var cyberizationYearInput = document.getElementById("field-cyberization-year");
+  var cyberizationMonthSelect = document.getElementById("field-cyberization-month");
+  var cyberizationDayInput = document.getElementById("field-cyberization-day");
   var cyberizationVisible = document.getElementById("field-cyberization-visible");
   var cyberizationInlineError = document.getElementById("field-cyberization-inline-error");
   var cityInput = document.getElementById("field-city");
@@ -83,13 +87,27 @@
     });
   });
 
+  // Decomposes a stored YYYY-MM-DD (or partial YYYY-MM / YYYY) string back
+  // into the three Year/Month/Day fields for editing.
+  function decomposeDateInto(raw, yearInput, monthSelect, dayInput) {
+    yearInput.value = "";
+    monthSelect.value = "";
+    dayInput.value = "";
+    if (!raw) return;
+    var m = String(raw).match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
+    if (!m) return;
+    yearInput.value = m[1];
+    if (m[2]) monthSelect.value = String(parseInt(m[2], 10));
+    if (m[3]) dayInput.value = String(parseInt(m[3], 10));
+  }
+
   function fillForm(data) {
     document.getElementById("field-name").value = data.name || "";
     handleInput.value = data.handle || "";
     document.getElementById("field-prefer-handle").checked = !!data.preferHandle;
-    dateInput.value = data.date || "";
+    decomposeDateInto(data.date, dateYearInput, dateMonthSelect, dateDayInput);
     dateVisible.checked = data.showDate !== false;
-    cyberizationInput.value = data.cyberizationDate || "";
+    decomposeDateInto(data.cyberizationDate, cyberizationYearInput, cyberizationMonthSelect, cyberizationDayInput);
     cyberizationVisible.checked = data.showCyberizationDate !== false;
     cityInput.value = data.city || "";
     countryInput.value = data.country || "";
@@ -108,17 +126,45 @@
     emailVisible.checked = data.showEmail !== false;
   }
 
-  // ISO 8601 date input: full YYYY-MM-DD, or a partial YYYY-MM / YYYY.
-  // Returns the parsed { year, month, day } or null if the format doesn't match.
-  function parseDateInput(value) {
-    var m = value.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
-    if (!m) return null;
-    var year = parseInt(m[1], 10);
-    var month = m[2] ? parseInt(m[2], 10) : null;
-    var day = m[3] ? parseInt(m[3], 10) : null;
-    if (month !== null && (month < 1 || month > 12)) return null;
-    if (day !== null && (day < 1 || day > 31)) return null;
-    return { year: year, month: month, day: day };
+  // A real calendar day-count per month, leap years included - JS's Date
+  // handles this correctly via "day 0 of next month" = last day of this one.
+  function daysInMonth(year, month) {
+    return new Date(year, month, 0).getDate();
+  }
+
+  // Reads Year (required)/Month (optional dropdown)/Day (optional, needs
+  // Month) into { raw: "YYYY-MM-DD" or a partial form, parsed: {year,
+  // month, day} } - or { error } with an inline message already shown.
+  function composeDate(yearInput, monthSelect, dayInput, inlineError) {
+    inlineError.hidden = true;
+    var yearRaw = yearInput.value.trim();
+    if (!yearRaw) return { error: "missing-year" };
+    var year = parseInt(yearRaw, 10);
+    if (!/^\d+$/.test(yearRaw) || year < 1 || year > 9999) {
+      inlineError.textContent = "Please enter a valid Year.";
+      inlineError.hidden = false;
+      return { error: "invalid-year" };
+    }
+
+    var month = monthSelect.value ? parseInt(monthSelect.value, 10) : null;
+    var dayRaw = dayInput.value.trim();
+    var day = dayRaw ? parseInt(dayRaw, 10) : null;
+
+    if (day && !month) {
+      inlineError.textContent = "A Day needs a Month too.";
+      inlineError.hidden = false;
+      return { error: "day-without-month" };
+    }
+    if (day && (day < 1 || day > daysInMonth(year, month))) {
+      inlineError.textContent = "That's not a real Day for that Month and Year.";
+      inlineError.hidden = false;
+      return { error: "invalid-day" };
+    }
+
+    var raw = String(year);
+    if (month) raw += "-" + (month < 10 ? "0" + month : month);
+    if (day) raw += "-" + (day < 10 ? "0" + day : day);
+    return { raw: raw, parsed: { year: year, month: month, day: day } };
   }
 
   function humanizeDate(parsed) {
@@ -127,38 +173,24 @@
     return String(parsed.year);
   }
 
-  // Auto-inserts the YYYY-MM-DD dashes as the member types digits, so
-  // everyone's dates use the exact same separator without having to know
-  // the format up front - and flags an out-of-range month/day immediately,
-  // rather than waiting for Save.
-  function attachDateMask(input, inlineError) {
-    input.addEventListener("input", function () {
-      var digits = input.value.replace(/\D/g, "").slice(0, 8);
-      var formatted = digits;
-      if (digits.length > 6) {
-        formatted = digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6);
-      } else if (digits.length > 4) {
-        formatted = digits.slice(0, 4) + "-" + digits.slice(4);
-      }
-      input.value = formatted;
-      input.setSelectionRange(formatted.length, formatted.length);
-
-      var month = digits.length >= 6 ? parseInt(digits.slice(4, 6), 10) : null;
-      var day = digits.length >= 8 ? parseInt(digits.slice(6, 8), 10) : null;
-      if (month !== null && (month < 1 || month > 12)) {
-        inlineError.textContent = "Month must be between 01 and 12.";
-        inlineError.hidden = false;
-      } else if (day !== null && (day < 1 || day > 31)) {
-        inlineError.textContent = "Day must be between 01 and 31.";
-        inlineError.hidden = false;
-      } else {
+  // Live validation as the member fills in Year/Month/Day, rather than
+  // waiting until Save to flag an impossible date (e.g. Feb 30).
+  function attachLiveDateValidation(yearInput, monthSelect, dayInput, inlineError) {
+    function check() {
+      if (!yearInput.value.trim()) {
         inlineError.hidden = true;
+        return;
       }
+      composeDate(yearInput, monthSelect, dayInput, inlineError);
+    }
+    [yearInput, monthSelect, dayInput].forEach(function (el) {
+      el.addEventListener("input", check);
+      el.addEventListener("change", check);
     });
   }
 
-  attachDateMask(dateInput, dateInlineError);
-  attachDateMask(cyberizationInput, cyberizationInlineError);
+  attachLiveDateValidation(dateYearInput, dateMonthSelect, dateDayInput, dateInlineError);
+  attachLiveDateValidation(cyberizationYearInput, cyberizationMonthSelect, cyberizationDayInput, cyberizationInlineError);
 
   agoraOnAuthChange(function (user) {
     currentUser = user;
@@ -217,30 +249,32 @@
     }
 
     var dateName = selectedKind === "AI" ? "Release Date" : "Birthdate";
-    var rawDate = dateInput.value.trim();
-    if (!rawDate) {
-      showError("Please enter your " + dateName + ".");
+    var dateResult = composeDate(dateYearInput, dateMonthSelect, dateDayInput, dateInlineError);
+    if (dateResult.error === "missing-year") {
+      showError("Please enter your " + dateName + " (at least the Year).");
       return;
     }
-    var parsedDate = parseDateInput(rawDate);
-    if (!parsedDate) {
-      showError("Please enter your " + dateName + " as YYYY-MM-DD (or just YYYY, or YYYY-MM).");
+    if (dateResult.error) {
+      showError("Please fix the " + dateName + " field above.");
       return;
     }
+    var rawDate = dateResult.raw;
+    var parsedDate = dateResult.parsed;
 
     var rawCyberizationDate = "";
     var parsedCyberizationDate = null;
     if (selectedKind === "Cyborg") {
-      rawCyberizationDate = cyberizationInput.value.trim();
-      if (!rawCyberizationDate) {
-        showError("Please enter your Cyberization Date.");
+      var cyberizationResult = composeDate(cyberizationYearInput, cyberizationMonthSelect, cyberizationDayInput, cyberizationInlineError);
+      if (cyberizationResult.error === "missing-year") {
+        showError("Please enter your Cyberization Date (at least the Year).");
         return;
       }
-      parsedCyberizationDate = parseDateInput(rawCyberizationDate);
-      if (!parsedCyberizationDate) {
-        showError("Please enter your Cyberization Date as YYYY-MM-DD (or just YYYY, or YYYY-MM).");
+      if (cyberizationResult.error) {
+        showError("Please fix the Cyberization Date field above.");
         return;
       }
+      rawCyberizationDate = cyberizationResult.raw;
+      parsedCyberizationDate = cyberizationResult.parsed;
     }
 
     var city = cityInput.value.trim();

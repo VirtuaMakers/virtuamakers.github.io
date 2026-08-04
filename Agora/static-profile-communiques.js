@@ -63,7 +63,7 @@
     var textarea = document.createElement("textarea");
     textarea.maxLength = 9999;
     textarea.required = true;
-    textarea.placeholder = "Write a comment…";
+    textarea.placeholder = "Comments may be up to 9,999 characters long!";
     form.appendChild(textarea);
 
     var error = document.createElement("p");
@@ -75,7 +75,7 @@
     perManumBtn.type = "button";
     perManumBtn.className = "btn per-manum-btn";
     perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
-    perManumBtn.textContent = "✒️ Per Manum";
+    perManumBtn.textContent = "✒️";
     form.appendChild(perManumBtn);
     C.attachPerManumButton(perManumBtn, textarea);
 
@@ -157,7 +157,23 @@
         });
       });
 
-    if (currentUser) post.appendChild(buildCommentForm(doc.ref));
+    // Comments are optional, so the form stays tucked behind a toggle
+    // instead of sitting open under every single post.
+    if (currentUser) {
+      var commentToggle = document.createElement("button");
+      commentToggle.type = "button";
+      commentToggle.className = "btn";
+      commentToggle.textContent = "Comment";
+      post.appendChild(commentToggle);
+
+      var commentForm = buildCommentForm(doc.ref);
+      commentForm.hidden = true;
+      post.appendChild(commentForm);
+
+      commentToggle.addEventListener("click", function () {
+        commentForm.hidden = !commentForm.hidden;
+      });
+    }
 
     return post;
   }

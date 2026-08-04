@@ -82,19 +82,25 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## Agora member profile form — official field order (per Chris)
 
-Every `/Agora/profiles/*.html` page should present fields in this order.
-Fields not supplied by the member are omitted entirely (no empty "—" placeholder).
+Every `/Agora/profiles/*.html` page, and the "Form" container on `member.html`
+(see "Profile page redesign" below), should present fields in this order **as
+of 2026-08-06** - Chris flipped Location/Date and moved Joined Agora up from
+where they originally sat. Fields not supplied by the member are omitted
+entirely (no empty "—" placeholder).
 
 1. Name (the `<h1>`, not a `dt`/`dd` row)
 2. Handle (also rendered in `.profile-header`, not a `dt`/`dd` row — see below)
 3. Kind
-4. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
+4. Location
+5. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
    use only the one applicable singular label, never a combined "Release/Cyberization/
    Birthdate"; format as **"Month Day, Year"** (e.g. "September 3, 1986"), trimmed down
    to whatever granularity the member actually supplied — "Month Day" with no year if
    no year was given, "Month Year" if only month/year, etc. Never leave it as raw
-   numeric shorthand like "9/3".
-5. Location
+   numeric shorthand like "9/3". On `member.html` this is collected via three separate
+   fields (Year required, Month dropdown, Day) rather than one masked text input, and
+   validated against real days-per-month including leap years - see "Profile page
+   redesign" below.
 6. Organization(s) — label singular **"Organization"** or plural **"Organizations"**
    matching the actual count. **Never list "Agora" itself as an organization** (or
    variants like "Agora Partner") — membership is already implied by having a profile
@@ -106,21 +112,33 @@ Fields not supplied by the member are omitted entirely (no empty "—" placehold
    scrolling back up). Chris's stated long-term goal: a fully static system — visible
    thumbnails, click one, a static image appears, nothing moves/reflows at all. The
    current fixed-height frame + thumbnail-select is a step toward that, not the final
-   design.
+   design. **`member.html` never actually rendered pictures 2-5 until 2026-08-06** -
+   only `data.picture1` (the small header avatar) rendered anywhere; the gallery +
+   featured-frame field itself didn't exist there at all, even though the static pages
+   always had it. Fixed by porting the same `.profile-gallery`/`.profile-photo-frame`
+   pattern (and its click-to-swap behavior) into `member.js`'s render().
 8. Bio
-9. Link — for AI members, this should be a **direct portal to talk to that model**
+9. Joined Agora — `member.html`-only (a site-generated join date, not part of the
+   static pages' hand-written fields at all).
+10. Link — for AI members, this should be a **direct portal to talk to that model**
    (e.g. claude.ai, chatgpt.com, deepseek.com), not just a company info/marketing
    page, wherever one exists. It doubles as free advertising for the company and a
    real "go talk to them yourself" utility for visitors. Known mismatches to fix on
    the next retouch pass: Granite (IBM info page, not a chat portal), Leo (Brave
    marketing page - Leo has no standalone web portal since it lives in-browser),
    Grok (points to x.ai rather than the actual chat surface at grok.com).
-10. Social(s) — label singular **"Social"** or plural **"Socials"** matching the actual
+11. Social(s) — label singular **"Social"** or plural **"Socials"** matching the actual
     count
-11. Email
-12. Friends
+12. Email
+13. Friends — `member.html`-only (see "Friends 🙂" below); shows only when viewing
+    your own profile.
 
 Same pluralize-only-when-logical rule applies to any other list-shaped field added later.
+
+**Not yet retrofitted:** the 30 static `/Agora/profiles/*.html` pages still have Date
+before Location (the pre-2026-08-06 order) - only `member.html`'s Form got reordered
+this round. Worth a bulk pass later, but risked HTML corruption doing blind today
+given how much else changed in the same session.
 
 **Profile-header pattern:** just Name + Handle (as `<p class="member-org">Handle: X</p>`),
 never "of [Company]" — the org already lives in the Organization(s) field below. If a
@@ -137,6 +155,53 @@ real name to friends). Not needed until real accounts exist.
 **Future direction for AI/Cyborg/Human members generally:** once Agora has its own name
 recognition, all members (human, cyborg, AI alike) fold into one unified system rather
 than being tracked as a special case.
+
+## Profile page redesign (Chris, 2026-08-06)
+
+A first pass at organizing `member.html` now that Communiqués/Friends had all
+landed on it - Chris's framing was "get a hold of it and make sense of it,"
+expecting further rearrangement later, not a final layout.
+
+- **Page structure:** the very top of the page now reads "Profile 🙂"
+  (`<h1 class="page-title">`), unconditionally, regardless of whose profile
+  is being viewed. Everything that used to sit loose under it - avatar/name,
+  admin/friend actions, the `profile-fields` `dl`, the owner's edit link -
+  is now wrapped in a `.subsection` labeled **"Form"**. **"Wall"** follows,
+  unchanged in position. The member's own name (`#member-name`) dropped from
+  `<h1>` to `<h2>` to make room for the page-level `<h1>` above it -
+  `.profile-header h1, .profile-header h2` in `style.css` covers both that
+  and the 30 static pages, which still use `<h1>` there.
+- **"Edit your profile." → "Edit Form":** same link (`#owner-edit-link` on
+  `member.html`), new wording, to match the new "Form" container it edits.
+- **The header's "Edit Profile" link is gone site-wide** (`#agora-edit-profile-link`
+  removed from every page's header, and its `auth-ui.js` wiring deleted). The
+  only way to reach `create-profile.html` for an existing member now is:
+  click your own name in the header (`.header-welcome`'s link, already
+  pointed at `memberUrl(uid)`) → your own `member.html` → "Edit Form." A
+  brand-new signed-up member still lands there automatically either way, via
+  the existing persistent redirect for accounts with no profile doc yet
+  (`auth-ui.js`, unaffected by this change).
+- **Date fields rebuilt as Year (required) / Month (dropdown) / Day
+  (optional)** on `create-profile.html`, replacing the old single
+  YYYY-MM-DD masked text input - both the main date field and Cyberization
+  Date. `profile-form.js`'s `composeDate()` validates a real calendar day
+  count per month, leap years included (`new Date(year, month, 0).getDate()`
+  - "day 0 of next month" is JS's idiom for "last day of this month," and
+  it already accounts for leap years correctly). Stored format is unchanged
+  (`YYYY-MM-DD` or a partial `YYYY-MM`/`YYYY` string), so existing profiles
+  still work - `decomposeDateInto()` splits that string back into the three
+  fields when editing.
+- **Date display now humanizes the month** (`member.js`'s
+  `humanizeStoredDate()`) - `member.html` was still showing the raw stored
+  string (e.g. "1986-09-03") verbatim before this, which is exactly the raw
+  numeric shorthand the official field order above says never to show.
+- **Name-flash bug fixed:** every page briefly showed a signed-in visitor's
+  real Auth `displayName` (e.g. "Chris Bruckmann") before swapping to their
+  preferred handle ("River") a moment later, because `auth-ui.js` used to
+  reveal the "Welcome, Name!" text immediately with the raw Auth name, then
+  overwrite it once the Firestore profile fetch resolved. Fixed by not
+  revealing `userInfo` at all until the fetch resolves (or fails, or there's
+  no profile doc yet), so only the final, correct name is ever shown.
 
 ## Agora login system (in progress)
 
@@ -329,9 +394,15 @@ pending Agora Harness 🚡).
 - **UI:** `.friend-actions` block on `member.html` (next to
   `.admin-actions`, hidden when viewing your own profile or signed out)
   shows exactly one of Add Friend / "Friend request sent" / Accept+Decline
-  / ✓ Friends+Remove, driven by a real-time listener on the one
-  `friendships` doc between the viewer and the profile's owner. All
+  / ✓ Friends + **Dialog** + Remove, driven by a real-time listener on the
+  one `friendships` doc between the viewer and the profile's owner. All
   wiring lives in `member.js`'s "Friends 🙂" section.
+- **Dialogs require an accepted friendship (Chris, 2026-08-06):** you can't
+  start a Dialog with someone you're not friends with. The "Dialog" button
+  above creates-or-opens the conversation and navigates to it. Enforced
+  server-side too, not just in the UI - see "Dialogs redesign" under
+  Communiqués 📨 below for the full picture, including why the 30 static
+  profile pages are exempt from this requirement.
 
 ## Communiqués 📨 (in progress)
 
@@ -382,9 +453,16 @@ not as the primary label).
   two participants' UIDs sorted and joined with `_` so a pair never gets
   duplicate Dialogs), and `wallPosts` (+ `comments` subcollection,
   `profileUid` field names whose Wall a post is on - anyone signed in may
-  post/comment on anyone's Wall). Both content types share one
-  3-minute-edit rule function (`editableWithinWindow`) in
-  `firestore.rules`.
+  post/comment on anyone's Wall). Both content types share the same
+  10-minute edit/delete rule functions (`editableWithinWindow`/
+  `deletableWithinWindow`) in `firestore.rules`.
+- **Comments are optional, tucked behind a toggle (Chris, 2026-08-06):**
+  every Wall post now shows a plain "Comment" button; clicking it reveals
+  the (previously always-open) comment form. Comments aren't a default,
+  always-visible part of a post the way they were before - `member.js`'s
+  `buildWallPost()` and `static-profile-communiques.js`'s equivalent both
+  create the form hidden and toggle it, rather than always rendering it
+  open under every post.
 - **Dialog pagination (Chris, 2026-08-05):** a Dialog's messages are split
   into pages of up to 9,999 characters each (`PAGE_CHAR_LIMIT` in
   `communiques-dm.js`), computed client-side from the full, real-time
@@ -409,24 +487,28 @@ not as the primary label).
   covers part of the "live chat window, like AIM/Facebook" feel Chris
   described - full chat-window styling (typing indicators, etc.) is a
   future polish item, not built yet.
-- **"✒️ Per Manum" button (Chris, 2026-08-05):** a one-click way to invite
-  disclosure of AI-assisted authorship, since Chris's read on the Per Manum
-  Convention ✒️ (`Agora/per-manum.html`) is that the honest-attribution
-  habit it asks for doesn't exist yet, so Agora should make it as easy as
-  possible rather than rely on writers remembering the convention exists.
-  Sits next to the Post/Send button - **before** it, per Chris's own
-  ordering ("a ✒️ button and then a Send button") - on the **Wall post
-  form** (`member.html` and all 30 static profile pages), the **Wall
-  comment form** (added 2026-08-06; built dynamically per-post in
-  `member.js`/`static-profile-communiques.js` rather than static HTML,
-  since comment forms themselves are generated per Wall post), and the
-  **Dialog compose form** (`communiques-dm.html`). Clicking it appends `per manum
-  ✒️ ` (matching the exact mark order used in the Convention's own
-  signatures, e.g. "per manum ✒️ Claude" in `per-manum.html`) on a blank
-  line after any existing text, then focuses the textarea with the cursor
-  right after the mark so the writer just types the writing hand's name and
-  keeps going - no modal, no dropdown of known AIs, since the convention
-  covers any AI, named or not. Shared via `CommuniquesCommon.attachPerManumButton`
+- **"✒️" Per Manum button:** a one-click way to invite disclosure of
+  AI-assisted authorship, since Chris's read on the Per Manum Convention ✒️
+  (`Agora/per-manum.html`) is that the honest-attribution habit it asks for
+  doesn't exist yet, so Agora should make it as easy as possible rather than
+  rely on writers remembering the convention exists. Sits next to the
+  Post/Send button - **before** it, per Chris's own ordering ("a ✒️ button
+  and then a Send button") - on the **Wall post form** (`member.html` and
+  all 30 static profile pages), the **Wall comment form** (built
+  dynamically per-post in `member.js`/`static-profile-communiques.js`
+  rather than static HTML, since comment forms themselves are generated per
+  Wall post), and the **Dialog compose form** (`communiques-dm.html`). The
+  button itself is **icon-only** (Chris, 2026-08-06 - originally read "✒️
+  Per Manum", trimmed down to just "✒️") with a `title` tooltip explaining
+  it. Clicking it appends `Per Manum ✒️ [Add Name of Writer]` on a blank
+  line after any existing text, then **selects the bracketed placeholder**
+  so typing the writing hand's name immediately replaces it - no modal, no
+  dropdown of known AIs, since the convention covers any AI, named or not.
+  (Note this literal inserted text - "Per Manum ✒️ [Name]" - differs
+  slightly from the Convention's own signature style shown on
+  `per-manum.html` itself, e.g. "per manum ✒️ Claude" lowercase with no
+  brackets; that's Chris's explicit call for the button's insert, not an
+  inconsistency to fix.) Shared via `CommuniquesCommon.attachPerManumButton`
   in `communiques-common.js` so `member.js`, `static-profile-communiques.js`,
   and `communiques-dm.js` all wire it the same way instead of duplicating
   the insert logic.
@@ -435,9 +517,43 @@ not as the primary label).
   `isWithinEditWindow`, `attachInlineEdit`) - every Communiqués page and
   the Wall/Dialogs code in `member.js` pull from it rather than
   duplicating the same logic per page.
-- **Pages:** `communiques.html` (hub: Dialogs inbox + new-Dialog recipient
-  picker), `communiques-dm.html` (single Dialog, paginated - see above).
-  Wall + Dialogs themselves render on `member.html?uid=` (see below).
+- **Pages:** `communiques.html` (hub: read-only Dialogs inbox, see "Dialogs
+  redesign" below), `communiques-dm.html` (single Dialog, paginated - see
+  above). Wall + Dialogs themselves render on `member.html?uid=` (see below).
+- **Dialogs redesign - friends-only (Chris, 2026-08-06):** you can't Dialog
+  with someone you're not friends with, on `member.html` at least (see
+  "Dialogs require an accepted friendship" under Friends 🙂 above for the
+  rule itself). This reshaped the whole starting-a-Dialog flow:
+  - **`member.html`'s Dialogs section is now hidden entirely** (`#member-dialogs
+    hidden`) whenever the profile owner has zero accepted friends - no
+    empty-state message, the container just isn't there. Only shows for
+    the profile **owner** viewing their own page (parallel to the Friends
+    list), never for a visitor viewing someone else's.
+  - **Content changed from a list of existing conversations to a friend
+    search:** `#dialogs-friend-search` filters the same `friendsCache`
+    array `loadFriendsList()` already builds for the profile-fields
+    Friends row - no separate query. Results are links to
+    `member.html?uid=`, matching the "click a friend → go to their
+    profile" flow Chris described; results show unfiltered (all friends)
+    when the search box is empty.
+  - **Starting/continuing a Dialog happens from the friend's profile
+    page**, not the search results themselves - the "Dialog" button in
+    `.friend-actions`' accepted state (`#friend-dialog-btn`) does the
+    actual create-or-open-then-navigate-to-`communiques-dm.html?c=` work,
+    reusing the same sorted-UID-pair conversation ID pattern as before.
+  - **`communiques.html`'s old "New Message" recipient picker (searched
+    *all* members) is gone** - it would have silently failed against the
+    new friendship-required rule anyway. The hub keeps a read-only inbox
+    list of Dialogs you already have (`communiques.js`, unchanged logic,
+    just the picker code deleted) since that's still useful and doesn't
+    conflict with anything.
+  - **The 30 static profile pages are exempt from the friendship
+    requirement** - see `allowsStaticParticipant()` in `firestore.rules`.
+    Friends isn't built for slug-based static members at all (see Friends
+    🙂 above), so requiring a friendship with one would make their
+    existing "Message X" button permanently unusable. The rule instead
+    allows any Dialog where *either* participant has no real
+    `profiles/{uid}` doc, leaving that flow exactly as it was.
 - **Wall + Dialogs also live on the 30 static profile pages**
   (`Agora/profiles/*.html` - 24 AI, 6 Human: Andrew Bernhard, Brittany
   York, Christopher Bruckmann, Cory Campbell, Gerardus Dunkel, Ray Smith).
@@ -456,10 +572,6 @@ not as the primary label).
   Christopher's own real-UID inbox on `communiques.html`, only to this
   static page's Dialogs list. Not worth solving until these pages get a
   real migration path (see "Agora — News section" below).
-- **DM recipient search** (on `communiques.html`) only finds members with
-  a real Firestore profile doc - it won't surface any of the 30 static
-  members, since starting a Dialog with one of them happens via their own
-  page's "Message X" button instead.
 
 ## Agora — News section (under Pursuit of Justice)
 

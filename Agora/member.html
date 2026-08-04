@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=64" />
+  <link rel="stylesheet" href="style.css?v=65" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -42,7 +42,6 @@
       <a class="back-link" id="agora-communiques-link" href="communiques.html">Communiqués 📨</a>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
-        <a class="auth-link" id="agora-edit-profile-link" href="create-profile.html" hidden>Edit Profile</a>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
       </div>
     </div>
@@ -53,91 +52,107 @@
       <p id="member-status-notice" hidden></p>
 
       <div id="member-content" hidden>
-        <div class="profile-header">
-          <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" hidden />
-          <div class="profile-avatar profile-avatar-empty" id="member-avatar-empty"></div>
-          <div>
-            <h1 id="member-name"></h1>
-            <p class="member-org" id="member-handle" hidden></p>
+        <h1 class="page-title">Profile 🙂</h1>
+
+        <div class="subsection" id="member-form">
+          <h2 class="section-title">Form</h2>
+
+          <div class="profile-header">
+            <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" hidden />
+            <div class="profile-avatar profile-avatar-empty" id="member-avatar-empty"></div>
+            <div>
+              <h2 id="member-name"></h2>
+              <p class="member-org" id="member-handle" hidden></p>
+            </div>
           </div>
+
+          <div class="admin-actions" id="admin-actions" hidden>
+            <button type="button" class="btn" id="suspend-btn">Suspend</button>
+            <button type="button" class="btn btn-danger" id="delete-btn">Delete</button>
+          </div>
+
+          <div class="friend-actions" id="friend-actions" hidden>
+            <button type="button" class="btn btn-primary" id="friend-add-btn" hidden>Add Friend</button>
+            <span class="form-status" id="friend-status-sent" hidden>Friend request sent</span>
+            <span id="friend-status-received" hidden>
+              Wants to be friends –
+              <button type="button" class="btn btn-primary" id="friend-accept-btn">Accept</button>
+              <button type="button" class="btn" id="friend-decline-btn">Decline</button>
+            </span>
+            <span id="friend-status-accepted" hidden>
+              ✓ Friends –
+              <button type="button" class="btn btn-primary" id="friend-dialog-btn">Dialog</button>
+              <button type="button" class="btn" id="friend-remove-btn">Remove Friend</button>
+            </span>
+          </div>
+
+          <dl class="profile-fields">
+            <div class="profile-field">
+              <dt>Kind</dt>
+              <dd id="member-kind"></dd>
+            </div>
+            <div class="profile-field" id="member-location-wrap">
+              <dt>Location</dt>
+              <dd id="member-location"></dd>
+            </div>
+            <div class="profile-field" id="member-date-wrap">
+              <dt id="member-date-label">Birthdate</dt>
+              <dd id="member-date"></dd>
+            </div>
+            <div class="profile-field" id="member-cyberization-wrap">
+              <dt>Cyberization Date</dt>
+              <dd id="member-cyberization-date"></dd>
+            </div>
+            <div class="profile-field" id="member-orgs-wrap">
+              <dt>Organization(s)</dt>
+              <dd id="member-orgs"></dd>
+            </div>
+            <div class="profile-field" id="member-pictures-wrap" hidden>
+              <dt id="member-pictures-label">Picture(s)</dt>
+              <dd>
+                <div class="profile-gallery" id="member-gallery"></div>
+                <div class="profile-photo-frame" id="member-photo-frame">
+                  <img id="member-photo-frame-img" src="" alt="" />
+                </div>
+              </dd>
+            </div>
+            <div class="profile-field" id="member-bio-wrap">
+              <dt>Bio</dt>
+              <dd id="member-bio"></dd>
+            </div>
+            <div class="profile-field" id="member-joined-wrap">
+              <dt>Joined Agora</dt>
+              <dd id="member-joined"></dd>
+            </div>
+            <div class="profile-field" id="member-link-wrap">
+              <dt>Link</dt>
+              <dd><a id="member-link" href="#" target="_blank" rel="noopener noreferrer"></a></dd>
+            </div>
+            <div class="profile-field" id="member-portal-wrap">
+              <dt>Portal</dt>
+              <dd><a id="member-portal" href="#" target="_blank" rel="noopener noreferrer"></a></dd>
+            </div>
+            <div class="profile-field" id="member-socials-wrap">
+              <dt>Social(s)</dt>
+              <dd id="member-socials"></dd>
+            </div>
+            <div class="profile-field" id="member-email-wrap">
+              <dt>Email</dt>
+              <dd><a id="member-email" href="#"></a></dd>
+            </div>
+            <div class="profile-field" id="member-friends-wrap" hidden>
+              <dt>Friends</dt>
+              <dd>
+                <p class="intro" id="friends-empty" hidden>No friends yet.</p>
+                <div class="dm-list" id="friends-list"></div>
+              </dd>
+            </div>
+          </dl>
+
+          <p class="body-text" id="owner-edit-link" hidden>
+            <a href="create-profile.html">Edit Form</a>
+          </p>
         </div>
-
-        <div class="admin-actions" id="admin-actions" hidden>
-          <button type="button" class="btn" id="suspend-btn">Suspend</button>
-          <button type="button" class="btn btn-danger" id="delete-btn">Delete</button>
-        </div>
-
-        <div class="friend-actions" id="friend-actions" hidden>
-          <button type="button" class="btn btn-primary" id="friend-add-btn" hidden>Add Friend</button>
-          <span class="form-status" id="friend-status-sent" hidden>Friend request sent</span>
-          <span id="friend-status-received" hidden>
-            Wants to be friends –
-            <button type="button" class="btn btn-primary" id="friend-accept-btn">Accept</button>
-            <button type="button" class="btn" id="friend-decline-btn">Decline</button>
-          </span>
-          <span id="friend-status-accepted" hidden>
-            ✓ Friends –
-            <button type="button" class="btn" id="friend-remove-btn">Remove Friend</button>
-          </span>
-        </div>
-
-        <dl class="profile-fields">
-          <div class="profile-field">
-            <dt>Kind</dt>
-            <dd id="member-kind"></dd>
-          </div>
-          <div class="profile-field" id="member-date-wrap">
-            <dt id="member-date-label">Birthdate</dt>
-            <dd id="member-date"></dd>
-          </div>
-          <div class="profile-field" id="member-cyberization-wrap">
-            <dt>Cyberization Date</dt>
-            <dd id="member-cyberization-date"></dd>
-          </div>
-          <div class="profile-field" id="member-location-wrap">
-            <dt>Location</dt>
-            <dd id="member-location"></dd>
-          </div>
-          <div class="profile-field" id="member-orgs-wrap">
-            <dt>Organization(s)</dt>
-            <dd id="member-orgs"></dd>
-          </div>
-          <div class="profile-field" id="member-bio-wrap">
-            <dt>Bio</dt>
-            <dd id="member-bio"></dd>
-          </div>
-          <div class="profile-field" id="member-link-wrap">
-            <dt>Link</dt>
-            <dd><a id="member-link" href="#" target="_blank" rel="noopener noreferrer"></a></dd>
-          </div>
-          <div class="profile-field" id="member-portal-wrap">
-            <dt>Portal</dt>
-            <dd><a id="member-portal" href="#" target="_blank" rel="noopener noreferrer"></a></dd>
-          </div>
-          <div class="profile-field" id="member-socials-wrap">
-            <dt>Social(s)</dt>
-            <dd id="member-socials"></dd>
-          </div>
-          <div class="profile-field" id="member-email-wrap">
-            <dt>Email</dt>
-            <dd><a id="member-email" href="#"></a></dd>
-          </div>
-          <div class="profile-field" id="member-friends-wrap" hidden>
-            <dt>Friends</dt>
-            <dd>
-              <p class="intro" id="friends-empty" hidden>No friends yet.</p>
-              <div class="dm-list" id="friends-list"></div>
-            </dd>
-          </div>
-          <div class="profile-field" id="member-joined-wrap">
-            <dt>Joined Agora</dt>
-            <dd id="member-joined"></dd>
-          </div>
-        </dl>
-
-        <p class="body-text" id="owner-edit-link" hidden>
-          <a href="create-profile.html">Edit your profile.</a>
-        </p>
 
         <p class="body-text" id="communiques-signed-out-notice">
           <a href="#" id="communiques-signin-prompt">Sign in</a> to view this
@@ -150,12 +165,12 @@
             <form class="profile-form" id="wall-post-form">
               <div>
                 <label for="wall-post-body">Post to this Wall</label>
-                <textarea id="wall-post-body" maxlength="9999" required></textarea>
+                <textarea id="wall-post-body" maxlength="9999" required placeholder="Posts may be up to 9,999 characters long!"></textarea>
                 <p class="field-hint" id="wall-post-hint"></p>
               </div>
               <p class="form-error" id="wall-post-error" hidden></p>
               <div class="profile-form-actions">
-                <button type="button" class="btn per-manum-btn" id="wall-post-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if AI helped write this">✒️ Per Manum</button>
+                <button type="button" class="btn per-manum-btn" id="wall-post-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if AI helped write this">✒️</button>
                 <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
                 <span class="form-status" id="wall-post-status" hidden>Posting…</span>
               </div>
@@ -166,11 +181,11 @@
             <div class="wall-list" id="wall-list"></div>
           </div>
 
-          <div class="subsection" id="member-dialogs">
+          <div class="subsection" id="member-dialogs" hidden>
             <h2 class="section-title">Dialogs</h2>
-            <p class="intro" id="dialogs-loading">Loading Dialogs…</p>
-            <p class="intro" id="dialogs-empty" hidden>No Dialogs yet.</p>
-            <div class="dm-list" id="dialogs-list"></div>
+            <p class="intro">Search your friends to start or continue a Dialog with them.</p>
+            <input type="text" id="dialogs-friend-search" placeholder="Search your friends…" autocomplete="off" />
+            <div class="dm-list" id="dialogs-friend-results"></div>
           </div>
         </div>
       </div>
@@ -218,12 +233,12 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=1"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=14"></script>
+  <script src="auth-ui.js?v=15"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=3"></script>
-  <script src="member.js?v=14"></script>
+  <script src="communiques-common.js?v=4"></script>
+  <script src="member.js?v=15"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
