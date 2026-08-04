@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Messages · Communiqués · Agora</title>
-  <meta name="description" content="A private conversation between two Agora members." />
+  <title>Dialog · Communiqués · Agora</title>
+  <meta name="description" content="A private Dialog between two Agora members." />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=60" />
+  <link rel="stylesheet" href="style.css?v=61" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -43,7 +43,19 @@
         <p class="intro" id="dm-readonly-notice" hidden>You're viewing this Dialog as a
           fellow member – only its two participants can send messages here.</p>
 
+        <div class="dm-pagination" id="dm-pagination-top" hidden>
+          <button type="button" class="btn" id="dm-page-prev-top">← Older</button>
+          <span class="dm-page-indicator" id="dm-page-indicator-top"></span>
+          <button type="button" class="btn" id="dm-page-next-top">Newer →</button>
+        </div>
+
         <div class="message-list" id="message-list"></div>
+
+        <div class="dm-pagination" id="dm-pagination-bottom" hidden>
+          <button type="button" class="btn" id="dm-page-prev-bottom">← Older</button>
+          <span class="dm-page-indicator" id="dm-page-indicator-bottom"></span>
+          <button type="button" class="btn" id="dm-page-next-bottom">Newer →</button>
+        </div>
 
         <form class="profile-form" id="dm-compose-form" hidden>
           <div>
@@ -99,7 +111,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="bio-tags.js?v=1"></script>
   <script src="communiques-common.js?v=1"></script>
-  <script src="communiques-dm.js?v=2"></script>
+  <script src="communiques-dm.js?v=3"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

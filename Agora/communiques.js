@@ -1,122 +1,18 @@
-// Drives communiques.html: the Discussion Threads list + new-thread form,
-// and the Direct Messages inbox + new-message recipient picker. Requires
-// firebase-config.js, auth.js, and communiques-common.js to run first.
+// Drives communiques.html: the Dialogs inbox + new-Dialog recipient picker.
+// Requires firebase-config.js, auth.js, and communiques-common.js to run
+// first.
 
 (function () {
   var C = CommuniquesCommon;
   var currentUser = null;
   var profileCache = null; // loaded once, lazily, for the DM recipient picker
 
-  var threadBodyHint = document.getElementById("thread-body-hint");
-  if (threadBodyHint && typeof AgoraBioTags !== "undefined") {
-    threadBodyHint.textContent = AgoraBioTags.hint;
-  }
-
-  document.getElementById("threads-signin-prompt").addEventListener("click", function (e) {
-    e.preventDefault();
-    C.openSignInModal();
-  });
   document.getElementById("dm-signin-prompt").addEventListener("click", function (e) {
     e.preventDefault();
     C.openSignInModal();
   });
 
-  // --- Threads ---------------------------------------------------------
-
-  var threadList = document.getElementById("thread-list");
-  var threadsLoading = document.getElementById("threads-loading");
-  var threadsEmpty = document.getElementById("threads-empty");
-
-  function renderThreads(docs) {
-    threadsLoading.hidden = true;
-    threadList.textContent = "";
-    if (!docs.length) {
-      threadsEmpty.hidden = false;
-      return;
-    }
-    threadsEmpty.hidden = true;
-    docs.forEach(function (doc) {
-      var data = doc.data();
-      var item = document.createElement("a");
-      item.className = "thread-item";
-      item.href = "communiques-thread.html?thread=" + encodeURIComponent(doc.id);
-
-      var title = document.createElement("p");
-      title.className = "thread-item-title";
-      title.textContent = data.title || "Untitled";
-      item.appendChild(title);
-
-      var meta = document.createElement("p");
-      meta.className = "thread-item-meta";
-      var replyCount = data.replyCount || 0;
-      meta.textContent = "by " + (data.authorName || "Member") + " · "
-        + replyCount + (replyCount === 1 ? " reply" : " replies")
-        + " · " + C.formatDate(data.lastActivityAt || data.createdAt);
-      item.appendChild(meta);
-
-      threadList.appendChild(item);
-    });
-  }
-
-  function loadThreads() {
-    threadsLoading.hidden = false;
-    threadsEmpty.hidden = true;
-    AgoraDB.collection("threads").orderBy("lastActivityAt", "desc").get()
-      .then(function (snap) { renderThreads(snap.docs); })
-      .catch(function () {
-        // Composite index not provisioned yet, or another transient
-        // error - fall back to an unordered read rather than showing
-        // nothing.
-        AgoraDB.collection("threads").get().then(function (snap) {
-          renderThreads(snap.docs);
-        });
-      });
-  }
-
-  var newThreadToggle = document.getElementById("new-thread-toggle");
-  var newThreadForm = document.getElementById("new-thread-form");
-  var newThreadError = document.getElementById("new-thread-error");
-  var newThreadStatus = document.getElementById("new-thread-status");
-  var newThreadSubmit = document.getElementById("new-thread-submit");
-
-  newThreadToggle.addEventListener("click", function () {
-    newThreadForm.hidden = !newThreadForm.hidden;
-  });
-
-  newThreadForm.addEventListener("submit", function (e) {
-    e.preventDefault();
-    if (!currentUser) return;
-    newThreadError.hidden = true;
-
-    var title = document.getElementById("thread-title").value.trim();
-    var body = document.getElementById("thread-body").value.trim();
-    if (!title || !body) return;
-
-    newThreadSubmit.disabled = true;
-    newThreadStatus.hidden = false;
-
-    C.getDisplayName(currentUser).then(function (authorName) {
-      var now = firebase.firestore.FieldValue.serverTimestamp();
-      return AgoraDB.collection("threads").add({
-        title: title,
-        body: body,
-        authorUid: currentUser.uid,
-        authorName: authorName,
-        createdAt: now,
-        lastActivityAt: now,
-        replyCount: 0,
-      });
-    }).then(function (docRef) {
-      window.location.href = "communiques-thread.html?thread=" + encodeURIComponent(docRef.id);
-    }).catch(function (err) {
-      newThreadSubmit.disabled = false;
-      newThreadStatus.hidden = true;
-      newThreadError.textContent = err.message;
-      newThreadError.hidden = false;
-    });
-  });
-
-  // --- Direct Messages ---------------------------------------------------
+  // --- Dialogs -------------------------------------------------------
 
   var dmList = document.getElementById("dm-list");
   var dmLoading = document.getElementById("dm-loading");
@@ -253,13 +149,10 @@
     currentUser = user;
 
     var signedOut = !user;
-    document.getElementById("threads-signed-out-notice").hidden = !signedOut;
-    document.getElementById("threads-wrap").hidden = signedOut;
     document.getElementById("dm-signed-out-notice").hidden = !signedOut;
     document.getElementById("dm-wrap").hidden = signedOut;
 
     if (user) {
-      loadThreads();
       loadConversations();
     }
   });

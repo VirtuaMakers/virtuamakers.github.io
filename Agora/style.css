@@ -1756,7 +1756,6 @@ a.card.feature {
 
 /* Communiqués 📨 */
 
-.thread-list,
 .dm-list {
   display: flex;
   flex-direction: column;
@@ -1764,7 +1763,6 @@ a.card.feature {
   margin-top: 1.2rem;
 }
 
-.thread-item,
 .dm-item {
   display: block;
   background: var(--surface);
@@ -1774,38 +1772,24 @@ a.card.feature {
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
 
-.thread-item:hover,
 .dm-item:hover {
   border-color: #d4e6dd;
   transform: translateY(-2px);
 }
 
-.thread-item-title,
 .dm-item-name {
   font-weight: 700;
 }
 
-.thread-item-meta,
+.communique-item-meta,
 .dm-item-preview {
   font-size: 0.85rem;
   color: var(--muted);
   margin-top: 0.2rem;
 }
 
-.thread-body {
+.communique-body {
   white-space: pre-wrap;
-}
-
-.reply-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-  margin: 1rem 0 2rem;
-}
-
-.reply-item {
-  padding-left: 1rem;
-  border-left: 2px solid var(--line);
 }
 
 #new-dm-picker {
@@ -1881,7 +1865,7 @@ a.card.feature {
   margin-top: 0.25rem;
 }
 
-/* Inline editing - Threads, replies, Wall posts/comments, DM messages */
+/* Inline editing - Wall posts/comments, Dialog messages */
 
 .edit-toggle {
   background: none;
@@ -1980,12 +1964,28 @@ a.card.feature {
   margin-right: 0;
 }
 
-#new-thread-toggle,
-#new-dm-toggle,
-#new-thread-submit {
+#new-dm-toggle {
   margin-bottom: 1rem;
 }
 
 .communiques-logo {
   width: min(390px, 67.5vw);
+}
+
+.dm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.dm-pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dm-page-indicator {
+  font-size: 0.85rem;
+  color: var(--muted);
 }

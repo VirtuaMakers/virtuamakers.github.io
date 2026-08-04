@@ -1,11 +1,17 @@
-// Drives communiques-dm.html: loads a conversation by ?c= from Firestore.
+// Drives communiques-dm.html: loads a Dialog by ?c= from Firestore.
 // Readable by any signed-in Agora member (see firestore.rules), but the
-// compose form and message editing only appear for the conversation's two
+// compose form and message editing only appear for the Dialog's two
 // participants. Requires firebase-config.js, auth.js, and
 // communiques-common.js to run first.
+//
+// A Dialog's messages are paginated into pages of up to PAGE_CHAR_LIMIT
+// characters each, split on message boundaries (never mid-message) so a
+// page never breaks a message's own formatting. A page fills up, then the
+// next message starts a new page - the newest page is shown by default.
 
 (function () {
   var C = CommuniquesCommon;
+  var PAGE_CHAR_LIMIT = 9999;
   var params = new URLSearchParams(window.location.search);
   var conversationId = params.get("c");
 
@@ -14,6 +20,10 @@
   var currentUser = null;
   var isParticipant = false;
   var unsubscribeMessages = null;
+
+  var pages = [];
+  var currentPageIndex = 0;
+  var jumpToLastOnNextRender = true;
 
   var composeHint = document.getElementById("dm-compose-hint");
   if (composeHint && typeof AgoraBioTags !== "undefined") {
@@ -49,12 +59,68 @@
     return bubble;
   }
 
-  function renderMessages(docs) {
-    messageList.textContent = "";
+  // Splits messages (already sorted oldest-first) into pages of up to
+  // PAGE_CHAR_LIMIT characters, breaking only between messages - a single
+  // message is at most PAGE_CHAR_LIMIT characters itself (enforced by
+  // firestore.rules' validBody), so it always fits on some page.
+  function paginateMessages(docs) {
+    var result = [[]];
+    var currentLength = 0;
     docs.forEach(function (doc) {
+      var length = (doc.data().body || "").length;
+      if (currentLength > 0 && currentLength + length > PAGE_CHAR_LIMIT) {
+        result.push([]);
+        currentLength = 0;
+      }
+      result[result.length - 1].push(doc);
+      currentLength += length;
+    });
+    return result;
+  }
+
+  var pagTop = document.getElementById("dm-pagination-top");
+  var pagBottom = document.getElementById("dm-pagination-bottom");
+  var prevTop = document.getElementById("dm-page-prev-top");
+  var nextTop = document.getElementById("dm-page-next-top");
+  var prevBottom = document.getElementById("dm-page-prev-bottom");
+  var nextBottom = document.getElementById("dm-page-next-bottom");
+  var indicatorTop = document.getElementById("dm-page-indicator-top");
+  var indicatorBottom = document.getElementById("dm-page-indicator-bottom");
+
+  function renderPage(index) {
+    currentPageIndex = Math.max(0, Math.min(index, pages.length - 1));
+
+    messageList.textContent = "";
+    (pages[currentPageIndex] || []).forEach(function (doc) {
       messageList.appendChild(buildMessageBubble(doc));
     });
-    messageList.scrollTop = messageList.scrollHeight;
+
+    var multiPage = pages.length > 1;
+    pagTop.hidden = !multiPage;
+    pagBottom.hidden = !multiPage;
+    if (multiPage) {
+      var label = "Page " + (currentPageIndex + 1) + " of " + pages.length;
+      indicatorTop.textContent = label;
+      indicatorBottom.textContent = label;
+      var atOldest = currentPageIndex === 0;
+      var atNewest = currentPageIndex === pages.length - 1;
+      prevTop.disabled = prevBottom.disabled = atOldest;
+      nextTop.disabled = nextBottom.disabled = atNewest;
+    }
+  }
+
+  [prevTop, prevBottom].forEach(function (btn) {
+    btn.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
+  });
+  [nextTop, nextBottom].forEach(function (btn) {
+    btn.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
+  });
+
+  function renderMessages(docs) {
+    pages = paginateMessages(docs);
+    var targetIndex = jumpToLastOnNextRender ? pages.length - 1 : currentPageIndex;
+    jumpToLastOnNextRender = false;
+    renderPage(targetIndex);
   }
 
   function watchMessages(conversationRef) {
@@ -73,14 +139,14 @@
 
   function loadConversation() {
     if (!conversationId) {
-      showNotice("No conversation specified.");
+      showNotice("No Dialog specified.");
       return;
     }
 
     var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
     conversationRef.get().then(function (doc) {
       if (!doc.exists) {
-        showNotice("This conversation doesn't exist.");
+        showNotice("This Dialog doesn't exist.");
         return;
       }
       var data = doc.data();
@@ -96,7 +162,7 @@
       content.hidden = false;
       watchMessages(conversationRef);
     }).catch(function () {
-      showNotice("You don't have access to this conversation.");
+      showNotice("You don't have access to this Dialog.");
     });
   }
 
@@ -112,6 +178,7 @@
     composeStatus.hidden = false;
 
     var now = firebase.firestore.FieldValue.serverTimestamp();
+    jumpToLastOnNextRender = true;
     activeConversationRef.collection("messages").add({
       authorUid: currentUser.uid,
       body: body,
@@ -140,7 +207,7 @@
       unsubscribeMessages = null;
     }
     if (!user) {
-      showNotice("Sign in to view this conversation.");
+      showNotice("Sign in to view this Dialog.");
       return;
     }
     loadConversation();

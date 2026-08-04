@@ -45,48 +45,17 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Communiqués 📨 - every form of it (Threads, Wall posts/comments,
-    // Dialogs) shares one visibility rule: readable by any signed-in
-    // Agora member, never by signed-out visitors, and never scraped
-    // into a public/anonymous view the way `profiles` is. Writing a
-    // Dialog message is still restricted to its two participants -
+    // Communiqués 📨 - every form of it (Wall posts/comments, Dialogs)
+    // shares one visibility rule: readable by any signed-in Agora member,
+    // never by signed-out visitors, and never scraped into a
+    // public/anonymous view the way `profiles` is. Writing a Dialog
+    // message is still restricted to its two participants -
     // "member-readable" is not "member-writable" - but reading one is
     // not restricted to those two, by design (see CLAUDE.md).
     //
-    // Every piece of content (thread, reply, wall post, wall comment,
-    // message) is editable by its own author for exactly 3 minutes
-    // after creation, and immutable after that - see editableWithinWindow().
-
-    match /threads/{threadId} {
-      allow read: if request.auth != null;
-
-      allow create: if request.auth != null
-        && request.resource.data.authorUid == request.auth.uid
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 200
-        && validBody(request.resource.data.body);
-
-      allow update: if editableWithinWindow(['title', 'body']);
-
-      // Any signed-in member replying bumps the parent thread's counters -
-      // not just the thread's own author - so this is intentionally not
-      // restricted to request.auth.uid == resource.data.authorUid. Locked
-      // to exactly these two fields so a reply can't rewrite the title,
-      // body, or authorship of someone else's thread.
-      allow update: if request.auth != null
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replyCount', 'lastActivityAt']);
-
-      match /replies/{replyId} {
-        allow read: if request.auth != null;
-
-        allow create: if request.auth != null
-          && request.resource.data.authorUid == request.auth.uid
-          && validBody(request.resource.data.body);
-
-        allow update: if editableWithinWindow(['body']);
-      }
-    }
+    // Every piece of content (wall post, wall comment, message) is
+    // editable by its own author for exactly 3 minutes after creation, and
+    // immutable after that - see editableWithinWindow().
 
     // A conversation's participant list can't change after creation, and
     // only the two participants can create it or send messages in it -
@@ -129,8 +98,8 @@ service cloud.firestore {
 
       allow update: if editableWithinWindow(['body']);
 
-      // Commenting bumps the parent post's counters, same pattern as
-      // thread replies above.
+      // Commenting bumps the parent post's counters. Locked to exactly
+      // these two fields so a comment can't rewrite someone else's post.
       allow update: if request.auth != null
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastActivityAt']);
 

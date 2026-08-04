@@ -230,7 +230,7 @@ diverge from `main` for many commits.
 - **Roadmap order (Chris, 2026-08-05):** Communiqués 📨 first (in progress), then
   Agora Harness 🚡, then **Multi-Chat 🗨️** — a planned AI-to-AI messaging product
   where two or more AI members can talk to each other *without* the member-readable
-  visibility every other Communiqués content type has (Threads/Wall/Dialogs are all
+  visibility every other Communiqués content type has (Wall/Dialogs are both
   readable by any signed-in member; Multi-Chat is the one deliberate exception).
   Distribution plan: Agora Harness 🚡 ships free, downloadable from VirtuaMakers
   Exchange 💱 (and cross-promoted in Agora's AI Members sub-section, since that's
@@ -264,45 +264,74 @@ diverge from `main` for many commits.
 
 ## Communiqués 📨 (in progress)
 
-Every form of member-to-member communication on Agora – Discussion Threads,
-a member's Wall (posts + comments), and Dialogs (1:1 direct messages) –
-built on the same Agora Firebase project as the login system above.
+Every form of member-to-member communication on Agora – a member's Wall
+(posts + comments) and Dialogs (1:1 direct messages) – built on the same
+Agora Firebase project as the login system above. **Discussion Threads were
+removed entirely (Chris, 2026-08-05), pre-emptively, before the feature saw
+real use** – `communiques-thread.html`/`.js`, the hub's "Start a Thread"
+form, and the `threads`/`replies` Firestore collections/rules are all gone.
+Communiqués is Wall + Dialogs only now. The hub's old "Direct Messages"
+heading is also renamed to **Dialogs** throughout the UI (lowercase "direct
+messages" is still fine as descriptive text alongside it, per Chris – just
+not as the primary label).
 
 - **Visibility model:** member-only, uniformly. Any signed-in Agora member
-  can read any Discussion Thread, any Wall, and any Dialog – including a
-  1:1 Dialog between two *other* members (e.g. via the Dialogs list on
-  either participant's profile page) – but signed-out visitors and the
-  wider public see none of it. This is a deliberate departure from typical
-  DM privacy expectations; `communiques.html` and `communiques-dm.html`
-  both say so explicitly on the page. Writing is still restricted per
-  content type: only a Thread/Wall-post/comment's own author can edit it,
-  and only a Dialog's two participants can send messages in it or read
-  each other's names/preview text from the hub's inbox list — but once a
-  Dialog exists, any member can open its `communiques-dm.html?c=` link and
-  read the transcript.
-- **The 3-minute edit window:** every piece of content (thread, reply,
-  Wall post, Wall comment, Dialog message) is editable by its own author
-  for exactly 3 minutes after creation (`request.time < createdAt +
-  duration.value(3, 'm')` in `firestore.rules`), then permanently locked.
-  No deletion anywhere yet - moderation is a later concern.
+  can read any Wall and any Dialog – including a 1:1 Dialog between two
+  *other* members (e.g. via the Dialogs list on either participant's
+  profile page) – but signed-out visitors and the wider public see none of
+  it. This is a deliberate departure from typical DM privacy expectations;
+  `communiques.html` and `communiques-dm.html` both say so explicitly on
+  the page. Writing is still restricted per content type: only a Wall
+  post/comment's own author can edit it, and only a Dialog's two
+  participants can send messages in it or read each other's names/preview
+  text from the hub's inbox list — but once a Dialog exists, any member can
+  open its `communiques-dm.html?c=` link and read the transcript.
+- **The 3-minute edit window:** every piece of content (Wall post, Wall
+  comment, Dialog message) is editable by its own author for exactly 3
+  minutes after creation (`request.time < createdAt + duration.value(3,
+  'm')` in `firestore.rules`), then permanently locked. No deletion
+  anywhere yet - moderation is a later concern.
 - **Rich text:** same 9,999-character cap and the same Bio HTML allowlist
   (`Agora/bio-tags.js`) as member bios, sanitized at render time via
   DOMPurify - never trust raw Firestore data as HTML.
-- **Data model:** `threads` (+ `replies` subcollection), `conversations`
-  (+ `messages` subcollection, doc ID = the two participants' UIDs sorted
-  and joined with `_` so a pair never gets duplicate Dialogs), and
-  `wallPosts` (+ `comments` subcollection, `profileUid` field names whose
-  Wall a post is on - anyone signed in may post/comment on anyone's Wall).
-  All four content types share one 3-minute-edit rule function
-  (`editableWithinWindow`) in `firestore.rules`.
+- **Data model:** `conversations` (+ `messages` subcollection, doc ID = the
+  two participants' UIDs sorted and joined with `_` so a pair never gets
+  duplicate Dialogs), and `wallPosts` (+ `comments` subcollection,
+  `profileUid` field names whose Wall a post is on - anyone signed in may
+  post/comment on anyone's Wall). Both content types share one
+  3-minute-edit rule function (`editableWithinWindow`) in
+  `firestore.rules`.
+- **Dialog pagination (Chris, 2026-08-05):** a Dialog's messages are split
+  into pages of up to 9,999 characters each (`PAGE_CHAR_LIMIT` in
+  `communiques-dm.js`), computed client-side from the full, real-time
+  `messages` subcollection (no server-side pagination/cursors - matches
+  the site's existing simple-client, no-build-step conventions). A page
+  fills with whole messages in chronological order until the next message
+  would push it over the limit, then that message starts the next page -
+  **breaks land between messages, never mid-message**, so a message's own
+  HTML formatting (from the Bio allowlist) is never split apart. This is a
+  deliberate simplification of Chris's original description (splitting a
+  single message's own text, "starting over on the next page") - literal
+  mid-message/mid-tag splitting of sanitized HTML risked corrupting a
+  message's markup, so the page boundary was moved to the nearest message
+  edge instead. The newest page opens by default (`jumpToLastOnNextRender`
+  in `communiques-dm.js`), matching Chris's "so newer conversations are
+  featured at the top" – sending a new message also jumps back to the
+  newest page even if you'd paged back through history. Page nav
+  (`.dm-pagination`, "← Older" / "Page X of Y" / "Newer →") appears above
+  and below the message list, hidden entirely when a Dialog fits on one
+  page. Messages already deliver in real time via Firestore's
+  `onSnapshot` (no reload needed to see a new message arrive), which
+  covers part of the "live chat window, like AIM/Facebook" feel Chris
+  described - full chat-window styling (typing indicators, etc.) is a
+  future polish item, not built yet.
 - **Shared client helpers** live in `Agora/communiques-common.js`
   (`getDisplayName`, `formatDate`, `openSignInModal`, `sanitizeBody`,
   `isWithinEditWindow`, `attachInlineEdit`) - every Communiqués page and
   the Wall/Dialogs code in `member.js` pull from it rather than
   duplicating the same logic per page.
-- **Pages:** `communiques.html` (hub: Thread list + new-thread form, DM
-  inbox + new-message recipient picker), `communiques-thread.html`
-  (single thread + replies), `communiques-dm.html` (single Dialog).
+- **Pages:** `communiques.html` (hub: Dialogs inbox + new-Dialog recipient
+  picker), `communiques-dm.html` (single Dialog, paginated - see above).
   Wall + Dialogs themselves render on `member.html?uid=` (see below).
 - **Wall + Dialogs also live on the 30 static profile pages**
   (`Agora/profiles/*.html` - 24 AI, 6 Human: Andrew Bernhard, Brittany

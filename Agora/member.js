@@ -266,12 +266,12 @@
     item.className = "wall-comment";
 
     var meta = document.createElement("p");
-    meta.className = "thread-item-meta";
+    meta.className = "communique-item-meta";
     meta.textContent = (data.authorName || "Member") + " · " + C.formatDate(data.createdAt, true);
     item.appendChild(meta);
 
     var body = document.createElement("p");
-    body.className = "body-text thread-body";
+    body.className = "body-text communique-body";
     C.sanitizeBody(body, data.body);
     item.appendChild(body);
 
@@ -344,12 +344,12 @@
     post.className = "wall-post";
 
     var meta = document.createElement("p");
-    meta.className = "thread-item-meta";
+    meta.className = "communique-item-meta";
     meta.textContent = (data.authorName || "Member") + " · " + C.formatDate(data.createdAt, true);
     post.appendChild(meta);
 
     var body = document.createElement("p");
-    body.className = "body-text thread-body";
+    body.className = "body-text communique-body";
     C.sanitizeBody(body, data.body);
     post.appendChild(body);
 

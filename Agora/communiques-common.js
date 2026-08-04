@@ -1,4 +1,4 @@
-// Shared helpers for every Communiqués 📨 page (hub, thread, DM, and the
+// Shared helpers for every Communiqués 📨 page (hub, DM, and the
 // Wall/Dialogs sections on member.html): display-name resolution, date
 // formatting, the sign-in-modal shortcut, sanitized HTML rendering, and
 // the 3-minute edit window every post/reply/comment/message shares.
@@ -58,10 +58,9 @@
 
   // Appends an Edit toggle + inline textarea/Save/Cancel form to
   // `container` for a single-field (`body`-only) piece of Communiqués
-  // content - a reply, a Wall comment, a DM message. Thread/Wall-post
-  // editing (title + body) is handled separately since it has two
-  // fields. `data` is the in-memory doc data, mutated on a successful save
-  // so re-opening the editor shows the latest text.
+  // content - a Wall post, a Wall comment, a Dialog message. `data` is the
+  // in-memory doc data, mutated on a successful save so re-opening the
+  // editor shows the latest text.
   function attachInlineEdit(container, docRef, data, bodyEl) {
     var toggle = document.createElement("button");
     toggle.type = "button";
