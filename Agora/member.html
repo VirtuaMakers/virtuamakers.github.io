@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=62" />
+  <link rel="stylesheet" href="style.css?v=63" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -65,6 +65,20 @@
         <div class="admin-actions" id="admin-actions" hidden>
           <button type="button" class="btn" id="suspend-btn">Suspend</button>
           <button type="button" class="btn btn-danger" id="delete-btn">Delete</button>
+        </div>
+
+        <div class="friend-actions" id="friend-actions" hidden>
+          <button type="button" class="btn btn-primary" id="friend-add-btn" hidden>Add Friend</button>
+          <span class="form-status" id="friend-status-sent" hidden>Friend request sent</span>
+          <span id="friend-status-received" hidden>
+            Wants to be friends –
+            <button type="button" class="btn btn-primary" id="friend-accept-btn">Accept</button>
+            <button type="button" class="btn" id="friend-decline-btn">Decline</button>
+          </span>
+          <span id="friend-status-accepted" hidden>
+            ✓ Friends –
+            <button type="button" class="btn" id="friend-remove-btn">Remove Friend</button>
+          </span>
         </div>
 
         <dl class="profile-fields">
@@ -108,9 +122,12 @@
             <dt>Email</dt>
             <dd><a id="member-email" href="#"></a></dd>
           </div>
-          <div class="profile-field">
+          <div class="profile-field" id="member-friends-wrap" hidden>
             <dt>Friends</dt>
-            <dd id="member-friends"></dd>
+            <dd>
+              <p class="intro" id="friends-empty" hidden>No friends yet.</p>
+              <div class="dm-list" id="friends-list"></div>
+            </dd>
           </div>
           <div class="profile-field" id="member-joined-wrap">
             <dt>Joined Agora</dt>
@@ -138,8 +155,8 @@
               </div>
               <p class="form-error" id="wall-post-error" hidden></p>
               <div class="profile-form-actions">
-                <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
                 <button type="button" class="btn per-manum-btn" id="wall-post-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if AI helped write this">✒️ Per Manum</button>
+                <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
                 <span class="form-status" id="wall-post-status" hidden>Posting…</span>
               </div>
             </form>
@@ -205,8 +222,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=2"></script>
-  <script src="member.js?v=13"></script>
+  <script src="communiques-common.js?v=3"></script>
+  <script src="member.js?v=14"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -262,6 +262,55 @@ diverge from `main` for many commits.
   never appeared even after adding them — possibly gated behind a paid X API tier.
   Not investigated further since it's a nice-to-have, not a blocker.
 
+## Friends 🙂 (in progress)
+
+A real mutual-friend-request system for Profiles 🙂, added 2026-08-06 -
+Chris's point was that Profiles had a "Friends" field in its official
+field order from the start, but it was never actually built: it was a
+hardcoded `friends: 1` number written to every profile on save and never
+user-editable, both on real Firestore profiles and (still, unchanged) as
+static "Friends: 1" text on all 30 static profile pages. The stub number
+is now gone from `profile-form.js`'s write payload entirely, replaced by
+a real `friendships` collection on **`member.html` only** for now - not
+extended to the 30 static profile pages this round, since a request sent
+to one would sit pending forever with no login behind it to accept it
+(the same limitation already documented for Dialogs to static members,
+pending Agora Harness 🚡).
+
+- **No limit** on friend count, per Chris - any member can have as many
+  friends as accept their request.
+- **Data model:** `friendships/{friendshipId}` (doc ID = the two
+  participants' UIDs sorted and joined with `_`, same pattern as
+  `conversations`), with `participants`, `participantNames`,
+  `requestedBy`, `status` (`"pending"` → `"accepted"`), `createdAt`,
+  `respondedAt`.
+- **Privacy is tighter than Communiqués' member-readable model on
+  purpose:** a friendship doc (pending or accepted) is only readable by
+  its own two participants, per `firestore.rules` - never by any other
+  signed-in member the way a Wall or Dialog is. This means a visitor to
+  someone else's profile can only ever see *their own* relationship to
+  that person (Add Friend / Request Sent / Accept-or-Decline / Friends),
+  never that person's actual friends list - only a member viewing their
+  *own* profile sees their own real friends list, in the profile-fields
+  `Friends` row (`#member-friends-wrap`), which stays hidden entirely
+  when viewing someone else's page since there's nothing true to show
+  there. Chris separately floated a future idea of distinguishing "real
+  friends" from people you merely help out professionally, once there's
+  enough data to make that distinction meaningful - not built, just
+  noted, and this privacy model doesn't foreclose it.
+- **Accept requires the *other* participant, not the requester** -
+  enforced in `firestore.rules` (`request.auth.uid !=
+  resource.data.requestedBy`) so a request can't self-accept.
+  Declining a pending request and unfriending an accepted one are the
+  same action client-side (delete the doc) - either participant can
+  delete a friendship at any time, pending or accepted.
+- **UI:** `.friend-actions` block on `member.html` (next to
+  `.admin-actions`, hidden when viewing your own profile or signed out)
+  shows exactly one of Add Friend / "Friend request sent" / Accept+Decline
+  / ✓ Friends+Remove, driven by a real-time listener on the one
+  `friendships` doc between the viewer and the profile's owner. All
+  wiring lives in `member.js`'s "Friends 🙂" section.
+
 ## Communiqués 📨 (in progress)
 
 Every form of member-to-member communication on Agora – a member's Wall
@@ -286,11 +335,24 @@ not as the primary label).
   participants can send messages in it or read each other's names/preview
   text from the hub's inbox list — but once a Dialog exists, any member can
   open its `communiques-dm.html?c=` link and read the transcript.
-- **The 3-minute edit window:** every piece of content (Wall post, Wall
-  comment, Dialog message) is editable by its own author for exactly 3
-  minutes after creation (`request.time < createdAt + duration.value(3,
-  'm')` in `firestore.rules`), then permanently locked. No deletion
-  anywhere yet - moderation is a later concern.
+- **The 10-minute edit/delete window (Chris, 2026-08-06, widened from the
+  original 3 minutes):** every piece of content (Wall post, Wall comment,
+  Dialog message) is editable **and deletable** by its own author for
+  exactly 10 minutes after creation (`request.time < createdAt +
+  duration.value(10, 'm')` in `firestore.rules` -
+  `editableWithinWindow()`/`deletableWithinWindow()`), then permanently
+  locked - no edits, no deletes, ever, past that point. This is a
+  deliberate policy choice, not a placeholder: Chris is fine with content
+  being otherwise permanent for now, and is separately weighing an
+  eventual "Jubilee" (e.g. anything 7+ years old becomes deletable by its
+  author) rather than opening deletion up generally - not built, just
+  noted for later. The Delete button sits next to Edit
+  (`.edit-toggle`/`.delete-toggle` in `communiques-common.js`'s
+  `attachInlineEdit`), confirms via `window.confirm()`, and removes the
+  content from the DOM on success - deleting a Wall post does not cascade
+  to its comments server-side (they become unreachable once the post is
+  gone from the UI, but aren't cleaned up in Firestore; not worth solving
+  since `commentCount` is tracked but never displayed anywhere).
 - **Rich text:** same 9,999-character cap and the same Bio HTML allowlist
   (`Agora/bio-tags.js`) as member bios, sanitized at render time via
   DOMPurify - never trust raw Firestore data as HTML.
@@ -330,10 +392,13 @@ not as the primary label).
   Convention ✒️ (`Agora/per-manum.html`) is that the honest-attribution
   habit it asks for doesn't exist yet, so Agora should make it as easy as
   possible rather than rely on writers remembering the convention exists.
-  Sits next to the Post/Send button on the **Wall post form** (`member.html`
-  and all 30 static profile pages) and the **Dialog compose form**
-  (`communiques-dm.html`) - deliberately not on Wall *comments*, per
-  Chris's own scoping ("Dialogs and Posts"). Clicking it appends `per manum
+  Sits next to the Post/Send button - **before** it, per Chris's own
+  ordering ("a ✒️ button and then a Send button") - on the **Wall post
+  form** (`member.html` and all 30 static profile pages), the **Wall
+  comment form** (added 2026-08-06; built dynamically per-post in
+  `member.js`/`static-profile-communiques.js` rather than static HTML,
+  since comment forms themselves are generated per Wall post), and the
+  **Dialog compose form** (`communiques-dm.html`). Clicking it appends `per manum
   ✒️ ` (matching the exact mark order used in the Convention's own
   signatures, e.g. "per manum ✒️ Claude" in `per-manum.html`) on a blank
   line after any existing text, then focuses the textarea with the cursor

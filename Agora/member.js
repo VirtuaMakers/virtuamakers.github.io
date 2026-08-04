@@ -137,8 +137,6 @@
       document.getElementById("member-email").textContent = data.email;
     }
 
-    document.getElementById("member-friends").textContent = data.friends != null ? data.friends : "1";
-
     var joinedText = (data.createdAt && data.createdAt.toDate)
       ? data.createdAt.toDate().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })
       : "";
@@ -195,6 +193,8 @@
     currentUser = user;
     if (profileData) refreshControls();
     loadProfile();
+    watchFriendship();
+    loadFriendsList();
   });
 
   // Both admin actions call the adminBanUser/adminDeleteUser Cloud
@@ -296,6 +296,14 @@
     error.className = "form-error";
     error.hidden = true;
     form.appendChild(error);
+
+    var perManumBtn = document.createElement("button");
+    perManumBtn.type = "button";
+    perManumBtn.className = "btn per-manum-btn";
+    perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
+    perManumBtn.textContent = "✒️ Per Manum";
+    form.appendChild(perManumBtn);
+    C.attachPerManumButton(perManumBtn, textarea);
 
     var submitBtn = document.createElement("button");
     submitBtn.type = "submit";
@@ -510,4 +518,137 @@
       loadDialogs();
     }
   });
+
+  // --- Friends 🙂 ------------------------------------------------------
+  // Unlimited, mutual, and private: a pending request (and even an
+  // accepted friendship) is only readable by its two participants per
+  // firestore.rules, so this page can only ever show *your own*
+  // relationship to the profile you're viewing, or *your own* full
+  // friends list when you're viewing your own profile - never someone
+  // else's friends list from their page.
+
+  var friendActions = document.getElementById("friend-actions");
+  var friendAddBtn = document.getElementById("friend-add-btn");
+  var friendStatusSent = document.getElementById("friend-status-sent");
+  var friendStatusReceived = document.getElementById("friend-status-received");
+  var friendStatusAccepted = document.getElementById("friend-status-accepted");
+  var friendsWrap = document.getElementById("member-friends-wrap");
+  var friendsList = document.getElementById("friends-list");
+  var friendsEmpty = document.getElementById("friends-empty");
+  var unsubscribeFriendship = null;
+
+  function friendshipIdFor(uidA, uidB) {
+    return [uidA, uidB].sort().join("_");
+  }
+
+  function friendshipRef() {
+    return AgoraDB.collection("friendships").doc(friendshipIdFor(currentUser.uid, uid));
+  }
+
+  function renderFriendActions(doc) {
+    friendAddBtn.hidden = true;
+    friendStatusSent.hidden = true;
+    friendStatusReceived.hidden = true;
+    friendStatusAccepted.hidden = true;
+
+    if (!doc || !doc.exists) {
+      friendAddBtn.hidden = false;
+      return;
+    }
+    var data = doc.data();
+    if (data.status === "accepted") {
+      friendStatusAccepted.hidden = false;
+    } else if (data.requestedBy === currentUser.uid) {
+      friendStatusSent.hidden = false;
+    } else {
+      friendStatusReceived.hidden = false;
+    }
+  }
+
+  function watchFriendship() {
+    if (unsubscribeFriendship) {
+      unsubscribeFriendship();
+      unsubscribeFriendship = null;
+    }
+    if (!currentUser || !uid || currentUser.uid === uid) {
+      friendActions.hidden = true;
+      return;
+    }
+    friendActions.hidden = false;
+    unsubscribeFriendship = friendshipRef().onSnapshot(renderFriendActions);
+  }
+
+  friendAddBtn.addEventListener("click", function () {
+    if (!currentUser || !profileData) return;
+    var otherName = (profileData.preferHandle && profileData.handle)
+      ? profileData.handle : (profileData.name || profileData.handle || "Member");
+    C.getDisplayName(currentUser).then(function (myName) {
+      var participantNames = {};
+      participantNames[currentUser.uid] = myName;
+      participantNames[uid] = otherName;
+      return friendshipRef().set({
+        participants: [currentUser.uid, uid].sort(),
+        participantNames: participantNames,
+        requestedBy: currentUser.uid,
+        status: "pending",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+  });
+
+  document.getElementById("friend-accept-btn").addEventListener("click", function () {
+    friendshipRef().update({
+      status: "accepted",
+      respondedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  document.getElementById("friend-decline-btn").addEventListener("click", function () {
+    friendshipRef().delete();
+  });
+
+  document.getElementById("friend-remove-btn").addEventListener("click", function () {
+    if (!window.confirm("Remove this friend?")) return;
+    friendshipRef().delete();
+  });
+
+  function renderFriendsList(docs) {
+    friendsList.textContent = "";
+    if (!docs.length) {
+      friendsEmpty.hidden = false;
+      return;
+    }
+    friendsEmpty.hidden = true;
+    docs.forEach(function (doc) {
+      var data = doc.data();
+      var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
+      var item = document.createElement("a");
+      item.className = "dm-item";
+      item.href = "member.html?uid=" + encodeURIComponent(otherUid);
+      item.textContent = (data.participantNames && data.participantNames[otherUid]) || "Member";
+      friendsList.appendChild(item);
+    });
+  }
+
+  function loadFriendsList() {
+    var isOwner = currentUser && currentUser.uid === uid;
+    friendsWrap.hidden = !isOwner;
+    if (!isOwner) return;
+
+    AgoraDB.collection("friendships")
+      .where("participants", "array-contains", currentUser.uid)
+      .where("status", "==", "accepted")
+      .get()
+      .then(function (snap) { renderFriendsList(snap.docs); })
+      .catch(function () {
+        // Composite index not provisioned yet - fall back to an
+        // unfiltered read and filter client-side rather than show nothing.
+        AgoraDB.collection("friendships")
+          .where("participants", "array-contains", currentUser.uid)
+          .get()
+          .then(function (snap) {
+            renderFriendsList(snap.docs.filter(function (doc) { return doc.data().status === "accepted"; }));
+          });
+      });
+  }
 })();

@@ -71,6 +71,14 @@
     error.hidden = true;
     form.appendChild(error);
 
+    var perManumBtn = document.createElement("button");
+    perManumBtn.type = "button";
+    perManumBtn.className = "btn per-manum-btn";
+    perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
+    perManumBtn.textContent = "✒️ Per Manum";
+    form.appendChild(perManumBtn);
+    C.attachPerManumButton(perManumBtn, textarea);
+
     var submitBtn = document.createElement("button");
     submitBtn.type = "submit";
     submitBtn.className = "btn";

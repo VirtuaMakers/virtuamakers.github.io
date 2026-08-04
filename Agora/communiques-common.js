@@ -1,12 +1,12 @@
 // Shared helpers for every Communiqués 📨 page (hub, DM, and the
 // Wall/Dialogs sections on member.html): display-name resolution, date
 // formatting, the sign-in-modal shortcut, sanitized HTML rendering, and
-// the 3-minute edit window every post/reply/comment/message shares.
+// the 10-minute edit/delete window every post/comment/message shares.
 // Requires firebase-config.js, auth.js, DOMPurify, and bio-tags.js to run
 // first (DOMPurify/bio-tags are only needed for sanitizeBody).
 
 (function (global) {
-  var EDIT_WINDOW_MS = 3 * 60 * 1000;
+  var EDIT_WINDOW_MS = 10 * 60 * 1000;
 
   if (typeof DOMPurify !== "undefined") {
     DOMPurify.addHook("afterSanitizeAttributes", function (node) {
@@ -56,17 +56,34 @@
     }
   }
 
-  // Appends an Edit toggle + inline textarea/Save/Cancel form to
-  // `container` for a single-field (`body`-only) piece of Communiqués
-  // content - a Wall post, a Wall comment, a Dialog message. `data` is the
-  // in-memory doc data, mutated on a successful save so re-opening the
-  // editor shows the latest text.
+  // Appends an Edit toggle, a Delete button, and an inline
+  // textarea/Save/Cancel form to `container` for a single-field
+  // (`body`-only) piece of Communiqués content - a Wall post, a Wall
+  // comment, a Dialog message. `data` is the in-memory doc data, mutated
+  // on a successful save so re-opening the editor shows the latest text.
+  // Both Edit and Delete are only offered within the 10-minute window
+  // (callers gate attachInlineEdit itself on isWithinEditWindow), matching
+  // Chris's rule that content is otherwise permanent.
   function attachInlineEdit(container, docRef, data, bodyEl) {
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "edit-toggle";
     toggle.textContent = "Edit";
     container.appendChild(toggle);
+
+    var deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "edit-toggle delete-toggle";
+    deleteBtn.textContent = "Delete";
+    deleteBtn.addEventListener("click", function () {
+      if (!window.confirm("Delete this permanently? This can't be undone.")) return;
+      docRef.delete().then(function () {
+        container.remove();
+      }).catch(function (err) {
+        window.alert(err.message);
+      });
+    });
+    container.appendChild(deleteBtn);
 
     var form = document.createElement("form");
     form.className = "edit-form";

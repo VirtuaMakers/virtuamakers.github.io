@@ -1754,6 +1754,13 @@ a.card.feature {
   margin: 1.5rem 0;
 }
 
+.friend-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 1.5rem 0;
+}
+
 /* Communiqués 📨 */
 
 .dm-list {
@@ -1878,9 +1885,21 @@ a.card.feature {
   margin-top: 0.3rem;
 }
 
+.edit-toggle + .edit-toggle {
+  margin-left: 0.9rem;
+}
+
 .edit-toggle:hover {
   color: var(--teal-deep);
   text-decoration: underline;
+}
+
+.delete-toggle {
+  color: #b3462c;
+}
+
+.delete-toggle:hover {
+  color: #8a3220;
 }
 
 .edit-form {

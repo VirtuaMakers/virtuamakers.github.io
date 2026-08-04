@@ -305,7 +305,6 @@
       socialsFlagged: socialsFlagged,
       email: email,
       showEmail: emailVisible.checked,
-      friends: existingDoc && typeof existingDoc.friends === "number" ? existingDoc.friends : 1,
       status: existingDoc ? existingDoc.status : "active",
       tosAgreedAt: existingDoc && existingDoc.tosAgreedAt
         ? existingDoc.tosAgreedAt

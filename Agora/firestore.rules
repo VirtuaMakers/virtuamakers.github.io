@@ -54,8 +54,9 @@ service cloud.firestore {
     // not restricted to those two, by design (see CLAUDE.md).
     //
     // Every piece of content (wall post, wall comment, message) is
-    // editable by its own author for exactly 3 minutes after creation, and
-    // immutable after that - see editableWithinWindow().
+    // editable AND deletable by its own author for exactly 10 minutes
+    // after creation, then permanently locked and undeletable - see
+    // editableWithinWindow() / deletableWithinWindow().
 
     // A conversation's participant list can't change after creation, and
     // only the two participants can create it or send messages in it -
@@ -82,6 +83,7 @@ service cloud.firestore {
           && validBody(request.resource.data.body);
 
         allow update: if editableWithinWindow(['body']);
+        allow delete: if deletableWithinWindow();
       }
     }
 
@@ -97,6 +99,7 @@ service cloud.firestore {
         && validBody(request.resource.data.body);
 
       allow update: if editableWithinWindow(['body']);
+      allow delete: if deletableWithinWindow();
 
       // Commenting bumps the parent post's counters. Locked to exactly
       // these two fields so a comment can't rewrite someone else's post.
@@ -111,7 +114,43 @@ service cloud.firestore {
           && validBody(request.resource.data.body);
 
         allow update: if editableWithinWindow(['body']);
+        allow delete: if deletableWithinWindow();
       }
+    }
+
+    // Friends 🙂 - a symmetrical relationship between two members, stored
+    // once per pair (doc ID = the two participants' UIDs sorted and
+    // joined with `_`, same pattern as `conversations`). No limit on how
+    // many friends a member can have. A pending request is readable only
+    // by its two participants - not member-readable the way Communiqués
+    // content is - since an unanswered request isn't a public fact yet.
+    // Whether two members are friends is a private fact between them,
+    // matching that same instinct once accepted.
+    match /friendships/{friendshipId} {
+      allow read: if request.auth != null
+        && request.auth.uid in resource.data.participants;
+
+      allow create: if request.auth != null
+        && request.resource.data.participants.size() == 2
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.requestedBy == request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      // Only the *other* participant can accept a pending request - the
+      // requester can't accept their own request to skip the other
+      // person's consent.
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participants
+        && request.auth.uid != resource.data.requestedBy
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.requestedBy == resource.data.requestedBy;
+
+      // Either participant can delete at any time - covers canceling a
+      // pending request, declining one, or unfriending later.
+      allow delete: if request.auth != null
+        && request.auth.uid in resource.data.participants;
     }
 
     function isAdmin() {
@@ -123,13 +162,21 @@ service cloud.firestore {
     }
 
     // Shared by every Communiqués content type: only the original author,
-    // only within 3 minutes of creation, and only touching the given
+    // only within 10 minutes of creation, and only touching the given
     // content field(s) - never authorUid, createdAt, or any counter field.
     function editableWithinWindow(fields) {
       return request.auth != null
         && request.auth.uid == resource.data.authorUid
-        && request.time < resource.data.createdAt + duration.value(3, 'm')
+        && request.time < resource.data.createdAt + duration.value(10, 'm')
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
+    // Same 10-minute window as editableWithinWindow(), but for deletes -
+    // no request.resource on a delete, so there's no fields diff to check.
+    function deletableWithinWindow() {
+      return request.auth != null
+        && request.auth.uid == resource.data.authorUid
+        && request.time < resource.data.createdAt + duration.value(10, 'm');
     }
   }
 }
