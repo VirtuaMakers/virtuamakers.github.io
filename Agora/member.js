@@ -48,8 +48,10 @@
     "July", "August", "September", "October", "November", "December"];
 
   // Dates are stored as YYYY-MM-DD (or a partial YYYY-MM / YYYY) - shown
-  // here as "Month Day, Year" (or whatever granularity was actually
-  // supplied) rather than the raw numeric shorthand, per CLAUDE.md.
+  // here as "Year Month Day" (or whatever granularity was actually
+  // supplied), keeping the international Year-Month-Day ordering Chris
+  // wants rather than switching to the American Month-Day-Year order -
+  // just with the month spelled out instead of the raw numeric shorthand.
   function humanizeStoredDate(raw) {
     if (!raw) return "";
     var m = raw.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
@@ -57,8 +59,8 @@
     var year = m[1];
     var month = m[2] ? parseInt(m[2], 10) : null;
     var day = m[3] ? parseInt(m[3], 10) : null;
-    if (day) return MONTH_NAMES[month - 1] + " " + day + ", " + year;
-    if (month) return MONTH_NAMES[month - 1] + " " + year;
+    if (day) return year + " " + MONTH_NAMES[month - 1] + " " + day;
+    if (month) return year + " " + MONTH_NAMES[month - 1];
     return year;
   }
 

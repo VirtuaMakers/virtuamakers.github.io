@@ -167,9 +167,11 @@
     return { raw: raw, parsed: { year: year, month: month, day: day } };
   }
 
+  // Year-Month-Day order (international, per Chris) with the month spelled
+  // out - never American Month-Day-Year, and never raw numeric shorthand.
   function humanizeDate(parsed) {
-    if (parsed.day) return MONTH_NAMES[parsed.month - 1] + " " + parsed.day + ", " + parsed.year;
-    if (parsed.month) return MONTH_NAMES[parsed.month - 1] + " " + parsed.year;
+    if (parsed.day) return parsed.year + " " + MONTH_NAMES[parsed.month - 1] + " " + parsed.day;
+    if (parsed.month) return parsed.year + " " + MONTH_NAMES[parsed.month - 1];
     return String(parsed.year);
   }
 

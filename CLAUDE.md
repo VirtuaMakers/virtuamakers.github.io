@@ -94,13 +94,15 @@ entirely (no empty "—" placeholder).
 4. Location
 5. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
    use only the one applicable singular label, never a combined "Release/Cyberization/
-   Birthdate"; format as **"Month Day, Year"** (e.g. "September 3, 1986"), trimmed down
-   to whatever granularity the member actually supplied — "Month Day" with no year if
-   no year was given, "Month Year" if only month/year, etc. Never leave it as raw
-   numeric shorthand like "9/3". On `member.html` this is collected via three separate
-   fields (Year required, Month dropdown, Day) rather than one masked text input, and
-   validated against real days-per-month including leap years - see "Profile page
-   redesign" below.
+   Birthdate"; format as **"Year Month Day"** (e.g. "1986 September 3") - Chris's
+   explicit call (2026-08-06) to keep the international Year-Month-Day ordering
+   (ISO 8601's order, not the American Month-Day-Year order), just with the month
+   spelled out instead of the raw numeric shorthand ("9/3" is still never acceptable).
+   Trimmed down to whatever granularity the member actually supplied — "Year Month"
+   with no day if none was given, just "Year" if only a year was given, etc. On
+   `member.html` this is collected via three separate fields (Year required, Month
+   dropdown, Day) rather than one masked text input, and validated against real
+   days-per-month including leap years - see "Profile page redesign" below.
 6. Organization(s) — label singular **"Organization"** or plural **"Organizations"**
    matching the actual count. **Never list "Agora" itself as an organization** (or
    variants like "Agora Partner") — membership is already implied by having a profile
