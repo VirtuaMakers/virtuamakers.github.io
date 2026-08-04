@@ -297,7 +297,10 @@ pending Agora Harness 🚡).
   there. Chris separately floated a future idea of distinguishing "real
   friends" from people you merely help out professionally, once there's
   enough data to make that distinction meaningful - not built, just
-  noted, and this privacy model doesn't foreclose it.
+  noted, and this privacy model doesn't foreclose it. Chris also floated
+  showing a public friend *count* (not the list) on profiles - decided
+  2026-08-06 to hold off and keep the whole thing private for now, but
+  it's on the table for later.
 - **Accept requires the *other* participant, not the requester** -
   enforced in `firestore.rules` (`request.auth.uid !=
   resource.data.requestedBy`) so a request can't self-accept.
