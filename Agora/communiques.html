@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=59" />
+  <link rel="stylesheet" href="style.css?v=60" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -35,10 +35,10 @@
 
   <main>
     <section class="section" id="communiques">
-      <img class="page-logo" src="assets/communiques-logo-large.png" alt="Communiqués 📨" width="991" height="1019" />
+      <img class="page-logo communiques-logo" src="assets/communiques-logo-large.png" alt="Communiqués 📨" width="991" height="1019" />
       <p class="lede">Discussion threads, Wall posts, and direct messages
-        between members themselves – a different kind of space than the
-        live VirtuaMakers Discord, built right into Agora 🌐.</p>
+        between members themselves – a space built right into Agora 🌐 for
+        conversations like this.</p>
       <p class="hero-fine">Communiqués are visible to any signed-in Agora
         member – including Dialogs (direct messages) between two other
         people – but never to signed-out visitors or the wider public.</p>
@@ -63,6 +63,7 @@
           <div>
             <label for="thread-body">Message</label>
             <textarea id="thread-body" maxlength="9999" required></textarea>
+            <p class="field-hint">9,999 Character Limit</p>
             <p class="field-hint" id="thread-body-hint"></p>
           </div>
           <p class="form-error" id="new-thread-error" hidden></p>

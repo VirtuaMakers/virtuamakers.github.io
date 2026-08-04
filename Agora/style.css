@@ -1981,6 +1981,11 @@ a.card.feature {
 }
 
 #new-thread-toggle,
-#new-dm-toggle {
+#new-dm-toggle,
+#new-thread-submit {
   margin-bottom: 1rem;
+}
+
+.communiques-logo {
+  width: min(390px, 67.5vw);
 }

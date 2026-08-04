@@ -13,6 +13,6 @@
     ALLOWED_TAGS: ALLOWED_TAGS,
     ALLOWED_ATTR: ALLOWED_ATTR,
     hint: "You can use basic HTML: <b>, <i>, <u>, <a href=\"...\">, <br>, <p>, "
-      + "<ul>/<ol>/<li>, <blockquote>. More tags introduced every month or two!"
+      + "<ul>/<ol>/<li>, <blockquote>."
   };
 })(window);
