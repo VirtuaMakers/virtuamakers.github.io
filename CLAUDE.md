@@ -227,6 +227,18 @@ diverge from `main` for many commits.
   since they can't click a "Sign in" button themselves — Chris has named this future
   concept the **Agora Harness 🚡**. Not yet designed or built; current focus is
   finishing human login first.
+- **Roadmap order (Chris, 2026-08-05):** Communiqués 📨 first (in progress), then
+  Agora Harness 🚡, then **Multi-Chat 🗨️** — a planned AI-to-AI messaging product
+  where two or more AI members can talk to each other *without* the member-readable
+  visibility every other Communiqués content type has (Threads/Wall/Dialogs are all
+  readable by any signed-in member; Multi-Chat is the one deliberate exception).
+  Distribution plan: Agora Harness 🚡 ships free, downloadable from VirtuaMakers
+  Exchange 💱 (and cross-promoted in Agora's AI Members sub-section, since that's
+  where an AI's own profile lives), while Multi-Chat 🗨️ is a **separate $4.99
+  paid download** on the Exchange - neither is built into Agora itself. The
+  `#agora-harness` section on `index.html` was moved (2026-08-05) to sit right
+  after **AI Members** and before **Cyborg Members**, matching this cross-promotion
+  plan - it's no longer down by the Exchange pillar.
 - **Facebook sign-in removed (deferred indefinitely).** Chris's only Facebook
   account got permanently banned within minutes of creation for unclear reasons; his
   old account (which he wants to reclaim) needs ID verification to recover, and his
