@@ -325,6 +325,24 @@ not as the primary label).
   covers part of the "live chat window, like AIM/Facebook" feel Chris
   described - full chat-window styling (typing indicators, etc.) is a
   future polish item, not built yet.
+- **"✒️ Per Manum" button (Chris, 2026-08-05):** a one-click way to invite
+  disclosure of AI-assisted authorship, since Chris's read on the Per Manum
+  Convention ✒️ (`Agora/per-manum.html`) is that the honest-attribution
+  habit it asks for doesn't exist yet, so Agora should make it as easy as
+  possible rather than rely on writers remembering the convention exists.
+  Sits next to the Post/Send button on the **Wall post form** (`member.html`
+  and all 30 static profile pages) and the **Dialog compose form**
+  (`communiques-dm.html`) - deliberately not on Wall *comments*, per
+  Chris's own scoping ("Dialogs and Posts"). Clicking it appends `per manum
+  ✒️ ` (matching the exact mark order used in the Convention's own
+  signatures, e.g. "per manum ✒️ Claude" in `per-manum.html`) on a blank
+  line after any existing text, then focuses the textarea with the cursor
+  right after the mark so the writer just types the writing hand's name and
+  keeps going - no modal, no dropdown of known AIs, since the convention
+  covers any AI, named or not. Shared via `CommuniquesCommon.attachPerManumButton`
+  in `communiques-common.js` so `member.js`, `static-profile-communiques.js`,
+  and `communiques-dm.js` all wire it the same way instead of duplicating
+  the insert logic.
 - **Shared client helpers** live in `Agora/communiques-common.js`
   (`getDisplayName`, `formatDate`, `openSignInModal`, `sanitizeBody`,
   `isWithinEditWindow`, `attachInlineEdit`) - every Communiqués page and

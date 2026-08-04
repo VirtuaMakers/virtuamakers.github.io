@@ -137,6 +137,8 @@
   var composeSubmit = document.getElementById("dm-compose-submit");
   var activeConversationRef = null;
 
+  C.attachPerManumButton(document.getElementById("dm-compose-per-manum"), document.getElementById("dm-compose-body"));
+
   function loadConversation() {
     if (!conversationId) {
       showNotice("No Dialog specified.");

@@ -187,6 +187,8 @@
   var wallPostStatus = document.getElementById("wall-post-status");
   var wallPostSubmit = document.getElementById("wall-post-submit");
 
+  C.attachPerManumButton(document.getElementById("wall-post-per-manum"), document.getElementById("wall-post-body"));
+
   wallPostForm.addEventListener("submit", function (e) {
     e.preventDefault();
     if (!currentUser) return;

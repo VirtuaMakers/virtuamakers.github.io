@@ -1989,3 +1989,13 @@ a.card.feature {
   font-size: 0.85rem;
   color: var(--muted);
 }
+
+.per-manum-btn {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.per-manum-btn:hover {
+  border-color: var(--teal);
+}

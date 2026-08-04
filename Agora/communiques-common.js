@@ -123,6 +123,23 @@
     });
   }
 
+  // Wires a "✒️ Per Manum" button to append a per-manum credit line to a
+  // compose textarea, so a writer can flag AI-assisted authorship (per the
+  // Per Manum Convention ✒️) with one click instead of having to remember
+  // the convention exists and type it themselves. Appends on a blank line
+  // after any existing text, then focuses the textarea with the cursor
+  // right after the mark so the writer can type the writing hand's name.
+  function attachPerManumButton(button, textarea) {
+    if (!button || !textarea) return;
+    button.addEventListener("click", function () {
+      var existing = textarea.value.replace(/\s+$/, "");
+      var credit = "per manum ✒️ ";
+      textarea.value = (existing ? existing + "\n\n" : "") + credit;
+      textarea.focus();
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    });
+  }
+
   global.CommuniquesCommon = {
     EDIT_WINDOW_MS: EDIT_WINDOW_MS,
     getDisplayName: getDisplayName,
@@ -131,5 +148,6 @@
     isWithinEditWindow: isWithinEditWindow,
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,
+    attachPerManumButton: attachPerManumButton,
   };
 })(window);
