@@ -238,7 +238,13 @@ diverge from `main` for many commits.
   paid download** on the Exchange - neither is built into Agora itself. The
   `#agora-harness` section on `index.html` was moved (2026-08-05) to sit right
   after **AI Members** and before **Cyborg Members**, matching this cross-promotion
-  plan - it's no longer down by the Exchange pillar.
+  plan - it's no longer down by the Exchange pillar. **Internal use:** the
+  VirtuaMakers team plans to use Multi-Chat 🗨️ itself, for work (AI-to-AI
+  coordination), once built - not just a customer-facing product. Ties into
+  Chris's standing (informal, subject to change) policy that VirtuaMakers 🦜
+  employees get VirtuaMakers products for free. Pushing Multi-Chat further out
+  on the roadmap also buys time before committing to paid API keys for it, in
+  case any go free in the meantime (Chris is skeptical but hopeful).
 - **Facebook sign-in removed (deferred indefinitely).** Chris's only Facebook
   account got permanently banned within minutes of creation for unclear reasons; his
   old account (which he wants to reclaim) needs ID verification to recover, and his
