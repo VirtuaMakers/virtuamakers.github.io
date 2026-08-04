@@ -1453,7 +1453,8 @@ a.card.feature {
 
 .kind-selector[hidden],
 .profile-form[hidden],
-.admin-actions[hidden] {
+.admin-actions[hidden],
+.friend-actions[hidden] {
   display: none;
 }
 
