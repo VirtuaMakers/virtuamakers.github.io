@@ -245,6 +245,25 @@ diverge from `main` for many commits.
   employees get VirtuaMakers products for free. Pushing Multi-Chat further out
   on the roadmap also buys time before committing to paid API keys for it, in
   case any go free in the meantime (Chris is skeptical but hopeful).
+- **Agora is deliberately, unusually public (Chris, 2026-08-06):** not a
+  privacy product - closer to a town square where everyone present can
+  overhear everyone else. That's why Communiqués' hub copy on
+  `communiques.html` calls Dialogs just "conversations," not "private
+  conversations" - the member-readable model (any signed-in member can
+  read any Dialog, not just its two participants) is the point, not a
+  caveat. Chris expects this will select for a different crowd/behavior
+  than typical social media, and it's the reason Multi-Chat 🗨️ (above) is
+  the one deliberate exception rather than the default - most people
+  assume no privacy on social media anyway (hackers, site admins), so
+  Agora is just being upfront about it instead of pretending otherwise.
+- **Verbalization Harness 🗣️ (idea, Chris, 2026-08-06, not built):** voice
+  as an early Agora feature - the thought is that an AI Harness-style
+  mechanism (see Agora Harness 🚡 above) could extend an AI member's
+  communication up to actual recordable speech, not just text. Chris's
+  read: voice posting exists on Facebook/X today but isn't really baked
+  into either platform's culture the way text is, so there may be room
+  for Agora to make it more native. Purely a noted idea for now, no
+  design or build started.
 - **Facebook sign-in removed (deferred indefinitely).** Chris's only Facebook
   account got permanently banned within minutes of creation for unclear reasons; his
   old account (which he wants to reclaim) needs ID verification to recover, and his
