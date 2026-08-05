@@ -103,7 +103,7 @@
     if (m[3]) dayInput.value = String(parseInt(m[3], 10));
   }
 
-  function fillForm(data) {
+  function fillForm(data, privateData) {
     document.getElementById("field-name").value = data.name || "";
     handleInput.value = data.handle || "";
     document.getElementById("field-prefer-handle").checked = !!data.preferHandle;
@@ -114,7 +114,7 @@
     cityInput.value = data.city || "";
     countryInput.value = data.country || "";
     locationVisible.checked = data.showLocation !== false;
-    regionInput.value = data.region || "";
+    regionInput.value = (privateData && privateData.region) || "";
     mapVisible.checked = data.showMap !== false;
     document.getElementById("field-orgs").value = data.organizations || "";
     pictureInputs.forEach(function (input, i) {
@@ -249,14 +249,22 @@
         formTitle.textContent = "Edit Your Profile";
         kindIntro.hidden = true;
         kindSelector.hidden = true;
-        fillForm(existingDoc);
-        selectKind(existingDoc.kind || "Human");
         dangerZone.hidden = false;
         cancelSignupWrap.hidden = true;
         // Already agreed once, as part of getting this profile created in
         // the first place - Chris's call: never ask again on an edit.
         tosWrap.hidden = true;
         tosInput.required = false;
+
+        // Region lives in a separate, owner-only-readable document - see
+        // firestore.rules' profiles/{uid}/private match - so pre-filling
+        // it on edit means fetching that too, not just the public doc.
+        return AgoraDB.collection("profiles").doc(user.uid)
+          .collection("private").doc("data").get().then(function (privateDoc) {
+            fillForm(existingDoc, privateDoc.exists ? privateDoc.data() : {});
+            selectKind(existingDoc.kind || "Human");
+            formWrap.hidden = false;
+          });
       } else {
         document.getElementById("field-name").value = user.displayName || "";
         document.getElementById("field-email").value = user.email || "";
@@ -267,8 +275,8 @@
         cancelSignupWrap.hidden = false;
         tosWrap.hidden = false;
         tosInput.required = true;
+        formWrap.hidden = false;
       }
-      formWrap.hidden = false;
     });
   });
 
@@ -361,7 +369,6 @@
       city: city,
       country: country,
       showLocation: locationVisible.checked,
-      region: regionInput.value.trim(),
       showMap: mapVisible.checked,
       organizations: document.getElementById("field-orgs").value.trim(),
       picture1: pictureInputs[0].value.trim(),
@@ -402,11 +409,13 @@
     submitBtn.disabled = true;
     statusEl.hidden = false;
 
+    var regionValue = regionInput.value.trim();
+
     var handleCheck = handle
       ? AgoraDB.collection("profiles").where("handle", "==", handle).get()
       : Promise.resolve(null);
 
-    var geocodePromise = geocodeLocation(city, data.region, country);
+    var geocodePromise = geocodeLocation(city, regionValue, country);
 
     Promise.all([handleCheck, geocodePromise]).then(function (results) {
       var snapshot = results[0];
@@ -426,6 +435,13 @@
         data.locationLng = coords.lng;
       }
       return AgoraDB.collection("profiles").doc(currentUser.uid).set(data);
+    }).then(function () {
+      // Region lives in a separate, owner-only-readable document rather
+      // than the world-readable profile doc above - it's private data
+      // (only ever used to disambiguate the geocoding query), not just
+      // UI-hidden data. See firestore.rules' profiles/{uid}/private match.
+      return AgoraDB.collection("profiles").doc(currentUser.uid)
+        .collection("private").doc("data").set({ region: regionValue });
     }).then(function () {
       window.location.href = "member.html?uid=" + encodeURIComponent(currentUser.uid);
     }).catch(function (err) {

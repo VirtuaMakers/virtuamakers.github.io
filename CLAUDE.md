@@ -224,19 +224,29 @@ that's the actual design goal, not just a caveat.
   Maps/Leaflet) specifically because a flat static image *can't* be zoomed
   past world scale - the zoom cap is structural, not a promise resting on
   configuration.
-- **Precision workaround - a private Region field:** geocoding just "City,
-  Country" is often too coarse or ambiguous (many same-named towns). So
-  `create-profile.html` has an optional **State/Province/Territory** field,
-  explicitly labeled as never shown publicly - it (plus City and Country) is
-  only sent into the geocoding query to place the dot more accurately. The
-  public profile still only ever renders City, Country, same as always.
-  Same caveat already implicit in the rest of `profiles` applies here too,
-  though: the collection is fully world-readable by design
-  (`allow read: if true` in `firestore.rules`, matching the public member-
-  card model), so "never shown publicly" describes the UI, not real access
-  control - anyone querying Firestore directly could still read the stored
-  `region` string, same as `name` already sits there even when `preferHandle`
-  means the UI only ever displays the handle.
+- **Precision workaround - a genuinely private Region field:** geocoding
+  just "City, Country" is often too coarse or ambiguous (many same-named
+  towns). So `create-profile.html` has an optional **State/Province/
+  Territory** field - it (plus City and Country) is only sent into the
+  geocoding query to place the dot more accurately, and the public profile
+  still only ever renders City, Country, same as always.
+- **First real use of a private subcollection (Chris, 2026-08-06):** Chris
+  asked directly whether Facebook-style real privacy applied here, and it
+  didn't yet - the main `profiles/{uid}` doc is intentionally world-readable
+  (`allow read: if true`, matching the public member-card model), so a field
+  merely left out of the UI (like `name` when `preferHandle` is on) is still
+  fetchable by anyone querying Firestore directly. Region was the first
+  field that actually needed to be private rather than just hidden, so it
+  now lives in `profiles/{uid}/private/data` - a separate document only
+  its owner can read *or write* (`firestore.rules`' `match /private/{document}`
+  under `profiles/{uid}`), matching real server-enforced privacy instead of
+  an app-level convention. `profile-form.js` fetches/writes this alongside
+  the main profile doc (two reads on load, two writes on save - not a
+  transaction, consistent with the rest of the codebase's simple sequential
+  writes). **This is the established pattern for any future field that
+  needs to be actually private** (a real email when hidden, precise
+  coordinates, etc.) - split it into this same `private` subcollection
+  rather than relying on the UI to just not render it.
 - **Geocoding:** `profile-form.js`'s `geocodeLocation()` calls OpenStreetMap's
   free Nominatim search API (no key) with City + Region + Country combined,
   once per profile save (not per view) - an 8-second timeout via

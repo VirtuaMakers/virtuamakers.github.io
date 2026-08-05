@@ -28,6 +28,17 @@ service cloud.firestore {
 
       allow delete: if request.auth != null
         && (isAdmin() || request.auth.uid == uid);
+
+      // Genuinely private profile data (e.g. the State/Province/Territory
+      // field, used only to disambiguate the location map's geocoding
+      // query) - unlike the parent `profiles/{uid}` doc above, this is
+      // NOT world-readable. Only the profile's own owner can read or write
+      // it; nobody else, not even other signed-in members. This is the
+      // pattern for any future field that needs to be actually private
+      // (server-enforced), not just hidden from the UI - see CLAUDE.md.
+      match /private/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
     }
 
     // Homepage hit counter - a single document anyone (including
