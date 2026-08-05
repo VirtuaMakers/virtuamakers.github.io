@@ -274,6 +274,54 @@ that's the actual design goal, not just a caveat.
 - **Static profile pages not touched:** this round only covers `member.html`
   (real Firestore profiles) - the 30 static AI/Human pages have no
   create-profile.html-style form or Region field to draw from.
+- **Map caption trimmed (Chris, 2026-08-06):** the hint under the map
+  reads just **"(Approximate location only.)"** now - shorter than the
+  original explanatory sentence.
+
+## Site-wide style pass: bordered panels, blue-only buttons, black outlines (Chris, 2026-08-06)
+
+- **`.profile-panel`/`.panel-title` container classes** (`style.css`) wrap
+  a whole subsection's contents in a bordered card, matching the look of
+  the member-card containers on the main Agora page - no hover-lift like
+  `.card`, since these hold static content/inputs, not a clickable link.
+  Applied to `member.html`'s **Form** and **Wall** subsections (each
+  `<h2 class="section-title">` swapped for the larger, bolder
+  `<h2 class="panel-title">`) - **Dialogs deliberately left as a plain
+  `.subsection`**, since Chris only asked for Form and Wall to get boxes.
+- **Friends field defaults to "0", not blank:** `#friends-empty` in
+  `member.html` now renders the literal text `0` instead of a "No friends
+  yet." sentence - `member.js`'s `renderFriendsList()` already just
+  toggled this span's `hidden` state without ever setting its
+  `textContent`, so no JS change was needed.
+- **Buttons recolored to dark blue / light blue / white only, per Agora
+  branding** - the site previously mixed in teal (`--teal`) and a hardcoded
+  red (`#c0392b`) for buttons specifically; both are gone from every
+  button rule now (teal remains in plenty of *non-button* uses - avatar
+  circles, nav-link hovers, the Bag badge, chat-bubble borders,
+  blockquote rules - which Chris's "our buttons" wording didn't ask to
+  change). New `--blue-deep: #1e3f9e` variable added for a darker hover
+  state. Specifically: `.btn` (base) now has an explicit white
+  background/black border instead of relying on browser default; `.btn:hover`
+  goes blue-soft; `.btn-primary` moved off `--teal` onto `--blue`/`--blue-deep`;
+  `.btn-blue` (already light blue) got matching `border-color`s added;
+  `.btn-danger` moved off solid red onto a white-background/blue-outlined
+  style (keeps a visual "this is destructive" distinction via the outline
+  color alone, since red itself is off the table); `.btn-secondary` moved
+  off teal-soft onto blue-soft; `.kind-option.selected` and the sign-in
+  modal's provider-button hover/submit-button background moved off teal
+  onto blue. The dedicated `.per-manum-btn`/`.per-manum-btn:hover` rule was
+  **deleted outright** as dead code once this pass landed - every Per Manum
+  button already carries `class="btn per-manum-btn"`, and the new `.btn`
+  base rule alone now produces the identical white/bordered/blue-hover look
+  the dedicated rule used to provide.
+- **`--line` changed from a light gray-green (`#e4ece9`) to solid black
+  (`#000000`)**, sharpening every bordered element site-wide in one change
+  (Chris's "black and white... like a zebra or a maze" framing). Left
+  untouched on purpose: hardcoded *hover-specific* accent colors like
+  `.card:hover`'s `#d4e6dd` - those are deliberate interactive-feedback
+  tints, not neutral resting-state borders, and weren't what "outlines...
+  black instead of gray" was asking about.
+- Cache-busted `style.css` to `v=67` site-wide per the usual convention.
 
 ## Agora login system (in progress)
 
