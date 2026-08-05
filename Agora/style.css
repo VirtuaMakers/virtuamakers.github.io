@@ -3,7 +3,7 @@
   --surface: #ffffff;
   --text: #15323a;
   --muted: #5f7178;
-  --line: #e4ece9;
+  --line: #000000;
   /* Brand palette shared with VirtuaMakers */
   --green: #61a138;
   --green-deep: #3f7024;
@@ -15,6 +15,7 @@
   /* The vivid blue used in the Agora shape-render images (cylinders,
      spheres, cubes, pyramids) */
   --blue: #2b57d6;
+  --blue-deep: #1e3f9e;
   --blue-light: #4d8df0;
   --blue-soft: #e5eefc;
   --radius: 14px;
@@ -251,8 +252,8 @@ a {
 }
 
 .signin-provider-btn:hover {
-  border-color: var(--teal);
-  background: var(--accent-soft);
+  border-color: var(--blue);
+  background: var(--blue-soft);
 }
 
 .signin-divider {
@@ -298,7 +299,7 @@ a {
   padding: 0.65rem 1rem;
   border-radius: 8px;
   border: none;
-  background: var(--teal);
+  background: var(--blue);
   color: #fff;
   font: inherit;
   font-weight: 700;
@@ -469,6 +470,27 @@ a.card.feature {
   border-top: none;
   padding-top: 0.6rem;
   padding-bottom: 1.4rem;
+}
+
+/* A bordered container around a whole subsection's contents, matching the
+   look of the member-card containers on the main Agora page - used for
+   the "Form" and "Wall" panels on member.html. No hover-lift like .card,
+   since these hold static content/inputs, not a clickable link. */
+.profile-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.5rem 1.8rem;
+  margin-bottom: 1.8rem;
+}
+
+.panel-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--text);
+  margin-bottom: 1.2rem;
 }
 
 .intro {
@@ -1400,15 +1422,23 @@ a.card.feature {
   margin-right: 1rem;
 }
 
-/* Buttons */
+/* Buttons - dark blue / light blue / white only, per Agora branding */
 .btn {
   display: inline-block;
   padding: 0.7rem 1.35rem;
   border-radius: 999px;
-  border: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
   font-weight: 600;
   font-size: 0.95rem;
-  transition: transform 0.12s ease, background 0.15s ease;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
 }
 
 .btn:active {
@@ -1420,21 +1450,25 @@ a.card.feature {
 }
 
 .btn-primary {
-  background: var(--teal);
+  background: var(--blue);
+  border-color: var(--blue);
   color: #fff;
 }
 
 .btn-primary:hover {
-  background: var(--teal-deep);
+  background: var(--blue-deep);
+  border-color: var(--blue-deep);
 }
 
 .btn-blue {
   background: var(--blue-light);
+  border-color: var(--blue-light);
   color: #fff;
 }
 
 .btn-blue:hover {
   background: var(--blue);
+  border-color: var(--blue);
 }
 
 .btn-row-centered {
@@ -1503,9 +1537,9 @@ a.card.feature {
 }
 
 .kind-option.selected {
-  border-color: var(--teal);
-  background: var(--accent-soft);
-  color: var(--teal-deep);
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  color: var(--blue-deep);
 }
 
 .profile-form {
@@ -1660,21 +1694,26 @@ a.card.feature {
 }
 
 .btn-danger {
-  background: #c0392b;
-  color: #fff;
+  background: var(--surface);
+  border-color: var(--blue);
+  color: var(--blue-deep);
 }
 
 .btn-danger:hover {
-  background: #a5301f;
+  background: var(--blue-soft);
+  border-color: var(--blue-deep);
 }
 
 .btn-secondary {
-  background: var(--accent-soft);
-  color: var(--teal-deep);
+  background: var(--blue-soft);
+  border-color: var(--blue-soft);
+  color: var(--blue-deep);
 }
 
 .btn-secondary:hover {
-  background: #d7e9e9;
+  background: var(--blue-light);
+  border-color: var(--blue-light);
+  color: #fff;
 }
 
 /* Bag / Cart */
@@ -2033,12 +2072,3 @@ a.card.feature {
   color: var(--muted);
 }
 
-.per-manum-btn {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  color: var(--text);
-}
-
-.per-manum-btn:hover {
-  border-color: var(--teal);
-}

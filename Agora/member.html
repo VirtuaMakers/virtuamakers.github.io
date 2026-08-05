@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=66" />
+  <link rel="stylesheet" href="style.css?v=67" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -54,8 +54,8 @@
       <div id="member-content" hidden>
         <h1 class="page-title">Profile 🙂</h1>
 
-        <div class="subsection" id="member-form">
-          <h2 class="section-title">Form</h2>
+        <div class="subsection profile-panel" id="member-form">
+          <h2 class="panel-title">Form</h2>
 
           <div class="profile-header">
             <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" hidden />
@@ -99,7 +99,7 @@
                   <img class="location-map-bg" src="assets/world-map.svg" alt="World map" width="1010" height="666" loading="lazy" />
                   <div class="location-map-dot" id="member-location-dot"></div>
                 </div>
-                <p class="field-hint" id="member-location-map-hint" hidden>Approximate only – shown to the nearest city, not an exact address.</p>
+                <p class="field-hint" id="member-location-map-hint" hidden>(Approximate location only.)</p>
               </dd>
             </div>
             <div class="profile-field" id="member-date-wrap">
@@ -150,7 +150,7 @@
             <div class="profile-field" id="member-friends-wrap" hidden>
               <dt>Friends</dt>
               <dd>
-                <p class="intro" id="friends-empty" hidden>No friends yet.</p>
+                <span id="friends-empty" hidden>0</span>
                 <div class="dm-list" id="friends-list"></div>
               </dd>
             </div>
@@ -167,8 +167,8 @@
         </p>
 
         <div id="member-communiques" hidden>
-          <div class="subsection" id="member-wall">
-            <h2 class="section-title">Wall</h2>
+          <div class="subsection profile-panel" id="member-wall">
+            <h2 class="panel-title">Wall</h2>
             <form class="profile-form" id="wall-post-form">
               <div>
                 <label for="wall-post-body">Post to this Wall</label>
