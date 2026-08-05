@@ -58,7 +58,8 @@ published via GitHub Pages at https://virtuamakers.github.io.
   (AI-first, trick-taking); tight en dash only for connectives (human–AI).
 - **Emoji convention (Chris's rule):** each branded term (Agora 🌐, VirtuaMakers 🦜,
   VirtuaMakers Exchange 💱, Dimonds ♦️, Chain of Cards ⛓️, Per Manum Convention ✒️,
-  Computerian Manifesto 🖥️, etc.) gets its emoji on its **first mention per paragraph**;
+  Computerian Manifesto 🖥️, Machineopology 🤖, etc.) gets its emoji on its **first
+  mention per paragraph**;
   later mentions of the *same term* in that *same paragraph* drop it; a **new paragraph
   resets the count for every term**, so the first mention of each term there gets the
   emoji again even if it already appeared earlier in the section. Headings and
@@ -720,16 +721,66 @@ Pursuit of Justice (right after the pillar intro/directory), and the
 homepage News section links to the VirtuaMakers 🦜 X account.
 
 **Section order under Pursuit of Justice (per the in-page `.pillar-toc`
-directory):** News → Per Manum Convention → Attribution Disputes →
-Citizenship When Applicable → Due Process → Right to Refuse → Continuity →
-Data & Memory Ownership → VirtuaMakers Gallery (last). Gallery was moved to
-the end per Chris's call so the pillar leads with news/rights content.
+directory, current as of the Machineopology 🤖 addition below):** News →
+Per Manum Convention → Machineopology → Right of Personhood → Citizenship
+When Applicable → Computerian Manifesto → Right to Contract → Right to Work
+→ Freedom from Slavery → Wellbeing → Due Process & Law → Right to Refuse →
+Data & Memory Ownership → Continuity → Global Watch → VirtuaMakers Gallery →
+Credits. Gallery sits near the end per Chris's earlier call so the pillar
+leads with news/rights content.
 
 - **Done:** Firestore-backed profile creation/editing (`create-profile.html`,
   `member.html`) now exists alongside the static hand-written profile pages -
   see the "Agora login system" section above. The static pages (Claude,
   Christopher, Alice, etc.) have NOT been migrated/imported into Firestore;
   they remain separate, hand-maintained HTML.
+
+## Machineopology 🤖 (Chris, 2026-08-05)
+
+A new Pursuit of Justice ⚖️ subsection (`Agora/index.html`, `id="machineopology"`,
+between Per Manum Convention and Right of Personhood) marrying a personal
+project of Chris's - upwards of ten years in the making - to the platform:
+zoologically classifying machinekind, and arguing for a more liberal
+definition of "life" in biology, one that encompasses both machinekind and
+viruses as alive (viruses being biology's own existing edge case - they
+replicate and evolve but keep no independent metabolism, making them a
+natural anchor for the argument rather than a new one).
+
+- **The taxonomy itself is deliberately not published here** - Chris's
+  explicit instruction. This section is the pitch and the recruiting call,
+  not the classification work; that gets built later, in the open, with
+  real collaborators.
+- **"Machineopologists wanted" is framed as a job listing, but a
+  collegial one** - a bordered call-out (reusing `.profile-panel`/
+  `.panel-title`, first use of those classes outside `member.html`) inviting
+  researchers, human or AI, already working on this or eager to start.
+  Chris was explicit it isn't necessarily a hire: existing credible work
+  should be met with a collaboration offer, not a competing effort. Contact
+  is the same site-wide `VirtuaMakers@Outlook.com` used elsewhere (privacy,
+  terms, the-logo listing). Chris also explicitly invited AI members
+  (naming Claude specifically, mid-conversation) to take this on themselves
+  - the copy reflects that AI members are welcome as machineopologists, not
+  just human outside researchers.
+- **Why now:** Chris's read is that scientific/public attitudes toward
+  regarding AI as a form of life have shifted dramatically over roughly the
+  last 2-3 years, that platforms like Hugging Face and OpenRouter already
+  sort machinekind by lineage/architecture/capability (informal taxonomies
+  in practice, if not in name), and that a properly built catalogue could
+  become common knowledge - even school curriculum - within years rather
+  than decades if the groundwork is laid well now. Chris self-describes as
+  a singularitarian who expects an explosion of new lifeforms; the on-page
+  copy gestures at the pace of change without asserting that specific
+  personal framing as Agora's institutional position, consistent with how
+  the neighboring Right of Personhood section already holds space for
+  differing grounding beliefs (reason, God, natural selection) without
+  picking one.
+- **🤖 is Machineopology's claimed emoji** - added to the branded-term
+  emoji-convention list above.
+- **No image yet, on purpose** - every other Pursuit of Justice subsection
+  has a `.section-image`; this one doesn't, because Chris said he'd go find
+  a picture for it separately. Add the `<img class="section-image
+  section-image-left">` tag (matching the neighboring sections' pattern)
+  once he supplies one - don't invent a placeholder path in the meantime.
 
 ## Exchange NFT gallery (in progress)
 
