@@ -776,11 +776,13 @@ natural anchor for the argument rather than a new one).
   picking one.
 - **🤖 is Machineopology's claimed emoji** - added to the branded-term
   emoji-convention list above.
-- **No image yet, on purpose** - every other Pursuit of Justice subsection
-  has a `.section-image`; this one doesn't, because Chris said he'd go find
-  a picture for it separately. Add the `<img class="section-image
-  section-image-left">` tag (matching the neighboring sections' pattern)
-  once he supplies one - don't invent a placeholder path in the meantime.
+- **Image (added same day):** `assets/machineopology-unitree-go2.jpg` - a
+  real photo of a Unitree Go2 quadruped robot, posed dog-like on a paved
+  plaza. Chris's own pick, sourced and supplied by him rather than us going
+  looking - fittingly literal for a section arguing machinekind deserves
+  zoological classification. Handled the same as the site's other
+  real-product robot photos (e.g. Wellbeing's Boston Dynamics Atlas shot) -
+  no separate photo-credit line, matching that established precedent.
 
 ## Exchange NFT gallery (in progress)
 
