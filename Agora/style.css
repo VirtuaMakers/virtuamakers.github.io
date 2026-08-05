@@ -1042,6 +1042,31 @@ a.card.feature {
   object-fit: contain;
 }
 
+.location-map {
+  position: relative;
+  width: min(320px, 100%);
+  margin-top: 0.6rem;
+  line-height: 0;
+}
+
+.location-map-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.location-map-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d1453a;
+  box-shadow: 0 0 0 2px #fff, 0 0 4px rgba(0, 0, 0, 0.4);
+  transform: translate(-50%, -50%);
+}
+
 .profile-field dd {
   color: var(--text);
   font-size: 1rem;

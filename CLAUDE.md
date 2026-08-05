@@ -91,7 +91,10 @@ entirely (no empty "—" placeholder).
 1. Name (the `<h1>`, not a `dt`/`dd` row)
 2. Handle (also rendered in `.profile-header`, not a `dt`/`dd` row — see below)
 3. Kind
-4. Location
+4. Location — on `member.html`, followed by a small world map with an
+   approximate-location dot underneath (see "Location map" below), shown by
+   default but independently toggleable off; the static profile pages don't
+   have this yet.
 5. **Release Date** (AI) / **Cyberization Date** (Cyborg) / **Birthdate** (Human) —
    use only the one applicable singular label, never a combined "Release/Cyberization/
    Birthdate"; format as **"Year Month Day"** (e.g. "1986 September 3") - Chris's
@@ -204,6 +207,63 @@ expecting further rearrangement later, not a final layout.
   overwrite it once the Firestore profile fetch resolved. Fixed by not
   revealing `userInfo` at all until the fetch resolves (or fails, or there's
   no profile doc yet), so only the final, correct name is ever shown.
+
+## Location map (Chris, 2026-08-06)
+
+A small world map with a dot under the Location field on `member.html`,
+motivated by Chris's read that a lot of people are bad at geography and a
+visual placement helps - explicitly capped at world-map zoom on purpose
+(never street-level), both to reassure members it's approximate and because
+that's the actual design goal, not just a caveat.
+
+- **Asset:** `Agora/assets/world-map.svg` - country outlines from the npm
+  package `@svg-maps/world` (Victor Cazanave, CC BY 4.0,
+  https://github.com/VictorCazanave/svg-maps), run through `svgo
+  --precision=1` to shrink it from ~1.2MB to ~366KB (attribution comment is
+  in the file itself). Chosen over an embedded interactive map (Google
+  Maps/Leaflet) specifically because a flat static image *can't* be zoomed
+  past world scale - the zoom cap is structural, not a promise resting on
+  configuration.
+- **Precision workaround - a private Region field:** geocoding just "City,
+  Country" is often too coarse or ambiguous (many same-named towns). So
+  `create-profile.html` has an optional **State/Province/Territory** field,
+  explicitly labeled as never shown publicly - it (plus City and Country) is
+  only sent into the geocoding query to place the dot more accurately. The
+  public profile still only ever renders City, Country, same as always.
+  Same caveat already implicit in the rest of `profiles` applies here too,
+  though: the collection is fully world-readable by design
+  (`allow read: if true` in `firestore.rules`, matching the public member-
+  card model), so "never shown publicly" describes the UI, not real access
+  control - anyone querying Firestore directly could still read the stored
+  `region` string, same as `name` already sits there even when `preferHandle`
+  means the UI only ever displays the handle.
+- **Geocoding:** `profile-form.js`'s `geocodeLocation()` calls OpenStreetMap's
+  free Nominatim search API (no key) with City + Region + Country combined,
+  once per profile save (not per view) - an 8-second timeout via
+  `AbortController`, and any failure (timeout, no match, network error)
+  resolves to `null` rather than blocking the save, since the map is optional.
+  Only fair-use-appropriate for a small member base; would need a real
+  provider/self-hosted instance if Agora's signup volume ever grew large.
+  Results (`locationLat`/`locationLng`) are plain numbers on the profile doc;
+  omitting them on a failed geocode (rather than writing `null`) means a
+  stale value from a previous save is naturally dropped too, since every
+  save is a full `.set()` overwrite, not a merge.
+- **Rendering:** `member.js`'s `render()` positions `#member-location-dot`
+  with plain percentage `left`/`top` CSS, computed from a linear fit (`x =
+  2.80394 * lng + 477.0575`, `y = -3.51028 * lat + 473.8844`, matching the
+  SVG's own `viewBox="0 0 1010 666"`) rather than a real map projection
+  library - calibrated by fitting known real-world vs. pixel bounding boxes
+  for a handful of well-behaved (non-archipelago, no far-flung exclave)
+  countries via `svgpathtools`, landing within roughly 10-25px (a few
+  degrees) of the true point. That's intentionally good enough for "which
+  part of the world," not a precision geocoder.
+- **Toggles:** shown by default (`showMap !== false`), with a dedicated
+  "Display Map?" checkbox independent of "Display Location?" - hiding
+  Location hides the map too (nothing to place a dot from), but you can keep
+  the City/Country text and hide just the map on its own.
+- **Static profile pages not touched:** this round only covers `member.html`
+  (real Firestore profiles) - the 30 static AI/Human pages have no
+  create-profile.html-style form or Region field to draw from.
 
 ## Agora login system (in progress)
 

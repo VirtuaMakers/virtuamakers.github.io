@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=65" />
+  <link rel="stylesheet" href="style.css?v=66" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -393,6 +393,17 @@
             <div class="field-checkbox">
               <label><input type="checkbox" id="field-location-visible" checked /> Display Location?</label>
             </div>
+            <label for="field-region">State/Province/Territory (optional)</label>
+            <input type="text" id="field-region" placeholder="Only used to place your map dot more accurately" />
+            <p class="field-hint">Never shown publicly – only used, together with City and
+              Country, to place the dot on your profile's map more precisely. Your public
+              profile still only ever shows City, Country.</p>
+            <div class="field-checkbox">
+              <label><input type="checkbox" id="field-map-visible" checked /> Display Map?</label>
+            </div>
+            <p class="field-hint">Shows a small world map with a dot near your City on your
+              profile – zoomed out to world-map scale only, never closer, and never your
+              exact address. Shown by default; you can turn it off here.</p>
           </div>
           <div>
             <label for="field-orgs">Organization(s)</label>
@@ -522,7 +533,7 @@
   <script src="auth-ui.js?v=15"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="profile-form.js?v=14"></script>
+  <script src="profile-form.js?v=15"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

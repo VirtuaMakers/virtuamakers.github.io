@@ -26,6 +26,8 @@
   var cityInput = document.getElementById("field-city");
   var countryInput = document.getElementById("field-country");
   var locationVisible = document.getElementById("field-location-visible");
+  var regionInput = document.getElementById("field-region");
+  var mapVisible = document.getElementById("field-map-visible");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
   var pictureInputs = [1, 2, 3, 4, 5].map(function (n) {
@@ -112,6 +114,8 @@
     cityInput.value = data.city || "";
     countryInput.value = data.country || "";
     locationVisible.checked = data.showLocation !== false;
+    regionInput.value = data.region || "";
+    mapVisible.checked = data.showMap !== false;
     document.getElementById("field-orgs").value = data.organizations || "";
     pictureInputs.forEach(function (input, i) {
       input.value = data["picture" + (i + 1)] || "";
@@ -173,6 +177,37 @@
     if (parsed.day) return parsed.year + " " + MONTH_NAMES[parsed.month - 1] + " " + parsed.day;
     if (parsed.month) return parsed.year + " " + MONTH_NAMES[parsed.month - 1];
     return String(parsed.year);
+  }
+
+  // Looks up City/Region/Country against OpenStreetMap's free Nominatim
+  // search (no API key) to place the profile's map dot - the State/Province/
+  // Territory field exists purely to disambiguate this lookup (e.g. two
+  // towns with the same name in different regions) and is never shown
+  // publicly itself; only City, Country ever renders on the profile. This
+  // is best-effort: any failure (network, timeout, no match) just resolves
+  // to null rather than blocking the save, since the map is optional and a
+  // profile shouldn't fail to save because a geocoding request timed out.
+  function geocodeLocation(city, region, country) {
+    var query = [city, region, country].filter(Boolean).join(", ");
+    if (!query) return Promise.resolve(null);
+
+    var controller = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 8000) : null;
+
+    return fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&q=" + encodeURIComponent(query),
+      controller ? { signal: controller.signal } : {})
+      .then(function (res) { return res.json(); })
+      .then(function (results) {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (!results || !results.length) return null;
+        var lat = parseFloat(results[0].lat);
+        var lng = parseFloat(results[0].lon);
+        return (isNaN(lat) || isNaN(lng)) ? null : { lat: lat, lng: lng };
+      })
+      .catch(function () {
+        if (timeoutId) clearTimeout(timeoutId);
+        return null;
+      });
   }
 
   // Live validation as the member fills in Year/Month/Day, rather than
@@ -326,6 +361,8 @@
       city: city,
       country: country,
       showLocation: locationVisible.checked,
+      region: regionInput.value.trim(),
+      showMap: mapVisible.checked,
       organizations: document.getElementById("field-orgs").value.trim(),
       picture1: pictureInputs[0].value.trim(),
       picture2: pictureInputs[1].value.trim(),
@@ -369,12 +406,24 @@
       ? AgoraDB.collection("profiles").where("handle", "==", handle).get()
       : Promise.resolve(null);
 
-    handleCheck.then(function (snapshot) {
+    var geocodePromise = geocodeLocation(city, data.region, country);
+
+    Promise.all([handleCheck, geocodePromise]).then(function (results) {
+      var snapshot = results[0];
+      var coords = results[1];
       if (snapshot) {
         var taken = snapshot.docs.some(function (d) { return d.id !== currentUser.uid; });
         if (taken) {
           throw { code: "handle-taken" };
         }
+      }
+      // .set() below fully replaces the document, so simply omitting
+      // locationLat/Lng here (when geocoding found nothing this time)
+      // already drops any stale coordinates from a previous save - no
+      // FieldValue.delete() needed.
+      if (coords) {
+        data.locationLat = coords.lat;
+        data.locationLng = coords.lng;
       }
       return AgoraDB.collection("profiles").doc(currentUser.uid).set(data);
     }).then(function () {

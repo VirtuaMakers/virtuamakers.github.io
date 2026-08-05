@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=65" />
+  <link rel="stylesheet" href="style.css?v=66" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -93,7 +93,14 @@
             </div>
             <div class="profile-field" id="member-location-wrap">
               <dt>Location</dt>
-              <dd id="member-location"></dd>
+              <dd>
+                <div id="member-location"></div>
+                <div class="location-map" id="member-location-map" hidden>
+                  <img class="location-map-bg" src="assets/world-map.svg" alt="World map" width="1010" height="666" loading="lazy" />
+                  <div class="location-map-dot" id="member-location-dot"></div>
+                </div>
+                <p class="field-hint" id="member-location-map-hint" hidden>Approximate only – shown to the nearest city, not an exact address.</p>
+              </dd>
             </div>
             <div class="profile-field" id="member-date-wrap">
               <dt id="member-date-label">Birthdate</dt>
@@ -238,7 +245,7 @@
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
   <script src="communiques-common.js?v=4"></script>
-  <script src="member.js?v=16"></script>
+  <script src="member.js?v=17"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

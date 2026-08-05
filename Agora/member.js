@@ -104,6 +104,24 @@
     setOptionalField("member-location-wrap", data.showLocation !== false ? locationText : "");
     document.getElementById("member-location").textContent = locationText;
 
+    var locationMap = document.getElementById("member-location-map");
+    var locationMapHint = document.getElementById("member-location-map-hint");
+    var showMap = data.showLocation !== false && data.showMap !== false
+      && typeof data.locationLat === "number" && typeof data.locationLng === "number";
+    if (showMap) {
+      // Calibrated against world-map.svg's own viewBox (1010x666) by
+      // fitting known real vs. pixel bounding boxes for a handful of
+      // countries - approximate by design (a rough "which part of the
+      // world" illustration, not precise geocoding), not pixel-perfect.
+      var mapX = 2.80394 * data.locationLng + 477.0575;
+      var mapY = -3.51028 * data.locationLat + 473.8844;
+      var locationDot = document.getElementById("member-location-dot");
+      locationDot.style.left = (mapX / 1010 * 100) + "%";
+      locationDot.style.top = (mapY / 666 * 100) + "%";
+    }
+    locationMap.hidden = !showMap;
+    locationMapHint.hidden = !showMap;
+
     setOptionalField("member-orgs-wrap", data.organizations);
     document.getElementById("member-orgs").textContent = data.organizations || "";
 
