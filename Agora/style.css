@@ -481,6 +481,7 @@ a.card.feature {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 1.5rem 1.5rem 1.8rem;
+  margin-top: 1.5rem;
   margin-bottom: 1.8rem;
 }
 
@@ -1507,6 +1508,32 @@ a.card.feature {
   .site-header {
     flex-wrap: wrap;
     gap: 0.6rem;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+
+  /* The arrow is dropped here (not just visually tucked away) so the
+     header's three items - back-link, Communiqués, Sign Up/Sign In -
+     have a shot at fitting on one line instead of the link text
+     itself wrapping mid-phrase. Once wrapped onto their own row, this
+     group can run the full row width right up to the padding, closer
+     to the logo above it, rather than reserve room it doesn't use. */
+  .back-arrow {
+    display: none;
+  }
+
+  .header-right {
+    gap: 0.7rem;
+  }
+
+  .header-right .back-link,
+  .header-right .auth-link {
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+
+  .auth-controls {
+    gap: 0.4rem;
   }
 }
 
