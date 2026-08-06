@@ -626,13 +626,32 @@ not as the primary label).
     "jump to the newest page" logic needed - a fresh `loadWall()` after
     posting naturally puts the new post on page 1).
   - **10-minute-edit hint added to the Post composer's placeholder**
-    (Chris, 2026-08-06): `#wall-post-body`'s placeholder now reads
-    "Posts may be up to 9,999 characters long!", a blank line, then "You
-    have 10 minutes to edit a Post or Comment before they become
-    permanent." - deliberately just the placeholder (grayed-out
+    (Chris, 2026-08-06): `#wall-post-body`'s placeholder reads "Posts may
+    be up to 9,999 characters long!", a blank line, then "You've 10
+    minutes to begin editing any Communiqué (Message, Post, or Comment)
+    before they become permanent." (wording tuned once, same day, to name
+    all three content types generically even though it's only physically
+    shown here) - deliberately just the placeholder (grayed-out
     placeholder text, not a separate `.field-hint` paragraph), and
     deliberately only on the Post composer, not the per-post Comment
     textareas (which would repeat it once per open comment form).
+  - **A real regression, caught and fixed the same day:** the first cut of
+    the toggle/submit merge put the button *inside* the collapsible
+    region (`.wall-comment-collapsible`), which meant the very button
+    meant to open the form had zero height and was unclickable while
+    collapsed - Comments were completely unreachable. Fixed by moving the
+    `.profile-form-actions` row (Per Manum + toggle/submit) *outside* the
+    collapsible wrapper as a sibling, always rendered - only the
+    textarea/error live inside the animated region now. The visual
+    "slide" effect still works exactly as before: the collapsible sits
+    *before* the always-visible actions row in DOM order, so as it
+    expands it pushes the button row down the page.
+  - **Comment-form buttons are deliberately smaller** (Chris,
+    2026-08-06) than the main Post composer's - a new `.btn-sm` class
+    (smaller padding/font-size) applied to both the toggle/submit button
+    and the per-post ✒️ Per Manum button, signaling "secondary action on
+    a single post" versus the primary Post CTA. The main composer's own
+    buttons are untouched.
 - **Dialog pagination (Chris, 2026-08-05):** a Dialog's messages are split
   into pages of up to 9,999 characters each (`PAGE_CHAR_LIMIT` in
   `communiques-dm.js`), computed client-side from the full, real-time

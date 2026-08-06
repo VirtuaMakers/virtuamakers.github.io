@@ -2079,21 +2079,30 @@ button.dm-item {
   border-left: 2px solid var(--line);
 }
 
+.wall-comment-form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.9rem;
+}
+
 /* Collapsed by default (the grid-rows trick, so it animates to the
    content's real height instead of a guessed max-height that could clip
-   a resized textarea) - toggled open via the .open class in JS. */
-.wall-comment-form {
+   a resized textarea) - toggled open via the .open class in JS. The
+   actions row (Per Manum + toggle/submit button) is a sibling OUTSIDE
+   this, not inside it, so the button that opens the form is never itself
+   trapped in the collapsed, zero-height region. */
+.wall-comment-collapsible {
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  margin-top: 0;
-  transition: grid-template-rows 0.3s ease, opacity 0.25s ease, margin-top 0.3s ease;
+  margin-bottom: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease, margin-bottom 0.3s ease;
 }
 
-.wall-comment-form.open {
+.wall-comment-collapsible.open {
   grid-template-rows: 1fr;
   opacity: 1;
-  margin-top: 0.9rem;
+  margin-bottom: 0.6rem;
 }
 
 .wall-comment-form-inner {
@@ -2112,6 +2121,13 @@ button.dm-item {
   border: 1px solid var(--line);
   font: inherit;
   resize: vertical;
+}
+
+/* Noticeably smaller than the main Post composer's buttons, since a
+   per-post Comment toggle is a secondary action, not the primary CTA. */
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
 }
 
 /* Sticky header: Welcome message moved to the left, next to the brand */

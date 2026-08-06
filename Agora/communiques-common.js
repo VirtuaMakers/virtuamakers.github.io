@@ -295,9 +295,17 @@
       var form = document.createElement("form");
       form.className = "wall-comment-form";
 
+      // The collapsible piece holds only the textarea/error - the actions
+      // row (Per Manum + the toggle/submit button) lives OUTSIDE it and is
+      // always rendered, so the very button that opens the form is never
+      // itself trapped inside the collapsed (zero-height) region.
+      var collapsible = document.createElement("div");
+      collapsible.className = "wall-comment-collapsible";
+      form.appendChild(collapsible);
+
       var inner = document.createElement("div");
       inner.className = "wall-comment-form-inner";
-      form.appendChild(inner);
+      collapsible.appendChild(inner);
 
       var textarea = document.createElement("textarea");
       textarea.maxLength = 9999;
@@ -312,11 +320,11 @@
 
       var actions = document.createElement("div");
       actions.className = "profile-form-actions";
-      inner.appendChild(actions);
+      form.appendChild(actions);
 
       var perManumBtn = document.createElement("button");
       perManumBtn.type = "button";
-      perManumBtn.className = "btn per-manum-btn";
+      perManumBtn.className = "btn btn-sm per-manum-btn";
       perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
       perManumBtn.textContent = "✒️";
       actions.appendChild(perManumBtn);
@@ -324,7 +332,7 @@
 
       var toggleBtn = document.createElement("button");
       toggleBtn.type = "button";
-      toggleBtn.className = "btn";
+      toggleBtn.className = "btn btn-sm";
       toggleBtn.textContent = "Comment";
       actions.appendChild(toggleBtn);
 
@@ -338,7 +346,7 @@
 
       function close() {
         isOpen = false;
-        form.classList.remove("open");
+        collapsible.classList.remove("open");
         toggleBtn.textContent = "Comment";
         toggleBtn.classList.remove("btn-primary");
         textarea.value = "";
@@ -381,11 +389,11 @@
       toggleBtn.addEventListener("click", function () {
         if (!isOpen) {
           isOpen = true;
-          form.classList.add("open");
+          collapsible.classList.add("open");
           textarea.focus();
-          form.addEventListener("transitionend", function onDone(e) {
+          collapsible.addEventListener("transitionend", function onDone(e) {
             if (e.propertyName !== "grid-template-rows") return;
-            form.removeEventListener("transitionend", onDone);
+            collapsible.removeEventListener("transitionend", onDone);
             if (isOpen) {
               toggleBtn.textContent = "Submit";
               toggleBtn.classList.add("btn-primary");
