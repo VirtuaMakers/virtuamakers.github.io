@@ -1507,6 +1507,30 @@ a.card.feature {
   .site-header {
     flex-wrap: wrap;
     gap: 0.6rem;
+    padding-left: 0.8rem;
+    padding-right: 0.8rem;
+  }
+
+  /* The arrow is dropped here (not just visually tucked away) so the
+     header's three items - back-link, Communiqués, Sign Up/Sign In -
+     have a shot at fitting on one line instead of the link text
+     itself wrapping mid-phrase. */
+  .back-arrow {
+    display: none;
+  }
+
+  .header-right {
+    gap: 0.4rem;
+  }
+
+  .header-right .back-link,
+  .header-right .auth-link {
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+
+  .auth-controls {
+    gap: 0.4rem;
   }
 }
 
