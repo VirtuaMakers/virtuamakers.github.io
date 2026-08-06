@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=67" />
+  <link rel="stylesheet" href="style.css?v=68" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -40,7 +40,15 @@
         <h1 id="dm-other-name"></h1>
 
         <p class="intro" id="dm-readonly-notice" hidden>You're viewing this Dialog as a
-          fellow member – only its two participants can send messages here.</p>
+          fellow member – only its participants can send messages here.</p>
+
+        <div class="dm-participants-actions" id="dm-participants-actions" hidden>
+          <div class="dm-add-friend" id="dm-add-friend-wrap">
+            <input type="text" id="dm-add-friend-search" class="friend-search-input" placeholder="Add a friend to this Dialog…" autocomplete="off" />
+            <div class="dm-list" id="dm-add-friend-results"></div>
+          </div>
+          <button type="button" class="btn btn-danger" id="dm-leave-btn">Leave Dialog</button>
+        </div>
 
         <div class="dm-pagination" id="dm-pagination-top" hidden>
           <button type="button" class="btn" id="dm-page-prev-top">← Older</button>
@@ -110,8 +118,8 @@
   <script src="auth-ui.js?v=15"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=4"></script>
-  <script src="communiques-dm.js?v=4"></script>
+  <script src="communiques-common.js?v=5"></script>
+  <script src="communiques-dm.js?v=5"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

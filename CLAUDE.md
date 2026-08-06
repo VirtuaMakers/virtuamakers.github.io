@@ -693,6 +693,68 @@ not as the primary label).
   Christopher's own real-UID inbox on `communiques.html`, only to this
   static page's Dialogs list. Not worth solving until these pages get a
   real migration path (see "Agora — News section" below).
+- **Dialogs can grow into groups (Chris, 2026-08-06).** A Dialog still
+  always *starts* as exactly two people, same friends-only rule and same
+  sorted-UID-pair doc ID as before - nothing changed about creation. From
+  there, any current participant can add one of their own friends at a
+  time, up to a cap of 1,000 total. **The cap is deliberately
+  unpublicized** - nowhere on the site states the number 1,000; Chris
+  wants it discoverable, not advertised, framed around "big, fat Indian
+  weddings" as the real-world upper bound worth covering (average Indian
+  wedding guest counts run 285-330; 1,000 comfortably clears that with
+  room to spare). `communiques-dm.js`'s `dm-add-friend-wrap` just silently
+  hides once a Dialog hits the cap - no message explaining why.
+  - **Why the friendship-gate survives even though it's not really
+    protecting anyone's inbox:** Chris's framing, verbatim in spirit - the
+    normal social-media convention of "you choose who can message you"
+    exists to stop a sender from trapping you in an unwanted exchange, but
+    that's not what's happening here, since every Dialog is already
+    member-readable by anyone signed in, participant or not (see the
+    visibility model above). Declining to be added doesn't protect you
+    from exposure - the content is exactly as public either way - it only
+    decides whether *you personally* engage with a public record that
+    exists regardless. Chris found that distinction "unexpected" and
+    explicitly chose to keep the friendship requirement anyway, on that
+    reasoning rather than a privacy one. Practically: adding someone only
+    grants them the ability to send messages and puts the Dialog in their
+    own inbox - it grants no read access they didn't already have.
+  - **firestore.rules mechanics:** `create` is untouched (still exactly 2).
+    A new `isFriendsWith(a, b)` helper (a pairwise version of the existing
+    `isAcceptedFriendship()`, since rules have no generic list `.sort()`)
+    backs a new "add" `allow update` branch requiring the requester already
+    be a participant, the resulting `participants` list be the old one
+    plus exactly one new uid (checked via `hasAll()` + a size diff of
+    exactly +1), that new uid stored as `lastAddedUid` (a real field, not
+    just a rule-check trick - doubles as a small audit trail of who added
+    whom most recently), and `isFriendsWith(requester, lastAddedUid)`. A
+    separate "leave" branch allows a participant to remove *only their own*
+    uid (size diff of exactly -1, old list `hasAll()` the new one) - there
+    is no "kick" capability; only self-removal exists. If a Dialog empties
+    out entirely, it's left as a readable relic rather than deleted, same
+    as an orphaned Wall post's comments elsewhere in Communiqués.
+  - **`communiques-dm.html`/`.js` UI:** a `#dm-participants-actions` row
+    (add-friend search over the viewer's own `friendsCache`, filtered to
+    exclude existing participants, plus a "Leave Dialog" button) shows
+    only to current participants. Adding someone requires a
+    `window.confirm()` first, since there's no undo for the adder (only
+    the added person can remove themselves). The conversation doc itself
+    is now watched with `onSnapshot` instead of a one-time `get()`, so the
+    header and participant list update live as people are added or leave.
+  - **Message bubbles now show a sender-name label** (`.message-sender`,
+    new CSS) on every non-own message, since "own vs. other" bubble sides
+    alone stop being enough to tell speakers apart once a Dialog has more
+    than one "other." Own messages still carry no label, matching the
+    existing convention of not naming yourself.
+  - **`otherParticipantsLabel()`** (new shared helper in
+    `communiques-common.js`) builds "Alice" for a 1:1 or "Alice, Bob, Carol
+    +12 more" for a group, capped at a caller-chosen name count (3 for the
+    hub's compact inbox list in `communiques.js`, 5 for the DM page's own
+    header) - used by both `communiques.js` and `communiques-dm.js` instead
+    of each hand-rolling the old single-other-participant lookup.
+  - **`.friend-search-input`** replaces the old `#dialogs-friend-search`
+    ID-only CSS selector, so the same input styling is shared between
+    `member.html`'s existing friend search and the new add-friend search on
+    `communiques-dm.html` without duplicating the rule.
 
 ## Agora — News section (under Pursuit of Justice)
 

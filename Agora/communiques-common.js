@@ -38,6 +38,20 @@
     if (btn) btn.click();
   }
 
+  // Builds a display label for everyone in a Dialog besides the current
+  // viewer - "Alice" for a 1:1, "Alice, Bob, Carol +12 more" once a Dialog
+  // has grown into a group. maxNames caps how many names are spelled out
+  // before the rest collapse into a count.
+  function otherParticipantsLabel(participants, participantNames, currentUid, maxNames) {
+    maxNames = maxNames || 3;
+    var names = (participants || [])
+      .filter(function (uid) { return uid !== currentUid; })
+      .map(function (uid) { return (participantNames && participantNames[uid]) || "Member"; });
+    if (!names.length) return "Member";
+    if (names.length <= maxNames) return names.join(", ");
+    return names.slice(0, maxNames).join(", ") + " +" + (names.length - maxNames) + " more";
+  }
+
   // A pending (not-yet-server-acknowledged) write has a null createdAt -
   // treat that as "just now" rather than "uneditable".
   function isWithinEditWindow(createdAt) {
@@ -164,6 +178,7 @@
     getDisplayName: getDisplayName,
     formatDate: formatDate,
     openSignInModal: openSignInModal,
+    otherParticipantsLabel: otherParticipantsLabel,
     isWithinEditWindow: isWithinEditWindow,
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,

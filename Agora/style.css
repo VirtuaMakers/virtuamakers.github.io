@@ -1887,7 +1887,7 @@ a.card.feature {
   white-space: pre-wrap;
 }
 
-#dialogs-friend-search {
+.friend-search-input {
   width: 100%;
   max-width: 420px;
   padding: 0.6rem 0.8rem;
@@ -1895,6 +1895,32 @@ a.card.feature {
   border: 1px solid var(--line);
   font: inherit;
   margin: 0.6rem 0;
+}
+
+button.dm-item {
+  font: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+
+.dm-participants-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.dm-add-friend {
+  flex: 1 1 320px;
+}
+
+.dm-add-friend .dm-list {
+  margin-top: 0.4rem;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
 .message-list {
@@ -1923,6 +1949,13 @@ a.card.feature {
 .message-other {
   align-self: flex-start;
   background: var(--surface);
+}
+
+.message-sender {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
 }
 
 .message-body {

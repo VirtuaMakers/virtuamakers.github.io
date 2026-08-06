@@ -69,14 +69,17 @@ service cloud.firestore {
     // after creation, then permanently locked and undeletable - see
     // editableWithinWindow() / deletableWithinWindow().
 
-    // A conversation's participant list can't change after creation, and
-    // only the two participants can create it or send messages in it -
-    // but (per the member-readable rule above) any signed-in member can
-    // read a Dialog once it exists, e.g. via the other participant's
-    // profile page. Creating one requires an accepted friendship between
-    // the two participants (Chris, 2026-08-06) - Dialogs are friends-only -
-    // except when one participant is a static profile-page slug, which
-    // stays open to any signed-in member (see allowsStaticParticipant()).
+    // A conversation always starts as exactly two participants, same
+    // friends-only rule as before. It can grow into a group afterward
+    // (Chris, 2026-08-06) by adding one friend at a time, up to 1,000
+    // total (a quiet backstop against abuse, not a published feature -
+    // see CLAUDE.md) - whoever does the adding must be friends with the
+    // person they're adding, same convention as starting a Dialog in the
+    // first place. Any signed-in member can still read a Dialog once it
+    // exists, participant or not, per the member-readable rule above -
+    // joining the `participants` array only grants the ability to send
+    // messages and puts it in that member's own inbox, not new read access
+    // they didn't already have.
     match /conversations/{conversationId} {
       allow read: if request.auth != null;
 
@@ -86,9 +89,33 @@ service cloud.firestore {
         && (isAcceptedFriendship(request.resource.data.participants)
           || allowsStaticParticipant(request.resource.data.participants));
 
+      // Sending a message bumps lastMessage/lastMessageAt without touching
+      // participants at all.
       allow update: if request.auth != null
         && request.auth.uid in resource.data.participants
         && request.resource.data.participants == resource.data.participants;
+
+      // Adding one friend as a new participant. `lastAddedUid` is a real
+      // stored field (not just a rule-check trick) naming who was most
+      // recently added, so it doubles as a small audit trail.
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.participants.size() == resource.data.participants.size() + 1
+        && request.resource.data.participants.size() <= 1000
+        && request.resource.data.participants.hasAll(resource.data.participants)
+        && request.resource.data.participants.hasAny([request.resource.data.lastAddedUid])
+        && !resource.data.participants.hasAny([request.resource.data.lastAddedUid])
+        && isFriendsWith(request.auth.uid, request.resource.data.lastAddedUid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participants', 'participantNames', 'lastAddedUid']);
+
+      // Leaving - a participant can only ever remove their own uid, never
+      // someone else's (no "kick" feature exists here on purpose).
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participants
+        && !(request.auth.uid in request.resource.data.participants)
+        && request.resource.data.participants.size() == resource.data.participants.size() - 1
+        && resource.data.participants.hasAll(request.resource.data.participants)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participants']);
 
       match /messages/{messageId} {
         allow read: if request.auth != null;
@@ -183,6 +210,16 @@ service cloud.firestore {
     // open to any signed-in member, unchanged, via allowsStaticParticipant().
     function isAcceptedFriendship(participants) {
       let friendshipId = participants[0] + '_' + participants[1];
+      return exists(/databases/$(database)/documents/friendships/$(friendshipId))
+        && get(/databases/$(database)/documents/friendships/$(friendshipId)).data.status == 'accepted';
+    }
+
+    // Same check as isAcceptedFriendship(), but for two arbitrary uids that
+    // aren't already known to be sorted (e.g. "is the person adding a new
+    // participant actually friends with them?") - sorts inline since lists
+    // have no generic sort() in rules language.
+    function isFriendsWith(a, b) {
+      let friendshipId = a < b ? a + '_' + b : b + '_' + a;
       return exists(/databases/$(database)/documents/friendships/$(friendshipId))
         && get(/databases/$(database)/documents/friendships/$(friendshipId)).data.status == 'accepted';
     }

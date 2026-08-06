@@ -1,8 +1,10 @@
 // Drives communiques-dm.html: loads a Dialog by ?c= from Firestore.
 // Readable by any signed-in Agora member (see firestore.rules), but the
-// compose form and message editing only appear for the Dialog's two
-// participants. Requires firebase-config.js, auth.js, and
-// communiques-common.js to run first.
+// compose form, message editing, and the add-friend/leave controls only
+// appear for the Dialog's current participants. A Dialog starts as exactly
+// two people and can grow into a group from there (see the "Adding a
+// friend / leaving" section below). Requires firebase-config.js, auth.js,
+// and communiques-common.js to run first.
 //
 // A Dialog's messages are paginated into pages of up to PAGE_CHAR_LIMIT
 // characters each, split on message boundaries (never mid-message) so a
@@ -20,6 +22,10 @@
   var currentUser = null;
   var isParticipant = false;
   var unsubscribeMessages = null;
+  var unsubscribeConversation = null;
+  var participants = [];
+  var participantNames = {};
+  var friendsCache = [];
 
   var pages = [];
   var currentPageIndex = 0;
@@ -40,8 +46,16 @@
 
   function buildMessageBubble(doc) {
     var data = doc.data();
+    var isOwn = data.authorUid === currentUser.uid;
     var bubble = document.createElement("div");
-    bubble.className = "message-bubble " + (data.authorUid === currentUser.uid ? "message-own" : "message-other");
+    bubble.className = "message-bubble " + (isOwn ? "message-own" : "message-other");
+
+    if (!isOwn) {
+      var sender = document.createElement("p");
+      sender.className = "message-sender";
+      sender.textContent = participantNames[data.authorUid] || "Member";
+      bubble.appendChild(sender);
+    }
 
     var body = document.createElement("p");
     body.className = "message-body";
@@ -136,8 +150,89 @@
   var composeStatus = document.getElementById("dm-compose-status");
   var composeSubmit = document.getElementById("dm-compose-submit");
   var activeConversationRef = null;
+  var messagesWatched = false;
+
+  // A quiet backstop against abuse, not a published feature - see
+  // CLAUDE.md. Once a Dialog hits this size the add-friend control just
+  // disappears, no message explaining why.
+  var MAX_PARTICIPANTS = 1000;
 
   C.attachPerManumButton(document.getElementById("dm-compose-per-manum"), document.getElementById("dm-compose-body"));
+
+  // --- Adding a friend / leaving -----------------------------------------
+  // A Dialog starts as exactly two people, same as before, but any current
+  // participant can grow it by adding one of their own friends at a time
+  // (firestore.rules requires the adder be friends with whoever they add -
+  // it does NOT grant the new person any read access they didn't already
+  // have, since every Dialog is already member-readable; it only lets them
+  // send messages and puts this Dialog in their own inbox). Leaving just
+  // removes your own uid - there's no way to remove anyone else.
+
+  var participantsActions = document.getElementById("dm-participants-actions");
+  var addFriendWrap = document.getElementById("dm-add-friend-wrap");
+  var addFriendSearch = document.getElementById("dm-add-friend-search");
+  var addFriendResults = document.getElementById("dm-add-friend-results");
+  var leaveBtn = document.getElementById("dm-leave-btn");
+
+  function loadFriends() {
+    AgoraDB.collection("friendships")
+      .where("participants", "array-contains", currentUser.uid)
+      .where("status", "==", "accepted")
+      .get()
+      .then(function (snap) { friendsCache = friendsFromDocs(snap.docs); })
+      .catch(function () {
+        // Composite index not provisioned yet - fall back to an
+        // unfiltered read and filter client-side rather than show nothing.
+        AgoraDB.collection("friendships")
+          .where("participants", "array-contains", currentUser.uid)
+          .get()
+          .then(function (snap) {
+            friendsCache = friendsFromDocs(snap.docs.filter(function (doc) { return doc.data().status === "accepted"; }));
+          });
+      });
+  }
+
+  function friendsFromDocs(docs) {
+    return docs.map(function (doc) {
+      var data = doc.data();
+      var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
+      return { uid: otherUid, name: (data.participantNames && data.participantNames[otherUid]) || "Member" };
+    });
+  }
+
+  function addParticipant(uid, name) {
+    if (!window.confirm("Add " + name + " to this Dialog? They'll be able to send messages here.")) return;
+    var update = { participants: firebase.firestore.FieldValue.arrayUnion(uid), lastAddedUid: uid };
+    update["participantNames." + uid] = name;
+    activeConversationRef.update(update);
+  }
+
+  function renderAddFriendResults(query) {
+    addFriendResults.textContent = "";
+    var q = query.trim().toLowerCase();
+    var candidates = friendsCache.filter(function (f) { return participants.indexOf(f.uid) === -1; });
+    var matches = q ? candidates.filter(function (f) { return f.name.toLowerCase().indexOf(q) !== -1; }) : candidates;
+    matches.forEach(function (f) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "dm-item";
+      item.textContent = f.name;
+      item.addEventListener("click", function () { addParticipant(f.uid, f.name); });
+      addFriendResults.appendChild(item);
+    });
+  }
+
+  addFriendSearch.addEventListener("input", function () {
+    renderAddFriendResults(addFriendSearch.value);
+  });
+
+  leaveBtn.addEventListener("click", function () {
+    if (!activeConversationRef) return;
+    if (!window.confirm("Leave this Dialog? You can only rejoin if another participant adds you back.")) return;
+    activeConversationRef.update({
+      participants: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+    });
+  });
 
   function loadConversation() {
     if (!conversationId) {
@@ -146,24 +241,34 @@
     }
 
     var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
-    conversationRef.get().then(function (doc) {
+    unsubscribeConversation = conversationRef.onSnapshot(function (doc) {
       if (!doc.exists) {
         showNotice("This Dialog doesn't exist.");
         return;
       }
       var data = doc.data();
-      var otherUid = (data.participants || []).filter(function (uid) { return uid !== currentUser.uid; })[0];
-      document.getElementById("dm-other-name").textContent =
-        (data.participantNames && data.participantNames[otherUid]) || "Member";
+      participants = data.participants || [];
+      participantNames = data.participantNames || {};
 
-      isParticipant = (data.participants || []).indexOf(currentUser.uid) !== -1;
+      document.getElementById("dm-other-name").textContent =
+        C.otherParticipantsLabel(participants, participantNames, currentUser.uid, 5);
+
+      isParticipant = participants.indexOf(currentUser.uid) !== -1;
       document.getElementById("dm-readonly-notice").hidden = isParticipant;
       composeForm.hidden = !isParticipant;
+      participantsActions.hidden = !isParticipant;
+      addFriendWrap.hidden = participants.length >= MAX_PARTICIPANTS;
+      if (isParticipant) renderAddFriendResults(addFriendSearch.value);
 
       activeConversationRef = conversationRef;
       content.hidden = false;
-      watchMessages(conversationRef);
-    }).catch(function () {
+      if (!messagesWatched) {
+        messagesWatched = true;
+        watchMessages(conversationRef);
+      } else {
+        renderPage(currentPageIndex);
+      }
+    }, function () {
       showNotice("You don't have access to this Dialog.");
     });
   }
@@ -208,10 +313,16 @@
       unsubscribeMessages();
       unsubscribeMessages = null;
     }
+    if (unsubscribeConversation) {
+      unsubscribeConversation();
+      unsubscribeConversation = null;
+    }
+    messagesWatched = false;
     if (!user) {
       showNotice("Sign in to view this Dialog.");
       return;
     }
+    loadFriends();
     loadConversation();
   });
 })();

@@ -35,8 +35,7 @@
 
     docs.forEach(function (doc) {
       var data = doc.data();
-      var otherUid = (data.participants || []).filter(function (uid) { return uid !== currentUser.uid; })[0];
-      var otherName = (data.participantNames && data.participantNames[otherUid]) || "Member";
+      var otherLabel = C.otherParticipantsLabel(data.participants, data.participantNames, currentUser.uid, 3);
 
       var item = document.createElement("a");
       item.className = "dm-item";
@@ -44,7 +43,7 @@
 
       var name = document.createElement("p");
       name.className = "dm-item-name";
-      name.textContent = otherName;
+      name.textContent = otherLabel;
       item.appendChild(name);
 
       var preview = document.createElement("p");
