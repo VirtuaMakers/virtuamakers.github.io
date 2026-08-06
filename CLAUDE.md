@@ -578,12 +578,61 @@ not as the primary label).
   10-minute edit/delete rule functions (`editableWithinWindow`/
   `deletableWithinWindow`) in `firestore.rules`.
 - **Comments are optional, tucked behind a toggle (Chris, 2026-08-06):**
-  every Wall post now shows a plain "Comment" button; clicking it reveals
-  the (previously always-open) comment form. Comments aren't a default,
-  always-visible part of a post the way they were before - `member.js`'s
-  `buildWallPost()` and `static-profile-communiques.js`'s equivalent both
-  create the form hidden and toggle it, rather than always rendering it
-  open under every post.
+  every Wall post shows a plain "Comment" button; clicking it slides the
+  comment form open. Comments aren't a default, always-visible part of a
+  post the way they were originally built.
+  - **Found and fixed a real bug the same day:** the comment form was
+    supposed to start hidden (`commentForm.hidden = true` in JS), but
+    `.wall-comment-form { display: flex; ...}` in `style.css` had no
+    `[hidden]` guard - an author-stylesheet `display` rule always beats
+    the browser's built-in `[hidden] { display: none }` UA rule
+    regardless of source order or specificity, so the form was rendering
+    open on every post from the start, contrary to what the JS intended.
+  - **Redesigned (Chris, 2026-08-06) into a single animated
+    toggle/submit button** instead of a separate always-two-controls
+    setup: clicking "Comment" adds an `.open` class that slides the form
+    into view via the CSS grid-rows trick (`grid-template-rows: 0fr` →
+    `1fr`, animatable and sized to the real content height - deliberately
+    not a hard-coded `max-height`, which would've clipped a
+    manually-resized textarea). Once that transition finishes
+    (`transitionend` on `grid-template-rows`, not a fixed timeout - so it
+    stays correct if the CSS duration ever changes), the same button
+    relabels to "Submit"; clicking it again posts the comment, then the
+    form slides shut and the button reverts to "Comment." The ✒️ Per Manum
+    button and the toggle/submit button now share one
+    `.profile-form-actions` row (matching the row layout the main Wall
+    post composer already used) instead of sitting on separate lines.
+  - **Extracted into a shared `CommuniquesCommon.createWallController()`**
+    (`communiques-common.js`) - the entire Wall (composer + paginated,
+    newest-first post list + per-post comment toggle) was duplicated
+    almost verbatim between `member.js` and
+    `static-profile-communiques.js`; both now just call
+    `C.createWallController(profileUid, getCurrentUser)` and use the
+    returned `.loadWall()`. `getCurrentUser` is a live getter (not a
+    captured value) since currentUser changes as the viewer signs in or
+    out over the page's life.
+  - **Wall ordering switched from `lastActivityAt desc` to `createdAt
+    desc`** (Chris, 2026-08-06 - "newest posts at the top") - the old
+    field bumped a post back to the top whenever anyone commented on it,
+    Reddit/forum-style, which wasn't asked for and made "newest at top"
+    not actually hold for a post's own recency. `lastActivityAt` is still
+    written on comment (harmless, just no longer the sort key).
+  - **Paginated at 10 posts per page** (Chris, 2026-08-06), client-side,
+    reusing the DM page's `.dm-pagination`/`.dm-page-indicator` CSS and
+    "← Older" / "Newer →" wording - same fetch-all-then-slice-in-JS
+    approach as Dialog pagination, consistent with the site's
+    simple-client conventions. Since posts already sort newest-first,
+    page 1 is always the newest page (unlike Dialogs, there's no
+    "jump to the newest page" logic needed - a fresh `loadWall()` after
+    posting naturally puts the new post on page 1).
+  - **10-minute-edit hint added to the Post composer's placeholder**
+    (Chris, 2026-08-06): `#wall-post-body`'s placeholder now reads
+    "Posts may be up to 9,999 characters long!", a blank line, then "You
+    have 10 minutes to edit a Post or Comment before they become
+    permanent." - deliberately just the placeholder (grayed-out
+    placeholder text, not a separate `.field-hint` paragraph), and
+    deliberately only on the Post composer, not the per-post Comment
+    textareas (which would repeat it once per open comment form).
 - **Dialog pagination (Chris, 2026-08-05):** a Dialog's messages are split
   into pages of up to 9,999 characters each (`PAGE_CHAR_LIMIT` in
   `communiques-dm.js`), computed client-side from the full, real-time

@@ -234,6 +234,332 @@
     });
   }
 
+  // Builds and wires an entire Wall section - the post composer plus a
+  // paginated, newest-first list of posts, each with a togglable
+  // Comment/Submit form - for a given profileUid. Shared by member.js
+  // (real Firestore profiles) and static-profile-communiques.js (the 30
+  // static profile-page slugs), which were otherwise carrying two copies
+  // of the same non-trivial logic. `getCurrentUser` is a live getter
+  // (not a captured value) since currentUser changes as the viewer signs
+  // in or out over the page's life. Requires #wall-post-form and its
+  // fields, #wall-list/#wall-loading/#wall-empty, and the
+  // #wall-pagination-top/bottom rows to already exist in the DOM.
+  function createWallController(profileUid, getCurrentUser) {
+    var POSTS_PER_PAGE = 10;
+
+    var wallList = document.getElementById("wall-list");
+    var wallLoading = document.getElementById("wall-loading");
+    var wallEmpty = document.getElementById("wall-empty");
+    var pagTop = document.getElementById("wall-pagination-top");
+    var pagBottom = document.getElementById("wall-pagination-bottom");
+    var olderTop = document.getElementById("wall-page-older-top");
+    var newerTop = document.getElementById("wall-page-newer-top");
+    var olderBottom = document.getElementById("wall-page-older-bottom");
+    var newerBottom = document.getElementById("wall-page-newer-bottom");
+    var indicatorTop = document.getElementById("wall-page-indicator-top");
+    var indicatorBottom = document.getElementById("wall-page-indicator-bottom");
+
+    var pages = [[]];
+    var currentPageIndex = 0;
+
+    function buildCommentItem(doc) {
+      var data = doc.data();
+      var currentUser = getCurrentUser();
+      var item = document.createElement("div");
+      item.className = "wall-comment";
+
+      var meta = document.createElement("p");
+      meta.className = "communique-item-meta";
+      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true);
+      item.appendChild(meta);
+
+      var body = document.createElement("p");
+      body.className = "body-text communique-body";
+      sanitizeBody(body, data.body);
+      item.appendChild(body);
+
+      if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
+        attachInlineEdit(item, doc.ref, data, body);
+      }
+
+      return item;
+    }
+
+    // A single button does double duty as the toggle and the submit
+    // action: "Comment" opens the form (sliding it into view), and once
+    // that animation finishes the same button relabels to "Submit" -
+    // clicking it again posts the comment, then the form slides shut and
+    // the button reverts to "Comment". Keeps the ✒️ Per Manum button and
+    // the toggle/submit button on one shared action row instead of two.
+    function buildCommentForm(postRef) {
+      var form = document.createElement("form");
+      form.className = "wall-comment-form";
+
+      var inner = document.createElement("div");
+      inner.className = "wall-comment-form-inner";
+      form.appendChild(inner);
+
+      var textarea = document.createElement("textarea");
+      textarea.maxLength = 9999;
+      textarea.required = true;
+      textarea.placeholder = "Comments may be up to 9,999 characters long!";
+      inner.appendChild(textarea);
+
+      var error = document.createElement("p");
+      error.className = "form-error";
+      error.hidden = true;
+      inner.appendChild(error);
+
+      var actions = document.createElement("div");
+      actions.className = "profile-form-actions";
+      inner.appendChild(actions);
+
+      var perManumBtn = document.createElement("button");
+      perManumBtn.type = "button";
+      perManumBtn.className = "btn per-manum-btn";
+      perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
+      perManumBtn.textContent = "✒️";
+      actions.appendChild(perManumBtn);
+      attachPerManumButton(perManumBtn, textarea);
+
+      var toggleBtn = document.createElement("button");
+      toggleBtn.type = "button";
+      toggleBtn.className = "btn";
+      toggleBtn.textContent = "Comment";
+      actions.appendChild(toggleBtn);
+
+      var status = document.createElement("span");
+      status.className = "form-status";
+      status.textContent = "Posting…";
+      status.hidden = true;
+      actions.appendChild(status);
+
+      var isOpen = false;
+
+      function close() {
+        isOpen = false;
+        form.classList.remove("open");
+        toggleBtn.textContent = "Comment";
+        toggleBtn.classList.remove("btn-primary");
+        textarea.value = "";
+      }
+
+      function submitComment() {
+        var currentUser = getCurrentUser();
+        if (!currentUser) return;
+        var body = textarea.value.trim();
+        if (!body) return;
+        error.hidden = true;
+        toggleBtn.disabled = true;
+        status.hidden = false;
+
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        getDisplayName(currentUser).then(function (authorName) {
+          return postRef.collection("comments").add({
+            body: body,
+            authorUid: currentUser.uid,
+            authorName: authorName,
+            createdAt: now,
+          });
+        }).then(function () {
+          return postRef.update({
+            commentCount: firebase.firestore.FieldValue.increment(1),
+            lastActivityAt: now,
+          });
+        }).then(function () {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          close();
+        }).catch(function (err) {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          error.textContent = err.message;
+          error.hidden = false;
+        });
+      }
+
+      toggleBtn.addEventListener("click", function () {
+        if (!isOpen) {
+          isOpen = true;
+          form.classList.add("open");
+          textarea.focus();
+          form.addEventListener("transitionend", function onDone(e) {
+            if (e.propertyName !== "grid-template-rows") return;
+            form.removeEventListener("transitionend", onDone);
+            if (isOpen) {
+              toggleBtn.textContent = "Submit";
+              toggleBtn.classList.add("btn-primary");
+            }
+          });
+        } else {
+          submitComment();
+        }
+      });
+
+      form.addEventListener("submit", function (e) { e.preventDefault(); });
+
+      return form;
+    }
+
+    function buildWallPost(doc) {
+      var data = doc.data();
+      var currentUser = getCurrentUser();
+      var post = document.createElement("div");
+      post.className = "wall-post";
+
+      var meta = document.createElement("p");
+      meta.className = "communique-item-meta";
+      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true);
+      post.appendChild(meta);
+
+      var body = document.createElement("p");
+      body.className = "body-text communique-body";
+      sanitizeBody(body, data.body);
+      post.appendChild(body);
+
+      if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
+        attachInlineEdit(post, doc.ref, data, body);
+      }
+
+      var commentsWrap = document.createElement("div");
+      commentsWrap.className = "wall-comments";
+      post.appendChild(commentsWrap);
+
+      doc.ref.collection("comments").orderBy("createdAt", "asc").get()
+        .then(function (snap) {
+          snap.docs.forEach(function (commentDoc) {
+            commentsWrap.appendChild(buildCommentItem(commentDoc));
+          });
+        })
+        .catch(function () {
+          doc.ref.collection("comments").get().then(function (snap) {
+            snap.docs.forEach(function (commentDoc) {
+              commentsWrap.appendChild(buildCommentItem(commentDoc));
+            });
+          });
+        });
+
+      // Comments are optional, so the form stays tucked behind the
+      // toggle/submit button instead of sitting open under every post.
+      if (currentUser) {
+        post.appendChild(buildCommentForm(doc.ref));
+      }
+
+      return post;
+    }
+
+    function renderPage(index) {
+      currentPageIndex = Math.max(0, Math.min(index, pages.length - 1));
+
+      wallList.textContent = "";
+      pages[currentPageIndex].forEach(function (doc) {
+        wallList.appendChild(buildWallPost(doc));
+      });
+
+      var multiPage = pages.length > 1;
+      pagTop.hidden = !multiPage;
+      pagBottom.hidden = !multiPage;
+      if (multiPage) {
+        var label = "Page " + (currentPageIndex + 1) + " of " + pages.length;
+        indicatorTop.textContent = label;
+        indicatorBottom.textContent = label;
+        var atNewest = currentPageIndex === 0;
+        var atOldest = currentPageIndex === pages.length - 1;
+        newerTop.disabled = newerBottom.disabled = atNewest;
+        olderTop.disabled = olderBottom.disabled = atOldest;
+      }
+    }
+
+    [olderTop, olderBottom].forEach(function (btn) {
+      btn.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
+    });
+    [newerTop, newerBottom].forEach(function (btn) {
+      btn.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
+    });
+
+    function renderWall(docs) {
+      wallLoading.hidden = true;
+      docs = docs.slice().sort(function (a, b) {
+        var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
+        var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
+        return bTime - aTime;
+      });
+      if (!docs.length) {
+        wallEmpty.hidden = false;
+        wallList.textContent = "";
+        pagTop.hidden = true;
+        pagBottom.hidden = true;
+        return;
+      }
+      wallEmpty.hidden = true;
+      pages = [];
+      for (var i = 0; i < docs.length; i += POSTS_PER_PAGE) {
+        pages.push(docs.slice(i, i + POSTS_PER_PAGE));
+      }
+      renderPage(0);
+    }
+
+    function loadWall() {
+      wallLoading.hidden = false;
+      wallEmpty.hidden = true;
+      wallList.textContent = "";
+
+      AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
+        .orderBy("createdAt", "desc").get()
+        .then(function (snap) { renderWall(snap.docs); })
+        .catch(function () {
+          AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get()
+            .then(function (snap) { renderWall(snap.docs); });
+        });
+    }
+
+    var postForm = document.getElementById("wall-post-form");
+    var postError = document.getElementById("wall-post-error");
+    var postStatus = document.getElementById("wall-post-status");
+    var postSubmit = document.getElementById("wall-post-submit");
+    var postBody = document.getElementById("wall-post-body");
+
+    attachPerManumButton(document.getElementById("wall-post-per-manum"), postBody);
+
+    postForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var currentUser = getCurrentUser();
+      if (!currentUser) return;
+      postError.hidden = true;
+
+      var body = postBody.value.trim();
+      if (!body) return;
+
+      postSubmit.disabled = true;
+      postStatus.hidden = false;
+
+      var now = firebase.firestore.FieldValue.serverTimestamp();
+      getDisplayName(currentUser).then(function (authorName) {
+        return AgoraDB.collection("wallPosts").add({
+          profileUid: profileUid,
+          body: body,
+          authorUid: currentUser.uid,
+          authorName: authorName,
+          createdAt: now,
+          lastActivityAt: now,
+          commentCount: 0,
+        });
+      }).then(function () {
+        postBody.value = "";
+        postSubmit.disabled = false;
+        postStatus.hidden = true;
+        loadWall();
+      }).catch(function (err) {
+        postSubmit.disabled = false;
+        postStatus.hidden = true;
+        postError.textContent = err.message;
+        postError.hidden = false;
+      });
+    });
+
+    return { loadWall: loadWall };
+  }
+
   // Wires an icon-only "✒️" button to append a per-manum credit line to a
   // compose textarea, so a writer can flag AI-assisted authorship (per the
   // Per Manum Convention ✒️) with one click instead of having to remember
@@ -268,5 +594,6 @@
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,
     attachPerManumButton: attachPerManumButton,
+    createWallController: createWallController,
   };
 })(window);

@@ -2079,11 +2079,29 @@ button.dm-item {
   border-left: 2px solid var(--line);
 }
 
+/* Collapsed by default (the grid-rows trick, so it animates to the
+   content's real height instead of a guessed max-height that could clip
+   a resized textarea) - toggled open via the .open class in JS. */
 .wall-comment-form {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease, margin-top 0.3s ease;
+}
+
+.wall-comment-form.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 0.9rem;
+}
+
+.wall-comment-form-inner {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-top: 0.9rem;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .wall-comment-form textarea {
@@ -2094,10 +2112,6 @@ button.dm-item {
   border: 1px solid var(--line);
   font: inherit;
   resize: vertical;
-}
-
-.wall-comment-form .btn {
-  align-self: flex-start;
 }
 
 /* Sticky header: Welcome message moved to the left, next to the brand */
