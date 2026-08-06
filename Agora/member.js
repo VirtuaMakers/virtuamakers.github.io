@@ -257,6 +257,7 @@
 
       render(profileData);
       refreshControls();
+      updateMessageButtonVisibility();
     });
   }
 
@@ -546,17 +547,30 @@
   });
 
   // --- Dialogs ---------------------------------------------------------
-  // Friends-only, per Chris (2026-08-06): you can't Dialog with someone
-  // you're not friends with, so this section is entirely hidden until you
-  // have at least one accepted friend. What's shown is a search over your
-  // own friends (populated by loadFriendsList() below) rather than a list
-  // of existing conversations - click a friend to go to their profile,
-  // then use the "Dialog" button there (in friend-actions) to start or
-  // continue the conversation.
+  // Messaging is open by default (Chris, 2026-08-06) - any signed-in
+  // member can message any other, via the "Message" button below, unless
+  // the profile being viewed has opted into requiring an accepted
+  // friendship first (requireFriendToMessage, set on create-profile.html).
+  // This section itself stays a friends-only quick-access convenience -
+  // a search over your own friends (populated by loadFriendsList() below)
+  // rather than a list of every conversation you have - so it's still
+  // hidden until you have at least one accepted friend, but it's no
+  // longer the only way to start a Dialog; see communiques.html's "New
+  // Message" search for messaging anyone.
 
   var dialogsSection = document.getElementById("member-dialogs");
   var dialogsSearch = document.getElementById("dialogs-friend-search");
   var dialogsResults = document.getElementById("dialogs-friend-results");
+  var messageBtn = document.getElementById("message-btn");
+
+  function updateMessageButtonVisibility() {
+    if (!currentUser || !profileData || !uid || currentUser.uid === uid) {
+      messageBtn.hidden = true;
+      return;
+    }
+    var isFriend = !document.getElementById("friend-status-accepted").hidden;
+    messageBtn.hidden = !!profileData.requireFriendToMessage && !isFriend;
+  }
 
   function renderDialogsSearchResults(query) {
     dialogsResults.textContent = "";
@@ -577,37 +591,12 @@
     renderDialogsSearchResults(dialogsSearch.value);
   });
 
-  function conversationIdFor(uidA, uidB) {
-    return [uidA, uidB].sort().join("_");
-  }
-
-  document.getElementById("friend-dialog-btn").addEventListener("click", function () {
+  messageBtn.addEventListener("click", function () {
     if (!currentUser || !profileData) return;
     var otherName = (profileData.preferHandle && profileData.handle)
       ? profileData.handle : (profileData.name || profileData.handle || "Member");
-    var conversationId = conversationIdFor(currentUser.uid, uid);
-    var ref = AgoraDB.collection("conversations").doc(conversationId);
-
-    ref.get().then(function (doc) {
-      if (doc.exists) {
-        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
-        return;
-      }
-      C.getDisplayName(currentUser).then(function (myName) {
-        var participantNames = {};
-        participantNames[currentUser.uid] = myName;
-        participantNames[uid] = otherName;
-        var now = firebase.firestore.FieldValue.serverTimestamp();
-        return ref.set({
-          participants: [currentUser.uid, uid].sort(),
-          participantNames: participantNames,
-          lastMessage: "",
-          lastMessageAt: now,
-          createdAt: now,
-        });
-      }).then(function () {
-        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
-      });
+    C.startOrOpenDialog(currentUser, uid, otherName).then(function (conversationId) {
+      window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
     });
   });
 
@@ -655,6 +644,7 @@
 
     if (!doc || !doc.exists) {
       friendAddBtn.hidden = false;
+      updateMessageButtonVisibility();
       return;
     }
     var data = doc.data();
@@ -665,6 +655,7 @@
     } else {
       friendStatusReceived.hidden = false;
     }
+    updateMessageButtonVisibility();
   }
 
   function watchFriendship() {

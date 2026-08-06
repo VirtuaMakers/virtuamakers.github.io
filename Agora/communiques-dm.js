@@ -159,44 +159,44 @@
 
   C.attachPerManumButton(document.getElementById("dm-compose-per-manum"), document.getElementById("dm-compose-body"));
 
-  // --- Adding a friend / leaving -----------------------------------------
+  // --- Adding someone / leaving -------------------------------------------
   // A Dialog starts as exactly two people, same as before, but any current
-  // participant can grow it by adding one of their own friends at a time
-  // (firestore.rules requires the adder be friends with whoever they add -
-  // it does NOT grant the new person any read access they didn't already
-  // have, since every Dialog is already member-readable; it only lets them
-  // send messages and puts this Dialog in their own inbox). Leaving just
-  // removes your own uid - there's no way to remove anyone else.
+  // participant can grow it by adding another member at a time. Messaging
+  // is open by default (Chris, 2026-08-06) - firestore.rules allows adding
+  // anyone who hasn't opted into requireFriendToMessage, and falls back to
+  // requiring an accepted friendship for those who have. Adding someone
+  // does NOT grant them any read access they didn't already have, since
+  // every Dialog is already member-readable - it only lets them send
+  // messages and puts this Dialog in their own inbox. Leaving just removes
+  // your own uid - there's no way to remove anyone else.
 
   var participantsActions = document.getElementById("dm-participants-actions");
   var addFriendWrap = document.getElementById("dm-add-friend-wrap");
   var addFriendSearch = document.getElementById("dm-add-friend-search");
   var addFriendResults = document.getElementById("dm-add-friend-results");
   var leaveBtn = document.getElementById("dm-leave-btn");
+  var addableMembers = [];
+
+  // A modest cap on how many names render with an empty search box - the
+  // friends-only version of this list was naturally small, but "every
+  // member" isn't, once Agora has more than a couple dozen. Typing still
+  // searches the full set.
+  var EMPTY_SEARCH_LIMIT = 20;
 
   function loadFriends() {
-    AgoraDB.collection("friendships")
-      .where("participants", "array-contains", currentUser.uid)
-      .where("status", "==", "accepted")
-      .get()
-      .then(function (snap) { friendsCache = friendsFromDocs(snap.docs); })
-      .catch(function () {
-        // Composite index not provisioned yet - fall back to an
-        // unfiltered read and filter client-side rather than show nothing.
-        AgoraDB.collection("friendships")
-          .where("participants", "array-contains", currentUser.uid)
-          .get()
-          .then(function (snap) {
-            friendsCache = friendsFromDocs(snap.docs.filter(function (doc) { return doc.data().status === "accepted"; }));
-          });
+    C.fetchAcceptedFriendships(currentUser.uid).then(function (snap) {
+      friendsCache = snap.docs.map(function (doc) {
+        var data = doc.data();
+        var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
+        return { uid: otherUid, name: (data.participantNames && data.participantNames[otherUid]) || "Member" };
       });
+    });
   }
 
-  function friendsFromDocs(docs) {
-    return docs.map(function (doc) {
-      var data = doc.data();
-      var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
-      return { uid: otherUid, name: (data.participantNames && data.participantNames[otherUid]) || "Member" };
+  function loadAddableMembers() {
+    C.loadMessagableMembers(currentUser.uid).then(function (members) {
+      addableMembers = members;
+      if (isParticipant) renderAddFriendResults(addFriendSearch.value);
     });
   }
 
@@ -204,20 +204,22 @@
     if (!window.confirm("Add " + name + " to this Dialog? They'll be able to send messages here.")) return;
     var update = { participants: firebase.firestore.FieldValue.arrayUnion(uid), lastAddedUid: uid };
     update["participantNames." + uid] = name;
-    activeConversationRef.update(update);
+    activeConversationRef.update(update).catch(function (err) {
+      window.alert(err.message);
+    });
   }
 
   function renderAddFriendResults(query) {
     addFriendResults.textContent = "";
-    var q = query.trim().toLowerCase();
-    var candidates = friendsCache.filter(function (f) { return participants.indexOf(f.uid) === -1; });
-    var matches = q ? candidates.filter(function (f) { return f.name.toLowerCase().indexOf(q) !== -1; }) : candidates;
-    matches.forEach(function (f) {
+    var friendUids = friendsCache.map(function (f) { return f.uid; });
+    var matches = C.filterMessagable(addableMembers, friendUids, participants, query);
+    if (!query.trim()) matches = matches.slice(0, EMPTY_SEARCH_LIMIT);
+    matches.forEach(function (m) {
       var item = document.createElement("button");
       item.type = "button";
       item.className = "dm-item";
-      item.textContent = f.name;
-      item.addEventListener("click", function () { addParticipant(f.uid, f.name); });
+      item.textContent = m.name;
+      item.addEventListener("click", function () { addParticipant(m.uid, m.name); });
       addFriendResults.appendChild(item);
     });
   }
@@ -323,6 +325,7 @@
       return;
     }
     loadFriends();
+    loadAddableMembers();
     loadConversation();
   });
 })();

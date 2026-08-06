@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=71" />
+  <link rel="stylesheet" href="style.css?v=72" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -46,15 +46,18 @@
       <h2 class="section-title">Dialogs</h2>
       <p class="intro">Conversations (direct messages) between members –
         readable by any signed-in member (e.g. via Dialogs on a profile
-        page), but only its participants can send. New Dialogs start from
-        a friend's profile page now, not here – this is just a list of
-        the ones you already have.</p>
+        page), but only its participants can send.</p>
 
       <p class="body-text" id="dm-signed-out-notice">
         <a href="#" id="dm-signin-prompt">Sign in</a> to see your Dialogs.
       </p>
 
       <div id="dm-wrap" hidden>
+        <div id="new-message-wrap" class="search-picker">
+          <input type="text" id="new-message-search" class="friend-search-input" placeholder="New Message – search for someone…" autocomplete="off" />
+          <div class="dm-list" id="new-message-results"></div>
+        </div>
+
         <p class="intro" id="dm-loading">Loading messages…</p>
         <p class="intro" id="dm-empty" hidden>No conversations yet.</p>
         <div class="dm-list" id="dm-list"></div>
@@ -99,8 +102,8 @@
   <script src="auth-ui.js?v=15"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=5"></script>
-  <script src="communiques.js?v=5"></script>
+  <script src="communiques-common.js?v=6"></script>
+  <script src="communiques.js?v=6"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -38,6 +38,7 @@
   });
   var emailInput = document.getElementById("field-email");
   var emailVisible = document.getElementById("field-email-visible");
+  var requireFriendCheckbox = document.getElementById("field-require-friend");
   var tosInput = document.getElementById("field-tos");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
@@ -128,6 +129,7 @@
     });
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
+    requireFriendCheckbox.checked = !!data.requireFriendToMessage;
   }
 
   // A real calendar day-count per month, leap years included - JS's Date
@@ -385,6 +387,7 @@
       socialsFlagged: socialsFlagged,
       email: email,
       showEmail: emailVisible.checked,
+      requireFriendToMessage: requireFriendCheckbox.checked,
       status: existingDoc ? existingDoc.status : "active",
       tosAgreedAt: existingDoc && existingDoc.tosAgreedAt
         ? existingDoc.tosAgreedAt

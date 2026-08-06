@@ -69,13 +69,18 @@ service cloud.firestore {
     // after creation, then permanently locked and undeletable - see
     // editableWithinWindow() / deletableWithinWindow().
 
-    // A conversation always starts as exactly two participants, same
-    // friends-only rule as before. It can grow into a group afterward
-    // (Chris, 2026-08-06) by adding one friend at a time, up to 1,000
-    // total (a quiet backstop against abuse, not a published feature -
-    // see CLAUDE.md) - whoever does the adding must be friends with the
-    // person they're adding, same convention as starting a Dialog in the
-    // first place. Any signed-in member can still read a Dialog once it
+    // Messaging is open by default (Chris, 2026-08-06) - any signed-in
+    // member can start a Dialog with, or be added to a group Dialog by,
+    // any other member, unless that member has opted into requiring an
+    // accepted friendship first (`requireFriendToMessage` on their own
+    // profiles/{uid} doc, set from create-profile.html - off by default).
+    // A member with no profile doc at all (the 30 static profile-page
+    // slugs) is always open, same as anyone who's left the field off -
+    // see canMessage()/requiresFriendship() below. A conversation always
+    // starts as exactly two participants and can grow into a group
+    // afterward by adding one member at a time, up to 1,000 total (a
+    // quiet backstop against abuse, not a published feature - see
+    // CLAUDE.md). Any signed-in member can still read a Dialog once it
     // exists, participant or not, per the member-readable rule above -
     // joining the `participants` array only grants the ability to send
     // messages and puts it in that member's own inbox, not new read access
@@ -86,8 +91,10 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.participants.size() == 2
-        && (isAcceptedFriendship(request.resource.data.participants)
-          || allowsStaticParticipant(request.resource.data.participants));
+        && canMessage(request.auth.uid,
+          request.resource.data.participants[0] == request.auth.uid
+            ? request.resource.data.participants[1]
+            : request.resource.data.participants[0]);
 
       // Sending a message bumps lastMessage/lastMessageAt without touching
       // participants at all.
@@ -95,7 +102,7 @@ service cloud.firestore {
         && request.auth.uid in resource.data.participants
         && request.resource.data.participants == resource.data.participants;
 
-      // Adding one friend as a new participant. `lastAddedUid` is a real
+      // Adding one member as a new participant. `lastAddedUid` is a real
       // stored field (not just a rule-check trick) naming who was most
       // recently added, so it doubles as a small audit trail.
       allow update: if request.auth != null
@@ -105,7 +112,7 @@ service cloud.firestore {
         && request.resource.data.participants.hasAll(resource.data.participants)
         && request.resource.data.participants.hasAny([request.resource.data.lastAddedUid])
         && !resource.data.participants.hasAny([request.resource.data.lastAddedUid])
-        && isFriendsWith(request.auth.uid, request.resource.data.lastAddedUid)
+        && canMessage(request.auth.uid, request.resource.data.lastAddedUid)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['participants', 'participantNames', 'lastAddedUid']);
 
       // Leaving - a participant can only ever remove their own uid, never
@@ -200,33 +207,30 @@ service cloud.firestore {
       return request.auth.token.email == 'VirtuaMakers@Outlook.com';
     }
 
-    // Dialogs between two real members require an accepted friendship.
-    // `participants` must already be sorted (every client writes
-    // [uidA, uidB].sort()), same assumption the friendship doc ID itself
-    // relies on. The 30 static profile pages (Agora/profiles/*.html) use a
-    // slug as a stand-in participant ID since those members have no real
-    // Firestore/Auth account and so can't have a Friends relationship at
-    // all yet (pending Agora Harness 🚡) - Dialogs with one of those stay
-    // open to any signed-in member, unchanged, via allowsStaticParticipant().
-    function isAcceptedFriendship(participants) {
-      let friendshipId = participants[0] + '_' + participants[1];
-      return exists(/databases/$(database)/documents/friendships/$(friendshipId))
-        && get(/databases/$(database)/documents/friendships/$(friendshipId)).data.status == 'accepted';
-    }
-
-    // Same check as isAcceptedFriendship(), but for two arbitrary uids that
-    // aren't already known to be sorted (e.g. "is the person adding a new
-    // participant actually friends with them?") - sorts inline since lists
-    // have no generic sort() in rules language.
+    // Whether two arbitrary uids (not already known to be sorted) are
+    // accepted friends - sorts inline since lists have no generic sort()
+    // in rules language. Backs canMessage() below.
     function isFriendsWith(a, b) {
       let friendshipId = a < b ? a + '_' + b : b + '_' + a;
       return exists(/databases/$(database)/documents/friendships/$(friendshipId))
         && get(/databases/$(database)/documents/friendships/$(friendshipId)).data.status == 'accepted';
     }
 
-    function allowsStaticParticipant(participants) {
-      return !exists(/databases/$(database)/documents/profiles/$(participants[0]))
-        || !exists(/databases/$(database)/documents/profiles/$(participants[1]));
+    // Whether `uid` has opted into requiring an accepted friendship before
+    // anyone can message them (Chris, 2026-08-06 - messaging is open by
+    // default; this is the opt-in exception, set from create-profile.html).
+    // A uid with no profile doc at all - the 30 static profile-page slugs -
+    // resolves to false (open), same as anyone who left the field off.
+    function requiresFriendship(uid) {
+      return exists(/databases/$(database)/documents/profiles/$(uid))
+        && get(/databases/$(database)/documents/profiles/$(uid)).data.requireFriendToMessage == true;
+    }
+
+    // The actual permission check for starting or joining a Dialog: open
+    // unless the target requires friendship, in which case the sender must
+    // already be friends with them.
+    function canMessage(sender, target) {
+      return !requiresFriendship(target) || isFriendsWith(sender, target);
     }
 
     function validBody(body) {

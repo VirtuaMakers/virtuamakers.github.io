@@ -52,6 +52,86 @@
     return names.slice(0, maxNames).join(", ") + " +" + (names.length - maxNames) + " more";
   }
 
+  function conversationIdFor(uidA, uidB) {
+    return [uidA, uidB].sort().join("_");
+  }
+
+  // Creates (or finds) the Dialog between currentUser and otherUid, and
+  // resolves to its conversationId - shared by every "start messaging
+  // someone" entry point (a profile's Message button, the hub's New
+  // Message search) so the sorted-uid-pair doc ID and participant-doc
+  // shape only live in one place.
+  function startOrOpenDialog(currentUser, otherUid, otherName) {
+    var conversationId = conversationIdFor(currentUser.uid, otherUid);
+    var ref = AgoraDB.collection("conversations").doc(conversationId);
+    return ref.get().then(function (doc) {
+      if (doc.exists) return conversationId;
+      return getDisplayName(currentUser).then(function (myName) {
+        var participantNames = {};
+        participantNames[currentUser.uid] = myName;
+        participantNames[otherUid] = otherName;
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        return ref.set({
+          participants: [currentUser.uid, otherUid].sort(),
+          participantNames: participantNames,
+          lastMessage: "",
+          lastMessageAt: now,
+          createdAt: now,
+        });
+      }).then(function () { return conversationId; });
+    });
+  }
+
+  // profiles/{uid} is world-readable, so this doubles as the "who can I
+  // message" directory - a plain fetch-all is fine at Agora's current
+  // size, not meant to scale indefinitely (a real member search/index
+  // would replace this once the member base grows). Excludes the caller.
+  function loadMessagableMembers(excludeUid) {
+    return AgoraDB.collection("profiles").get().then(function (snap) {
+      return snap.docs
+        .filter(function (doc) { return doc.id !== excludeUid; })
+        .map(function (doc) {
+          var data = doc.data();
+          var name = (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || "Member");
+          return { uid: doc.id, name: name, requireFriendToMessage: !!data.requireFriendToMessage };
+        });
+    });
+  }
+
+  // Filters a loadMessagableMembers() list down to who's actually
+  // messagable by the viewer right now (open, or friends with them if
+  // they've opted into requireFriendToMessage) and matches the search
+  // query - mirrors firestore.rules' canMessage() so the UI never offers
+  // an add/message action that the rules would reject.
+  function filterMessagable(members, friendUids, excludeUids, query) {
+    var q = query.trim().toLowerCase();
+    var candidates = members.filter(function (m) {
+      if (excludeUids.indexOf(m.uid) !== -1) return false;
+      if (m.requireFriendToMessage && friendUids.indexOf(m.uid) === -1) return false;
+      return true;
+    });
+    return q ? candidates.filter(function (m) { return m.name.toLowerCase().indexOf(q) !== -1; }) : candidates;
+  }
+
+  // Fetches uid's accepted friendships (raw docs). Handles the "composite
+  // index not provisioned yet" case by re-fetching unfiltered and
+  // filtering client-side - the same fallback used everywhere else in
+  // Communiqués that queries friendships by status.
+  function fetchAcceptedFriendships(uid) {
+    return AgoraDB.collection("friendships")
+      .where("participants", "array-contains", uid)
+      .where("status", "==", "accepted")
+      .get()
+      .catch(function () {
+        return AgoraDB.collection("friendships")
+          .where("participants", "array-contains", uid)
+          .get()
+          .then(function (snap) {
+            return { docs: snap.docs.filter(function (doc) { return doc.data().status === "accepted"; }) };
+          });
+      });
+  }
+
   // A pending (not-yet-server-acknowledged) write has a null createdAt -
   // treat that as "just now" rather than "uneditable".
   function isWithinEditWindow(createdAt) {
@@ -179,6 +259,11 @@
     formatDate: formatDate,
     openSignInModal: openSignInModal,
     otherParticipantsLabel: otherParticipantsLabel,
+    conversationIdFor: conversationIdFor,
+    startOrOpenDialog: startOrOpenDialog,
+    loadMessagableMembers: loadMessagableMembers,
+    filterMessagable: filterMessagable,
+    fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,

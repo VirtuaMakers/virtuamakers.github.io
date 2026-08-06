@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=71" />
+  <link rel="stylesheet" href="style.css?v=72" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -72,6 +72,7 @@
           </div>
 
           <div class="friend-actions" id="friend-actions" hidden>
+            <button type="button" class="btn btn-primary" id="message-btn" hidden>Message</button>
             <button type="button" class="btn btn-primary" id="friend-add-btn" hidden>Add Friend</button>
             <span class="form-status" id="friend-status-sent" hidden>Friend request sent</span>
             <span id="friend-status-received" hidden>
@@ -81,7 +82,6 @@
             </span>
             <span id="friend-status-accepted" hidden>
               ✓ Friends –
-              <button type="button" class="btn btn-primary" id="friend-dialog-btn">Dialog</button>
               <button type="button" class="btn" id="friend-remove-btn">Remove Friend</button>
             </span>
           </div>
@@ -244,8 +244,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=5"></script>
-  <script src="member.js?v=17"></script>
+  <script src="communiques-common.js?v=6"></script>
+  <script src="member.js?v=18"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

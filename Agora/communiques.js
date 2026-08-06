@@ -1,15 +1,65 @@
 // Drives communiques.html: the Dialogs inbox (read-only list of Dialogs
-// you already have - new ones start from a friend's profile page now, per
-// firestore.rules' friendship requirement). Requires firebase-config.js,
-// auth.js, and communiques-common.js to run first.
+// you already have) plus a New Message search to start one with anyone -
+// messaging is open by default, per firestore.rules' canMessage() (see
+// CLAUDE.md), except for members who've opted into requiring an accepted
+// friendship first. Requires firebase-config.js, auth.js, and
+// communiques-common.js to run first.
 
 (function () {
   var C = CommuniquesCommon;
   var currentUser = null;
+  var friendsCache = [];
+  var messagableMembers = [];
 
   document.getElementById("dm-signin-prompt").addEventListener("click", function (e) {
     e.preventDefault();
     C.openSignInModal();
+  });
+
+  // --- New Message -----------------------------------------------------
+
+  var newMessageSearch = document.getElementById("new-message-search");
+  var newMessageResults = document.getElementById("new-message-results");
+  var NEW_MESSAGE_EMPTY_LIMIT = 20;
+
+  function loadFriends() {
+    C.fetchAcceptedFriendships(currentUser.uid).then(function (snap) {
+      friendsCache = snap.docs.map(function (doc) {
+        var data = doc.data();
+        var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
+        return { uid: otherUid };
+      });
+    });
+  }
+
+  function loadMessagableMembers() {
+    C.loadMessagableMembers(currentUser.uid).then(function (members) {
+      messagableMembers = members;
+      renderNewMessageResults(newMessageSearch.value);
+    });
+  }
+
+  function renderNewMessageResults(query) {
+    newMessageResults.textContent = "";
+    var friendUids = friendsCache.map(function (f) { return f.uid; });
+    var matches = C.filterMessagable(messagableMembers, friendUids, [], query);
+    if (!query.trim()) matches = matches.slice(0, NEW_MESSAGE_EMPTY_LIMIT);
+    matches.forEach(function (m) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "dm-item";
+      item.textContent = m.name;
+      item.addEventListener("click", function () {
+        C.startOrOpenDialog(currentUser, m.uid, m.name).then(function (conversationId) {
+          window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+        });
+      });
+      newMessageResults.appendChild(item);
+    });
+  }
+
+  newMessageSearch.addEventListener("input", function () {
+    renderNewMessageResults(newMessageSearch.value);
   });
 
   // --- Dialogs -------------------------------------------------------
@@ -74,6 +124,8 @@
     document.getElementById("dm-wrap").hidden = signedOut;
 
     if (user) {
+      loadFriends();
+      loadMessagableMembers();
       loadConversations();
     }
   });

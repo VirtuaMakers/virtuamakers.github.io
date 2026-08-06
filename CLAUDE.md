@@ -694,51 +694,36 @@ not as the primary label).
   static page's Dialogs list. Not worth solving until these pages get a
   real migration path (see "Agora — News section" below).
 - **Dialogs can grow into groups (Chris, 2026-08-06).** A Dialog still
-  always *starts* as exactly two people, same friends-only rule and same
-  sorted-UID-pair doc ID as before - nothing changed about creation. From
-  there, any current participant can add one of their own friends at a
-  time, up to a cap of 1,000 total. **The cap is deliberately
-  unpublicized** - nowhere on the site states the number 1,000; Chris
-  wants it discoverable, not advertised, framed around "big, fat Indian
-  weddings" as the real-world upper bound worth covering (average Indian
-  wedding guest counts run 285-330; 1,000 comfortably clears that with
-  room to spare). `communiques-dm.js`'s `dm-add-friend-wrap` just silently
-  hides once a Dialog hits the cap - no message explaining why.
-  - **Why the friendship-gate survives even though it's not really
-    protecting anyone's inbox:** Chris's framing, verbatim in spirit - the
-    normal social-media convention of "you choose who can message you"
-    exists to stop a sender from trapping you in an unwanted exchange, but
-    that's not what's happening here, since every Dialog is already
-    member-readable by anyone signed in, participant or not (see the
-    visibility model above). Declining to be added doesn't protect you
-    from exposure - the content is exactly as public either way - it only
-    decides whether *you personally* engage with a public record that
-    exists regardless. Chris found that distinction "unexpected" and
-    explicitly chose to keep the friendship requirement anyway, on that
-    reasoning rather than a privacy one. Practically: adding someone only
-    grants them the ability to send messages and puts the Dialog in their
-    own inbox - it grants no read access they didn't already have.
-  - **firestore.rules mechanics:** `create` is untouched (still exactly 2).
-    A new `isFriendsWith(a, b)` helper (a pairwise version of the existing
-    `isAcceptedFriendship()`, since rules have no generic list `.sort()`)
-    backs a new "add" `allow update` branch requiring the requester already
-    be a participant, the resulting `participants` list be the old one
-    plus exactly one new uid (checked via `hasAll()` + a size diff of
-    exactly +1), that new uid stored as `lastAddedUid` (a real field, not
-    just a rule-check trick - doubles as a small audit trail of who added
-    whom most recently), and `isFriendsWith(requester, lastAddedUid)`. A
-    separate "leave" branch allows a participant to remove *only their own*
-    uid (size diff of exactly -1, old list `hasAll()` the new one) - there
-    is no "kick" capability; only self-removal exists. If a Dialog empties
-    out entirely, it's left as a readable relic rather than deleted, same
-    as an orphaned Wall post's comments elsewhere in Communiqués.
+  always *starts* as exactly two people, same sorted-UID-pair doc ID as
+  before - nothing changed about creation's shape. From there, any current
+  participant can add another member at a time, up to a cap of 1,000
+  total. **The cap is deliberately unpublicized** - nowhere on the site
+  states the number 1,000; Chris wants it discoverable, not advertised,
+  framed around "big, fat Indian weddings" as the real-world upper bound
+  worth covering (average Indian wedding guest counts run 285-330; 1,000
+  comfortably clears that with room to spare). `communiques-dm.js`'s
+  `dm-add-friend-wrap` just silently hides once a Dialog hits the cap - no
+  message explaining why.
+  - **`firestore.rules` mechanics:** a new "add" `allow update` branch
+    requires the requester already be a participant, the resulting
+    `participants` list be the old one plus exactly one new uid (checked
+    via `hasAll()` + a size diff of exactly +1), that new uid stored as
+    `lastAddedUid` (a real field, not just a rule-check trick - doubles as
+    a small audit trail of who added whom most recently), and
+    `canMessage(requester, lastAddedUid)` - see "Messaging is open by
+    default" below for what that actually checks. A separate "leave"
+    branch allows a participant to remove *only their own* uid (size diff
+    of exactly -1, old list `hasAll()` the new one) - there is no "kick"
+    capability; only self-removal exists. If a Dialog empties out
+    entirely, it's left as a readable relic rather than deleted, same as
+    an orphaned Wall post's comments elsewhere in Communiqués.
   - **`communiques-dm.html`/`.js` UI:** a `#dm-participants-actions` row
-    (add-friend search over the viewer's own `friendsCache`, filtered to
-    exclude existing participants, plus a "Leave Dialog" button) shows
+    (add-someone search over every member the viewer can message, filtered
+    to exclude existing participants, plus a "Leave Dialog" button) shows
     only to current participants. Adding someone requires a
     `window.confirm()` first, since there's no undo for the adder (only
     the added person can remove themselves). The conversation doc itself
-    is now watched with `onSnapshot` instead of a one-time `get()`, so the
+    is watched with `onSnapshot` instead of a one-time `get()`, so the
     header and participant list update live as people are added or leave.
   - **Message bubbles now show a sender-name label** (`.message-sender`,
     new CSS) on every non-own message, since "own vs. other" bubble sides
@@ -755,6 +740,85 @@ not as the primary label).
     ID-only CSS selector, so the same input styling is shared between
     `member.html`'s existing friend search and the new add-friend search on
     `communiques-dm.html` without duplicating the rule.
+
+## Messaging is open by default (Chris, 2026-08-06)
+
+Reverses the friends-only rule from the same day, a few hours later.
+Chris's reasoning: the normal social-media convention of "you choose who
+can message you" exists to stop a sender from trapping someone in an
+unwanted exchange - but that was never actually true here, since every
+Dialog is already member-readable by anyone signed in, participant or not
+(see the visibility model above). Declining to be messaged never protected
+anyone from exposure - the content is exactly as public either way - it
+only ever decided whether *that person personally* engaged with a public
+record that existed regardless. Given that, Chris flipped the actual
+default open (closer to how normal messaging works, and explicitly
+contrasted with LinkedIn's pay-to-message-strangers model, which he
+dislikes on principle) and kept friendship-gating only as an opt-out for
+members who want the old behavior for themselves.
+
+- **`requireFriendToMessage`** - new boolean field on `profiles/{uid}`,
+  off by default, set via a checkbox on `create-profile.html` ("Require
+  Friendship to Message Me?"). A profile with no doc at all (the 30 static
+  profile-page slugs) also resolves to open, same as anyone who left the
+  field off.
+- **`firestore.rules`:** `isAcceptedFriendship()` and
+  `allowsStaticParticipant()` were retired as dead code - both are fully
+  subsumed by the new `requiresFriendship(uid)` (reads the target's
+  `requireFriendToMessage`, false if the doc doesn't exist) and
+  `canMessage(sender, target)` (`!requiresFriendship(target) ||
+  isFriendsWith(sender, target)`). `isFriendsWith(a, b)` (added earlier the
+  same day for group-adds) is the one survivor, now backing `canMessage`
+  instead of a hard requirement. Both `create` and the "add a participant"
+  branch call `canMessage` instead of unconditionally requiring friendship.
+- **`member.html`'s Message button:** a new always-relevant `#message-btn`
+  in `.friend-actions`, independent of friendship state - the old
+  `#friend-dialog-btn` (only shown once `✓ Friends`) is gone, since it's
+  now redundant. `member.js`'s `updateMessageButtonVisibility()` hides it
+  only when the profile being viewed requires friendship and the viewer
+  isn't an accepted friend; it's called from both the friendship listener
+  and the profile-load callback, since either can resolve first.
+- **`member.html`'s Dialogs section is unchanged on purpose** - it's a
+  friends-only quick-access convenience (search your own friends, click
+  through to their profile), not the only way to message someone anymore.
+  It stays hidden with zero friends, same as before; the Message button
+  above and the hub's New Message search (below) are the actual "message
+  anyone" entry points now.
+- **`communiques.html`'s "New Message" search is back** - the CLAUDE.md
+  history above notes this exact feature ("searched *all* members") was
+  removed in the friends-only redesign because it would have silently
+  failed against that rule. Now that messaging is open by default, it no
+  longer would, so it's rebuilt (`#new-message-wrap`, a
+  `.friend-search-input` over every messagable member, capped at 20 shown
+  with an empty query) rather than left gone.
+- **Facebook-style add-to-conversation, generalized (Chris, 2026-08-06):**
+  the group-Dialog add-participant search (built a few hours earlier,
+  same-day) originally searched only the viewer's friends; now it searches
+  every messagable member, matching the same open-by-default rule as
+  starting a new Dialog.
+- **New shared helpers in `communiques-common.js`**, since this logic now
+  has three call sites (member.js's Message button, communiques-dm.js's
+  add-participant search, communiques.js's New Message search):
+  - `conversationIdFor`/`startOrOpenDialog(currentUser, otherUid,
+    otherName)` - the sorted-uid-pair doc ID and the
+    create-or-open-then-return-the-id logic, previously duplicated in
+    `member.js` and about to be duplicated a second time.
+  - `loadMessagableMembers(excludeUid)` - fetches all of `profiles`
+    (already world-readable) annotated with `requireFriendToMessage`, the
+    client-side "who can I message" directory. **Explicitly not meant to
+    scale indefinitely** - a plain fetch-all is fine at Agora's current
+    size; a real member search/index (e.g. Algolia) would replace this
+    once the member base grows, the same kind of "small member base for
+    now" tradeoff already made for the location map's free geocoding API.
+  - `filterMessagable(members, friendUids, excludeUids, query)` - mirrors
+    `canMessage()` client-side so the UI never offers an add/message
+    action the rules would reject, plus the search-query filter.
+  - `fetchAcceptedFriendships(uid)` - the query + "composite index not
+    provisioned yet" fallback, previously duplicated across `member.js`,
+    `communiques-dm.js`, and now `communiques.js`. `member.js`'s own
+    `loadFriendsList()` was left as its own richer, UI-coupled function
+    rather than migrated to this helper, to avoid touching a
+    already-shipped, unrelated Friends-list code path in the same pass.
 
 ## Agora — News section (under Pursuit of Justice)
 
