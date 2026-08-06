@@ -1080,6 +1080,13 @@ a.card.feature {
   border: 1px solid var(--line);
 }
 
+#member-location-map-hint {
+  width: min(320px, 100%);
+  margin: 0.3rem auto 0;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
 .location-map-dot {
   position: absolute;
   width: 10px;
