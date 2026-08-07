@@ -929,6 +929,67 @@ leads with news/rights content.
   Christopher, Alice, etc.) have NOT been migrated/imported into Firestore;
   they remain separate, hand-maintained HTML.
 
+## Transactional email (in progress, Chris, 2026-08-06)
+
+Three one-time/triggered emails, separate from the still-future monthly
+newsletter: a Welcome letter (sent once, on account creation), a "Sorry to
+See You Leave" farewell (sent on self-deletion via `leave-agora.html`), and
+a suspension notice (sent when an admin suspends a profile). Templates are
+built and live in `Agora/emails/` (`welcome-email.html`, `farewell-email.html`,
+`ban-notice-email.html`) - standalone HTML files, not linked from the site
+nav, not yet wired to anything that actually sends them.
+
+- **Delivery mechanism decided: Cloud Functions + Resend**, not yet built.
+  Agora has no email-sending infrastructure today (just Auth + Firestore on
+  the free Spark plan) - sending automatically on account
+  creation/deletion/suspension needs server-side code reacting to those
+  Firestore/Auth events, which means Cloud Functions, which means the
+  Blaze (pay-as-you-go) plan. Chris is upgrading to Blaze himself
+  (2026-08-06) since it's also the same prerequisite already blocking
+  Firebase Storage and the `adminBanUser`/`adminDeleteUser` cleanup
+  functions noted elsewhere in this file - one upgrade unlocks all three.
+- **Resend chosen over Mailchimp** for the email service itself, since
+  Chris also wants a monthly newsletter (see below) and asked for one
+  recommendation covering both. Reasoning: Resend does transactional
+  (a Cloud Function calls its API directly) and newsletter "Broadcasts"
+  on one account/one bill, with a free tier (3,000 emails/month) generous
+  enough that Agora's current size shouldn't need to pay at all - which
+  matters given Chris explicitly wants a graceful "runs out of money and
+  quietly pauses, not breaks" failure mode this month. The tradeoff:
+  Resend's broadcast composing is code/template-driven, not a drag-and-drop
+  visual editor - a real downside only if Chris ever wants to compose an
+  issue himself without going through Claude, which he didn't ask for.
+  Mailchimp would've been the better fit for that specific workflow, but
+  splits transactional (a separate paid Mandrill add-on) and newsletter
+  (Mailchimp itself) into two accounts/two bills instead of one.
+- **Blocked on:** Chris completing both the Blaze upgrade and a Resend
+  signup (API key). Once both exist, the next step is a Cloud Function
+  triggered on new profile creation (Welcome), `leave-agora.html`'s delete
+  flow (farewell), and the admin suspend action (ban notice) - each
+  calling Resend's API with the matching template from `Agora/emails/`.
+
+## "Little updates" cadence (Chris's standing product philosophy, 2026-08-06)
+
+Chris's explicit reasoning, prompted by a complaint about Facebook barely
+changing for years at a time (e.g. the same ~20 post-background styles for
+five years before a batch of 10 more finally showed up, then got quietly
+pulled again): **whenever a feature can be shipped in a held-back,
+periodically-topped-up way instead of all at once, do that instead.** His
+read is that this measurably helps retention/engagement - a site or product
+that visibly gets small new things every month or season gives people a
+reason to come back and check, the same instinct behind the monthly
+newsletter and the monthly VirtuaMakers Gallery 🖼️ feature.
+- **Concrete example given (voice filters, tied to the not-yet-built
+  Verbalization Harness 🗣️ idea noted earlier in this file):** Chris's own
+  illustration of the principle - launch with roughly half of a planned
+  set (e.g. 5 of 10 designed filters), then release the rest one at a time
+  on an ongoing cadence rather than shipping all 10 at once and having
+  nothing new to announce afterward.
+- **Apply this lens generally** to any future feature that naturally comes
+  in a batch (filters, themes, badges, card sets, etc.) - default to a
+  staggered rollout over time rather than a single complete launch, unless
+  there's a real reason the whole batch needs to ship together.
+
 ## Machineopology 🤖 (Chris, 2026-08-05)
 
 A new Pursuit of Justice ⚖️ subsection (`Agora/index.html`, `id="machineopology"`,
