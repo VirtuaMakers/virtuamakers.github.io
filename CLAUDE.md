@@ -931,13 +931,17 @@ leads with news/rights content.
 
 ## Transactional email (in progress, Chris, 2026-08-06)
 
-Three one-time/triggered emails, separate from the still-future monthly
+Four one-time/triggered emails, separate from the still-future monthly
 newsletter: a Welcome letter (sent once, on account creation), a "Sorry to
-See You Leave" farewell (sent on self-deletion via `leave-agora.html`), and
-a suspension notice (sent when an admin suspends a profile). Templates are
-built and live in `Agora/emails/` (`welcome-email.html`, `farewell-email.html`,
-`ban-notice-email.html`) - standalone HTML files, not linked from the site
-nav, not yet wired to anything that actually sends them.
+See You Leave" farewell (sent on self-deletion via `leave-agora.html`), a
+suspension notice (sent when an admin suspends a profile - temporary,
+reversible), and a permanent-deletion notice (sent when an admin deletes a
+profile outright - final, not reversible, distinct in tone from both the
+farewell letter (the member's own choice, warm) and the suspension notice
+(temporary)). Templates are built and live in `Agora/emails/`
+(`welcome-email.html`, `farewell-email.html`, `ban-notice-email.html`,
+`deletion-notice-email.html`) - standalone HTML files, not linked from the
+site nav, not yet wired to anything that actually sends them.
 
 - **Delivery mechanism decided: Cloud Functions + Resend**, not yet built.
   Agora has no email-sending infrastructure today (just Auth + Firestore on
@@ -962,11 +966,26 @@ nav, not yet wired to anything that actually sends them.
   Mailchimp would've been the better fit for that specific workflow, but
   splits transactional (a separate paid Mandrill add-on) and newsletter
   (Mailchimp itself) into two accounts/two bills instead of one.
-- **Blocked on:** Chris completing both the Blaze upgrade and a Resend
-  signup (API key). Once both exist, the next step is a Cloud Function
-  triggered on new profile creation (Welcome), `leave-agora.html`'s delete
-  flow (farewell), and the admin suspend action (ban notice) - each
-  calling Resend's API with the matching template from `Agora/emails/`.
+- **Signed up for Resend via GitHub (2026-08-07).** Chris's own rule of
+  thumb ("if you can sign up with GitHub, you probably should") applied
+  cleanly here since Resend's whole audience is developers.
+- **Real blocker surfaced 2026-08-07: no custom domain.** Resend (like any
+  transactional email provider) requires verifying a domain via DNS before
+  it can send real mail - VirtuaMakers doesn't own one today, only
+  `virtuamakers.github.io` (GitHub's domain, no DNS access) and the
+  `VirtuaMakers@Outlook.com` contact address (Microsoft's domain, same
+  problem). An API key alone doesn't unblock sending to real members -
+  Resend's sandbox sender (`onboarding@resend.dev`) only delivers to the
+  account owner's own address, not to actual signups. **Buying a real
+  domain (e.g. `virtuamakers.com` and/or `agora.com`, already floated
+  elsewhere in this file as Agora's eventual standalone home) is now the
+  actual next blocking step**, ahead of the Cloud Function work itself.
+- **Blocked on:** Chris buying a domain and completing the Blaze upgrade.
+  Once both exist, the next step is a Cloud Function triggered on new
+  profile creation (Welcome), `leave-agora.html`'s delete flow (farewell),
+  the admin suspend action (ban notice), and the admin delete action
+  (deletion notice) - each calling Resend's API with the matching template
+  from `Agora/emails/`.
 
 ## "Little updates" cadence (Chris's standing product philosophy, 2026-08-06)
 
