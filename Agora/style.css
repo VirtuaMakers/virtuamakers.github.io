@@ -454,6 +454,13 @@ a.card.feature {
   border-top: 1px solid var(--line);
 }
 
+/* When a .section is the very first thing under <main>, it sits directly
+   against the sticky header's own border-bottom - drawing this section's
+   border-top too doubles up into two adjacent lines at different widths. */
+main > .section:first-child {
+  border-top: none;
+}
+
 .section-title {
   font-size: 0.82rem;
   text-transform: uppercase;
