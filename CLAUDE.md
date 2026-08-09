@@ -980,12 +980,56 @@ site nav, not yet wired to anything that actually sends them.
   domain (e.g. `virtuamakers.com` and/or `agora.com`, already floated
   elsewhere in this file as Agora's eventual standalone home) is now the
   actual next blocking step**, ahead of the Cloud Function work itself.
-- **Blocked on:** Chris buying a domain and completing the Blaze upgrade.
-  Once both exist, the next step is a Cloud Function triggered on new
-  profile creation (Welcome), `leave-agora.html`'s delete flow (farewell),
-  the admin suspend action (ban notice), and the admin delete action
-  (deletion notice) - each calling Resend's API with the matching template
-  from `Agora/emails/`.
+- **Domain bought and fully wired up (2026-08-07/08, same overnight
+  session).** Chris bought `virtuamakers.com` at Porkbun (~$11/yr, no
+  hosting add-on needed - domain registration and web hosting are separate
+  purchases, and the site keeps living on free GitHub Pages regardless of
+  which domain points at it). DNS set up in Porkbun's panel: the
+  auto-created `ALIAS` record (root → Porkbun's own parking page) repointed
+  to `virtuamakers.github.io`, the wildcard `CNAME` narrowed to a `www`
+  record pointing the same place, plus new records for Resend's DKIM/SPF/
+  DMARC and a Google Search Console domain-ownership TXT record. A `CNAME`
+  file was added to the repo root for GitHub Pages' custom-domain feature.
+  Domain ownership verified in Google Search Console (Domain-type property,
+  one TXT record) - this was also a prerequisite for the OAuth branding
+  verification below. **`www.virtuamakers.com` ended up the canonical
+  domain** (not bare `virtuamakers.com` as first set up) - a same-night
+  follow-up migration point at all canonical URLs/meta tags/schema.org JSON
+  to the `www` form and updated the repo's `CNAME` file to match; see git
+  history for the full file list touched.
+- **Two separate Google/Firebase sign-in issues surfaced once the domain
+  went live, easy to conflate but fixed in two different consoles:**
+  1. **OAuth branding ("Sign in to [ugly project ID]" instead of "Sign in
+     to Agora")** - cosmetic only, fixed via Google Cloud Console's
+     **Google Auth Platform → Branding** page (this is the modern
+     replacement UI for the old "OAuth consent screen"). Needed: App name
+     already said "Agora" correctly, but Google's branding-verification
+     crawler still flagged "home page doesn't explain purpose" and "app
+     name doesn't match home page" - turned out the homepage's actual
+     visible `<h1>` never said "Agora" (only the styled/split-span header
+     logo did), even though `<title>`/OG tags already did. Fixed by
+     prepending "Agora 🌐" onto the H1 itself
+     (`Agora/index.html`/`style.css` - see the `.hero-tagline` span, added
+     same night, which also shrinks just the tagline portion to `0.5em` so
+     the whole heading still fits on one line in mobile landscape).
+     Branding verified successfully after that + the Search Console
+     domain-ownership fix above.
+  2. **`auth/unauthorized-domain` error blocking Google/X sign-in
+     entirely** on the new domain - a real functional blocker, not
+     cosmetic, and easy to mistake for the same issue as #1 since both
+     surfaced around the same time. Fixed in a *third*, different console:
+     **Firebase Console → Authentication → Settings → Authorized
+     domains** (not the Google Cloud "Authorized domains" field on the
+     Branding page, which does *not* share the same underlying list -
+     adding a domain there did not fix this error, confirmed by testing).
+     Both `virtuamakers.com` and `www.virtuamakers.com` needed adding as
+     separate Custom entries here specifically.
+- **Blocked on:** just the Blaze upgrade now - the domain half of the
+  blocker is fully resolved. Once Blaze is active, the next step is a
+  Cloud Function triggered on new profile creation (Welcome),
+  `leave-agora.html`'s delete flow (farewell), the admin suspend action
+  (ban notice), and the admin delete action (deletion notice) - each
+  calling Resend's API with the matching template from `Agora/emails/`.
 
 ## "Little updates" cadence (Chris's standing product philosophy, 2026-08-06)
 
