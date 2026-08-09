@@ -456,12 +456,28 @@
     });
   });
 
+  function deleteCurrentUserWithReauth() {
+    return currentUser.delete().catch(function (err) {
+      if (err.code !== "auth/requires-recent-login") throw err;
+      var providerId = currentUser.providerData[0] && currentUser.providerData[0].providerId;
+      var provider = providerId === "google.com" ? agoraGoogleProvider
+        : providerId === "twitter.com" ? agoraTwitterProvider
+        : null;
+      if (!provider) {
+        throw new Error("For security, please sign out and sign back in, then try again right away.");
+      }
+      return currentUser.reauthenticateWithPopup(provider).then(function () {
+        return currentUser.delete();
+      });
+    });
+  }
+
   cancelSignupLink.addEventListener("click", function (e) {
     e.preventDefault();
     if (!currentUser || existingDoc) return;
     if (!window.confirm("Cancel and delete this account? You can always sign up again later.")) return;
 
-    currentUser.delete().then(function () {
+    deleteCurrentUserWithReauth().then(function () {
       window.location.href = "index.html";
     }).catch(function (err) {
       window.alert("Something went wrong: " + err.message);

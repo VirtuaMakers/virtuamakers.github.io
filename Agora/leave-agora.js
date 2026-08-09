@@ -16,6 +16,22 @@
     content.hidden = !user;
   });
 
+  function deleteUserWithReauth(user) {
+    return user.delete().catch(function (err) {
+      if (err.code !== "auth/requires-recent-login") throw err;
+      var providerId = user.providerData[0] && user.providerData[0].providerId;
+      var provider = providerId === "google.com" ? agoraGoogleProvider
+        : providerId === "twitter.com" ? agoraTwitterProvider
+        : null;
+      if (!provider) {
+        throw new Error("For security, please sign out and sign back in, then try leaving again right away.");
+      }
+      return user.reauthenticateWithPopup(provider).then(function () {
+        return user.delete();
+      });
+    });
+  }
+
   leaveBtn.addEventListener("click", function () {
     var user = currentUser;
     if (!user) return;
@@ -24,18 +40,14 @@
     statusEl.hidden = false;
 
     AgoraDB.collection("profiles").doc(user.uid).delete()
-      .then(function () { return user.delete(); })
+      .then(function () { return deleteUserWithReauth(user); })
       .then(function () {
         window.location.href = "index.html";
       })
       .catch(function (err) {
         leaveBtn.disabled = false;
         statusEl.hidden = true;
-        if (err.code === "auth/requires-recent-login") {
-          window.alert("For security, please sign out and sign back in, then try leaving again right away.");
-        } else {
-          window.alert("Something went wrong: " + err.message);
-        }
+        window.alert("Something went wrong: " + err.message);
       });
   });
 })();
