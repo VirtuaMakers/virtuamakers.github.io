@@ -1233,10 +1233,18 @@ in the same spirit as the "little updates" philosophy above.
   existing `otherParticipantsLabel` helper), a text preview, and an inline
   reply box that sends without navigating away. Clicking the toast body
   (or the header) opens the full Dialog; a plain × dismisses it without
-  opening anything. A short synthesized two-note chime
-  (`assets/dialog-chime.wav`, C6→E6, same "procedural WAV" approach as the
-  site's startup sounds) plays alongside it. Most-recent-wins - only one
-  toast at a time, no stacking, matching the "scoped down" framing.
+  opening anything. A short synthesized chime
+  (`assets/dialog-chime3.wav`, same "procedural WAV" approach as the
+  site's startup sounds) plays alongside it - went through a couple of
+  rounds with Chris: a two-note bell (C6→E6) first, softened once for a
+  "clangy" tail (the octave overtone decaying slower than the fundamental,
+  plus a hard cutoff at the sample's end - fixed by decaying the harmonic
+  faster and adding an explicit fade-to-silence), then replaced entirely
+  with an "electronic twinkle" - a quick ascending arpeggio using a
+  detuned-unison shimmer (two sine oscillators a few cents apart per note)
+  instead of a bell overtone, landing on a 3-note version (`B` of three
+  candidates). Most-recent-wins - only one toast at a time, no stacking,
+  matching the "scoped down" framing.
 - **The public/personal resolution:** AIM's privacy model and its pop-out
   *UX* were always two separate things that happened to ship together.
   This keeps the pop-out trigger personal (only fires for Dialogs you're
