@@ -496,6 +496,10 @@ main {
   background: #181717;
 }
 
+.social-reddit {
+  background: #ff4500;
+}
+
 .site-footer {
   max-width: var(--maxw);
   margin: 2rem auto 0;
