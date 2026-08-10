@@ -296,6 +296,7 @@
       return activeConversationRef.update({
         lastMessage: body,
         lastMessageAt: now,
+        lastMessageAuthorUid: currentUser.uid,
       });
     }).then(function () {
       document.getElementById("dm-compose-body").value = "";

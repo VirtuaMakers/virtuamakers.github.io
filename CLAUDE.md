@@ -1217,6 +1217,73 @@ Gallery's (user-generated, paid-per-mint, needs its own moderation + payment
 today's empty-state Chain of Cards card in `Agora/exchange.html`'s NFT
 Gallery section, but matters once that app's design work starts for real.
 
+## Dialog toast notifications (v1, Chris, 2026-08-09/10)
+
+Chris's stated "ultimate vision" for Communiqués is Dialogs feeling like
+AIM (AOL Instant Messenger) - a message pops up on screen regardless of
+what you're doing, with the "strange twist" that (unlike AIM) the whole
+system is otherwise public/member-readable. The full vision (draggable
+multi-window buddy list, several conversations open at once) is real UI
+engineering saved for later; what's built now is a deliberately scoped v1
+in the same spirit as the "little updates" philosophy above.
+
+- **What v1 does:** a single toast slides up from the bottom-right corner
+  of the screen when a new Dialog message arrives for you, on *any* Agora
+  page (not just `communiques-dm.html`) - shows the sender's name (via the
+  existing `otherParticipantsLabel` helper), a text preview, and an inline
+  reply box that sends without navigating away. Clicking the toast body
+  (or the header) opens the full Dialog; a plain × dismisses it without
+  opening anything. A short synthesized two-note chime
+  (`assets/dialog-chime.wav`, C6→E6, same "procedural WAV" approach as the
+  site's startup sounds) plays alongside it. Most-recent-wins - only one
+  toast at a time, no stacking, matching the "scoped down" framing.
+- **The public/personal resolution:** AIM's privacy model and its pop-out
+  *UX* were always two separate things that happened to ship together.
+  This keeps the pop-out trigger personal (only fires for Dialogs you're
+  actually a participant in) while the underlying public-readability of
+  Communiqués is completely unchanged - anyone could still navigate to and
+  read any Dialog's transcript directly, same as before. Nothing about the
+  toast needed to compromise on the public model to make sense.
+- **How it detects a new message without per-conversation listeners:**
+  every conversation doc already gets `lastMessage`/`lastMessageAt` bumped
+  on send (pre-existing, `communiques-dm.js`). This round adds a third
+  field, `lastMessageAuthorUid`, to that same update, so the toast script
+  can tell "someone else's incoming message" from "my own message just
+  landed" without a second read. `Agora/dialog-toast.js` runs one
+  `conversations` query (`participants array-contains` the signed-in
+  user's uid) with a single `onSnapshot` listener - scales with the
+  member's own conversation count, not the size of any group Dialog (up to
+  1,000 participants), and doesn't open one listener per conversation.
+  The listener's first snapshot fire (existing state on page load) is
+  explicitly not toasted - only genuinely new changes after that.
+- **Suppressed when already looking at that Dialog** - if you're on
+  `communiques-dm.html?c=<id>` for that exact conversation, no toast fires
+  for it (the page's own live transcript already shows it arriving).
+- **Rolled out to 57 of Agora's 59 pages** - every page except
+  `create-profile.html` and `leave-agora.html`, both deliberately excluded
+  since a message popping up mid-signup or mid-account-deletion would be a
+  distracting non-sequitur in those specific flows. 33 pages already had
+  `communiques-common.js` loaded (member.html, the 30 static profile
+  pages, communiques.html, communiques-dm.html) and just needed the one
+  new script tag; the other 24 (Exchange's product pages, `index.html`,
+  `news.html`, `per-manum.html`, `privacy.html`, `terms.html`) already had
+  the Firebase SDK loaded but not `communiques-common.js` itself, so both
+  got added together.
+- **Chime autoplay note:** `chime.play()`'s promise is caught and
+  swallowed silently on failure rather than surfaced as an error - some
+  browsers block audio that isn't triggered by a direct user gesture, same
+  constraint already documented for the startup sounds elsewhere in this
+  file. The toast itself still appears either way; only the sound is
+  best-effort.
+- **Not yet built (the rest of the AIM vision):** true closed-browser push
+  notifications (needs a service worker + Firebase Cloud Messaging + a
+  Cloud Function - the same Blaze/Cloud Functions dependency blocking the
+  transactional emails), multiple simultaneous pop-out windows, a
+  buddy-list-style online/offline indicator, and toasts for Wall
+  posts/comments (those currently use one-time fetches, not real-time
+  listeners, unlike Dialogs - extending this same pattern to them would
+  need that changed first).
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
