@@ -3,15 +3,19 @@
 The official site for **VirtuaMakers** — a small, independent studio building
 games, tools, and virtual worlds.
 
-Live at **https://virtuamakers.github.io**.
+Live at **https://www.virtuamakers.com** (custom domain; the underlying
+GitHub Pages URL, https://virtuamakers.github.io, still resolves too).
 
 ## Structure
 
-| File         | Purpose                                  |
-| ------------ | ---------------------------------------- |
-| `index.html` | The single-page landing site             |
-| `style.css`  | Styles (clean & minimal theme)           |
-| `main.js`    | Tiny progressive enhancement (year stamp)|
+| Path/File    | Purpose                                             |
+| ------------ | ---------------------------------------------------- |
+| `index.html` | The single-page landing site                        |
+| `style.css`  | Styles (clean & minimal theme)                       |
+| `main.js`    | Tiny progressive enhancement (year stamp)            |
+| `CNAME`      | Custom domain config for GitHub Pages                |
+| `Agora/`     | Agora — the social/marketplace subsite               |
+| `VMEx.html`, `vmex.html` | Short `/VMEx` redirect alias to Agora's VirtuaMakers Exchange |
 
 ## Development
 
@@ -25,5 +29,6 @@ Then visit http://localhost:8000.
 
 ## Deploying
 
-This is a GitHub Pages user site. Any commit pushed to the default branch is
-published automatically to https://virtuamakers.github.io.
+This is a GitHub Pages user site with a custom domain (see `CNAME`). Any
+commit pushed to the default branch is published automatically to
+https://www.virtuamakers.com.
