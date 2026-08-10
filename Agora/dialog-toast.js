@@ -19,7 +19,7 @@
     return window.location.pathname.indexOf("/profiles/") !== -1 ? "../" : "";
   }
 
-  var chime = new Audio(assetPath("dialog-chime.wav"));
+  var chime = new Audio(assetPath("dialog-chime2.wav"));
   chime.volume = 0.5;
 
   function playChime() {
