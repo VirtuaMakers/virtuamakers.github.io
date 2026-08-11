@@ -5,17 +5,8 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## Reminders / TODO
 
-- [ ] **GitHub privacy (per Chris's request):** Next time we touch GitHub, remind
-  Chris to review repository visibility and set non-Pages repos to **private**
-  (especially the future **Chain of Cards** repo, so it can't be forked). Note:
-  any repo that *publishes* a GitHub Pages site has to stay **public** on the free
-  plan — so the site repo (and Dimonds) may need to remain public unless on
-  GitHub Pro or hosting the built output elsewhere.
-- [ ] Replace the placeholder **Social** links with real URLs:
-  - X — ✅ `https://x.com/VirtuaMakers`
-  - Discord — ✅ `https://discord.gg/PCdHq4gryJ`
-  - GitHub — currently points at `https://github.com/VirtuaMakers` (confirm org vs.
-    a personal profile if a "Follow" button is wanted).
+- [ ] Confirm the **GitHub** social link (`https://github.com/VirtuaMakers`) points
+  to the right org vs. a personal profile, if a "Follow" button is wanted.
 
 ## Repo layout — two sites
 
@@ -1297,4 +1288,3 @@ in the same spirit as the "little updates" philosophy above.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
-- [ ] Optional in-section logos already added for all four pillars.
