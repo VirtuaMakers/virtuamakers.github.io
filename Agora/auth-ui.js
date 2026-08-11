@@ -128,6 +128,15 @@
     var profileLink = profileLinkId ? document.getElementById(profileLinkId) : null;
     if (!signInBtn) return;
 
+    // Once a dedicated Profile link exists for this instance (the header,
+    // not the hero - the hero has no Profile link of its own), the name
+    // itself no longer needs to double as a link - keeping it clickable
+    // too was redundant now that "Profile 🙂" is the obvious click target,
+    // per Chris's call. Static text still shouldn't look clickable, so
+    // this also strips the pointer cursor/hover-underline .auth-email
+    // otherwise always carries.
+    if (nameLink && profileLink) nameLink.classList.add("auth-email-static");
+
     signInBtn.addEventListener("click", openModal);
     if (signOutBtn) {
       signOutBtn.addEventListener("click", function () {
@@ -189,7 +198,9 @@
         reveal((data.preferHandle && data.handle)
           ? data.handle
           : (data.name || data.handle || user.displayName || "friend"));
-        nameLink.href = memberUrl(user.uid);
+        // Only when there's no dedicated Profile link for this instance -
+        // see the .auth-email-static note above.
+        if (!profileLink) nameLink.href = memberUrl(user.uid);
       }).catch(function () {
         reveal(user.displayName || "friend");
       });

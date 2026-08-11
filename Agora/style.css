@@ -151,6 +151,17 @@ a {
   text-decoration: underline;
 }
 
+/* The header's "Profile 🙂" link is now the actual click target - a
+   static name should read as plain text, not a dead-looking link. */
+.auth-email-static {
+  cursor: default;
+}
+
+.auth-email-static:hover {
+  color: var(--muted);
+  text-decoration: none;
+}
+
 .header-communiques {
   font-size: 1rem;
   opacity: 0.35;
