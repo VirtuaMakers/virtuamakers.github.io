@@ -1024,12 +1024,29 @@ site nav, not yet wired to anything that actually sends them.
      adding a domain there did not fix this error, confirmed by testing).
      Both `virtuamakers.com` and `www.virtuamakers.com` needed adding as
      separate Custom entries here specifically.
-- **Blocked on:** just the Blaze upgrade now - the domain half of the
-  blocker is fully resolved. Once Blaze is active, the next step is a
-  Cloud Function triggered on new profile creation (Welcome),
-  `leave-agora.html`'s delete flow (farewell), the admin suspend action
-  (ban notice), and the admin delete action (deletion notice) - each
-  calling Resend's API with the matching template from `Agora/emails/`.
+- **Blaze is active (2026-08-11).** Real snags along the way, worth
+  remembering for next time: a new Cloud Billing account needs a one-time
+  minimum prepayment (was $30 here) before it can go live at all, and
+  separately starts in a restricted "Free trial account" state even after
+  that payment clears - the actual "Activate" button (Google Cloud
+  Console → Billing → Overview, top banner) converting it to a full
+  account was the real missing step, not the payment itself. Firebase's
+  own upgrade flow needed re-running (Settings → Usage and billing →
+  Modify plan → Blaze → select the now-activated billing account) after
+  that, since the first attempt had stalled out with no usable billing
+  account to select. Set a $10 billing budget alert (Firebase's own
+  upgrade flow offers this) - it's an email notification only, not a
+  spending cap, chosen low specifically to catch a real anomaly early
+  rather than reflect expected cost (expected cost is close to $0 at
+  Agora's current size).
+- **Next step:** a Cloud Function triggered on new profile creation
+  (Welcome), `leave-agora.html`'s delete flow (farewell), the admin
+  suspend action (ban notice), and the admin delete action (deletion
+  notice) - each calling Resend's API with the matching template from
+  `Agora/emails/`. Not started yet - this repo has no Cloud Functions
+  project scaffolding at all today (`firestore.rules` is still hand-pasted
+  into the console rather than deployed via CLI), so the first Function
+  ever built here also means setting that up for the first time.
 
 ## "Little updates" cadence (Chris's standing product philosophy, 2026-08-06)
 
