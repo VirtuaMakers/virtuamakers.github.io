@@ -32,7 +32,7 @@
   var CHIME_FILES = {
     dialog_message: "dialog-chime3.wav",
     wall_post: "post-chime2.wav",
-    wall_comment: "comment-chime2.wav",
+    wall_comment: "comment-chime3.wav",
   };
   var chimes = {};
   Object.keys(CHIME_FILES).forEach(function (type) {

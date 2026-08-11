@@ -1571,15 +1571,18 @@ Dialog-only `isViewingConversation()`.
   message chime instead (multi-note ascending sparkle-run, not a simple
   2-note chime), so those were deleted and replaced with
   `assets/post-chime2.wav` (a brighter, wider-leaping 3-note ascending
-  run in a higher register than the message chime) and
-  `assets/comment-chime2.wav` (a smaller, quicker 2-note twinkle, so it
-  still reads as "secondary" next to Post's fuller run) - same
-  cache-busting new-filename convention as `dialog-chime.wav` →
-  `dialog-chime2.wav` → `dialog-chime3.wav` before it. These are Claude's
-  second-cut defaults, shipped and wired live per the established pattern
-  (ship a reasonable choice, iterate on Chris's feedback) - alternate
-  candidates were sent separately for him to compare and request another
-  swap if he prefers one of those instead.
+  run in a higher register than the message chime - **Chris approved
+  this on the first twinkle pass**) and a comment chime that took two
+  more rounds to land: `comment-chime2.wav`'s notes were too short/tightly
+  packed (0.14-0.22s each) and came out sounding thin/clipped next to
+  Post's more generous ones, so `assets/comment-chime3.wav` keeps the
+  same 2-note "smaller than Post" shape but with each note given the same
+  comfortable length Post/Message use (0.24-0.32s) - same cache-busting
+  new-filename convention as `dialog-chime.wav` → `dialog-chime2.wav` →
+  `dialog-chime3.wav` before it. Shipped and wired live per the
+  established pattern (ship a reasonable choice, iterate on Chris's
+  feedback) - alternate candidates were sent separately each round for
+  him to compare.
 
 **Rolled out to the same 57 pages that already had the toast script** -
 `create-profile.html`/`leave-agora.html` stay excluded, same reasoning as
