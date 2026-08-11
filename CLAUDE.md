@@ -1565,16 +1565,21 @@ too: `isViewingLinkPath()` compares the current page's own filename+query
 against the notification's `linkPath`, replacing the old
 Dialog-only `isViewingConversation()`.
 - **Chimes:** `assets/dialog-chime3.wav` (existing, kept as-is for
-  messages), plus two new ones in the same "electronic twinkle" family
-  (detuned-unison shimmer, matching Chris's established preference) but
-  distinguishable in contour/register: `assets/post-chime1.wav` (a
-  confident rising two-note "ding-dong") and `assets/comment-chime1.wav`
-  (a smaller, secondary-feeling same-pitch "double-tap"). These are
-  Claude's first-cut defaults, shipped and wired live per the same
-  pattern the original message chime followed (ship a reasonable choice,
-  iterate on Chris's feedback) - alternate candidates (`post-chime-b.wav`,
-  `comment-chime-b.wav` equivalents) were sent separately for him to
-  compare and request a swap if he prefers one of those instead.
+  messages). The first cut at post/comment chimes (`post-chime1.wav`/
+  `comment-chime1.wav`) used a plainer "ding-dong"/"double-tap" shape;
+  Chris asked for more of the same "electronic twinkle" character as the
+  message chime instead (multi-note ascending sparkle-run, not a simple
+  2-note chime), so those were deleted and replaced with
+  `assets/post-chime2.wav` (a brighter, wider-leaping 3-note ascending
+  run in a higher register than the message chime) and
+  `assets/comment-chime2.wav` (a smaller, quicker 2-note twinkle, so it
+  still reads as "secondary" next to Post's fuller run) - same
+  cache-busting new-filename convention as `dialog-chime.wav` →
+  `dialog-chime2.wav` → `dialog-chime3.wav` before it. These are Claude's
+  second-cut defaults, shipped and wired live per the established pattern
+  (ship a reasonable choice, iterate on Chris's feedback) - alternate
+  candidates were sent separately for him to compare and request another
+  swap if he prefers one of those instead.
 
 **Rolled out to the same 57 pages that already had the toast script** -
 `create-profile.html`/`leave-agora.html` stay excluded, same reasoning as
