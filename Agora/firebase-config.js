@@ -7,7 +7,7 @@
 // secret (it's shipped to every visitor's browser regardless), just
 // blank until Chris runs that one console step - see CLAUDE.md's
 // "Push notifications" section. push-notifications.js no-ops without it.
-const AGORA_VAPID_KEY = "";
+const AGORA_VAPID_KEY = "BFlGxDYGlbQkOHJltOwuWuLxdwXgejUbvbxzR3jkbs0YLq9HRI0V2sPK2OFN3WxzSA8eIgM-irWf3rOz7y8s5B0";
 
 const AGORA_FIREBASE_CONFIG = {
   apiKey: "AIzaSyCZbFaRIsuHvdddW2XJ-m48qfrOwrv6Hx8",

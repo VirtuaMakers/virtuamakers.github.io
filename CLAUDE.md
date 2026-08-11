@@ -1594,12 +1594,10 @@ after `firebase-firestore-compat.js`), the header
 `push-notifications.js` loaded alongside `notification-toast.js`.
 
 **Still needs from Chris, before any of the push half actually works:**
-1. **Generate a Web Push certificate** - Firebase Console → Project
-   Settings → Cloud Messaging tab → "Web Push certificates" → generate a
-   key pair. Paste the public key into `Agora/firebase-config.js`'s
-   `AGORA_VAPID_KEY` constant (currently blank on purpose -
-   `push-notifications.js` no-ops entirely until it's filled in, so this
-   doesn't break anything in the meantime).
+1. ~~Generate a Web Push certificate~~ **Done (2026-08-11)** - Chris
+   generated the key pair (Firebase Console → Project Settings → Cloud
+   Messaging → Web Push certificates) and the public key is now live in
+   `Agora/firebase-config.js`'s `AGORA_VAPID_KEY` constant.
 2. **Paste the updated `firestore.rules` into the Firebase console**
    (Firestore Database → Rules) - the new `notifications` and
    `profiles/{uid}/fcmTokens` matches need to be live there; this repo's
