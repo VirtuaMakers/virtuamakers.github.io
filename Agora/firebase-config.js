@@ -2,6 +2,13 @@
 // This config is not a secret (it's a public client identifier) - Firestore
 // security rules (see firestore.rules) are what actually protect the data.
 
+// Firebase Console -> Project Settings -> Cloud Messaging -> Web Push
+// certificates -> generate a key pair, paste the public key here. Not a
+// secret (it's shipped to every visitor's browser regardless), just
+// blank until Chris runs that one console step - see CLAUDE.md's
+// "Push notifications" section. push-notifications.js no-ops without it.
+const AGORA_VAPID_KEY = "";
+
 const AGORA_FIREBASE_CONFIG = {
   apiKey: "AIzaSyCZbFaRIsuHvdddW2XJ-m48qfrOwrv6Hx8",
   authDomain: "agora-firebase-f4240.firebaseapp.com",

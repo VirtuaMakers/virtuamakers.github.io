@@ -39,6 +39,27 @@ service cloud.firestore {
       match /private/{document} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
+
+      // One doc per registered device, doc ID = the FCM token itself (so
+      // re-registering the same device is a natural overwrite, not a
+      // duplicate). Owner-only, same private pattern as above - nobody
+      // else has any reason to read another member's push tokens.
+      match /fcmTokens/{token} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Push/toast notifications - one doc per notified event, written only
+    // by Cloud Functions (Admin SDK, which bypasses these rules entirely -
+    // allow write: if false is correct here, not a bug) when a Dialog
+    // message, Wall post, or Wall comment happens. Only the recipient can
+    // ever read their own notifications - never member-readable like
+    // Communiqués content itself, since a notification is personal
+    // metadata about who got told what, not a public post.
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null
+        && request.auth.uid == resource.data.recipientUid;
+      allow write: if false;
     }
 
     // Homepage hit counter - a single document anyone (including

@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css?v=80" />
+  <link rel="stylesheet" href="../style.css?v=81" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -40,6 +40,7 @@
     <div class="header-right">
       <a class="back-link" href="../index.html#humans"><span class="back-arrow">←</span> Agora</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
+      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>🔔 Enable Notifications</button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
@@ -149,6 +150,7 @@ You've 10 minutes to begin editing any Communiqué (Message, Post, or Comment) b
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
   <script src="../firebase-config.js?v=2"></script>
   <script src="../auth.js?v=2"></script>
   <script src="../auth-ui.js?v=17"></script>
@@ -156,7 +158,8 @@ You've 10 minutes to begin editing any Communiqué (Message, Post, or Comment) b
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="../bio-tags.js?v=1"></script>
   <script src="../communiques-common.js?v=8"></script>
-  <script src="../dialog-toast.js?v=1"></script>
+  <script src="../notification-toast.js?v=1"></script>
+  <script src="../push-notifications.js?v=1"></script>
   <script>
     window.StaticProfile = {"uid": "gerardus-dunkel", "name": "Gerardus Dunkel"};
   </script>

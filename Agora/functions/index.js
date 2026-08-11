@@ -19,6 +19,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 const { resendApiKey, sendEmailSafe } = require("./lib/resend");
 const { loadTemplate, withReason } = require("./lib/templates");
+const { notify } = require("./lib/notify");
 
 admin.initializeApp();
 
@@ -188,3 +189,73 @@ exports.cleanupAbandonedSignups = onSchedule("every 24 hours", async () => {
     nextPageToken = result.pageToken;
   } while (nextPageToken);
 });
+
+// Notifications 🔔 - real closed-browser push (via FCM) plus the
+// notifications/{id} doc the in-tab toast (notification-toast.js) listens
+// for. Three triggers, one per content type, each writing to the same
+// shared notify() helper. Who gets notified is Chris's explicit call
+// (2026-08-11): a Dialog message notifies every other participant, a Wall
+// post notifies the Wall's owner, and a Wall comment notifies the
+// original post's author (not the Wall owner, if those differ).
+
+exports.notifyOnDialogMessage = onDocumentCreated(
+  "conversations/{conversationId}/messages/{messageId}",
+  async (event) => {
+    const message = event.data.data();
+    const conversationId = event.params.conversationId;
+    const conversationSnap = await admin.firestore()
+      .collection("conversations").doc(conversationId).get();
+    if (!conversationSnap.exists) return;
+
+    const participants = conversationSnap.data().participants || [];
+    const linkPath = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+
+    await Promise.all(participants
+      .filter((uid) => uid !== message.authorUid)
+      .map((uid) => notify({
+        recipientUid: uid,
+        actorUid: message.authorUid,
+        type: "dialog_message",
+        preview: message.body,
+        linkPath,
+        pushTitle: (name) => name + " sent you a message",
+      })));
+  }
+);
+
+exports.notifyOnWallPost = onDocumentCreated(
+  "wallPosts/{postId}",
+  async (event) => {
+    const post = event.data.data();
+    if (!post.profileUid) return;
+
+    await notify({
+      recipientUid: post.profileUid,
+      actorUid: post.authorUid,
+      type: "wall_post",
+      preview: post.body,
+      linkPath: "member.html?uid=" + encodeURIComponent(post.profileUid),
+      pushTitle: (name) => name + " posted on your Wall",
+    });
+  }
+);
+
+exports.notifyOnWallComment = onDocumentCreated(
+  "wallPosts/{postId}/comments/{commentId}",
+  async (event) => {
+    const comment = event.data.data();
+    const postSnap = await admin.firestore()
+      .collection("wallPosts").doc(event.params.postId).get();
+    if (!postSnap.exists) return;
+
+    const post = postSnap.data();
+    await notify({
+      recipientUid: post.authorUid,
+      actorUid: comment.authorUid,
+      type: "wall_comment",
+      preview: comment.body,
+      linkPath: "member.html?uid=" + encodeURIComponent(post.profileUid),
+      pushTitle: (name) => name + " commented on your post",
+    });
+  }
+);

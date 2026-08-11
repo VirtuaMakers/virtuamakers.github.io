@@ -2242,7 +2242,7 @@ button.dm-item {
 
 /* Dialog toast - AIM-style pop-out notification for a new Dialog
    message, bottom-right corner, slides up on arrival. */
-.dialog-toast {
+.notification-toast {
   position: fixed;
   right: 1.2rem;
   bottom: 1.2rem;
@@ -2258,12 +2258,12 @@ button.dm-item {
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.dialog-toast.open {
+.notification-toast.open {
   opacity: 1;
   transform: translateY(0);
 }
 
-.dialog-toast-header {
+.notification-toast-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2274,7 +2274,7 @@ button.dm-item {
   cursor: pointer;
 }
 
-.dialog-toast-title {
+.notification-toast-title {
   font-weight: 700;
   font-size: 0.95rem;
   overflow: hidden;
@@ -2282,7 +2282,7 @@ button.dm-item {
   white-space: nowrap;
 }
 
-.dialog-toast-close {
+.notification-toast-close {
   background: none;
   border: none;
   font-size: 1.1rem;
@@ -2292,11 +2292,11 @@ button.dm-item {
   padding: 0.1rem 0.3rem;
 }
 
-.dialog-toast-close:hover {
+.notification-toast-close:hover {
   color: var(--text);
 }
 
-.dialog-toast-body {
+.notification-toast-body {
   padding: 0.7rem 0.9rem;
   font-size: 0.88rem;
   color: var(--muted);
@@ -2305,13 +2305,13 @@ button.dm-item {
   overflow: hidden;
 }
 
-.dialog-toast-reply {
+.notification-toast-reply {
   display: flex;
   gap: 0.5rem;
   padding: 0 0.9rem 0.9rem;
 }
 
-.dialog-toast-reply textarea {
+.notification-toast-reply textarea {
   flex: 1;
   min-height: 2.4rem;
   max-height: 5rem;
@@ -2323,6 +2323,6 @@ button.dm-item {
   resize: vertical;
 }
 
-.dialog-toast-reply .form-error {
+.notification-toast-reply .form-error {
   display: none;
 }

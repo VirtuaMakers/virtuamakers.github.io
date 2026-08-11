@@ -1337,14 +1337,11 @@ in the same spirit as the "little updates" philosophy above.
   constraint already documented for the startup sounds elsewhere in this
   file. The toast itself still appears either way; only the sound is
   best-effort.
-- **Not yet built (the rest of the AIM vision):** true closed-browser push
-  notifications (needs a service worker + Firebase Cloud Messaging + a
-  Cloud Function - the same Blaze/Cloud Functions dependency blocking the
-  transactional emails), multiple simultaneous pop-out windows, a
-  buddy-list-style online/offline indicator, and toasts for Wall
-  posts/comments (those currently use one-time fetches, not real-time
-  listeners, unlike Dialogs - extending this same pattern to them would
-  need that changed first).
+- **Real closed-browser push, and Wall post/comment toasts, both built
+  2026-08-11** - see "Push notifications 🔔" below; this whole bullet was
+  the "not yet built" list at the time and is now out of date. Still not
+  built: multiple simultaneous pop-out windows, a buddy-list-style
+  online/offline indicator.
 
 ## Profile picture uploads (Chris, 2026-08-11)
 
@@ -1463,6 +1460,149 @@ anything had gone wrong.
   timing, since this was tested right after two consecutive pushes) - it
   makes the failure visible and recoverable instead of a silent dead end,
   regardless of root cause.
+
+## Push notifications 🔔 (Chris, 2026-08-11)
+
+Two things Chris asked for together: real closed-browser push (arrives
+even when Agora isn't open, not just the in-tab toast built earlier), and
+unique notification sounds for Wall posts and Wall comments too, not just
+Dialog messages. These pull in different directions for one specific
+reason worth recording: **no browser today (Chrome, Firefox, Safari)
+supports a custom sound for a native/closed-tab push notification** - they
+all just play the OS's own default sound, silently ignoring anything else
+requested. Custom, unique-per-type chimes are only achievable while a tab
+is actually open. The build below keeps both halves of the ask by treating
+them as two genuinely separate delivery paths sharing one trigger:
+
+- **In-tab (any open tab, focused or not):** a Firestore listener on a new
+  shared `notifications` collection drives a toast + a real, unique chime
+  per type - this is where "three unique sounds" actually lives.
+- **Closed-tab / no Agora tab open:** real FCM push through a service
+  worker, using whatever default sound the visitor's OS provides - an
+  unavoidable platform limitation, not a build choice.
+
+**Data model - `notifications/{id}`, written only by Cloud Functions:**
+`recipientUid`, `actorUid`, `actorName` (resolved server-side, handle if
+preferred, same logic as the client), `type` (`"dialog_message"` |
+`"wall_post"` | `"wall_comment"`), `preview` (HTML-stripped, 140 chars),
+`linkPath` (root-relative, e.g. `"member.html?uid=..."`), `createdAt`.
+Readable only by its own `recipientUid` in `firestore.rules` -
+`allow write: if false` is correct there, not a bug, since only the Admin
+SDK (which bypasses rules) ever writes one. No read/seen tracking - same
+"good enough for now" call as everywhere else in Communiqués; docs just
+accumulate, cheap to store, cleanup left for later if it ever matters.
+
+**Who gets notified (Chris's explicit call, 2026-08-11):**
+- Dialog message → every other participant (unchanged from the original
+  toast's own logic, now server-driven instead of client-queried).
+- Wall post → the Wall's owner only.
+- Wall comment → **the original post's author only**, not the Wall's
+  owner if that's a different person (e.g. someone else's post that
+  happens to live on your Wall) - Chris considered and declined notifying
+  the Wall owner too, to avoid a comment sometimes firing two
+  notifications for one event.
+
+**`functions/lib/notify.js`** - the one shared helper backing all three
+triggers below: resolves the actor's display name, writes the
+`notifications` doc, then best-effort sends an FCM push (a push failure
+never blocks the notification doc, matching the site's existing
+`sendEmailSafe` philosophy). Multicasts to every token in the recipient's
+`profiles/{uid}/fcmTokens` subcollection, then prunes any token FCM
+reports as dead (uninstalled, expired) so the list doesn't grow stale
+forever.
+
+**Three new Cloud Function triggers in `functions/index.js`** (all
+`onDocumentCreated`, so none of them re-fire when e.g. a comment bumps its
+parent post's `commentCount`/`lastActivityAt` - that's an `update`, not a
+`create`): `notifyOnDialogMessage` (on `conversations/{id}/messages/{id}`,
+reads the parent conversation for `participants`), `notifyOnWallPost` (on
+`wallPosts/{id}`), `notifyOnWallComment` (on
+`wallPosts/{postId}/comments/{id}`, reads the parent post to find its
+`authorUid` - the actual recipient, per the targeting rule above). No new
+secrets needed - FCM auth rides on the same Admin SDK credentials
+Functions already have, unlike Resend's separate API key.
+
+**`sw.js` gets Firebase Messaging merged in, not a second service
+worker.** The natural Firebase pattern is a dedicated
+`firebase-messaging-sw.js`, but Agora already has `sw.js` (PWA
+shell-caching, registered by `pwa-register.js`) at the same `/Agora/`
+scope - two service workers both claiming that scope would conflict
+(Firebase's own docs warn against exactly this). So the messaging
+background handler (`onBackgroundMessage`, showing a system notification
+via `self.registration.showNotification()`) and a `notificationclick`
+handler (focuses an already-open Agora tab if one matches, else opens
+one) were added directly into the existing `sw.js`, ahead of its
+pre-existing cache logic. The Firebase config values duplicated in there
+are the same public client config already shipped in `firebase-config.js`
+- not secrets, just unreachable from a service worker's own scope since
+`firebase-config.js` itself calls `firebase.auth()`/`firebase.firestore()`,
+which aren't loaded there.
+
+**`push-notifications.js`** (new, client-side) - wires a header
+"🔔 Enable Notifications" button: requests `Notification` permission,
+then registers this device's FCM token into
+`profiles/{uid}/fcmTokens/{token}` (doc ID = the token itself, so
+re-registering the same device is a natural overwrite). The button hides
+itself once permission is `"granted"` or `"denied"` - browsers block
+re-prompting after a denial, the visitor would have to change their own
+site settings, so there's nothing left for the button to do either way.
+Also calls `messaging().onMessage(function () {})` - a **deliberate
+no-op**, not a bug: without it, FCM would still pop a native OS
+notification on a focused, open tab, duplicating the in-tab toast that's
+already showing something for the same event via the Firestore listener.
+The whole file no-ops entirely if `AGORA_VAPID_KEY` (see below) is blank.
+
+**`notification-toast.js`** (renamed from `dialog-toast.js`, and its CSS
+classes renamed `.dialog-toast*` → `.notification-toast*` to match) - the
+in-tab half. Same v1-scoped shape as before (one toast at a time,
+most-recent-wins), but now listens to the shared `notifications`
+collection (`where recipientUid == currentUser.uid`) instead of querying
+`conversations` directly, and switches its chime/click-through on the
+doc's `type` field. The inline reply box is still Dialog-only (Wall
+posts/comments have no single "reply target" to compose into inline -
+clicking the toast just opens the Wall). Suppression logic generalized
+too: `isViewingLinkPath()` compares the current page's own filename+query
+against the notification's `linkPath`, replacing the old
+Dialog-only `isViewingConversation()`.
+- **Chimes:** `assets/dialog-chime3.wav` (existing, kept as-is for
+  messages), plus two new ones in the same "electronic twinkle" family
+  (detuned-unison shimmer, matching Chris's established preference) but
+  distinguishable in contour/register: `assets/post-chime1.wav` (a
+  confident rising two-note "ding-dong") and `assets/comment-chime1.wav`
+  (a smaller, secondary-feeling same-pitch "double-tap"). These are
+  Claude's first-cut defaults, shipped and wired live per the same
+  pattern the original message chime followed (ship a reasonable choice,
+  iterate on Chris's feedback) - alternate candidates (`post-chime-b.wav`,
+  `comment-chime-b.wav` equivalents) were sent separately for him to
+  compare and request a swap if he prefers one of those instead.
+
+**Rolled out to the same 57 pages that already had the toast script** -
+`create-profile.html`/`leave-agora.html` stay excluded, same reasoning as
+the original toast rollout (a notification popping up mid-signup or
+mid-account-deletion would be a distracting non-sequitur). Each of those
+57 pages picked up: the `firebase-messaging-compat.js` SDK script (right
+after `firebase-firestore-compat.js`), the header
+`#agora-notifications-btn` (right after `#agora-profile-link`), and
+`push-notifications.js` loaded alongside `notification-toast.js`.
+
+**Still needs from Chris, before any of the push half actually works:**
+1. **Generate a Web Push certificate** - Firebase Console → Project
+   Settings → Cloud Messaging tab → "Web Push certificates" → generate a
+   key pair. Paste the public key into `Agora/firebase-config.js`'s
+   `AGORA_VAPID_KEY` constant (currently blank on purpose -
+   `push-notifications.js` no-ops entirely until it's filled in, so this
+   doesn't break anything in the meantime).
+2. **Paste the updated `firestore.rules` into the Firebase console**
+   (Firestore Database → Rules) - the new `notifications` and
+   `profiles/{uid}/fcmTokens` matches need to be live there; this repo's
+   rules file still isn't deployed via the CLI (`firebase.json` names it,
+   but nobody's run `firebase deploy --only firestore:rules` yet - worth
+   considering now that Functions deploys already happen from the CLI).
+3. **Redeploy Cloud Functions** - `firebase deploy --only functions` from
+   `Agora/`, same command as the transactional-email rollout, to pick up
+   the three new triggers.
+Until all three are done, everything gracefully degrades to just the
+in-tab toast (which needs none of them) - nothing breaks in the gap.
 
 ## Open items
 
