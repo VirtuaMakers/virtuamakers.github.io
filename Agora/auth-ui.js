@@ -120,11 +120,12 @@
     return base + "?uid=" + encodeURIComponent(uid);
   }
 
-  function wireInstance(signInId, signOutId, userInfoId, userNameId) {
+  function wireInstance(signInId, signOutId, userInfoId, userNameId, profileLinkId) {
     var signInBtn = document.getElementById(signInId);
     var signOutBtn = document.getElementById(signOutId);
     var userInfo = document.getElementById(userInfoId);
     var nameLink = document.getElementById(userNameId);
+    var profileLink = profileLinkId ? document.getElementById(profileLinkId) : null;
     if (!signInBtn) return;
 
     signInBtn.addEventListener("click", openModal);
@@ -139,6 +140,7 @@
         signInBtn.hidden = false;
         if (signOutBtn) signOutBtn.hidden = true;
         if (userInfo) userInfo.hidden = true;
+        if (profileLink) profileLink.hidden = true;
         return;
       }
 
@@ -149,6 +151,13 @@
       // left, sign-out on the right) while the hero/join instances still
       // nest signOutBtn inside userInfo, so both are set independently.
       if (signOutBtn) signOutBtn.hidden = false;
+      // The Profile link's href only needs the uid (not the Firestore
+      // fetch nameLink waits on below), so it can show immediately on
+      // sign-in with no flash/delay.
+      if (profileLink) {
+        profileLink.href = memberUrl(user.uid);
+        profileLink.hidden = false;
+      }
 
       if (!nameLink) {
         if (userInfo) userInfo.hidden = false;
@@ -191,7 +200,8 @@
     "agora-signin-btn",
     "agora-signout-btn",
     "agora-user-info",
-    "agora-user-email"
+    "agora-user-email",
+    "agora-profile-link"
   );
   wireInstance(
     "agora-hero-signin-btn",

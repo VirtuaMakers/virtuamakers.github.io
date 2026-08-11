@@ -1403,6 +1403,67 @@ anticipation of this, unused until now.
   everything else about them) - this only affects the real Firestore-backed
   `create-profile.html` flow.
 
+## Header nav: Profile 🙂 replaces Communiqués 📨 (Chris, 2026-08-11)
+
+Chris's read: the header's "Communiqués 📨" link wasn't the obvious click
+target for "go to my own profile" that a new member would look for, and a
+promotional link to Communiqués belonged in Communiqués' own descriptive
+copy anyway, not permanently occupying header real estate.
+
+- **`#agora-communiques-link` removed from all 8 pages that had it**
+  (`index.html`, `member.html`, `create-profile.html`, `leave-agora.html`,
+  `exchange.html`, `per-manum.html`, `privacy.html`, `terms.html`) - it was
+  never actually on all 59 Agora pages, just these.
+- **New `#agora-profile-link` ("Profile 🙂") added to all 59 pages**
+  that carry the header `auth-controls` block - `hidden` by default,
+  shown and pointed at `memberUrl(user.uid)` on sign-in via
+  `auth-ui.js`'s `wireInstance()`, which now takes an optional 5th
+  `profileLinkId` param (only passed for the header instance, not the
+  hero instance on `index.html`, which keeps its own separate "Welcome,
+  Name!" line/profile-less design). Unlike the welcome name link, this
+  one doesn't wait on a Firestore fetch to reveal - `memberUrl()` only
+  needs `user.uid`, so it shows immediately on sign-in with no flash.
+- **`Agora/index.html`'s `#communiques` subsection got a pass while
+  editing it anyway** - its copy had never been updated from "Coming
+  soon" framing even though Wall + Dialogs actually shipped weeks ago
+  (see Communiqués 📨 above); switched to present tense, dropped the
+  stale `pill-soon` badge, and added a `Visit Communiqués 📨 →` link at
+  the bottom (matching the News section's `See all news →` pattern) -
+  the CTA request also revealed the copy was out of date.
+
+## Loading-failure hardening on create-profile.html / member.html (Chris, 2026-08-11)
+
+A real bug report from testing on a spotty mobile connection: a member
+who had just signed up went looking for "Leave Agora" and hit a page
+that rendered only the "Edit Your Profile" heading with nothing below it
+and no error - the Firestore fetch that loads the profile had silently
+failed (or just never resolved) with no `.catch()` anywhere in the chain,
+so the form (and, more importantly for what they were looking for, the
+Danger Zone's "Permanently Leave Agora 🌐" link, which only appears once
+that fetch resolves) never appeared and nothing told the visitor
+anything had gone wrong.
+
+- **`create-profile.html`/`profile-form.js`:** new `#load-error-notice`
+  (a `.lede`, sibling of `#signed-out-notice`, so it's visible regardless
+  of whether `#profile-form-wrap` ever un-hides) shown by a `.catch()` on
+  the profile-doc fetch, with a "Try again" link that just reloads the
+  page - a flaky read is usually transient, so a reload is the actual fix
+  more often than not.
+  `leave-agora.html`/`leave-agora.js` wasn't touched - it has no
+  Firestore fetch on load at all (only auth state, which isn't prone to
+  the same kind of network-flakiness stall), so it wasn't at risk of the
+  same failure mode.
+- **`member.js`'s `loadProfile()`** had the identical gap (no `.catch()`
+  on its own profile fetch) - same fix, reusing the existing `showNotice()`
+  helper that already covers "profile doesn't exist"/"suspended" states,
+  so the failure message renders exactly like those do.
+- This doesn't fix whatever actually caused Crout's fetch to hang or fail
+  (most likely a weak connection - the reported screenshot showed a low
+  signal indicator - or possibly GitHub Pages' documented "deploy gremlin"
+  timing, since this was tested right after two consecutive pushes) - it
+  makes the failure visible and recoverable instead of a silent dead end,
+  regardless of root cause.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the

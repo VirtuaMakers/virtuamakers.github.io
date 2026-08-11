@@ -258,6 +258,11 @@
       render(profileData);
       refreshControls();
       updateMessageButtonVisibility();
+    }).catch(function () {
+      // Without this, a fetch failure (e.g. a flaky connection) leaves the
+      // page permanently blank - neither the profile content nor any
+      // notice ever appears, with nothing telling the visitor what happened.
+      showNotice("Something went wrong loading this profile - this is usually a spotty connection. Try refreshing the page.");
     });
   }
 

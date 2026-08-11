@@ -3,6 +3,7 @@
 
 (function () {
   var signedOutNotice = document.getElementById("signed-out-notice");
+  var loadErrorNotice = document.getElementById("load-error-notice");
   var formWrap = document.getElementById("profile-form-wrap");
   var kindIntro = document.getElementById("kind-intro");
   var kindSelector = document.getElementById("kind-selector");
@@ -296,6 +297,7 @@
     }
 
     signedOutNotice.hidden = true;
+    loadErrorNotice.hidden = true;
     // Stay hidden until we know whether this is a new profile (show the
     // Kind picker) or an edit (skip straight to the form) - otherwise the
     // Kind picker flashes onscreen for a moment on every edit.
@@ -335,6 +337,13 @@
         tosInput.required = true;
         formWrap.hidden = false;
       }
+    }).catch(function () {
+      // Without this, a flaky connection (or any other fetch failure)
+      // leaves the page stuck showing only the "Create/Edit Your Profile"
+      // heading forever, with the actual form never appearing and no
+      // indication anything went wrong - a real report from testing on a
+      // spotty mobile connection.
+      loadErrorNotice.hidden = false;
     });
   });
 
