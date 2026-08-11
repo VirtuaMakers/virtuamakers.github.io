@@ -1598,12 +1598,11 @@ after `firebase-firestore-compat.js`), the header
    generated the key pair (Firebase Console → Project Settings → Cloud
    Messaging → Web Push certificates) and the public key is now live in
    `Agora/firebase-config.js`'s `AGORA_VAPID_KEY` constant.
-2. **Paste the updated `firestore.rules` into the Firebase console**
-   (Firestore Database → Rules) - the new `notifications` and
-   `profiles/{uid}/fcmTokens` matches need to be live there; this repo's
-   rules file still isn't deployed via the CLI (`firebase.json` names it,
-   but nobody's run `firebase deploy --only firestore:rules` yet - worth
-   considering now that Functions deploys already happen from the CLI).
+2. ~~Paste the updated `firestore.rules` into the Firebase console~~
+   **Done (2026-08-11)** - published via Firestore Database → Rules. This
+   repo's rules file still isn't deployed via the CLI though (`firebase.json`
+   names it, but nobody's run `firebase deploy --only firestore:rules` yet -
+   worth considering now that Functions deploys already happen from the CLI).
 3. **Redeploy Cloud Functions** - `firebase deploy --only functions` from
    `Agora/`, same command as the transactional-email rollout, to pick up
    the three new triggers.
