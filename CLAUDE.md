@@ -1030,14 +1030,58 @@ site nav, not yet wired to anything that actually sends them.
   spending cap, chosen low specifically to catch a real anomaly early
   rather than reflect expected cost (expected cost is close to $0 at
   Agora's current size).
-- **Next step:** a Cloud Function triggered on new profile creation
-  (Welcome), `leave-agora.html`'s delete flow (farewell), the admin
-  suspend action (ban notice), and the admin delete action (deletion
-  notice) - each calling Resend's API with the matching template from
-  `Agora/emails/`. Not started yet - this repo has no Cloud Functions
-  project scaffolding at all today (`firestore.rules` is still hand-pasted
-  into the console rather than deployed via CLI), so the first Function
-  ever built here also means setting that up for the first time.
+- **Cloud Functions built (2026-08-11), not yet deployed.** Turned out
+  `Agora/functions/` already existed with working 1st-gen
+  `adminBanUser`/`adminDeleteUser` (SendGrid-based, unconfigured) - this
+  pass migrated everything to 2nd-gen (`firebase-functions/v2`) and wired
+  in the four emails:
+  - `functions/lib/resend.js` - shared `sendEmail`/`sendEmailSafe` helper.
+    Uses `defineSecret("RESEND_API_KEY")` (Secret Manager), not the
+    deprecated `functions.config()`. `sendEmailSafe` swallows any Resend
+    failure (bad key, outage) so an email problem never blocks the actual
+    account action it's describing.
+  - `functions/templates/` - copies of `Agora/emails/*.html`. Cloud
+    Functions only bundle the `functions/` source directory, so these are
+    hand-synced copies, not the originals - if a template's copy in
+    `Agora/emails/` changes, copy it into `functions/templates/` too (no
+    build step does this automatically).
+  - `functions/lib/templates.js` - `loadTemplate()` + `withReason()`,
+    which substitutes an admin-typed reason into the ban/deletion notice's
+    `[Add a short, specific reason...]` placeholder (falls back to "No
+    specific reason was given." if left blank).
+  - `adminBanUser`/`adminDeleteUser` now take an optional `reason` and
+    send the ban-notice/deletion-notice email before acting (deletion
+    reads the profile's email before deleting it, since it needs an
+    address to send to). `member.js`'s suspend/delete buttons now
+    `window.prompt()` for that reason.
+  - `selfDeleteAccount` - new callable backing "Leave Agora." Runs
+    server-side via the Admin SDK, so unlike the client's own
+    `user.delete()` it never hits `auth/requires-recent-login`. Sends the
+    farewell email, then deletes the profile doc and the Auth login.
+    `leave-agora.js` calls this first, falling back to the older
+    client-side reauth-and-delete path (see the `auth/requires-recent-login`
+    fix earlier in this file) if the Function isn't deployed yet or the
+    call fails for any other reason - so this file doesn't break in the
+    gap between this commit landing and Chris actually deploying.
+  - `sendWelcomeEmail` - fires once, on `profiles/{uid}` document
+    creation (matches "an account only counts once its profile is saved").
+  - `notifyFlaggedSocial` - migrated off SendGrid/`functions.config()`
+    onto Resend + `onDocumentWritten`, same behavior as before (emails
+    Chris once when a profile's `socialsFlagged` flips to true).
+  - `cleanupAbandonedSignups` - new scheduled sweep (`onSchedule("every
+    24 hours")`), deletes any Auth user older than 48 hours with no
+    matching `profiles/{uid}` doc - the "closed the tab mid-signup"
+    case `create-profile.html`'s own Cancel link doesn't catch.
+  - `functions/package.json` - swapped `@sendgrid/mail` for `resend`.
+  - **Deployment still needs Chris, from his own authenticated machine**
+    (this sandbox has no `firebase login` session or push access to
+    Secret Manager): first `firebase functions:secrets:set
+    RESEND_API_KEY` (one-time, prompts for the real key), then `firebase
+    deploy --only functions` from inside `Agora/`. Until that's run, every
+    `httpsCallable(...)` call above falls through to its existing
+    Firestore-only fallback exactly as `adminBanUser`/`adminDeleteUser`
+    already did, so nothing breaks in the meantime - the emails and
+    `selfDeleteAccount`'s clean server-side delete just won't be live yet.
 
 ## "Little updates" cadence (Chris's standing product philosophy, 2026-08-06)
 
