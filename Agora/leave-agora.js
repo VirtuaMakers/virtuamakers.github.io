@@ -39,8 +39,20 @@
     leaveBtn.disabled = true;
     statusEl.hidden = false;
 
-    AgoraDB.collection("profiles").doc(user.uid).delete()
-      .then(function () { return deleteUserWithReauth(user); })
+    // selfDeleteAccount (Cloud Function) does the whole job server-side -
+    // profile doc, Auth login, and the farewell email - in one call, and
+    // never hits auth/requires-recent-login since it runs as the Admin SDK.
+    // Falls back to the old direct client-side path if the function isn't
+    // deployed yet or the call fails for some other reason.
+    var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
+      ? firebase.functions().httpsCallable("selfDeleteAccount")({})
+      : Promise.reject(new Error("selfDeleteAccount not available"));
+
+    viaFunction
+      .catch(function () {
+        return AgoraDB.collection("profiles").doc(user.uid).delete()
+          .then(function () { return deleteUserWithReauth(user); });
+      })
       .then(function () {
         window.location.href = "index.html";
       })

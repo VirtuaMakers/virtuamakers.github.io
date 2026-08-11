@@ -278,9 +278,12 @@
   document.getElementById("suspend-btn").addEventListener("click", function () {
     var newStatus = profileData.status === "suspended" ? "active" : "suspended";
     var disable = newStatus === "suspended";
+    // Only suspending (not reinstating) sends the ban-notice email, so only
+    // ask for a reason in that direction.
+    var reason = disable ? window.prompt("Reason for suspending this member? (Included in their notice email. Leave blank to skip.)") : "";
 
     var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
-      ? firebase.functions().httpsCallable("adminBanUser")({ uid: uid, disabled: disable })
+      ? firebase.functions().httpsCallable("adminBanUser")({ uid: uid, disabled: disable, reason: reason })
       : Promise.reject(new Error("adminBanUser not available"));
 
     viaFunction
@@ -295,9 +298,10 @@
 
   document.getElementById("delete-btn").addEventListener("click", function () {
     if (!window.confirm("Delete this member's profile permanently? This can't be undone.")) return;
+    var reason = window.prompt("Reason for deleting this member's account? (Included in their notice email. Leave blank to skip.)");
 
     var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
-      ? firebase.functions().httpsCallable("adminDeleteUser")({ uid: uid })
+      ? firebase.functions().httpsCallable("adminDeleteUser")({ uid: uid, reason: reason })
       : Promise.reject(new Error("adminDeleteUser not available"));
 
     viaFunction
