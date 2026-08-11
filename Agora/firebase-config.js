@@ -15,3 +15,8 @@ const AGORA_FIREBASE_CONFIG = {
 if (!firebase.apps.length) firebase.initializeApp(AGORA_FIREBASE_CONFIG);
 const AgoraAuth = firebase.auth();
 const AgoraDB = firebase.firestore();
+// Only pages that load firebase-storage-compat.js (currently just
+// create-profile.html, for picture uploads) get a real Storage instance -
+// every other page still loads this same shared config file, so this must
+// stay optional rather than throwing when the SDK script isn't present.
+const AgoraStorage = firebase.storage ? firebase.storage() : null;

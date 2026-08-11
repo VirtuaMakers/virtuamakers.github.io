@@ -33,6 +33,38 @@
   var pictureInputs = [1, 2, 3, 4, 5].map(function (n) {
     return document.getElementById("field-picture-" + n);
   });
+  var pictureThumbs = [1, 2, 3, 4, 5].map(function (n) {
+    return document.getElementById("field-picture-" + n + "-thumb");
+  });
+  var pictureRemoveWraps = [1, 2, 3, 4, 5].map(function (n) {
+    return document.getElementById("field-picture-" + n + "-remove-wrap");
+  });
+  var pictureRemoveCheckboxes = [1, 2, 3, 4, 5].map(function (n) {
+    return document.getElementById("field-picture-" + n + "-remove");
+  });
+  // The URL already on the profile for each picture slot, kept separate
+  // from the file inputs (which only ever hold a *new* file the member is
+  // uploading) - unchanged slots fall back to this on save.
+  var existingPictureUrls = [1, 2, 3, 4, 5].map(function () { return ""; });
+
+  var MAX_PICTURE_BYTES = 5 * 1024 * 1024;
+
+  pictureInputs.forEach(function (input, i) {
+    input.addEventListener("change", function () {
+      var file = input.files[0];
+      if (!file) return;
+      // A newly chosen file replaces whatever was there, so a pending
+      // "remove the existing picture" request no longer makes sense.
+      pictureRemoveCheckboxes[i].checked = false;
+      pictureRemoveWraps[i].hidden = true;
+      var reader = new FileReader();
+      reader.onload = function () {
+        pictureThumbs[i].src = reader.result;
+        pictureThumbs[i].hidden = false;
+      };
+      reader.readAsDataURL(file);
+    });
+  });
   var socialInputs = [1, 2, 3].map(function (n) {
     return document.getElementById("field-social-" + n);
   });
@@ -119,7 +151,18 @@
     mapVisible.checked = data.showMap !== false;
     document.getElementById("field-orgs").value = data.organizations || "";
     pictureInputs.forEach(function (input, i) {
-      input.value = data["picture" + (i + 1)] || "";
+      input.value = "";
+      var url = data["picture" + (i + 1)] || "";
+      existingPictureUrls[i] = url;
+      pictureRemoveCheckboxes[i].checked = false;
+      if (url) {
+        pictureThumbs[i].src = url;
+        pictureThumbs[i].hidden = false;
+        pictureRemoveWraps[i].hidden = false;
+      } else {
+        pictureThumbs[i].hidden = true;
+        pictureRemoveWraps[i].hidden = true;
+      }
     });
     document.getElementById("field-bio").value = data.bio || "";
     document.getElementById("field-link").value = data.link || "";
@@ -210,6 +253,19 @@
         if (timeoutId) clearTimeout(timeoutId);
         return null;
       });
+  }
+
+  // Uploads to a fixed per-slot path (no filename/extension in the path)
+  // rather than a timestamped one, so re-uploading a picture overwrites the
+  // same Storage object instead of leaving the old one behind orphaned -
+  // matching the site's general "each save is a full overwrite" convention.
+  // Storage infers contentType from the File itself, so no extension is
+  // needed in the path for that either.
+  function uploadPicture(uid, index, file) {
+    var ref = AgoraStorage.ref().child("profile-pictures/" + uid + "/picture" + index);
+    return ref.put(file).then(function (snapshot) {
+      return snapshot.ref.getDownloadURL();
+    });
   }
 
   // Live validation as the member fills in Year/Month/Day, rather than
@@ -359,6 +415,19 @@
       return info && info.unrecognized;
     });
 
+    for (var pi = 0; pi < pictureInputs.length; pi++) {
+      var pictureFile = pictureInputs[pi].files[0];
+      if (!pictureFile) continue;
+      if (pictureFile.size > MAX_PICTURE_BYTES) {
+        showError("Picture " + (pi + 1) + " is too large - please choose a file under 5MB.");
+        return;
+      }
+      if (!/^image\//.test(pictureFile.type)) {
+        showError("Picture " + (pi + 1) + " isn't an image file.");
+        return;
+      }
+    }
+
     var data = {
       name: document.getElementById("field-name").value.trim(),
       handle: handle,
@@ -373,11 +442,15 @@
       showLocation: locationVisible.checked,
       showMap: mapVisible.checked,
       organizations: document.getElementById("field-orgs").value.trim(),
-      picture1: pictureInputs[0].value.trim(),
-      picture2: pictureInputs[1].value.trim(),
-      picture3: pictureInputs[2].value.trim(),
-      picture4: pictureInputs[3].value.trim(),
-      picture5: pictureInputs[4].value.trim(),
+      // Placeholder values - a slot with a newly chosen file gets its real
+      // Storage download URL filled in below, after upload finishes. A slot
+      // with "Remove this picture" checked clears to ""; anything else
+      // keeps whatever was already saved for that slot.
+      picture1: pictureRemoveCheckboxes[0].checked ? "" : existingPictureUrls[0],
+      picture2: pictureRemoveCheckboxes[1].checked ? "" : existingPictureUrls[1],
+      picture3: pictureRemoveCheckboxes[2].checked ? "" : existingPictureUrls[2],
+      picture4: pictureRemoveCheckboxes[3].checked ? "" : existingPictureUrls[3],
+      picture5: pictureRemoveCheckboxes[4].checked ? "" : existingPictureUrls[4],
       bio: document.getElementById("field-bio").value.trim(),
       link: linkValue,
       portal: portalValue,
@@ -420,9 +493,17 @@
 
     var geocodePromise = geocodeLocation(city, regionValue, country);
 
-    Promise.all([handleCheck, geocodePromise]).then(function (results) {
+    // A slot with no newly chosen file resolves to null immediately - only
+    // slots the member actually picked a new picture for touch Storage.
+    var picturePromises = pictureInputs.map(function (input, i) {
+      var file = input.files[0];
+      return file ? uploadPicture(currentUser.uid, i + 1, file) : Promise.resolve(null);
+    });
+
+    Promise.all([handleCheck, geocodePromise].concat(picturePromises)).then(function (results) {
       var snapshot = results[0];
       var coords = results[1];
+      var pictureUrls = results.slice(2);
       if (snapshot) {
         var taken = snapshot.docs.some(function (d) { return d.id !== currentUser.uid; });
         if (taken) {
@@ -437,6 +518,9 @@
         data.locationLat = coords.lat;
         data.locationLng = coords.lng;
       }
+      pictureUrls.forEach(function (url, i) {
+        if (url) data["picture" + (i + 1)] = url;
+      });
       return AgoraDB.collection("profiles").doc(currentUser.uid).set(data);
     }).then(function () {
       // Region lives in a separate, owner-only-readable document rather

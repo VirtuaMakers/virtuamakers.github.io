@@ -104,7 +104,9 @@ entirely (no empty "—" placeholder).
    on the site, so it wastes a slot that should go to any other real affiliation the
    member has (e.g. VirtuaMakers, if they've separately said yes to that one too).
 7. Pic(s) — label singular **"Picture"** or plural **"Pictures"** matching the actual
-   count; thumbnails render **above** the featured photo frame (less jarring — clicking
+   count. Real file upload on `create-profile.html` as of 2026-08-11 (see
+   "Profile picture uploads" below) - was a paste-a-URL placeholder before that.
+   On `member.html`, thumbnails render **above** the featured photo frame (less jarring — clicking
    a thumbnail updates the display right below where you're already looking, no
    scrolling back up). Chris's stated long-term goal: a fully static system — visible
    thumbnails, click one, a static image appears, nothing moves/reflows at all. The
@@ -1343,6 +1345,63 @@ in the same spirit as the "little updates" philosophy above.
   posts/comments (those currently use one-time fetches, not real-time
   listeners, unlike Dialogs - extending this same pattern to them would
   need that changed first).
+
+## Profile picture uploads (Chris, 2026-08-11)
+
+The second of the two remaining Blaze-gated items (alongside the
+transactional emails above) - Firebase Storage for real profile picture
+uploads on `create-profile.html`, replacing the paste-a-URL placeholder
+that had been there since the field was first built. `storage.rules`
+(owner-only write, 5MB cap, image-only) had already existed for months in
+anticipation of this, unused until now.
+
+- **`firebase-config.js` gets an optional `AgoraStorage`** - `firebase.storage
+  ? firebase.storage() : null`, guarded rather than unconditional, since this
+  one shared config file loads on every Agora page and most of them never
+  load `firebase-storage-compat.js` at all. Only `create-profile.html` loads
+  the Storage SDK script and actually uses `AgoraStorage`.
+- **Each of the 5 Picture fields is now a real `<input type="file">`** with
+  a small thumbnail preview and a "Remove this picture" checkbox (shown only
+  when that slot already has a picture) instead of a URL text box.
+  Choosing a new file previews it immediately (`FileReader`/data URL) and
+  auto-unchecks/hides Remove, since a new file already replaces whatever was
+  there.
+- **Upload path is fixed per slot, not timestamped:**
+  `profile-pictures/{uid}/picture{1-5}`, no filename extension - Storage
+  infers `contentType` from the `File` object itself, so no extension is
+  needed for that, and re-uploading to the same slot overwrites the same
+  object instead of leaving the previous upload orphaned in the bucket -
+  matching the site's general "each save is a full overwrite" convention
+  (e.g. the location map's lat/lng, elsewhere in this file).
+  `profile-form.js`'s `uploadPicture()` does the `.put()` +
+  `.getDownloadURL()`.
+  - **Client-side validation before any upload starts:** file size < 5MB
+    and `type` starts with `image/`, checked for all 5 slots up front (same
+    limits `storage.rules` enforces server-side, just with an immediate,
+    specific error message instead of a failed upload after the fact).
+- **Unchanged slots keep whatever was already saved** - `existingPictureUrls`
+  (repopulated by `fillForm()` on every load, editing or not) is the
+  fallback for any slot with no new file and no Remove checked, so an
+  existing external URL from before this migration still keeps working
+  untouched; only slots the member actually interacts with ever get
+  touched. A checked Remove clears that slot's field to `""`; a picked
+  file's real Storage download URL overwrites the placeholder value after
+  upload succeeds, both applied just before the existing `Promise.all`
+  save chain that already handles the handle-uniqueness check and
+  geocoding, so uploads run in parallel with those rather than serially
+  blocking them.
+- **CSS specificity gotcha caught during testing:** the new
+  `.field-checkbox-inline` class initially lost the "Remove this picture"
+  text-transform/letter-spacing fight against `.profile-form label`'s
+  higher-specificity (class+element) selector, rendering it uppercase like
+  a field label instead of normal-case like the form's other checkboxes
+  (e.g. "Display Map?"). Fixed by matching the same element+class pattern
+  the existing `.field-checkbox label` rule already used to win that same
+  fight (`label.field-checkbox-inline`, not a bare class).
+- **Not changed:** the 30 static `/Agora/profiles/*.html` pages have no
+  upload form at all (their pictures are hand-authored HTML, same as
+  everything else about them) - this only affects the real Firestore-backed
+  `create-profile.html` flow.
 
 ## Open items
 

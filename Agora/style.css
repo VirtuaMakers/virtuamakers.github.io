@@ -1690,6 +1690,43 @@ main > .section:first-child {
   border: none;
 }
 
+.picture-field-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.picture-field-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+/* Element+class specificity, matching .field-checkbox label above - a bare
+   .field-checkbox-inline class loses the text-transform/letter-spacing
+   fight against .profile-form label's higher-specificity (class+element)
+   selector otherwise. */
+label.field-checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text);
+}
+
+.field-checkbox-inline input {
+  width: auto;
+  padding: 0;
+  border: none;
+}
+
 .profile-form-actions {
   display: flex;
   gap: 0.8rem;

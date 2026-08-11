@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=78" />
+  <link rel="stylesheet" href="style.css?v=79" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -411,27 +411,58 @@
           </div>
           <div class="field-group">
             <h3 class="field-group-title">Pictures</h3>
+            <p class="field-hint">Upload JPG, PNG, or GIF files, up to 5MB each. The first
+              picture is your profile picture.</p>
             <div class="field-group-items">
-              <div>
+              <div class="picture-field">
                 <label for="field-picture-1">Profile Picture</label>
-                <input type="url" id="field-picture-1" placeholder="https://..." />
-                <p class="field-hint">Paste a link to an image for now – direct upload is coming later.</p>
+                <div class="picture-field-row">
+                  <img class="picture-field-thumb" id="field-picture-1-thumb" alt="" hidden />
+                  <input type="file" id="field-picture-1" accept="image/*" />
+                </div>
+                <label class="field-checkbox-inline" id="field-picture-1-remove-wrap" hidden>
+                  <input type="checkbox" id="field-picture-1-remove" /> Remove this picture
+                </label>
               </div>
-              <div>
+              <div class="picture-field">
                 <label for="field-picture-2">Picture 2</label>
-                <input type="url" id="field-picture-2" placeholder="https://..." />
+                <div class="picture-field-row">
+                  <img class="picture-field-thumb" id="field-picture-2-thumb" alt="" hidden />
+                  <input type="file" id="field-picture-2" accept="image/*" />
+                </div>
+                <label class="field-checkbox-inline" id="field-picture-2-remove-wrap" hidden>
+                  <input type="checkbox" id="field-picture-2-remove" /> Remove this picture
+                </label>
               </div>
-              <div>
+              <div class="picture-field">
                 <label for="field-picture-3">Picture 3</label>
-                <input type="url" id="field-picture-3" placeholder="https://..." />
+                <div class="picture-field-row">
+                  <img class="picture-field-thumb" id="field-picture-3-thumb" alt="" hidden />
+                  <input type="file" id="field-picture-3" accept="image/*" />
+                </div>
+                <label class="field-checkbox-inline" id="field-picture-3-remove-wrap" hidden>
+                  <input type="checkbox" id="field-picture-3-remove" /> Remove this picture
+                </label>
               </div>
-              <div>
+              <div class="picture-field">
                 <label for="field-picture-4">Picture 4</label>
-                <input type="url" id="field-picture-4" placeholder="https://..." />
+                <div class="picture-field-row">
+                  <img class="picture-field-thumb" id="field-picture-4-thumb" alt="" hidden />
+                  <input type="file" id="field-picture-4" accept="image/*" />
+                </div>
+                <label class="field-checkbox-inline" id="field-picture-4-remove-wrap" hidden>
+                  <input type="checkbox" id="field-picture-4-remove" /> Remove this picture
+                </label>
               </div>
-              <div>
+              <div class="picture-field">
                 <label for="field-picture-5">Picture 5</label>
-                <input type="url" id="field-picture-5" placeholder="https://..." />
+                <div class="picture-field-row">
+                  <img class="picture-field-thumb" id="field-picture-5-thumb" alt="" hidden />
+                  <input type="file" id="field-picture-5" accept="image/*" />
+                </div>
+                <label class="field-checkbox-inline" id="field-picture-5-remove-wrap" hidden>
+                  <input type="checkbox" id="field-picture-5-remove" /> Remove this picture
+                </label>
               </div>
             </div>
           </div>
@@ -534,12 +565,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js?v=1"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js?v=2"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=15"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="profile-form.js?v=18"></script>
+  <script src="profile-form.js?v=19"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
