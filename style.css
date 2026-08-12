@@ -10,6 +10,8 @@
   --green-deep: #196c26;
   --teal: #167082;
   --teal-deep: #01566b;
+  --blue: #2b57d6;
+  --blue-deep: #1e3f9e;
   --accent: var(--teal);
   --accent-soft: #e7f1f1;
   --radius: 14px;
@@ -229,6 +231,15 @@ main {
 
 .btn-ghost:hover {
   border-color: #cfcfca;
+}
+
+.btn-blue {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-blue:hover {
+  background: var(--blue-deep);
 }
 
 /* Sections */
