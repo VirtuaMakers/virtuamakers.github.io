@@ -73,6 +73,7 @@
   var emailVisible = document.getElementById("field-email-visible");
   var requireFriendCheckbox = document.getElementById("field-require-friend");
   var tosInput = document.getElementById("field-tos");
+  var newsletterCheckbox = document.getElementById("field-newsletter");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
@@ -174,6 +175,10 @@
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
     requireFriendCheckbox.checked = !!data.requireFriendToMessage;
+    // Respects an explicit false (e.g. from the no-login unsubscribe link
+    // in a newsletter email) same as every other "on by default" checkbox
+    // here - only an explicit false unchecks it, not a merely-missing field.
+    newsletterCheckbox.checked = data.newsletterOptIn !== false;
   }
 
   // A real calendar day-count per month, leap years included - JS's Date
@@ -470,6 +475,7 @@
       email: email,
       showEmail: emailVisible.checked,
       requireFriendToMessage: requireFriendCheckbox.checked,
+      newsletterOptIn: newsletterCheckbox.checked,
       status: existingDoc ? existingDoc.status : "active",
       tosAgreedAt: existingDoc && existingDoc.tosAgreedAt
         ? existingDoc.tosAgreedAt

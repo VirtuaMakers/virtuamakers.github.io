@@ -1616,6 +1616,122 @@ after `firebase-firestore-compat.js`), the header
 Until all three are done, everything gracefully degrades to just the
 in-tab toast (which needs none of them) - nothing breaks in the gap.
 
+## Newsletter 📰 (Chris, 2026-08-12)
+
+Chris's ask, verbatim shape: opted into by default on sign-up, prepared by
+the 27th of each month for a send on the last day of the month, same
+visual style as the other letters, and a no-login one-click unsubscribe
+from every issue. All four are built.
+
+**Data model:** `profiles/{uid}.newsletterOptIn` (boolean) and
+`profiles/{uid}.newsletterUnsubToken` (string, generated lazily - see
+below), plus a new single-document collection, `newsletter/draft`
+(`{subject, bodyText, updatedAt, updatedBy, lastSentAt}`) - the one
+staging area both the compose page and the send function read/write.
+Admin-only in `firestore.rules` (`allow read, write: if isAdmin()`), same
+`isAdmin()` helper every other admin surface already uses. **This rules
+change still needs Chris to paste it into the Firebase console** - same
+manual step every `firestore.rules` edit needs, this file was never wired
+to auto-deploy.
+
+**Opt-in checkbox** - `create-profile.html`, right after the Terms
+checkbox, checked by default, wired into `profile-form.js` with the same
+`data.newsletterOptIn !== false` idiom every other "on by default"
+checkbox here uses (`showDate`, `showEmail`, etc.) - so an explicit
+`false` (from unsubscribing) stays unchecked, but a merely-missing field
+defaults to checked. Unlike the Terms checkbox, this one stays visible and
+editable on both create **and** edit - it's a real, changeable preference,
+not a one-time agreement.
+
+Two things worth flagging about how this interacts with the *existing*
+membership, since both were judgment calls rather than something Chris
+specified directly:
+- **Existing members aren't auto-enrolled.** `sendMonthlyNewsletter`
+  queries `where("newsletterOptIn", "==", true)` - an explicit-true match,
+  not `!= false` - so a profile that's never touched the new checkbox
+  (i.e., anyone who signed up before 2026-08-12 and hasn't since opened
+  Edit Profile) is excluded from sends. New signups get `true` written
+  explicitly the first time they save, same as everyone else who edits
+  their profile going forward, checked-by-default. Rationale: silently
+  opting the entire existing membership into a mailing list they never
+  saw or agreed to felt wrong; if Chris wants a one-time backfill instead,
+  that's a small follow-up (a one-off script or Cloud Function setting
+  `newsletterOptIn: true` on every profile missing the field).
+- **Send mechanism is a plain Firestore loop**, not a Resend
+  Audience/Broadcast. Each opted-in profile gets its own
+  `sendEmailSafe` call, reusing 100% of the already-built transactional-
+  email plumbing instead of standing up a second contact-sync
+  subsystem. Reasonable at Agora's current size; would need revisiting
+  (batching, a real Broadcast, rate-limit backoff) at meaningfully larger
+  scale.
+
+**Compose page** - `newsletter-compose.html` (+ `newsletter-compose.js`),
+admin-only (`VirtuaMakers@Outlook.com`, same gate as everywhere else),
+`noindex`, not linked from site nav - reached directly at
+`https://www.virtuamakers.com/Agora/newsletter-compose.html`. Same page
+chrome as every other Agora page (header/footer/sign-in modal). A plain
+text `<textarea>` for the body (blank line = new paragraph, matching every
+other template's paragraph convention) plus a subject field, saving both
+to `newsletter/draft` with `merge: true` so `lastSentAt` (written by the
+send function) survives a later draft edit. Shows "last sent" / "draft
+last saved (by whom)" timestamps read back from the same doc. Saving here
+always replaces whatever's queued - there's only ever one upcoming issue,
+no history of past drafts kept.
+
+**Email template** - `emails/newsletter-email.html` (+ the hand-synced
+copy in `functions/templates/`, same split every template here needs
+since Cloud Functions only bundles `functions/`), cloned from
+`welcome-email.html`'s exact table layout/colors/footer style. Three
+placeholders: `{{SUBJECT}}`, `{{BODY}}`, `{{UNSUBSCRIBE_URL}}`, substituted
+by `withNewsletterContent()` in `functions/lib/templates.js`.
+`paragraphsToHtml()` turns the compose page's plain text into the same
+`margin:0 0 16px` inline-styled `<p>` blocks every other template
+hand-writes, HTML-escaping each paragraph first since this is the one
+template whose body comes from a form field instead of being written
+directly into the file. The subject is HTML-escaped too when it goes into
+the `<title>`/`<h1>` (not when used as the actual email's Subject header,
+which isn't HTML) - otherwise an ordinary subject like "R&D Update" would
+render broken.
+
+**No-login unsubscribe** - `unsubscribeNewsletter` in `functions/index.js`
+is a plain `onRequest` function (not `onCall`), since it has to work for a
+signed-out visitor clicking a link with no Firebase Auth session at all.
+Takes `?uid=...&token=...`; the token is a per-profile random value
+(`crypto.randomBytes(24).toString("hex")`), generated lazily the first
+time that profile is ever sent an issue and stored as
+`newsletterUnsubToken`, so a link can't be guessed or reused to
+unsubscribe someone else - meaningfully more robust than a bare uid for
+negligible extra complexity, even though uids alone are already exposed
+unprotected elsewhere on the site (e.g. `member.html?uid=`). A match
+flips `newsletterOptIn` to `false` and shows a small standalone
+confirmation page (not a redirect back into the app, since a signed-out
+visitor may have nothing to sign into).
+
+**Send schedule** - `sendMonthlyNewsletter` in `functions/index.js`, an
+`onSchedule` cron: `"0 9 28-31 * *"` in `America/New_York` (Chris is in
+Cincinnati). That fires daily from the 28th on, since not every month has
+a 30th or 31st; the function's first move is checking whether *tomorrow*
+is the 1st, and bailing out immediately if not - so it only actually
+sends on the true last day of whichever month it is, regardless of length.
+Reads `newsletter/draft`; does nothing if there's no draft or either field
+is blank (so an unprepared month just silently skips rather than sending
+garbage). On send, generates each recipient's unsubscribe token if it
+doesn't exist yet, builds their link, sends, then stamps `lastSentAt` on
+the draft doc once the whole run completes.
+
+**Still needs from Chris, before any of this actually works:**
+1. **Deploy Cloud Functions** - `firebase deploy --only functions` from
+   `Agora/` (same command, same one deploy, as the Admin ban/delete and
+   transactional-email rollouts - this picks up `unsubscribeNewsletter`
+   and `sendMonthlyNewsletter` alongside everything else already waiting
+   on that deploy).
+2. **Paste the updated `firestore.rules`** into the Firebase console
+   (Firestore Database → Rules) - the new `newsletter/{document}` block.
+3. **Prepare the first real issue** via the compose page before the 27th
+   of whichever month it's meant to go out.
+Until all three are done, the opt-in checkbox and compose page still work
+(they only touch Firestore directly), but nothing actually sends.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the

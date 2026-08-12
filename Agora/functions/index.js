@@ -13,12 +13,13 @@
 // sends - every send is best-effort, so the underlying account action
 // still succeeds even if that secret is missing or Resend is down.
 
-const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { resendApiKey, sendEmailSafe } = require("./lib/resend");
-const { loadTemplate, withReason } = require("./lib/templates");
+const { loadTemplate, withReason, withNewsletterContent } = require("./lib/templates");
 const { notify } = require("./lib/notify");
 
 admin.initializeApp();
@@ -257,5 +258,101 @@ exports.notifyOnWallComment = onDocumentCreated(
       linkPath: "member.html?uid=" + encodeURIComponent(post.profileUid),
       pushTitle: (name) => name + " commented on your post",
     });
+  }
+);
+
+// Newsletter 📰 (Chris, 2026-08-12) - a monthly issue, opted into by
+// default from create-profile.html, prepared via newsletter-compose.html
+// (admin-only, writes to the single newsletter/draft doc) by the 27th of
+// each month, sent on the last day of the month.
+
+const UNSUBSCRIBE_BASE_URL = "https://us-central1-agora-firebase-f4240.cloudfunctions.net/unsubscribeNewsletter";
+
+function resultPage(message, ok) {
+  return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\" />"
+    + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />"
+    + "<title>Agora Newsletter</title></head>"
+    + "<body style=\"margin:0; padding:48px 16px; background:#f4f4f4; "
+    + "font-family:'Hanken Grotesk','Segoe UI',Helvetica,Arial,sans-serif; "
+    + "color:#15323a; text-align:center;\">"
+    + "<div style=\"max-width:420px; margin:0 auto; background:#ffffff; "
+    + "border:1px solid #000000; border-radius:14px; padding:32px;\">"
+    + "<p style=\"margin:0;\">" + (ok ? "✅ " : "⚠️ ") + message + "</p>"
+    + "<p style=\"margin:16px 0 0;\"><a href=\"https://www.virtuamakers.com/Agora/index.html\" "
+    + "style=\"color:#2b57d6;\">Back to Agora 🌐</a></p>"
+    + "</div></body></html>";
+}
+
+// A plain HTTPS function, not onCall - this has to work for a signed-out
+// visitor clicking a link in their inbox, with no Firebase Auth session at
+// all. Security is a per-profile random token (generated lazily the first
+// time that profile is ever sent an issue, see sendMonthlyNewsletter
+// below) rather than just the uid alone, so a link can't be guessed or
+// used to unsubscribe someone else - low stakes either way, but this adds
+// real protection for negligible extra complexity.
+exports.unsubscribeNewsletter = onRequest(async (req, res) => {
+  const uid = req.query.uid;
+  const token = req.query.token;
+  if (!uid || !token) {
+    res.status(400).send(resultPage("This unsubscribe link is missing information.", false));
+    return;
+  }
+
+  const profileRef = admin.firestore().collection("profiles").doc(String(uid));
+  const profileSnap = await profileRef.get();
+  if (!profileSnap.exists || profileSnap.data().newsletterUnsubToken !== token) {
+    res.status(403).send(resultPage("This unsubscribe link isn't valid.", false));
+    return;
+  }
+
+  await profileRef.update({ newsletterOptIn: false });
+  res.status(200).send(resultPage(
+    "You're unsubscribed from the Agora 🌐 Newsletter 📰. No more monthly issues, no sign-in needed - that's it.",
+    true
+  ));
+});
+
+// Cron covers the 28th-31st since not every month has a 31st (or a 30th) -
+// the tomorrow-rolls-into-day-1 check below is what actually restricts
+// this to firing on the true last day, whichever date that is. 9am
+// Eastern, matching Chris's own timezone.
+exports.sendMonthlyNewsletter = onSchedule(
+  { schedule: "0 9 28-31 * *", timeZone: "America/New_York", secrets: [resendApiKey] },
+  async () => {
+    const now = new Date();
+    const tomorrow = new Date(now.getTime());
+    tomorrow.setDate(now.getDate() + 1);
+    if (tomorrow.getDate() !== 1) return;
+
+    const draftRef = admin.firestore().collection("newsletter").doc("draft");
+    const draftSnap = await draftRef.get();
+    if (!draftSnap.exists) return;
+    const draft = draftSnap.data();
+    if (!draft.subject || !draft.bodyText) return;
+
+    const profilesSnap = await admin.firestore().collection("profiles")
+      .where("newsletterOptIn", "==", true).get();
+
+    const template = loadTemplate("newsletter-email.html");
+
+    for (const doc of profilesSnap.docs) {
+      const data = doc.data();
+      if (!data.email) continue;
+
+      let token = data.newsletterUnsubToken;
+      if (!token) {
+        token = crypto.randomBytes(24).toString("hex");
+        await doc.ref.update({ newsletterUnsubToken: token });
+      }
+
+      const unsubscribeUrl = UNSUBSCRIBE_BASE_URL
+        + "?uid=" + encodeURIComponent(doc.id)
+        + "&token=" + encodeURIComponent(token);
+
+      const html = withNewsletterContent(template, draft.subject, draft.bodyText, unsubscribeUrl);
+      await sendEmailSafe({ to: data.email, subject: draft.subject, html });
+    }
+
+    await draftRef.update({ lastSentAt: admin.firestore.FieldValue.serverTimestamp() });
   }
 );

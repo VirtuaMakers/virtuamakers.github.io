@@ -515,6 +515,13 @@
             <label><input type="checkbox" id="field-tos" required />
               <span>I agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</span></label>
           </div>
+          <div class="field-checkbox">
+            <label><input type="checkbox" id="field-newsletter" checked />
+              Subscribe to the monthly Agora 🌐 Newsletter 📰</label>
+            <p class="field-hint">On by default – sent once a month, and you
+              can unsubscribe with one click from any issue, no sign-in
+              needed.</p>
+          </div>
           <p class="form-error" id="form-error" hidden></p>
           <div class="profile-form-actions">
             <button type="submit" class="btn btn-primary" id="form-submit">Save Profile</button>
@@ -573,7 +580,7 @@
   <script src="auth-ui.js?v=17"></script>
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
-  <script src="profile-form.js?v=20"></script>
+  <script src="profile-form.js?v=21"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -224,6 +224,17 @@ service cloud.firestore {
         && request.auth.uid in resource.data.participants;
     }
 
+    // Newsletter 📰 - a single draft doc (subject + plain-text body) that
+    // Chris prepares by the 27th of each month via newsletter-compose.html,
+    // for the sendMonthlyNewsletter Cloud Function to send out on the last
+    // day of the month. Admin-only in both directions - not a public
+    // collection, and not member-readable like Communiqués - since it's
+    // just a staging area for content that isn't public until it's
+    // actually emailed out.
+    match /newsletter/{document} {
+      allow read, write: if isAdmin();
+    }
+
     function isAdmin() {
       return request.auth.token.email == 'VirtuaMakers@Outlook.com';
     }
