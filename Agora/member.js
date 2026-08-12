@@ -347,9 +347,8 @@
   // This section itself stays a friends-only quick-access convenience -
   // a search over your own friends (populated by loadFriendsList() below)
   // rather than a list of every conversation you have - so it's still
-  // hidden until you have at least one accepted friend, but it's no
-  // longer the only way to start a Dialog; see communiques.html's "New
-  // Message" search for messaging anyone.
+  // hidden until you have at least one accepted friend. Messaging anyone
+  // else goes through the "Message" button on their own profile instead.
 
   var dialogsSection = document.getElementById("member-dialogs");
   var dialogsSearch = document.getElementById("dialogs-friend-search");

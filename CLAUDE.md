@@ -699,9 +699,16 @@ not as the primary label).
   `isWithinEditWindow`, `attachInlineEdit`) - every Communiqués page and
   the Wall/Dialogs code in `member.js` pull from it rather than
   duplicating the same logic per page.
-- **Pages:** `communiques.html` (hub: read-only Dialogs inbox, see "Dialogs
-  redesign" below), `communiques-dm.html` (single Dialog, paginated - see
-  above). Wall + Dialogs themselves render on `member.html?uid=` (see below).
+- **Pages:** ~~`communiques.html` (hub: read-only Dialogs inbox)~~
+  **removed (Chris, 2026-08-11)** - the header's own link to it had
+  already been dropped a while back, and starting/continuing a Dialog no
+  longer goes through it (see "Dialogs redesign" below), so the hub page
+  itself was deleted along with `communiques.js`. `communiques-common.js`
+  and `communiques-dm.html` (single Dialog, paginated - see above) are
+  unaffected - Wall + Dialogs themselves still render on `member.html?uid=`
+  (see below). The homepage's own "Communiqués 📨" explainer section
+  (`Agora/index.html#communiques`) stays, now closing on a plain "Sign in
+  to see your Communiqués 📨!" line instead of a link to the deleted page.
 - **Dialogs redesign - friends-only (Chris, 2026-08-06):** you can't Dialog
   with someone you're not friends with, on `member.html` at least (see
   "Dialogs require an accepted friendship" under Friends 🙂 above for the
