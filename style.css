@@ -287,6 +287,12 @@ main {
   background: rgba(97, 161, 56, 0.14);
 }
 
+.card-tag-bottom {
+  display: block;
+  width: fit-content;
+  margin: 1.2rem auto 0;
+}
+
 .card h3 {
   font-family: "Hanken Grotesk", sans-serif;
   font-size: 1.2rem;
