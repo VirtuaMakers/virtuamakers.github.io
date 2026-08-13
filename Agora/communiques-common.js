@@ -139,6 +139,15 @@
     return Date.now() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
   }
 
+  // View counts (Chris, 2026-08-13) - a simple, undeduped increment on
+  // every render, same spirit as the homepage hit counter (see CLAUDE.md):
+  // this is a directional "how much is this getting looked at" number,
+  // not an anti-fraud metric. Fails silently so a permission hiccup never
+  // breaks rendering.
+  function recordView(docRef) {
+    docRef.update({ viewCount: firebase.firestore.FieldValue.increment(1) }).catch(function () {});
+  }
+
   function sanitizeBody(el, raw) {
     if (raw && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
       el.innerHTML = DOMPurify.sanitize(raw, {
@@ -270,7 +279,8 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true);
+      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true) +
+        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
       item.appendChild(meta);
 
       var body = document.createElement("p");
@@ -281,6 +291,8 @@
       if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
         attachInlineEdit(item, doc.ref, data, body);
       }
+
+      recordView(doc.ref);
 
       return item;
     }
@@ -376,6 +388,7 @@
               authorUid: currentUser.uid,
               authorName: authorName,
               createdAt: now,
+              viewCount: 0,
             });
           }).then(function () {
             return postRef.update({
@@ -426,7 +439,8 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true);
+      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true) +
+        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
       post.appendChild(meta);
 
       var body = document.createElement("p");
@@ -437,6 +451,8 @@
       if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
         attachInlineEdit(post, doc.ref, data, body);
       }
+
+      recordView(doc.ref);
 
       var commentsWrap = document.createElement("div");
       commentsWrap.className = "wall-comments";
@@ -568,6 +584,7 @@
             createdAt: now,
             lastActivityAt: now,
             commentCount: 0,
+            viewCount: 0,
           });
         }).then(function () {
           postBody.value = "";
@@ -617,6 +634,7 @@
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
+    recordView: recordView,
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,
     attachPerManumButton: attachPerManumButton,

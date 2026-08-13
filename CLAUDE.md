@@ -1860,6 +1860,64 @@ Until all four are done, nothing gets checked at all - every submission
 just fails open and posts normally (see above), so nothing breaks in the
 gap; it's simply not filtering anything yet.
 
+## Views 👁 (Chris, 2026-08-13)
+
+A view counter on Wall posts, Wall comments, and Dialog messages, visible
+inline in each item's existing meta line (e.g. "Claude · Aug 13, 2026, 3:45
+PM · 👁 4"). Profiles also get a counter, per Chris's call to include it
+but keep it invisible for now - `profiles/{uid}.profileViews` is written
+but never rendered anywhere; checking it means reading the Firestore
+document directly (console, or a future admin page), same as several other
+internal-only fields already in this codebase.
+
+- **Deliberately undeduped, matching the homepage hit counter's own
+  simplicity (see the "little updates"/hit-counter entries elsewhere in
+  this file)** - every render increments by 1, including the author's own
+  view of their own content, with no per-viewer tracking. This is a
+  directional "how much is this getting looked at" number, not an
+  anti-fraud metric - consistent with the site's general "good enough for
+  now" bar elsewhere (free geocoding, no read-receipt tracking on
+  Communiqués, etc.).
+- **`CommuniquesCommon.recordView(docRef)`** (new, `communiques-common.js`)
+  is the one shared increment call - `docRef.update({ viewCount:
+  firebase.firestore.FieldValue.increment(1) })`, fails silently so a
+  permission hiccup never blocks rendering. Called from
+  `createWallController()`'s `buildWallPost()`/`buildCommentItem()`, which
+  covers both `member.html` and all 30 static profile pages automatically
+  since they already share that one controller.
+- **Dialog messages needed a dedup guard `buildMessageBubble()` in
+  `communiques-dm.js` doesn't**, because messages arrive over a live
+  `onSnapshot` listener that re-fires (and re-renders every message on the
+  current page, not just the new one) every time anyone sends a new
+  message - without a guard, an existing message's view count would climb
+  every time the conversation got a new message, not just when a viewer
+  actually opened it. `viewedMessageIds` (a plain in-memory object, scoped
+  to the page's lifetime) counts each message once per page load; visiting
+  again later still counts as a fresh view, same undeduped philosophy as
+  everything else here.
+- **`firestore.rules`:** one new bump-only `allow update` per collection
+  (`conversations/{id}/messages/{id}`, `wallPosts/{id}`,
+  `wallPosts/{id}/comments/{id}`), each scoped to `affectedKeys().hasOnly(
+  ['viewCount'])` so it can't touch anything else - same pattern already
+  used for the Wall's `commentCount`/`lastActivityAt` bump. `profiles/{uid}`
+  got the same treatment for `profileViews`, except with no `request.auth
+  != null` requirement at all, since profiles are world-readable and Chris
+  wants views counted from signed-out visitors too. **Still needs Chris to
+  paste the updated rules into the Firebase console** - same manual step
+  every `firestore.rules` change needs.
+- **`profileViews` needed explicit preservation in `profile-form.js`**
+  because every profile save is a full `.set()` overwrite of the whole
+  document (see the location-map/picture-upload entries elsewhere in this
+  file) - without carrying `existingDoc.profileViews` forward the same way
+  `createdAt`/`tosAgreedAt` already are, every edit would silently reset
+  the count to 0. `member.js`'s `loadProfile()` writes the actual
+  increment, guarded by a `profileViewRecorded` flag so it only fires once
+  per page load even though `loadProfile()` re-runs on every auth-state
+  change (e.g. a visitor signing in mid-view), not just the initial load.
+- **New posts/comments/messages are created with `viewCount: 0`** rather
+  than leaving the field absent, so the meta-line display code doesn't
+  need an existence check beyond `typeof data.viewCount === "number"`.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the

@@ -477,6 +477,12 @@
       requireFriendToMessage: requireFriendCheckbox.checked,
       newsletterOptIn: newsletterCheckbox.checked,
       status: existingDoc ? existingDoc.status : "active",
+      // Invisible view counter, written directly by member.html - not part
+      // of this form at all, but .set() below fully replaces the document,
+      // so it has to be explicitly carried forward here or every save
+      // would silently reset it to 0 (same pattern as tosAgreedAt/
+      // createdAt below).
+      profileViews: existingDoc && typeof existingDoc.profileViews === "number" ? existingDoc.profileViews : 0,
       tosAgreedAt: existingDoc && existingDoc.tosAgreedAt
         ? existingDoc.tosAgreedAt
         : firebase.firestore.FieldValue.serverTimestamp(),

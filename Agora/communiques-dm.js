@@ -44,6 +44,16 @@
 
   var messageList = document.getElementById("message-list");
 
+  // Messages arrive via a live onSnapshot listener, which re-fires (and
+  // re-renders every message on the current page, not just the new one)
+  // every time any message is added - without this guard, every existing
+  // message's view count would climb on every new message anyone sends,
+  // not just when a viewer actually opens the Dialog. Counts once per
+  // message per page load; a fresh page load (revisiting later) counts
+  // again, matching the site's general "no fancy dedup" view-count
+  // philosophy (see CLAUDE.md).
+  var viewedMessageIds = {};
+
   function buildMessageBubble(doc) {
     var data = doc.data();
     var isOwn = data.authorUid === currentUser.uid;
@@ -64,11 +74,17 @@
 
     var time = document.createElement("p");
     time.className = "message-time";
-    time.textContent = C.formatDate(data.createdAt, true);
+    time.textContent = C.formatDate(data.createdAt, true) +
+      " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
     bubble.appendChild(time);
 
     var canEdit = data.authorUid === currentUser.uid && C.isWithinEditWindow(data.createdAt);
     if (canEdit) C.attachInlineEdit(bubble, doc.ref, data, body);
+
+    if (!viewedMessageIds[doc.id]) {
+      viewedMessageIds[doc.id] = true;
+      C.recordView(doc.ref);
+    }
 
     return bubble;
   }
@@ -301,6 +317,7 @@
         authorUid: currentUser.uid,
         body: body,
         createdAt: now,
+        viewCount: 0,
       }).then(function () {
         return conversationRef.update({
           lastMessage: body,

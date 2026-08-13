@@ -26,6 +26,12 @@ service cloud.firestore {
           && request.resource.data.status == resource.data.status)
       );
 
+      // Invisible view counter (Chris, 2026-08-13) - anyone, including a
+      // signed-out visitor, can bump profileViews by exactly one field,
+      // matching this doc's public read. Not surfaced in any UI yet -
+      // internal-only metric, see CLAUDE.md.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews']);
+
       allow delete: if request.auth != null
         && (isAdmin() || request.auth.uid == uid);
 
@@ -155,6 +161,13 @@ service cloud.firestore {
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
+
+        // View counts (Chris, 2026-08-13) - any signed-in member can bump
+        // a message's viewCount, same bump-only pattern as the Wall
+        // counters below. Not deduped per viewer - matches the homepage
+        // hit counter's own simplicity, see CLAUDE.md.
+        allow update: if request.auth != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']);
       }
     }
 
@@ -177,6 +190,11 @@ service cloud.firestore {
       allow update: if request.auth != null
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastActivityAt']);
 
+      // View counts (Chris, 2026-08-13) - see the messages/{messageId}
+      // rule above for the same pattern and reasoning.
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']);
+
       match /comments/{commentId} {
         allow read: if request.auth != null;
 
@@ -186,6 +204,9 @@ service cloud.firestore {
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
+
+        allow update: if request.auth != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']);
       }
     }
 

@@ -14,6 +14,11 @@
 
   var profileData = null;
   var currentUser = null;
+  // Invisible view counter (Chris, 2026-08-13) - internal-only metric, no
+  // UI shows this. Guarded so it only fires once per page load even
+  // though loadProfile() re-runs on every auth-state change (e.g. a
+  // visitor signing in mid-view), not just the initial page load.
+  var profileViewRecorded = false;
 
   // Bio allows a small, deliberately-expanding allowlist of HTML tags (see
   // bio-tags.js) - sanitized here at render time rather than at save time,
@@ -258,6 +263,11 @@
       render(profileData);
       refreshControls();
       updateMessageButtonVisibility();
+
+      if (!profileViewRecorded) {
+        profileViewRecorded = true;
+        doc.ref.update({ profileViews: firebase.firestore.FieldValue.increment(1) }).catch(function () {});
+      }
     }).catch(function () {
       // Without this, a fetch failure (e.g. a flaky connection) leaves the
       // page permanently blank - neither the profile content nor any
