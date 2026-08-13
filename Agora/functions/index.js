@@ -362,9 +362,10 @@ exports.sendMonthlyNewsletter = onSchedule(
   }
 );
 
-// Content moderation 🛡️ (Chris, 2026-08-13) - Google's Perspective API
-// scores text (toxicity/threats/insults/sexually-explicit language) and
-// Cloud Vision's SafeSearch scores images (nudity/violence/racy content)
+// Content moderation 🛡️ (Chris, 2026-08-13) - Google Cloud Natural
+// Language API's moderateText scores text (toxicity/insults/profanity/
+// sexual/violent content) and Cloud Vision's SafeSearch scores images
+// (nudity/violence/racy content)
 // before a Wall post, Wall comment, Dialog message, profile bio, or
 // profile picture ever gets saved. Anything clearly bad is blocked
 // outright (never saved); borderline content is flagged (saves normally,

@@ -1744,23 +1744,46 @@ Harness 🚡** (AI member login - still not built, see the "Naming split"
 entry earlier in this file) since Chris wants moderation in place before
 opening that door.
 
-**Two Google APIs, one shared key.** [Perspective
-API](https://perspectiveapi.com) (Google/Jigsaw's toxicity scorer) for
-text; Cloud Vision's SafeSearch for images. Both are reachable with one
-Google Cloud API key - enable "Perspective Comment Analyzer API" and
-"Cloud Vision API" on the `agora-firebase-f4240` project, generate a key
-restricted to just those two APIs, then set it once:
+**Two Google APIs, one shared key.** Google Cloud Natural Language API's
+`moderateText` for text; Cloud Vision's SafeSearch for images. Both are
+reachable with one Google Cloud API key - enable "Cloud Natural Language
+API" and "Cloud Vision API" on the `agora-firebase-f4240` project,
+generate a key restricted to just those two APIs, then set it once:
 `firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`. Scoring logic
 lives in `functions/lib/moderation.js` - `analyzeText()` requests
-TOXICITY/SEVERE_TOXICITY/THREAT/INSULT/SEXUALLY_EXPLICIT and takes the max
-score; `analyzeImage()` reads Vision's adult/violence/racy likelihoods
-(racy is graded more leniently - a LIKELY swimwear/fitness photo isn't
-nudity, only VERY_LIKELY racy blocks on its own). Two thresholds per type,
-both tunable constants: at or above BLOCK, content never saves; at or
-above FLAG (but under BLOCK), it saves completely normally but gets
-logged + emailed to Chris - a deliberate "ship a reasonable default,
-iterate against real results" choice, same instinct as social-format.js's
-link rubric.
+`moderateText` and reads six of its sixteen returned categories
+(Toxic/Derogatory/Profanity/Insult/Sexual/Violent - the ones with real
+harassment/safety overlap, ignoring the content-policy categories like
+Politics/Religion/Finance/Legal/Health/War that are out of this filter's
+scope) and takes the max confidence score; `analyzeImage()` reads Vision's
+adult/violence/racy likelihoods (racy is graded more leniently - a LIKELY
+swimwear/fitness photo isn't nudity, only VERY_LIKELY racy blocks on its
+own). Two thresholds per type, both tunable constants: at or above BLOCK,
+content never saves; at or above FLAG (but under BLOCK), it saves
+completely normally but gets logged + emailed to Chris - a deliberate
+"ship a reasonable default, iterate against real results" choice, same
+instinct as social-format.js's link rubric.
+
+**Originally built on Perspective API, swapped 2026-08-13.** Chris's
+original ask was "that Google censorship thing," which turned out to mean
+[Perspective API](https://perspectiveapi.com) (Google/Jigsaw's toxicity
+scorer). While setting it up, Perspective announced it's sunsetting -
+service ends after 2026, and (likely relatedly) new-project API-access
+requests stopped being granted, which is what the initial
+`gcloud services enable commentanalyzer.googleapis.com` attempt hit as a
+`PERMISSION_DENIED` even under project-Owner credentials. Rather than
+build on a dying API, text scoring moved to Cloud Natural Language API's
+`moderateText` instead - a different, actively-maintained Google product
+covering the same kind of ground, on the same GCP project, no new
+account/billing needed. `TOXICITY`/`SEVERE_TOXICITY`/`THREAT`/`INSULT`/
+`SEXUALLY_EXPLICIT` (Perspective's attribute names) became
+`Toxic`/`Derogatory`/`Profanity`/`Insult`/`Sexual`/`Violent`
+(`moderateText`'s category names) - not a perfect 1:1 (`moderateText` has
+no dedicated "severe toxicity" or "threat" category; Violent stands in for
+the latter), but the closest faithful mapping. Thresholds were carried
+over unchanged (both APIs score 0-1) but may need re-tuning once real
+`moderateText` results come in, since the two models don't necessarily
+calibrate the same way.
 
 **Scope - everywhere a member submits text or an image:** Wall posts,
 Wall comments, Dialog messages, and profile bios (text); profile pictures
@@ -1840,7 +1863,7 @@ entries get Approve/Uphold buttons.
 
 **Still needs from Chris, before any of this actually works:**
 1. **Enable both APIs** on the `agora-firebase-f4240` Google Cloud project
-   - "Perspective Comment Analyzer API" and "Cloud Vision API" - then
+   - "Cloud Natural Language API" and "Cloud Vision API" - then
    generate one API key restricted to those two, and set it:
    `firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`.
 2. **Deploy Cloud Functions** - `firebase deploy --only functions` from
