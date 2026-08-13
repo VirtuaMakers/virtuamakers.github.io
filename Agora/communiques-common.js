@@ -361,28 +361,37 @@
         toggleBtn.disabled = true;
         status.hidden = false;
 
-        var now = firebase.firestore.FieldValue.serverTimestamp();
-        getDisplayName(currentUser).then(function (authorName) {
-          return postRef.collection("comments").add({
-            body: body,
-            authorUid: currentUser.uid,
-            authorName: authorName,
-            createdAt: now,
+        AgoraModeration.checkText(body, "wallComment", { postId: postRef.id }).then(function (result) {
+          if (result.decision === "block") {
+            toggleBtn.disabled = false;
+            status.hidden = true;
+            AgoraModeration.showBlocked(error, result.logId);
+            return;
+          }
+
+          var now = firebase.firestore.FieldValue.serverTimestamp();
+          getDisplayName(currentUser).then(function (authorName) {
+            return postRef.collection("comments").add({
+              body: body,
+              authorUid: currentUser.uid,
+              authorName: authorName,
+              createdAt: now,
+            });
+          }).then(function () {
+            return postRef.update({
+              commentCount: firebase.firestore.FieldValue.increment(1),
+              lastActivityAt: now,
+            });
+          }).then(function () {
+            toggleBtn.disabled = false;
+            status.hidden = true;
+            close();
+          }).catch(function (err) {
+            toggleBtn.disabled = false;
+            status.hidden = true;
+            error.textContent = err.message;
+            error.hidden = false;
           });
-        }).then(function () {
-          return postRef.update({
-            commentCount: firebase.firestore.FieldValue.increment(1),
-            lastActivityAt: now,
-          });
-        }).then(function () {
-          toggleBtn.disabled = false;
-          status.hidden = true;
-          close();
-        }).catch(function (err) {
-          toggleBtn.disabled = false;
-          status.hidden = true;
-          error.textContent = err.message;
-          error.hidden = false;
         });
       }
 
@@ -541,27 +550,36 @@
       postSubmit.disabled = true;
       postStatus.hidden = false;
 
-      var now = firebase.firestore.FieldValue.serverTimestamp();
-      getDisplayName(currentUser).then(function (authorName) {
-        return AgoraDB.collection("wallPosts").add({
-          profileUid: profileUid,
-          body: body,
-          authorUid: currentUser.uid,
-          authorName: authorName,
-          createdAt: now,
-          lastActivityAt: now,
-          commentCount: 0,
+      AgoraModeration.checkText(body, "wallPost", { profileUid: profileUid }).then(function (result) {
+        if (result.decision === "block") {
+          postSubmit.disabled = false;
+          postStatus.hidden = true;
+          AgoraModeration.showBlocked(postError, result.logId);
+          return;
+        }
+
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        getDisplayName(currentUser).then(function (authorName) {
+          return AgoraDB.collection("wallPosts").add({
+            profileUid: profileUid,
+            body: body,
+            authorUid: currentUser.uid,
+            authorName: authorName,
+            createdAt: now,
+            lastActivityAt: now,
+            commentCount: 0,
+          });
+        }).then(function () {
+          postBody.value = "";
+          postSubmit.disabled = false;
+          postStatus.hidden = true;
+          loadWall();
+        }).catch(function (err) {
+          postSubmit.disabled = false;
+          postStatus.hidden = true;
+          postError.textContent = err.message;
+          postError.hidden = false;
         });
-      }).then(function () {
-        postBody.value = "";
-        postSubmit.disabled = false;
-        postStatus.hidden = true;
-        loadWall();
-      }).catch(function (err) {
-        postSubmit.disabled = false;
-        postStatus.hidden = true;
-        postError.textContent = err.message;
-        postError.hidden = false;
       });
     });
 

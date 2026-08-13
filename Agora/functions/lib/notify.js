@@ -86,4 +86,4 @@ async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTit
   await sendPush(recipientUid, pushTitle(actorName), previewOf(preview), linkPath);
 }
 
-module.exports = { notify };
+module.exports = { notify, resolveDisplayName };

@@ -286,27 +286,37 @@
     composeSubmit.disabled = true;
     composeStatus.hidden = false;
 
-    var now = firebase.firestore.FieldValue.serverTimestamp();
-    jumpToLastOnNextRender = true;
-    activeConversationRef.collection("messages").add({
-      authorUid: currentUser.uid,
-      body: body,
-      createdAt: now,
-    }).then(function () {
-      return activeConversationRef.update({
-        lastMessage: body,
-        lastMessageAt: now,
-        lastMessageAuthorUid: currentUser.uid,
+    var conversationRef = activeConversationRef;
+    AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationRef.id }).then(function (result) {
+      if (result.decision === "block") {
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+        AgoraModeration.showBlocked(composeError, result.logId);
+        return;
+      }
+
+      var now = firebase.firestore.FieldValue.serverTimestamp();
+      jumpToLastOnNextRender = true;
+      conversationRef.collection("messages").add({
+        authorUid: currentUser.uid,
+        body: body,
+        createdAt: now,
+      }).then(function () {
+        return conversationRef.update({
+          lastMessage: body,
+          lastMessageAt: now,
+          lastMessageAuthorUid: currentUser.uid,
+        });
+      }).then(function () {
+        document.getElementById("dm-compose-body").value = "";
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+      }).catch(function (err) {
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+        composeError.textContent = err.message;
+        composeError.hidden = false;
       });
-    }).then(function () {
-      document.getElementById("dm-compose-body").value = "";
-      composeSubmit.disabled = false;
-      composeStatus.hidden = true;
-    }).catch(function (err) {
-      composeSubmit.disabled = false;
-      composeStatus.hidden = true;
-      composeError.textContent = err.message;
-      composeError.hidden = false;
     });
   });
 

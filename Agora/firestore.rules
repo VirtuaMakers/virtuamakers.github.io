@@ -235,6 +235,18 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Content moderation 🛡️ - every block/flag the moderateText and
+    // moderateImage Cloud Functions record, plus appeal state. Only ever
+    // written by the Admin SDK (moderateText/moderateImage/
+    // requestModerationAppeal/resolveModerationAppeal all run server-side),
+    // so client writes are never allowed here at all - moderation-review.js
+    // reads this collection directly, but every action a moderator takes
+    // goes through resolveModerationAppeal instead of a direct write.
+    match /moderationLog/{document} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     function isAdmin() {
       return request.auth.token.email == 'VirtuaMakers@Outlook.com';
     }

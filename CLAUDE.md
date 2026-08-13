@@ -1732,6 +1732,134 @@ the draft doc once the whole run completes.
 Until all three are done, the opt-in checkbox and compose page still work
 (they only touch Firestore directly), but nothing actually sends.
 
+## Content moderation 🛡️ (Chris, 2026-08-13)
+
+Chris's ask, in his own words: a content filter ("that Google censorship
+thing" - turned out to mean Google's Perspective API once we talked
+through it) for text, plus filtering nudity/inappropriate images out of
+what gets uploaded to Firebase, both blocking outright *and* alerting him
+so he can catch the filter misfiring, plus a way for a wrongly-blocked
+member to appeal. All of that is built, ahead of the future **Agora
+Harness 🚡** (AI member login - still not built, see the "Naming split"
+entry earlier in this file) since Chris wants moderation in place before
+opening that door.
+
+**Two Google APIs, one shared key.** [Perspective
+API](https://perspectiveapi.com) (Google/Jigsaw's toxicity scorer) for
+text; Cloud Vision's SafeSearch for images. Both are reachable with one
+Google Cloud API key - enable "Perspective Comment Analyzer API" and
+"Cloud Vision API" on the `agora-firebase-f4240` project, generate a key
+restricted to just those two APIs, then set it once:
+`firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`. Scoring logic
+lives in `functions/lib/moderation.js` - `analyzeText()` requests
+TOXICITY/SEVERE_TOXICITY/THREAT/INSULT/SEXUALLY_EXPLICIT and takes the max
+score; `analyzeImage()` reads Vision's adult/violence/racy likelihoods
+(racy is graded more leniently - a LIKELY swimwear/fitness photo isn't
+nudity, only VERY_LIKELY racy blocks on its own). Two thresholds per type,
+both tunable constants: at or above BLOCK, content never saves; at or
+above FLAG (but under BLOCK), it saves completely normally but gets
+logged + emailed to Chris - a deliberate "ship a reasonable default,
+iterate against real results" choice, same instinct as social-format.js's
+link rubric.
+
+**Scope - everywhere a member submits text or an image:** Wall posts,
+Wall comments, Dialog messages, and profile bios (text); profile pictures
+(the only image-upload path in Agora today - the future Chain of Cards/NFT
+Gallery mint pipeline will need its own pass through this when it's built,
+per the existing "needs its own moderation" note further up this file).
+Two onCall Cloud Functions do the checking - `moderateText` and
+`moderateImage` - called from the client *before* the actual Firestore
+write or Storage upload happens, so blocked content is never saved
+anywhere, even briefly.
+
+**Fails OPEN, not closed.** If the moderation call errors for any reason -
+not deployed yet, a network hiccup, a bad/missing secret - the client
+treats it as an automatic "allow" and the content posts normally
+(`moderation-client.js`'s `checkText`/`checkImage`, matching the exact
+same philosophy as every other Cloud-Functions-dependent feature here: a
+moderation outage should never be the reason nobody can post).
+
+**Client-side wiring** - `moderation-client.js` (new, loaded wherever a
+moderated write happens: `member.html`, `communiques-dm.html`,
+`create-profile.html`) exposes `AgoraModeration.checkText/checkImage/
+showBlocked`. Call sites: `communiques-common.js` (Wall post submit,
+comment submit), `communiques-dm.js` (Dialog message submit),
+`profile-form.js` (bio + all five picture slots, checked in parallel
+before any upload starts - one blocked field aborts the *whole* save, same
+all-or-nothing behavior the existing picture size/type validation already
+had, not a partial save). A block shows an inline error via
+`AgoraModeration.showBlocked()` with a "Request a review" button.
+
+**Data model - `moderationLog/{id}`, written only by Cloud Functions**
+(admin-read-only in `firestore.rules`, `allow write: if false` - every
+mutation goes through a callable, never a direct client write): `uid`,
+`authorName`, `contentType` (`wallPost`/`wallComment`/`dialogMessage`/
+`profileBio`/`profilePicture`), `decision` (`block`/`flag` - "allow" is
+never logged, to avoid flooding this collection with every normal post),
+`text` (null for pictures), `scores`, `context` (whatever's needed to
+re-publish later - e.g. `{ profileUid }` for a wall post, `{ postId }` for
+a comment, `{ conversationId }` for a Dialog message, `{ slotIndex,
+quarantinePath }` for a picture), `appealRequested`/`appealRequestedAt`,
+`resolved`/`resolution`/`resolvedAt`/`resolvedBy`.
+
+**Blocked pictures are quarantined, not discarded.** A blocked image never
+touches the public `profile-pictures/` path - `moderateImage` saves the
+bytes to `moderation-quarantine/{uid}/{logId}` instead (storage.rules
+denies *all* client access to that path, in both directions - only the
+Admin SDK ever touches it). A flagged-but-not-blocked picture skips
+quarantine entirely and uploads normally right after, same as flagged
+text saving normally - only a block needs the bytes preserved anywhere
+pending a possible appeal.
+
+**Appeals - `requestModerationAppeal`** (any signed-in member, ownership-
+checked - only the original author can appeal their own entry) flags the
+log doc and emails Chris. **`resolveModerationAppeal`** (admin-only) is
+the review page's Approve/Uphold action:
+- **Approve** re-publishes the content exactly as originally submitted,
+  via `republishModeratedContent()` - a Wall post/comment/Dialog message
+  writes to wherever it would have landed originally (quietly does
+  nothing if that target's since been deleted); a profile bio just
+  updates the field; a picture *moves* out of quarantine into its real
+  public slot (`bucket.file().move()`), then the profile doc is updated
+  with a constructed public download URL
+  (`firebasestorage.googleapis.com/v0/b/.../o/...?alt=media` - works
+  without a download token since profile-pictures/ is publicly readable
+  by rule).
+- **Uphold** leaves it blocked and, for a picture, deletes the quarantined
+  file since nothing will ever use it now.
+
+**`moderation-review.html`** (+ `.js`, new) - admin-only, `noindex`, not
+linked from site nav, same three-state gate as `newsletter-compose.html`.
+Lists the most recent 50 `moderationLog` entries, newest first. Blocked
+images aren't fetched by default (avoids pulling every quarantined image
+on every page load) - a "Load image" button calls
+`getModerationImageUrl` (admin-only, returns a 15-minute signed URL) on
+demand. Flagged entries show read-only, for awareness of what the filter
+is catching (already live, nothing to approve/uphold). Blocked, unresolved
+entries get Approve/Uphold buttons.
+
+**Still needs from Chris, before any of this actually works:**
+1. **Enable both APIs** on the `agora-firebase-f4240` Google Cloud project
+   - "Perspective Comment Analyzer API" and "Cloud Vision API" - then
+   generate one API key restricted to those two, and set it:
+   `firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`.
+2. **Deploy Cloud Functions** - `firebase deploy --only functions` from
+   `Agora/` (same one deploy as everything else waiting on it - picks up
+   `moderateText`, `moderateImage`, `requestModerationAppeal`,
+   `resolveModerationAppeal`, `getModerationImageUrl` alongside the rest).
+3. **Paste the updated `firestore.rules`** into the Firebase console - the
+   new `moderationLog/{document}` block.
+4. **If `getModerationImageUrl` errors after deploy** ("permission
+   denied" generating a signed URL, not a Firestore/auth error): the
+   Cloud Functions runtime service account likely needs the **Service
+   Account Token Creator** role granted to *itself*, in Google Cloud
+   Console → IAM - a known one-time gotcha with `getSignedUrl()` on
+   Firebase's default service account, unrelated to anything in this
+   repo's code.
+Until all four are done, nothing gets checked at all - every submission
+just fails open and posts normally (see above), so nothing breaks in the
+gap; it's simply not filtering anything yet.
+
 ## Open items
 
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
