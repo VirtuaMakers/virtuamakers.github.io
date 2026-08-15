@@ -1479,6 +1479,38 @@ anything had gone wrong.
   makes the failure visible and recoverable instead of a silent dead end,
   regardless of root cause.
 
+## Profile save hardening + date-confirm nagging (Chris, 2026-08-15)
+
+Two real bugs Chris hit live on `create-profile.html`, both in
+`profile-form.js`:
+
+- **The date sanity-check confirm (`window.confirm("You entered — ...
+  Is that correct?")`) fired on every single save**, not just when the
+  date was actually new or changed - so editing an unrelated field (e.g.
+  toggling the newsletter checkbox) on an existing profile re-asked about
+  a birthdate that hadn't moved. Fixed by comparing the freshly-composed
+  `rawDate`/`rawCyberizationDate` against `existingDoc.date`/
+  `existingDoc.cyberizationDate` and only showing the confirm when they
+  differ (or there's no `existingDoc` yet - first-time signup is exactly
+  when this sanity check earns its keep, a typo on a field members rarely
+  revisit).
+- **"Saving…" could hang forever with no error and no way out** - the
+  save chain (handle-uniqueness check, geocoding, bio/picture moderation
+  calls, up to 5 parallel picture uploads, two sequential Firestore
+  writes) had no overall deadline. None of those individually guarantee
+  they'll ever settle on a bad connection - a stalled Storage `.put()` or
+  a Firestore write has no built-in client timeout - so a weak signal (or
+  a Cloud Function cold start right after a fresh deploy, which is what
+  was actually happening when Chris hit this - the moderation functions
+  had just gone live minutes earlier) could leave a member staring at a
+  disabled button indefinitely. Exact same failure shape as the
+  "Loading-failure hardening" entry above, just on the *save* path instead
+  of the *load* path. Fixed with a new `withTimeout()` helper that races
+  the whole save chain against a 30-second deadline and rejects with a
+  friendly "Saving is taking longer than expected… check your connection
+  and try again" message, which the existing `.catch()` already renders
+  via `showError()` - no new UI needed. Bumped `profile-form.js` to `v=23`.
+
 ## Push notifications 🔔 (Chris, 2026-08-11)
 
 Two things Chris asked for together: real closed-browser push (arrives

@@ -238,6 +238,24 @@
   // is best-effort: any failure (network, timeout, no match) just resolves
   // to null rather than blocking the save, since the map is optional and a
   // profile shouldn't fail to save because a geocoding request timed out.
+  // A last-resort safety net around the whole save chain below (moderation
+  // checks, picture uploads, the Firestore writes themselves) - none of
+  // those individually guarantee they'll ever settle on a bad connection
+  // (a stalled Storage upload or Firestore write has no built-in client
+  // timeout), so without this a member on a weak signal could be left
+  // staring at "Saving…" with no error and no way out, same failure shape
+  // already fixed for page *loads* elsewhere in this file - see
+  // #load-error-notice and CLAUDE.md's "Loading-failure hardening" entry.
+  function withTimeout(promise, ms, message) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { reject(new Error(message)); }, ms);
+      promise.then(
+        function (value) { clearTimeout(timer); resolve(value); },
+        function (err) { clearTimeout(timer); reject(err); }
+      );
+    });
+  }
+
   function geocodeLocation(city, region, country) {
     var query = [city, region, country].filter(Boolean).join(", ");
     if (!query) return Promise.resolve(null);
@@ -497,11 +515,22 @@
       return;
     }
 
-    var confirmLines = [dateName + ": " + humanizeDate(parsedDate)];
-    if (parsedCyberizationDate) {
-      confirmLines.push("Cyberization Date: " + humanizeDate(parsedCyberizationDate));
+    // Only sanity-check the date(s) with the member when they've actually
+    // changed - a brand new profile (nothing to compare against yet), or
+    // an edit where the composed date differs from what's already saved.
+    // Originally this fired on every single save regardless, which meant
+    // re-confirming an unchanged birthdate each time someone just toggled
+    // a checkbox or edited an unrelated field (Chris, 2026-08-15).
+    var dateChanged = !existingDoc || rawDate !== (existingDoc.date || "");
+    var cyberizationChanged = selectedKind === "Cyborg"
+      && rawCyberizationDate !== (existingDoc && existingDoc.cyberizationDate || "");
+    if (dateChanged || cyberizationChanged) {
+      var confirmLines = [dateName + ": " + humanizeDate(parsedDate)];
+      if (parsedCyberizationDate) {
+        confirmLines.push("Cyberization Date: " + humanizeDate(parsedCyberizationDate));
+      }
+      if (!window.confirm("You entered —\n" + confirmLines.join("\n") + "\nIs that correct?")) return;
     }
-    if (!window.confirm("You entered —\n" + confirmLines.join("\n") + "\nIs that correct?")) return;
 
     submitBtn.disabled = true;
     statusEl.hidden = false;
@@ -543,7 +572,7 @@
       });
     });
 
-    Promise.all([handleCheck, geocodePromise, bioCheck].concat(picturePromises)).then(function (results) {
+    var savePromise = Promise.all([handleCheck, geocodePromise, bioCheck].concat(picturePromises)).then(function (results) {
       if (moderationBlock) {
         throw { code: "moderation-blocked", field: moderationBlock.field, logId: moderationBlock.logId };
       }
@@ -575,7 +604,15 @@
       // UI-hidden data. See firestore.rules' profiles/{uid}/private match.
       return AgoraDB.collection("profiles").doc(currentUser.uid)
         .collection("private").doc("data").set({ region: regionValue });
-    }).then(function () {
+    });
+
+    // 30s deadline on the whole chain above (moderation checks, picture
+    // uploads, both Firestore writes) - see withTimeout()'s own comment for
+    // why none of those pieces are individually guaranteed to ever settle
+    // on a bad connection.
+    withTimeout(savePromise, 30000,
+      "Saving is taking longer than expected. Please check your connection and try again."
+    ).then(function () {
       window.location.href = "member.html?uid=" + encodeURIComponent(currentUser.uid);
     }).catch(function (err) {
       submitBtn.disabled = false;
