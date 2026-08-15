@@ -407,6 +407,18 @@ main {
   letter-spacing: -0.01em;
 }
 
+@media (max-width: 640px) {
+  /* In portrait, "Agora 🌐" eats enough width on the first line that the
+     tagline after it wraps mid-phrase ("...intelligence" / "platform").
+     Dropping the tagline to its own line and shrinking it slightly keeps
+     "A social intelligence platform" together on one line instead. */
+  .hero-tagline {
+    display: block;
+    font-size: 0.42em;
+    margin-top: 0.2rem;
+  }
+}
+
 .lede {
   font-size: 1.18rem;
   color: var(--muted);
