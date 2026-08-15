@@ -2401,8 +2401,128 @@ both are done, the old single-hardcoded-admin behavior keeps working
 exactly as before (nothing breaks in the gap) - the Admin Panel UI itself
 will just fail closed (no role docs readable) until the rules are live.
 
+## Change Login Email (Chris, 2026-08-15)
+
+Prompted by Chris's own history of being hacked/losing access to old email
+accounts and needing to migrate repeatedly - he asked specifically whether
+2FA (a phone number, a second password) was needed to do this safely. The
+answer landed on the standard pattern Google/GitHub actually use, not a
+new factor: **require a fresh re-login before allowing the change, verify
+the *new* address before it takes effect, and notify the *old* address so
+a hijacker can't silently redirect someone else's account.** A second
+password doesn't add real protection (whoever gets one usually gets both);
+phone/SMS verification is a much bigger separate build (a whole new vendor
+integration, per-message cost, storing phone numbers) - deliberately not
+part of this round, see "Not built yet" below for where that's headed.
+
+- **Two different things were previously conflated, worth naming
+  explicitly:** the "Email (required)" field on `create-profile.html`
+  (used for Agora's own email sends - Welcome, Farewell, Ban/Deletion
+  notices, the monthly Newsletter, all read `profiles/{uid}.email` from
+  Firestore) was *already* editable before this round, with zero code
+  changes needed - every profile save is a full overwrite, so changing
+  that field already works today. What didn't exist was changing the
+  **Firebase Auth login credential itself** (what a password-account
+  member actually signs in with, and where Firebase's own "Forgot
+  password?" sends a reset) - a real gap, since editing the profile field
+  never touched that. This round builds the second half.
+- **New `requestEmailChange` Cloud Function** (`functions/index.js`) -
+  the only way this flow can carry Agora's own branding (same reason
+  `sendPasswordReset` exists rather than calling Firebase Auth's default
+  email flow directly). Uses `admin.auth().generateVerifyAndChangeEmailLink()`
+  server-side rather than the client SDK's `verifyBeforeUpdateEmail()` -
+  the tradeoff is that the Admin SDK path has no "recent login"
+  enforcement of its own (unlike the client method, which throws
+  `auth/requires-recent-login` on a stale session), so that check is
+  replicated here against the ID token's `auth_time` claim (when the
+  member actually last authenticated, not just when this particular
+  token was minted/refreshed) - rejects with a `failed-precondition`
+  error carrying the message `"reauth-required"` if it's older than 5
+  minutes, which `member.js`'s submit handler is written to always
+  trigger *before* calling this (reauth happens client-side first, every
+  time - see below), so in practice this check is a server-side backstop
+  against a client that skips that step, not the primary UX gate.
+  - Sends the actual verify-link email to the **new** address via
+    `sendEmail` (not `sendEmailSafe` - unlike every other transactional
+    email here, this one *is* the deliverable, so a Resend failure should
+    surface as a real error the client shows, not a false "check your
+    email" success).
+  - Sends a heads-up notice to the **old/current** address via
+    `sendEmailSafe` (best-effort, matching every other secondary notice
+    in this codebase) - "a change was requested... if this wasn't you,
+    contact us."
+  - Two new templates: `Agora/emails/email-change-verify-email.html` and
+    `email-change-notice-email.html` (+ hand-synced `functions/templates/`
+    copies, same split every template here needs), plus
+    `withEmailChangeVerifyLink()`/`withEmailChangeNotice()` in
+    `functions/lib/templates.js`.
+- **Client-side (`member.html`/`member.js`)** - a new "Change Login
+  Email" block inside the existing Form panel, right after "Edit Form",
+  shown only when viewing your own profile (same `isOwnProfile` gate as
+  everything else owner-only there). Reauthenticates *every* time,
+  unconditionally, rather than trying first and only reauthenticating on
+  a stale-session error - simpler and more predictable than a
+  try/catch/retry dance, and matches how plenty of sites always ask for
+  your password again on a sensitive settings change:
+  - A password-provider account re-enters their current password
+    (`reauthenticateWithCredential`).
+  - A Google/X account gets a fresh provider popup instead
+    (`reauthenticateWithPopup`) - no password exists to ask for.
+  - New `agoraReauthenticate(providerId, password)` in `auth.js` handles
+    both cases; `agoraRequestEmailChange(newEmail)` wraps the Cloud
+    Function call. After reauth succeeds, `getIdToken(true)` forces a
+    fresh token before calling the function, so the server's `auth_time`
+    check reflects the reauth that just happened rather than a cached
+    token from before it.
+  - **Extra guard for the owner account specifically:** `OWNER_EMAIL`
+    (`VirtuaMakers@Outlook.com`) is checked by email string in both
+    `firestore.rules` and every Cloud Function (see "Multi-admin system"
+    above) - if Chris ever used this flow on his own owner account, he'd
+    silently lose permanent owner access site-wide the moment the new
+    email is confirmed, since nothing else grants it. A `window.confirm()`
+    specifically warns about this before submitting, only when the
+    signed-in account's current email matches `OWNER_EMAIL` - doesn't
+    block it (migrating away from a compromised inbox is exactly the
+    scenario this whole feature exists for), just makes sure it's not an
+    accident.
+  - Verified with a stubbed test harness (mocked `AgoraDB`/`firebase`/
+    `agoraOnAuthChange`, real `member.js` loaded unmodified) rather than
+    just reasoning about it - confirmed the password vs. Google/X branch
+    renders correctly, the owner-email confirm dialog shows the right
+    text and correctly blocks the call chain when dismissed, a
+    successful change shows the right confirmation copy, and a rejected
+    call (e.g. "email already in use") surfaces its real error message
+    with the submit button re-enabled.
+- Bumped `auth.js` to `v=5` (all 60 pages) and `member.js` to `v=22`.
+
+**Not built yet, deliberately deferred (Chris, 2026-08-15):** phone-based
+2FA / account recovery for when the *old* email is already gone, not just
+being changed while everything still works - a genuinely different,
+harder problem (recovering access vs. changing address), and a much
+bigger build (SMS vendor, per-message cost, phone number storage). Real
+current pricing checked before punting on it, not guessed: **Firebase's
+own Phone Auth** (already on the same Blaze plan Agora uses) runs
+$0.01-$0.46 per SMS depending on region (first 10/day free) - by far the
+cheaper, more integrated option if/when this gets built, versus a
+dedicated service like **Twilio Verify** at ~$0.058 per successful US
+verification ($0.05 verify fee + $0.0083 SMS carrier cost), pricier
+internationally, which would also mean standing up a whole new vendor
+account (the same kind of setup cost Resend itself needed). **A real
+Routine (not a session-bound cron - those expire after 7 days) is
+scheduled to revisit this at the start of 2027** - trigger id
+`trig_01RTpeFFeCbyrq1HVna4h6aj`, fires 2027-01-01 into a fresh session
+with this context, framed as a conversation-starter (design/scope needs
+Chris's input, not something to just silently build).
+
 ## Open items
 
+- [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
+  own personal security needs strengthening too, not just Agora's -
+  new/more complex passwords, given he's been targeted by hacking
+  before and expects VirtuaMakers itself could become a target as it
+  grows. Noted here as a standing reminder, his own to-do rather than
+  a codebase task - nothing built or prescribed, just tracked so it
+  doesn't get lost.
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a
   profile piece on Chris/VirtuaMakers ("What Happens When Your Co-founder
   Isn't Human?") - not yet published anywhere as of 2026-08-15. If it does

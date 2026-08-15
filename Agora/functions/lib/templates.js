@@ -63,4 +63,26 @@ function withPasswordResetLink(html, link) {
   return html.split("{{RESET_LINK}}").join(link);
 }
 
-module.exports = { loadTemplate, withReason, withNewsletterContent, withPasswordResetLink };
+// {{VERIFY_LINK}} in email-change-verify-email.html - sent to the new
+// address, same split/join-for-multiple-occurrences pattern as the
+// password reset link above.
+function withEmailChangeVerifyLink(html, link) {
+  return html.split("{{VERIFY_LINK}}").join(link);
+}
+
+// {{NEW_EMAIL}} in email-change-notice-email.html - sent to the *current*
+// address as a heads-up. HTML-escaped since, unlike every other
+// placeholder here, this one is a value the member themselves just typed
+// into a form field rather than something we generated server-side.
+function withEmailChangeNotice(html, newEmail) {
+  return html.split("{{NEW_EMAIL}}").join(escapeHtml(newEmail));
+}
+
+module.exports = {
+  loadTemplate,
+  withReason,
+  withNewsletterContent,
+  withPasswordResetLink,
+  withEmailChangeVerifyLink,
+  withEmailChangeNotice,
+};

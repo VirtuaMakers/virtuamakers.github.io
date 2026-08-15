@@ -22,8 +22,15 @@ const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
-const { resendApiKey, sendEmailSafe } = require("./lib/resend");
-const { loadTemplate, withReason, withNewsletterContent, withPasswordResetLink } = require("./lib/templates");
+const { resendApiKey, sendEmail, sendEmailSafe } = require("./lib/resend");
+const {
+  loadTemplate,
+  withReason,
+  withNewsletterContent,
+  withPasswordResetLink,
+  withEmailChangeVerifyLink,
+  withEmailChangeNotice,
+} = require("./lib/templates");
 const { notify, resolveDisplayName } = require("./lib/notify");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
 
@@ -181,6 +188,86 @@ exports.sendPasswordReset = onCall({ secrets: [resendApiKey] }, async (request) 
     to: email,
     subject: "Reset Your Agora 🌐 Password",
     html: withPasswordResetLink(loadTemplate("password-reset-email.html"), link),
+  });
+
+  return { success: true };
+});
+
+// Change Login Email (Chris, 2026-08-15) - the standard pattern (what
+// Google/GitHub do): require a fresh re-login before allowing this,
+// verify the *new* address before it actually takes effect, and notify
+// the *old* address so a hijacker can't silently redirect someone else's
+// account. Deliberately not building phone-based 2FA/account-recovery
+// alongside this - see CLAUDE.md's "Email/account security" entry for why
+// that's a separate, later piece of work.
+//
+// generateVerifyAndChangeEmailLink() (Admin SDK) has no "recent login"
+// restriction of its own - that's a client-SDK-only concept normally
+// enforced by updateEmail()/verifyBeforeUpdateEmail() throwing
+// auth/requires-recent-login. Since this flow generates the link
+// server-side instead (so the confirmation email can carry our own
+// branding, same reason sendPasswordReset above does this), that check is
+// replicated here against the ID token's auth_time claim (when the
+// member actually last signed in/reauthenticated, not just when this
+// particular token was minted) - member.js's submit handler always
+// reauthenticates immediately before calling this, so in practice
+// auth_time should always be seconds old, not actually stale; this is a
+// server-side backstop against a client that skips that step, not the
+// primary UX gate.
+const EMAIL_CHANGE_REAUTH_WINDOW_SECONDS = 5 * 60;
+
+exports.requestEmailChange = onCall({ secrets: [resendApiKey] }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Sign in required.");
+  }
+
+  const authTime = request.auth.token.auth_time;
+  if (!authTime || (Date.now() / 1000 - authTime) > EMAIL_CHANGE_REAUTH_WINDOW_SECONDS) {
+    // member.js checks for this exact message to know to reauthenticate
+    // and retry, rather than just showing it as a plain error.
+    throw new HttpsError("failed-precondition", "reauth-required");
+  }
+
+  const newEmail = ((request.data && request.data.newEmail) || "").trim();
+  if (!newEmail) {
+    throw new HttpsError("invalid-argument", "A new email address is required.");
+  }
+
+  const currentEmail = request.auth.token.email;
+  if (!currentEmail) {
+    throw new HttpsError("failed-precondition", "This account has no email on file to change from.");
+  }
+  if (newEmail.toLowerCase() === currentEmail.toLowerCase()) {
+    throw new HttpsError("invalid-argument", "That's already this account's current email.");
+  }
+
+  let link;
+  try {
+    link = await admin.auth().generateVerifyAndChangeEmailLink(currentEmail, newEmail);
+  } catch (err) {
+    if (err.code === "auth/email-already-exists") {
+      throw new HttpsError("already-exists", "Another Agora account already uses that email.");
+    }
+    throw new HttpsError("invalid-argument", "That doesn't look like a valid email address.");
+  }
+
+  // Not sendEmailSafe - this email IS the deliverable of the whole call,
+  // so a send failure should surface as a real error (the client shows
+  // "try again"), not a false "check your email" success message.
+  await sendEmail({
+    to: newEmail,
+    subject: "Confirm Your New Agora 🌐 Email",
+    html: withEmailChangeVerifyLink(loadTemplate("email-change-verify-email.html"), link),
+  });
+
+  // Best-effort - the security-relevant email (above) already went out
+  // either way, so a failure here follows the rest of the codebase's
+  // sendEmailSafe convention rather than failing the whole request over
+  // a secondary notice.
+  await sendEmailSafe({
+    to: currentEmail,
+    subject: "Agora 🌐 Email Change Requested",
+    html: withEmailChangeNotice(loadTemplate("email-change-notice-email.html"), newEmail),
   });
 
   return { success: true };

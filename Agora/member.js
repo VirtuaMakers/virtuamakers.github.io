@@ -17,6 +17,19 @@
   var adminPanelMakeAdmin = document.getElementById("admin-panel-make-admin");
   var adminPanelRemoveRole = document.getElementById("admin-panel-remove-role");
 
+  var changeEmailSection = document.getElementById("change-email-section");
+  var changeEmailCurrent = document.getElementById("change-email-current");
+  var changeEmailOwnerWarning = document.getElementById("change-email-owner-warning");
+  var changeEmailForm = document.getElementById("change-email-form");
+  var changeEmailNewInput = document.getElementById("change-email-new");
+  var changeEmailPasswordWrap = document.getElementById("change-email-password-wrap");
+  var changeEmailPasswordInput = document.getElementById("change-email-password");
+  var changeEmailOauthNotice = document.getElementById("change-email-oauth-notice");
+  var changeEmailError = document.getElementById("change-email-error");
+  var changeEmailSuccess = document.getElementById("change-email-success");
+  var changeEmailSubmit = document.getElementById("change-email-submit");
+  var changeEmailStatus = document.getElementById("change-email-status");
+
   // Multi-admin system (Chris, 2026-08-15) - the owner (VirtuaMakers@
   // Outlook.com) is permanent and never stored anywhere; anyone else's
   // role (if any) lives in admins/{uid}, readable by themselves (see
@@ -270,6 +283,85 @@
     refreshAdminPanel(isOwnProfile);
   }
 
+  // Change Login Email (Chris, 2026-08-15) - shown only when viewing your
+  // own profile, independent of profileData (unlike the rest of
+  // refreshControls) since it only depends on currentUser and the URL's
+  // own uid. A password-provider account confirms via its current
+  // password; a Google/X account reauthenticates via a fresh popup
+  // instead - see agoraReauthenticate() in auth.js.
+  function refreshChangeEmailSection() {
+    var isOwnProfile = currentUser && uid && currentUser.uid === uid;
+    changeEmailSection.hidden = !isOwnProfile;
+    if (!isOwnProfile) return;
+
+    changeEmailCurrent.textContent = currentUser.email || "(no email on file)";
+    changeEmailOwnerWarning.hidden = currentUser.email !== OWNER_EMAIL;
+
+    var providerId = currentUser.providerData[0] && currentUser.providerData[0].providerId;
+    var isPasswordAccount = providerId === "password";
+    changeEmailPasswordWrap.hidden = !isPasswordAccount;
+    changeEmailPasswordInput.required = isPasswordAccount;
+
+    if (isPasswordAccount) {
+      changeEmailOauthNotice.hidden = true;
+    } else {
+      var providerName = providerId === "google.com" ? "Google"
+        : providerId === "twitter.com" ? "X"
+        : "your sign-in provider";
+      changeEmailOauthNotice.textContent = "You signed in with " + providerName +
+        " - confirming this will open a " + providerName + " prompt to verify it's really you first.";
+      changeEmailOauthNotice.hidden = false;
+    }
+  }
+
+  changeEmailForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    changeEmailError.hidden = true;
+    changeEmailSuccess.hidden = true;
+
+    var newEmail = changeEmailNewInput.value.trim();
+    if (!newEmail) return;
+
+    if (currentUser.email === OWNER_EMAIL) {
+      var confirmed = window.confirm(
+        "This is Agora's owner account email. Changing it will move permanent " +
+        "owner access to the new address once it's confirmed. Are you sure you want to continue?"
+      );
+      if (!confirmed) return;
+    }
+
+    var providerId = currentUser.providerData[0] && currentUser.providerData[0].providerId;
+
+    changeEmailSubmit.disabled = true;
+    changeEmailStatus.hidden = false;
+
+    agoraReauthenticate(providerId, changeEmailPasswordInput.value)
+      .then(function () {
+        // Forces a fresh ID token so requestEmailChange's own server-side
+        // "recent login" check (the auth_time claim) reflects the reauth
+        // that just happened, not a token cached from before it.
+        return firebase.auth().currentUser.getIdToken(true);
+      })
+      .then(function () {
+        return agoraRequestEmailChange(newEmail);
+      })
+      .then(function () {
+        changeEmailSuccess.textContent = "Check " + newEmail +
+          " for a confirmation link - the change takes effect once you click it.";
+        changeEmailSuccess.hidden = false;
+        changeEmailForm.reset();
+        refreshChangeEmailSection();
+      })
+      .catch(function (err) {
+        changeEmailError.textContent = (err && err.message) || "Something went wrong. Please try again.";
+        changeEmailError.hidden = false;
+      })
+      .finally(function () {
+        changeEmailSubmit.disabled = false;
+        changeEmailStatus.hidden = true;
+      });
+  });
+
   // Owner-only (matching firestore.rules' admins/{uid} write: if isOwner())
   // - grants or revokes admin/moderator status for the profile being
   // viewed. Writes/deletes admins/{uid} directly, no Cloud Function
@@ -334,6 +426,7 @@
   agoraOnAuthChange(function (user) {
     currentUser = user;
     if (profileData) refreshControls();
+    refreshChangeEmailSection();
     loadProfile();
     watchFriendship();
     loadFriendsList();
