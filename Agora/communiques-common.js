@@ -98,11 +98,28 @@
     });
   }
 
+  // Word-start matches rank above mid-word matches (e.g. "cl" surfaces
+  // "Claude" before "Nicolas" even though neither contains "cl" at index 0
+  // of the whole string) - split on spaces so e.g. "bruck" still finds
+  // "Christopher Bruckmann" via its second word. Same algorithm as the
+  // header search's scoreMatch() in site-search.js, kept as a separate
+  // copy since site-search.js runs standalone (no firebase-config.js
+  // dependency) and this one only ever scores real member names.
+  function scoreNameMatch(name, q) {
+    var words = name.toLowerCase().split(/\s+/);
+    for (var i = 0; i < words.length; i++) {
+      if (words[i].indexOf(q) === 0) return i === 0 ? 0 : 1;
+    }
+    return name.toLowerCase().indexOf(q) !== -1 ? 2 : -1;
+  }
+
   // Filters a loadMessagableMembers() list down to who's actually
   // messagable by the viewer right now (open, or friends with them if
   // they've opted into requireFriendToMessage) and matches the search
   // query - mirrors firestore.rules' canMessage() so the UI never offers
-  // an add/message action that the rules would reject.
+  // an add/message action that the rules would reject. Ranked the same
+  // way as the header search (word-start match first) rather than left in
+  // whatever order the caller's member list happened to be in.
   function filterMessagable(members, friendUids, excludeUids, query) {
     var q = query.trim().toLowerCase();
     var candidates = members.filter(function (m) {
@@ -110,7 +127,12 @@
       if (m.requireFriendToMessage && friendUids.indexOf(m.uid) === -1) return false;
       return true;
     });
-    return q ? candidates.filter(function (m) { return m.name.toLowerCase().indexOf(q) !== -1; }) : candidates;
+    if (!q) return candidates;
+    return candidates
+      .map(function (m) { return { member: m, score: scoreNameMatch(m.name, q) }; })
+      .filter(function (s) { return s.score !== -1; })
+      .sort(function (a, b) { return a.score - b.score; })
+      .map(function (s) { return s.member; });
   }
 
   // Fetches uid's accepted friendships (raw docs). Handles the "composite

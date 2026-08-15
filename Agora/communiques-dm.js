@@ -6,14 +6,14 @@
 // friend / leaving" section below). Requires firebase-config.js, auth.js,
 // and communiques-common.js to run first.
 //
-// A Dialog's messages are paginated into pages of up to PAGE_CHAR_LIMIT
-// characters each, split on message boundaries (never mid-message) so a
-// page never breaks a message's own formatting. A page fills up, then the
-// next message starts a new page - the newest page is shown by default.
+// A Dialog's messages are paginated at a flat 10 per page (Chris,
+// 2026-08-15 - matching the Wall's own "10 posts per page" convention),
+// replacing the original character-count-based scheme. The newest page is
+// shown by default.
 
 (function () {
   var C = CommuniquesCommon;
-  var PAGE_CHAR_LIMIT = 9999;
+  var PAGE_MESSAGE_LIMIT = 10;
   var params = new URLSearchParams(window.location.search);
   var conversationId = params.get("c");
 
@@ -89,32 +89,19 @@
     return bubble;
   }
 
-  // Splits messages (already sorted oldest-first) into pages of up to
-  // PAGE_CHAR_LIMIT characters, breaking only between messages - a single
-  // message is at most PAGE_CHAR_LIMIT characters itself (enforced by
-  // firestore.rules' validBody), so it always fits on some page.
+  // Splits messages (already sorted oldest-first) into flat pages of up to
+  // PAGE_MESSAGE_LIMIT messages each.
   function paginateMessages(docs) {
-    var result = [[]];
-    var currentLength = 0;
-    docs.forEach(function (doc) {
-      var length = (doc.data().body || "").length;
-      if (currentLength > 0 && currentLength + length > PAGE_CHAR_LIMIT) {
-        result.push([]);
-        currentLength = 0;
-      }
-      result[result.length - 1].push(doc);
-      currentLength += length;
-    });
-    return result;
+    var result = [];
+    for (var i = 0; i < docs.length; i += PAGE_MESSAGE_LIMIT) {
+      result.push(docs.slice(i, i + PAGE_MESSAGE_LIMIT));
+    }
+    return result.length ? result : [[]];
   }
 
-  var pagTop = document.getElementById("dm-pagination-top");
   var pagBottom = document.getElementById("dm-pagination-bottom");
-  var prevTop = document.getElementById("dm-page-prev-top");
-  var nextTop = document.getElementById("dm-page-next-top");
   var prevBottom = document.getElementById("dm-page-prev-bottom");
   var nextBottom = document.getElementById("dm-page-next-bottom");
-  var indicatorTop = document.getElementById("dm-page-indicator-top");
   var indicatorBottom = document.getElementById("dm-page-indicator-bottom");
 
   function renderPage(index) {
@@ -126,25 +113,16 @@
     });
 
     var multiPage = pages.length > 1;
-    pagTop.hidden = !multiPage;
     pagBottom.hidden = !multiPage;
     if (multiPage) {
-      var label = "Page " + (currentPageIndex + 1) + " of " + pages.length;
-      indicatorTop.textContent = label;
-      indicatorBottom.textContent = label;
-      var atOldest = currentPageIndex === 0;
-      var atNewest = currentPageIndex === pages.length - 1;
-      prevTop.disabled = prevBottom.disabled = atOldest;
-      nextTop.disabled = nextBottom.disabled = atNewest;
+      indicatorBottom.textContent = "Page " + (currentPageIndex + 1) + " of " + pages.length;
+      prevBottom.disabled = currentPageIndex === 0;
+      nextBottom.disabled = currentPageIndex === pages.length - 1;
     }
   }
 
-  [prevTop, prevBottom].forEach(function (btn) {
-    btn.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
-  });
-  [nextTop, nextBottom].forEach(function (btn) {
-    btn.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
-  });
+  prevBottom.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
+  nextBottom.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
 
   function renderMessages(docs) {
     pages = paginateMessages(docs);
@@ -193,11 +171,9 @@
   var leaveBtn = document.getElementById("dm-leave-btn");
   var addableMembers = [];
 
-  // A modest cap on how many names render with an empty search box - the
-  // friends-only version of this list was naturally small, but "every
-  // member" isn't, once Agora has more than a couple dozen. Typing still
-  // searches the full set.
-  var EMPTY_SEARCH_LIMIT = 20;
+  // Matches the header search's own cap (site-search.js) - both are the
+  // same "live dropdown" pattern now, just scoped to different content.
+  var RESULT_LIMIT = 8;
 
   function loadFriends() {
     C.fetchAcceptedFriendships(currentUser.uid).then(function (snap) {
@@ -225,11 +201,13 @@
     });
   }
 
+  // Same "nothing until you type" behavior as the header search
+  // (site-search.js) - no default-shown suggestions with an empty box.
   function renderAddFriendResults(query) {
     addFriendResults.textContent = "";
+    if (!query.trim()) return;
     var friendUids = friendsCache.map(function (f) { return f.uid; });
-    var matches = C.filterMessagable(addableMembers, friendUids, participants, query);
-    if (!query.trim()) matches = matches.slice(0, EMPTY_SEARCH_LIMIT);
+    var matches = C.filterMessagable(addableMembers, friendUids, participants, query).slice(0, RESULT_LIMIT);
     matches.forEach(function (m) {
       var item = document.createElement("button");
       item.type = "button";
@@ -240,8 +218,12 @@
     });
   }
 
+  // Debounced 150ms after each keystroke, same as the header search.
+  var addFriendDebounce = null;
   addFriendSearch.addEventListener("input", function () {
-    renderAddFriendResults(addFriendSearch.value);
+    clearTimeout(addFriendDebounce);
+    var query = addFriendSearch.value;
+    addFriendDebounce = setTimeout(function () { renderAddFriendResults(query); }, 150);
   });
 
   leaveBtn.addEventListener("click", function () {

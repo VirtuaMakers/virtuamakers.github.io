@@ -2040,6 +2040,46 @@ actually blocked server-side yet (only the client-side notice shows), and
 the milestone email won't send - same graceful-degradation pattern as
 every other pending Functions change.
 
+## Dialogs cleanup ahead of the AIM redesign (Chris, 2026-08-15)
+
+A quick pass on `communiques-dm.html`/`.js` to clean up the current UI
+before the bigger AIM-style pop-out rebuild (draggable buddy-list-style
+windows) - Chris's framing was this may all get scrapped once that lands,
+but was worth tidying up now regardless:
+
+- **The "Add someone to this Dialog" search no longer shows default
+  suggestions with an empty box** - it used to list up to 20 messagable
+  members immediately (`EMPTY_SEARCH_LIMIT`), which read as unsolicited
+  "suggestions." Now it shows nothing until you actually type, matching
+  the header search's own behavior exactly.
+- **Same debounce and ranking as the header search** - 150ms debounce
+  after each keystroke, and results now rank word-start matches above
+  mid-string matches (`scoreNameMatch()`, a copy of `site-search.js`'s
+  `scoreMatch()` added to `communiques-common.js`'s `filterMessagable()` -
+  kept as a separate copy since `site-search.js` runs standalone with no
+  `firebase-config.js` dependency). Capped at 8 results, same as the
+  header search. This only ever searched real Profiles to begin with
+  (`loadMessagableMembers()` only returns `profiles` docs), so "search
+  like the new bar, but Profiles-only" needed no separate content-source
+  work - just the same interaction/ranking behavior.
+- **Top pagination nav removed** - `#dm-pagination-top` and its
+  `-top`-suffixed button/indicator IDs deleted from `communiques-dm.html`/
+  `.js`, mirroring the Wall's own top-nav removal earlier this session.
+  Bottom nav (`#dm-pagination-bottom`) is unchanged.
+- **Message pagination switched from character-count to a flat 10 per
+  page** - Chris asked to cap "Dialogs" at 10 per page while looking at
+  this single-conversation page, which only ever shows one Dialog's
+  messages at a time; read as shorthand for capping *messages* per page,
+  matching the Wall's own already-established "10 per page" convention
+  instead of the original `PAGE_CHAR_LIMIT = 9999`-characters-per-page
+  scheme. `paginateMessages()` now just chunks the sorted message list
+  into flat groups of 10 (`PAGE_MESSAGE_LIMIT`) rather than summing
+  character counts. Worth confirming with Chris this was the right read,
+  since "Dialogs" and "messages" aren't literally the same thing in this
+  codebase's own vocabulary.
+- Bumped `communiques-common.js` to `v=11` (56 pages reference it) and
+  `communiques-dm.js` to `v=8`.
+
 ## Site search 🔍 (Chris, 2026-08-15)
 
 A header search box, mainly geared toward finding members ("friends"),
