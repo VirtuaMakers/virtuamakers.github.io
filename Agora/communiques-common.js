@@ -250,13 +250,9 @@
     var wallList = document.getElementById("wall-list");
     var wallLoading = document.getElementById("wall-loading");
     var wallEmpty = document.getElementById("wall-empty");
-    var pagTop = document.getElementById("wall-pagination-top");
     var pagBottom = document.getElementById("wall-pagination-bottom");
-    var olderTop = document.getElementById("wall-page-older-top");
-    var newerTop = document.getElementById("wall-page-newer-top");
     var olderBottom = document.getElementById("wall-page-older-bottom");
     var newerBottom = document.getElementById("wall-page-newer-bottom");
-    var indicatorTop = document.getElementById("wall-page-indicator-top");
     var indicatorBottom = document.getElementById("wall-page-indicator-bottom");
 
     var pages = [[]];
@@ -465,25 +461,16 @@
       });
 
       var multiPage = pages.length > 1;
-      pagTop.hidden = !multiPage;
       pagBottom.hidden = !multiPage;
       if (multiPage) {
-        var label = "Page " + (currentPageIndex + 1) + " of " + pages.length;
-        indicatorTop.textContent = label;
-        indicatorBottom.textContent = label;
-        var atNewest = currentPageIndex === 0;
-        var atOldest = currentPageIndex === pages.length - 1;
-        newerTop.disabled = newerBottom.disabled = atNewest;
-        olderTop.disabled = olderBottom.disabled = atOldest;
+        indicatorBottom.textContent = "Page " + (currentPageIndex + 1) + " of " + pages.length;
+        newerBottom.disabled = currentPageIndex === 0;
+        olderBottom.disabled = currentPageIndex === pages.length - 1;
       }
     }
 
-    [olderTop, olderBottom].forEach(function (btn) {
-      btn.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
-    });
-    [newerTop, newerBottom].forEach(function (btn) {
-      btn.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
-    });
+    olderBottom.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
+    newerBottom.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
 
     function renderWall(docs) {
       wallLoading.hidden = true;
@@ -495,7 +482,6 @@
       if (!docs.length) {
         wallEmpty.hidden = false;
         wallList.textContent = "";
-        pagTop.hidden = true;
         pagBottom.hidden = true;
         return;
       }

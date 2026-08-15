@@ -617,7 +617,13 @@ not as the primary label).
     simple-client conventions. Since posts already sort newest-first,
     page 1 is always the newest page (unlike Dialogs, there's no
     "jump to the newest page" logic needed - a fresh `loadWall()` after
-    posting naturally puts the new post on page 1).
+    posting naturally puts the new post on page 1). **Top nav removed
+    (Chris, 2026-08-11)** - originally mirrored Dialogs' above-and-below
+    pagination, but Chris only wanted it at the bottom of the Wall; the
+    bottom `#wall-pagination-bottom` nav is unchanged, `#wall-pagination-top`
+    and its `-top` button/indicator IDs are gone from `createWallController()`
+    and all 31 pages (`member.html` + the 30 static profile pages) that
+    render a Wall.
   - **10-minute-edit hint added to the Post composer's placeholder**
     (Chris, 2026-08-06): `#wall-post-body`'s placeholder reads "Posts may
     be up to 9,999 characters long!", a blank line, then "You've 10
