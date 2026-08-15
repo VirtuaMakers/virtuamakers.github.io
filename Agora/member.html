@@ -166,32 +166,6 @@
           <p class="body-text" id="owner-edit-link" hidden>
             <a href="create-profile.html">Edit Form</a>
           </p>
-
-          <div class="subsection" id="change-email-section" hidden>
-            <h3 class="section-title">Change Login Email</h3>
-            <p class="body-text">Currently: <strong id="change-email-current"></strong></p>
-            <p class="body-text" id="change-email-owner-warning" hidden>
-              ⚠️ This is Agora's owner account email. Changing it will also
-              change which account has permanent owner access site-wide.
-            </p>
-            <form class="profile-form" id="change-email-form">
-              <div>
-                <label for="change-email-new">New email address</label>
-                <input type="email" id="change-email-new" required autocomplete="email" />
-              </div>
-              <div id="change-email-password-wrap">
-                <label for="change-email-password">Confirm your current password</label>
-                <input type="password" id="change-email-password" autocomplete="current-password" />
-              </div>
-              <p class="body-text" id="change-email-oauth-notice" hidden></p>
-              <p class="form-error" id="change-email-error" hidden></p>
-              <p class="signin-error signin-success" id="change-email-success" hidden></p>
-              <div class="profile-form-actions">
-                <button type="submit" class="btn" id="change-email-submit">Send Confirmation</button>
-                <span class="form-status" id="change-email-status" hidden>Sending…</span>
-              </div>
-            </form>
-          </div>
         </div>
 
         <p class="body-text" id="communiques-signed-out-notice">
@@ -307,7 +281,7 @@ You've 10 minutes to begin editing any Communiqué (Message, Post, or Comment) b
   <script src="communiques-common.js?v=11"></script>
   <script src="notification-toast.js?v=1"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=22"></script>
+  <script src="member.js?v=23"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

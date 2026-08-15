@@ -2,6 +2,8 @@
 // editing an existing profile, and the Firestore write on submit.
 
 (function () {
+  var OWNER_EMAIL = "VirtuaMakers@Outlook.com";
+
   var signedOutNotice = document.getElementById("signed-out-notice");
   var loadErrorNotice = document.getElementById("load-error-notice");
   var formWrap = document.getElementById("profile-form-wrap");
@@ -142,15 +144,24 @@
 
         pictureUploadQueue = pictureUploadQueue.then(function () {
           if (!stillCurrent()) return;
-          return uploadPicture(currentUser.uid, i + 1, file).then(function (url) {
+          // Storage's own .put() has no built-in client timeout (same gap
+          // withTimeout() further down this file exists to cover for the
+          // Save chain) - moving uploads off that chain and onto the spot
+          // they're chosen means they need this same protection themselves
+          // now, or a stalled upload on a bad connection just hangs at
+          // "Uploading…" forever with no error and no way to retry.
+          return withTimeout(
+            uploadPicture(currentUser.uid, i + 1, file), 45000,
+            "Upload timed out - check your connection and try choosing this picture again."
+          ).then(function (url) {
             if (!stillCurrent()) return;
             uploadedPictureUrls[i] = url;
             pictureUploadState[i] = "done";
             setPictureStatus(i, "Uploaded ✓");
-          }).catch(function () {
+          }).catch(function (err) {
             if (!stillCurrent()) return;
             pictureUploadState[i] = "error";
-            setPictureStatus(i, "Upload failed - try choosing this picture again.", true);
+            setPictureStatus(i, err && err.message ? err.message : "Upload failed - try choosing this picture again.", true);
           });
         });
       }).catch(function () {
@@ -175,6 +186,19 @@
   var cancelSignupWrap = document.getElementById("cancel-signup-wrap");
   var cancelSignupLink = document.getElementById("cancel-signup-link");
   var tosWrap = document.getElementById("field-tos-wrap");
+
+  var changeEmailSection = document.getElementById("change-email-section");
+  var changeEmailCurrent = document.getElementById("change-email-current");
+  var changeEmailOwnerWarning = document.getElementById("change-email-owner-warning");
+  var changeEmailForm = document.getElementById("change-email-form");
+  var changeEmailNewInput = document.getElementById("change-email-new");
+  var changeEmailPasswordWrap = document.getElementById("change-email-password-wrap");
+  var changeEmailPasswordInput = document.getElementById("change-email-password");
+  var changeEmailOauthNotice = document.getElementById("change-email-oauth-notice");
+  var changeEmailError = document.getElementById("change-email-error");
+  var changeEmailSuccess = document.getElementById("change-email-success");
+  var changeEmailSubmit = document.getElementById("change-email-submit");
+  var changeEmailStatus = document.getElementById("change-email-status");
 
   var bioTagsHint = document.getElementById("field-bio-tags-hint");
   if (bioTagsHint && typeof AgoraBioTags !== "undefined") {
@@ -405,6 +429,86 @@
   attachLiveDateValidation(dateYearInput, dateMonthSelect, dateDayInput, dateInlineError);
   attachLiveDateValidation(cyberizationYearInput, cyberizationMonthSelect, cyberizationDayInput, cyberizationInlineError);
 
+  // Change Login Email (Chris, 2026-08-15, moved here from member.html the
+  // same day) - lives on the actual edit form rather than the read-only
+  // profile view. Only shown once we know this is an existing, already-
+  // saved profile (existingDoc set below) - a brand-new signup has no
+  // reason to immediately change the email it just signed up with, and
+  // showing it mid-signup would be premature. A password-provider account
+  // confirms via its current password; a Google/X account reauthenticates
+  // via a fresh popup instead - see agoraReauthenticate() in auth.js.
+  function refreshChangeEmailSection() {
+    changeEmailSection.hidden = !existingDoc;
+    if (!existingDoc) return;
+
+    changeEmailCurrent.textContent = currentUser.email || "(no email on file)";
+    changeEmailOwnerWarning.hidden = currentUser.email !== OWNER_EMAIL;
+
+    var providerId = currentUser.providerData[0] && currentUser.providerData[0].providerId;
+    var isPasswordAccount = providerId === "password";
+    changeEmailPasswordWrap.hidden = !isPasswordAccount;
+    changeEmailPasswordInput.required = isPasswordAccount;
+
+    if (isPasswordAccount) {
+      changeEmailOauthNotice.hidden = true;
+    } else {
+      var providerName = providerId === "google.com" ? "Google"
+        : providerId === "twitter.com" ? "X"
+        : "your sign-in provider";
+      changeEmailOauthNotice.textContent = "You signed in with " + providerName +
+        " - confirming this will open a " + providerName + " prompt to verify it's really you first.";
+      changeEmailOauthNotice.hidden = false;
+    }
+  }
+
+  changeEmailForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    changeEmailError.hidden = true;
+    changeEmailSuccess.hidden = true;
+
+    var newEmail = changeEmailNewInput.value.trim();
+    if (!newEmail) return;
+
+    if (currentUser.email === OWNER_EMAIL) {
+      var confirmed = window.confirm(
+        "This is Agora's owner account email. Changing it will move permanent " +
+        "owner access to the new address once it's confirmed. Are you sure you want to continue?"
+      );
+      if (!confirmed) return;
+    }
+
+    var providerId = currentUser.providerData[0] && currentUser.providerData[0].providerId;
+
+    changeEmailSubmit.disabled = true;
+    changeEmailStatus.hidden = false;
+
+    agoraReauthenticate(providerId, changeEmailPasswordInput.value)
+      .then(function () {
+        // Forces a fresh ID token so requestEmailChange's own server-side
+        // "recent login" check (the auth_time claim) reflects the reauth
+        // that just happened, not a token cached from before it.
+        return firebase.auth().currentUser.getIdToken(true);
+      })
+      .then(function () {
+        return agoraRequestEmailChange(newEmail);
+      })
+      .then(function () {
+        changeEmailSuccess.textContent = "Check " + newEmail +
+          " for a confirmation link - the change takes effect once you click it.";
+        changeEmailSuccess.hidden = false;
+        changeEmailForm.reset();
+        refreshChangeEmailSection();
+      })
+      .catch(function (err) {
+        changeEmailError.textContent = (err && err.message) || "Something went wrong. Please try again.";
+        changeEmailError.hidden = false;
+      })
+      .finally(function () {
+        changeEmailSubmit.disabled = false;
+        changeEmailStatus.hidden = true;
+      });
+  });
+
   agoraOnAuthChange(function (user) {
     currentUser = user;
     if (!user) {
@@ -428,6 +532,7 @@
         kindSelector.hidden = true;
         dangerZone.hidden = false;
         cancelSignupWrap.hidden = true;
+        refreshChangeEmailSection();
         // Already agreed once, as part of getting this profile created in
         // the first place - Chris's call: never ask again on an edit.
         tosWrap.hidden = true;

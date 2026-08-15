@@ -540,6 +540,32 @@
           </div>
         </form>
 
+        <div class="subsection" id="change-email-section" hidden>
+          <h3 class="section-title">Change Login Email</h3>
+          <p class="body-text">Currently: <strong id="change-email-current"></strong></p>
+          <p class="body-text" id="change-email-owner-warning" hidden>
+            ⚠️ This is Agora's owner account email. Changing it will also
+            change which account has permanent owner access site-wide.
+          </p>
+          <form class="profile-form" id="change-email-form">
+            <div>
+              <label for="change-email-new">New email address</label>
+              <input type="email" id="change-email-new" required autocomplete="email" />
+            </div>
+            <div id="change-email-password-wrap">
+              <label for="change-email-password">Confirm your current password</label>
+              <input type="password" id="change-email-password" autocomplete="current-password" />
+            </div>
+            <p class="body-text" id="change-email-oauth-notice" hidden></p>
+            <p class="form-error" id="change-email-error" hidden></p>
+            <p class="signin-error signin-success" id="change-email-success" hidden></p>
+            <div class="profile-form-actions">
+              <button type="submit" class="btn" id="change-email-submit">Send Confirmation</button>
+              <span class="form-status" id="change-email-status" hidden>Sending…</span>
+            </div>
+          </form>
+        </div>
+
         <div class="danger-zone" id="danger-zone" hidden>
           <p class="body-text"><a href="leave-agora.html">Permanently Leave Agora 🌐</a></p>
         </div>
@@ -601,7 +627,7 @@
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
   <script src="moderation-client.js?v=1"></script>
-  <script src="profile-form.js?v=24"></script>
+  <script src="profile-form.js?v=25"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
