@@ -1445,6 +1445,22 @@ copy anyway, not permanently occupying header real estate.
   stale `pill-soon` badge, and added a `Visit Communiqués 📨 →` link at
   the bottom (matching the News section's `See all news →` pattern) -
   the CTA request also revealed the copy was out of date.
+- **`member.html`'s redundant "← Agora" back-link removed (Chris,
+  2026-08-15)** - it duplicated the "Agora 🌐" brand logo (top-left,
+  present on every page) while also jumping to a specific anchor
+  (`index.html#profiles`) that its own generic "Agora" label gave no hint
+  of - a mismatch Chris caught by eye. The same "← Agora" pattern (label
+  duplicating the brand logo, sometimes pointing at a specific section
+  instead of the plain homepage) still exists on 9 other pages
+  (`create-profile.html`, `exchange.html`, `leave-agora.html`,
+  `communiques-dm.html`, `privacy.html`, `terms.html`, `per-manum.html`,
+  `newsletter-compose.html`, `moderation-review.html`) - left alone since
+  Chris only flagged `member.html` this round, but worth a consistency
+  sweep later if he wants it gone everywhere. Contrast with the back-links
+  on Exchange product pages ("← VirtuaMakers Exchange") and the 30 static
+  profile pages ("← Members"/"← Humans") - those carry genuinely distinct,
+  accurate breadcrumb text (not just "Agora" again) and aren't part of
+  this complaint.
 
 ## Loading-failure hardening on create-profile.html / member.html (Chris, 2026-08-11)
 
