@@ -2514,6 +2514,39 @@ scheduled to revisit this at the start of 2027** - trigger id
 with this context, framed as a conversation-starter (design/scope needs
 Chris's input, not something to just silently build).
 
+## Communiqués redesign: AIM-style Dialogs + Multi-Chat split (Chris, 2026-08-15)
+
+The next phase of Communiqués, prompted by Chris's "I want it to feel like
+AIM" framing. Two decisions landed, one build done, one still ahead:
+
+- **Window model:** leaning toward a hybrid closer to Facebook Messenger's
+  "chat heads" than literal old AIM (which was actually many independent
+  little windows, not panels) - a few floating bubbles (capped lower than
+  Chris's own first guess of 10, more like Messenger's 3-4) with overflow
+  folding into a panel/list, and the whole floating-bubble idea dropped
+  entirely below some viewport width in favor of a single panel - bubbles
+  are a desktop-web pattern with no good equivalent on a phone, and Agora
+  runs as an installed PWA. Not built yet - Chris is re-watching AIM
+  footage to firm up the exact visual model before this gets built.
+- **Dialogs vs. Multi-Chat 🗨️, split cleanly along two axes that were
+  previously tangled together:** Dialogs had *both* grown group-chat
+  capability (up to 1,000 participants, added 2026-08-06) *and* stayed
+  fully public/member-readable, while Multi-Chat was originally scoped
+  around *privacy* (the one deliberate exception to Communiqués' public
+  model) without a firm stance on group size. Decision: **Dialogs are
+  strictly 1:1 and feel like a live two-person chat; anything
+  multi-person and/or private moves to Multi-Chat instead.** Done
+  tonight: Dialogs capped back to exactly 2 participants (see "Cap
+  Dialogs back to strictly 2 people" - the add-participant/leave
+  firestore.rules branches, the "Add someone"/"Leave Dialog" UI, and
+  their JS are all removed from `communiques-dm.html`/`.js`, group
+  Dialogs never having seen real use). **Not built yet:** Multi-Chat
+  itself, as its own product surface - the group participants-array/
+  add-leave shape just removed from Dialogs is the intended foundation
+  to reuse there rather than build twice, but the actual pages, privacy
+  model, and (per the original roadmap) free-vs-$4.99-paid question
+  still need a dedicated build pass.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
