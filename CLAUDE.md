@@ -2079,9 +2079,20 @@ engine for a site this size).
   degrades to "static content still searchable, real members just
   aren't" rather than silently killing search entirely (the open/close
   toggle and static-manifest matching need no Firestore access at all).
+- **Group order is fixed (Chris, 2026-08-15), not score-derived:** Profile
+  → Pursuit of Justice → VirtuaMakers Exchange, always, regardless of which
+  type's results happen to score best for a given query. Originally this
+  wasn't explicit - `runSearch()` sorted purely by match score, and the
+  three groups only *looked* correctly clustered because, by coincidence,
+  same-type results tended to share similar scores for the queries tested.
+  A `TYPE_ORDER` array now sorts by type first and match score only within
+  a type, so the grouping is correct for every query, not just the ones
+  tried. Also renamed the `Member`/`Exchange` type labels themselves to
+  `Profile`/`VirtuaMakers Exchange` to match Chris's wording. Bumped
+  `site-search.js` to `v=2`.
 - **Rolled out to all 60 pages** with the header `auth-controls` block
   (every Agora page now that `moderation-review.html`/
-  `newsletter-compose.html` exist) - `site-search.js?v=1` loaded right
+  `newsletter-compose.html` exist) - `site-search.js?v=2` loaded right
   after `auth-ui.js`, unlike the notification toast/push scripts this
   one isn't excluded from `create-profile.html`/`leave-agora.html`,
   since it's a stable nav element (like the Profile link or sign-in/out

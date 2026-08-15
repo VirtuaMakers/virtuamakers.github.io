@@ -38,25 +38,25 @@
   // VirtuaMakers Exchange 💱 - the catalogue cover plus one entry per
   // product page.
   var EXCHANGE_INDEX = [
-    { type: "Exchange", title: "VirtuaMakers Exchange 💱", url: "exchange.html" },
-    { type: "Exchange", title: "3D Printing 🖨️", url: "exchange-3d-printing.html" },
-    { type: "Exchange", title: "AI Products 🤖", url: "exchange-ai-products.html" },
-    { type: "Exchange", title: "Augmented (AR), Mixed (MR), & Virtual Reality (VR) 🥽", url: "exchange-arvr.html" },
-    { type: "Exchange", title: "Blockchain & Crypto 🪙", url: "exchange-blockchain.html" },
-    { type: "Exchange", title: "Chain of Cards ⛓️", url: "exchange-chain-of-cards.html" },
-    { type: "Exchange", title: "Computers, Wearables, & Hardware 🖥️", url: "exchange-computers.html" },
-    { type: "Exchange", title: "Cybernetic Enhancements (Cyborg) 🧠", url: "exchange-cybernetics.html" },
-    { type: "Exchange", title: "Developer Tools 🛠️", url: "exchange-devtools.html" },
-    { type: "Exchange", title: "E-Books 📚", url: "exchange-ebooks.html" },
-    { type: "Exchange", title: "IoT and DePIN 📡", url: "exchange-iot.html" },
-    { type: "Exchange", title: "Music 🎵", url: "exchange-music.html" },
-    { type: "Exchange", title: "Flying Cars 🚁", url: "exchange-personal-flight.html" },
-    { type: "Exchange", title: "Quantum Computing ⚛️", url: "exchange-quantum.html" },
-    { type: "Exchange", title: "Robotics 🦾", url: "exchange-robotics.html" },
-    { type: "Exchange", title: "The Logo 🪧", url: "exchange-the-logo.html" },
-    { type: "Exchange", title: "Video Games 🎮", url: "exchange-video-games.html" },
-    { type: "Exchange", title: "Video 🎥", url: "exchange-video.html" },
-    { type: "Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange-virtuamakers-gallery.html" },
+    { type: "VirtuaMakers Exchange", title: "VirtuaMakers Exchange 💱", url: "exchange.html" },
+    { type: "VirtuaMakers Exchange", title: "3D Printing 🖨️", url: "exchange-3d-printing.html" },
+    { type: "VirtuaMakers Exchange", title: "AI Products 🤖", url: "exchange-ai-products.html" },
+    { type: "VirtuaMakers Exchange", title: "Augmented (AR), Mixed (MR), & Virtual Reality (VR) 🥽", url: "exchange-arvr.html" },
+    { type: "VirtuaMakers Exchange", title: "Blockchain & Crypto 🪙", url: "exchange-blockchain.html" },
+    { type: "VirtuaMakers Exchange", title: "Chain of Cards ⛓️", url: "exchange-chain-of-cards.html" },
+    { type: "VirtuaMakers Exchange", title: "Computers, Wearables, & Hardware 🖥️", url: "exchange-computers.html" },
+    { type: "VirtuaMakers Exchange", title: "Cybernetic Enhancements (Cyborg) 🧠", url: "exchange-cybernetics.html" },
+    { type: "VirtuaMakers Exchange", title: "Developer Tools 🛠️", url: "exchange-devtools.html" },
+    { type: "VirtuaMakers Exchange", title: "E-Books 📚", url: "exchange-ebooks.html" },
+    { type: "VirtuaMakers Exchange", title: "IoT and DePIN 📡", url: "exchange-iot.html" },
+    { type: "VirtuaMakers Exchange", title: "Music 🎵", url: "exchange-music.html" },
+    { type: "VirtuaMakers Exchange", title: "Flying Cars 🚁", url: "exchange-personal-flight.html" },
+    { type: "VirtuaMakers Exchange", title: "Quantum Computing ⚛️", url: "exchange-quantum.html" },
+    { type: "VirtuaMakers Exchange", title: "Robotics 🦾", url: "exchange-robotics.html" },
+    { type: "VirtuaMakers Exchange", title: "The Logo 🪧", url: "exchange-the-logo.html" },
+    { type: "VirtuaMakers Exchange", title: "Video Games 🎮", url: "exchange-video-games.html" },
+    { type: "VirtuaMakers Exchange", title: "Video 🎥", url: "exchange-video.html" },
+    { type: "VirtuaMakers Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange-virtuamakers-gallery.html" },
   ];
 
   // The 30 hand-authored AI/Human member pages - no Firestore doc to
@@ -94,7 +94,7 @@
     { uid: "vibe", name: "Vibe" },
     { uid: "wenxin", name: "Wenxin" },
   ].map(function (m) {
-    return { type: "Member", title: m.name, url: "profiles/" + m.uid + ".html" };
+    return { type: "Profile", title: m.name, url: "profiles/" + m.uid + ".html" };
   });
 
   var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX);
@@ -138,7 +138,7 @@
       return snap.docs.map(function (doc) {
         var data = doc.data();
         var name = (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || "Member");
-        return { type: "Member", title: name, url: "member.html?uid=" + encodeURIComponent(doc.id) };
+        return { type: "Profile", title: name, url: "member.html?uid=" + encodeURIComponent(doc.id) };
       });
     }).catch(function () { return []; });
     return realMembersPromise;
@@ -156,6 +156,13 @@
     return title.toLowerCase().indexOf(q) !== -1 ? 2 : -1;
   }
 
+  // Chris's requested group order (2026-08-15) - results are grouped by
+  // type first, ranked by match quality only within each group. Sorting
+  // by score alone (as this used to) left same-type results contiguous
+  // only by coincidence, since nothing stopped two types' scores from
+  // interleaving for a given query.
+  var TYPE_ORDER = ["Profile", "Pursuit of Justice", "VirtuaMakers Exchange"];
+
   function runSearch(query, realMembers) {
     var q = query.trim().toLowerCase();
     if (!q) return [];
@@ -164,7 +171,10 @@
       var score = scoreMatch(item.title, q);
       if (score !== -1) scored.push({ item: item, score: score });
     });
-    scored.sort(function (a, b) { return a.score - b.score; });
+    scored.sort(function (a, b) {
+      var typeDiff = TYPE_ORDER.indexOf(a.item.type) - TYPE_ORDER.indexOf(b.item.type);
+      return typeDiff !== 0 ? typeDiff : a.score - b.score;
+    });
     var seen = {};
     var out = [];
     for (var i = 0; i < scored.length && out.length < 8; i++) {
