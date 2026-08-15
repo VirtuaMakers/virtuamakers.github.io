@@ -1097,6 +1097,11 @@ site nav, not yet wired to anything that actually sends them.
     Firestore-only fallback exactly as `adminBanUser`/`adminDeleteUser`
     already did, so nothing breaks in the meantime - the emails and
     `selfDeleteAccount`'s clean server-side delete just won't be live yet.
+  - **Chris's local clone lives at `C:\Users\Virtu\virtuamakers.github.io`**
+    (Windows, PowerShell) - so the actual deploy command from his machine
+    is `cd C:\Users\Virtu\virtuamakers.github.io\Agora` then `firebase
+    deploy --only functions`. Worth remembering since PowerShell opens to
+    `C:\WINDOWS\system32` by default, not this repo.
 
 ## "Little updates" cadence (Chris's standing product philosophy, 2026-08-06)
 
