@@ -101,7 +101,10 @@
       <div class="signin-divider"><span>or</span></div>
       <form id="agora-email-form" class="signin-email-form">
         <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
-        <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <div class="password-field-wrap">
+          <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+          <button type="button" class="password-toggle" id="agora-password-toggle" aria-label="Show password">👁️</button>
+        </div>
         <p class="signin-error" id="agora-signin-error" hidden></p>
         <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
       </form>
@@ -119,7 +122,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=2"></script>
-  <script src="auth-ui.js?v=17"></script>
+  <script src="auth-ui.js?v=18"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="bio-tags.js?v=1"></script>

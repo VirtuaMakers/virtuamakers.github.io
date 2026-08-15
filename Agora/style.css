@@ -313,6 +313,33 @@ a {
   color: var(--text);
 }
 
+.password-field-wrap {
+  position: relative;
+}
+
+.password-field-wrap input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--text);
+}
+
 .signin-error {
   color: #c0392b;
   font-size: 0.85rem;
