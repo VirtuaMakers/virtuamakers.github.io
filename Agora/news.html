@@ -83,10 +83,10 @@
     <div class="header-right">
       <a class="back-link" href="index.html#news"><span class="back-arrow">←</span> Pursuit of Justice</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
-      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>🔔 Enable Notifications</button>
+      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
       <div class="auth-controls" id="agora-auth-controls">
-        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
-        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
+        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
       </div>
     </div>
   </header>
@@ -103,6 +103,17 @@
       </a>
 
       <ul class="news-list">
+        <li class="news-item">
+          <img class="news-image" src="assets/news/tum-underwater-waste-robot.jpg" alt="The yellow SeaCAT autonomous surface vessel, fitted with a robotic manipulator arm holding a wire waste basket, floats in a harbor in front of a rock breakwater" width="1200" height="676" loading="lazy" />
+          <a href="https://www.heise.de/en/news/TUM-Autonomous-underwater-robot-system-to-combat-waste-problem-in-ports-10661330.html" target="_blank" rel="noopener noreferrer">TUM: Autonomous underwater robot system to combat waste problem in ports</a>
+          <span class="news-source">heise online</span>
+          <p class="news-quote">"As part of the EU project "Seaclear," a
+            research team at the Technical University of Munich (TUM) has
+            developed an autonomous underwater robot system that combines
+            specialized robots, a drone, and a service boat to detect trash
+            above and below the water and collect it using robots." – Oliver
+            Bünte</p>
+        </li>
         <li class="news-item">
           <img class="news-image" src="assets/news/un-robots-social-good.jpg" alt="The humanoid robot Sophia, wearing a maroon dress with an exposed mechanical arm, gestures toward a woman in a blue headscarf and robe at a UN event" width="1441" height="560" loading="lazy" />
           <a href="https://social.desa.un.org/sdn/meet-the-robots-who-are-making-the-world-a-better-place" target="_blank" rel="noopener noreferrer">Meet the Robots Who Are Making the World a Better Place</a>
@@ -213,6 +224,7 @@
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=17"></script>
+  <script src="emoji-cycle.js?v=1"></script>
   <script src="communiques-common.js?v=9"></script>
   <script src="notification-toast.js?v=1"></script>
   <script src="push-notifications.js?v=1"></script>

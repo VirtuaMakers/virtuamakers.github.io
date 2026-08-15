@@ -14,6 +14,11 @@
 
   var profileData = null;
   var currentUser = null;
+  // Invisible view counter (Chris, 2026-08-13) - internal-only metric, no
+  // UI shows this. Guarded so it only fires once per page load even
+  // though loadProfile() re-runs on every auth-state change (e.g. a
+  // visitor signing in mid-view), not just the initial page load.
+  var profileViewRecorded = false;
 
   // Bio allows a small, deliberately-expanding allowlist of HTML tags (see
   // bio-tags.js) - sanitized here at render time rather than at save time,
@@ -258,6 +263,11 @@
       render(profileData);
       refreshControls();
       updateMessageButtonVisibility();
+
+      if (!profileViewRecorded) {
+        profileViewRecorded = true;
+        doc.ref.update({ profileViews: firebase.firestore.FieldValue.increment(1) }).catch(function () {});
+      }
     }).catch(function () {
       // Without this, a fetch failure (e.g. a flaky connection) leaves the
       // page permanently blank - neither the profile content nor any
@@ -347,9 +357,8 @@
   // This section itself stays a friends-only quick-access convenience -
   // a search over your own friends (populated by loadFriendsList() below)
   // rather than a list of every conversation you have - so it's still
-  // hidden until you have at least one accepted friend, but it's no
-  // longer the only way to start a Dialog; see communiques.html's "New
-  // Message" search for messaging anyone.
+  // hidden until you have at least one accepted friend. Messaging anyone
+  // else goes through the "Message" button on their own profile instead.
 
   var dialogsSection = document.getElementById("member-dialogs");
   var dialogsSearch = document.getElementById("dialogs-friend-search");

@@ -2,7 +2,7 @@
   "name": "agora-functions",
   "description": "Admin-only Cloud Functions for Agora: real account ban/delete via the Firebase Admin SDK, and email notifications.",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {

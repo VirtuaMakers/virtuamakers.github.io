@@ -44,6 +44,16 @@
 
   var messageList = document.getElementById("message-list");
 
+  // Messages arrive via a live onSnapshot listener, which re-fires (and
+  // re-renders every message on the current page, not just the new one)
+  // every time any message is added - without this guard, every existing
+  // message's view count would climb on every new message anyone sends,
+  // not just when a viewer actually opens the Dialog. Counts once per
+  // message per page load; a fresh page load (revisiting later) counts
+  // again, matching the site's general "no fancy dedup" view-count
+  // philosophy (see CLAUDE.md).
+  var viewedMessageIds = {};
+
   function buildMessageBubble(doc) {
     var data = doc.data();
     var isOwn = data.authorUid === currentUser.uid;
@@ -64,11 +74,17 @@
 
     var time = document.createElement("p");
     time.className = "message-time";
-    time.textContent = C.formatDate(data.createdAt, true);
+    time.textContent = C.formatDate(data.createdAt, true) +
+      " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
     bubble.appendChild(time);
 
     var canEdit = data.authorUid === currentUser.uid && C.isWithinEditWindow(data.createdAt);
     if (canEdit) C.attachInlineEdit(bubble, doc.ref, data, body);
+
+    if (!viewedMessageIds[doc.id]) {
+      viewedMessageIds[doc.id] = true;
+      C.recordView(doc.ref);
+    }
 
     return bubble;
   }
@@ -286,27 +302,38 @@
     composeSubmit.disabled = true;
     composeStatus.hidden = false;
 
-    var now = firebase.firestore.FieldValue.serverTimestamp();
-    jumpToLastOnNextRender = true;
-    activeConversationRef.collection("messages").add({
-      authorUid: currentUser.uid,
-      body: body,
-      createdAt: now,
-    }).then(function () {
-      return activeConversationRef.update({
-        lastMessage: body,
-        lastMessageAt: now,
-        lastMessageAuthorUid: currentUser.uid,
+    var conversationRef = activeConversationRef;
+    AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationRef.id }).then(function (result) {
+      if (result.decision === "block") {
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+        AgoraModeration.showBlocked(composeError, result.logId);
+        return;
+      }
+
+      var now = firebase.firestore.FieldValue.serverTimestamp();
+      jumpToLastOnNextRender = true;
+      conversationRef.collection("messages").add({
+        authorUid: currentUser.uid,
+        body: body,
+        createdAt: now,
+        viewCount: 0,
+      }).then(function () {
+        return conversationRef.update({
+          lastMessage: body,
+          lastMessageAt: now,
+          lastMessageAuthorUid: currentUser.uid,
+        });
+      }).then(function () {
+        document.getElementById("dm-compose-body").value = "";
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+      }).catch(function (err) {
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+        composeError.textContent = err.message;
+        composeError.hidden = false;
       });
-    }).then(function () {
-      document.getElementById("dm-compose-body").value = "";
-      composeSubmit.disabled = false;
-      composeStatus.hidden = true;
-    }).catch(function (err) {
-      composeSubmit.disabled = false;
-      composeStatus.hidden = true;
-      composeError.textContent = err.message;
-      composeError.hidden = false;
     });
   });
 

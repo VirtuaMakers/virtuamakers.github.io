@@ -73,6 +73,7 @@
   var emailVisible = document.getElementById("field-email-visible");
   var requireFriendCheckbox = document.getElementById("field-require-friend");
   var tosInput = document.getElementById("field-tos");
+  var newsletterCheckbox = document.getElementById("field-newsletter");
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
@@ -174,6 +175,10 @@
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
     requireFriendCheckbox.checked = !!data.requireFriendToMessage;
+    // Respects an explicit false (e.g. from the no-login unsubscribe link
+    // in a newsletter email) same as every other "on by default" checkbox
+    // here - only an explicit false unchecks it, not a merely-missing field.
+    newsletterCheckbox.checked = data.newsletterOptIn !== false;
   }
 
   // A real calendar day-count per month, leap years included - JS's Date
@@ -470,7 +475,14 @@
       email: email,
       showEmail: emailVisible.checked,
       requireFriendToMessage: requireFriendCheckbox.checked,
+      newsletterOptIn: newsletterCheckbox.checked,
       status: existingDoc ? existingDoc.status : "active",
+      // Invisible view counter, written directly by member.html - not part
+      // of this form at all, but .set() below fully replaces the document,
+      // so it has to be explicitly carried forward here or every save
+      // would silently reset it to 0 (same pattern as tosAgreedAt/
+      // createdAt below).
+      profileViews: existingDoc && typeof existingDoc.profileViews === "number" ? existingDoc.profileViews : 0,
       tosAgreedAt: existingDoc && existingDoc.tosAgreedAt
         ? existingDoc.tosAgreedAt
         : firebase.firestore.FieldValue.serverTimestamp(),
@@ -502,17 +514,42 @@
 
     var geocodePromise = geocodeLocation(city, regionValue, country);
 
+    // Moderation runs before anything is actually uploaded/saved. A block
+    // anywhere aborts the whole save (same all-or-nothing behavior as the
+    // synchronous size/type checks above) - merely flagged content still
+    // goes through the normal upload/write, just logged + emailed to Chris
+    // server-side.
+    var moderationBlock = null;
+
+    var bioCheck = data.bio
+      ? AgoraModeration.checkText(data.bio, "profileBio", {}).then(function (result) {
+          if (result.decision === "block" && !moderationBlock) {
+            moderationBlock = { field: "Bio", logId: result.logId };
+          }
+        })
+      : Promise.resolve();
+
     // A slot with no newly chosen file resolves to null immediately - only
     // slots the member actually picked a new picture for touch Storage.
     var picturePromises = pictureInputs.map(function (input, i) {
       var file = input.files[0];
-      return file ? uploadPicture(currentUser.uid, i + 1, file) : Promise.resolve(null);
+      if (!file) return Promise.resolve(null);
+      return AgoraModeration.checkImage(file, i + 1).then(function (result) {
+        if (result.decision === "block") {
+          if (!moderationBlock) moderationBlock = { field: "Picture " + (i + 1), logId: result.logId };
+          return null;
+        }
+        return uploadPicture(currentUser.uid, i + 1, file);
+      });
     });
 
-    Promise.all([handleCheck, geocodePromise].concat(picturePromises)).then(function (results) {
+    Promise.all([handleCheck, geocodePromise, bioCheck].concat(picturePromises)).then(function (results) {
+      if (moderationBlock) {
+        throw { code: "moderation-blocked", field: moderationBlock.field, logId: moderationBlock.logId };
+      }
       var snapshot = results[0];
       var coords = results[1];
-      var pictureUrls = results.slice(2);
+      var pictureUrls = results.slice(3);
       if (snapshot) {
         var taken = snapshot.docs.some(function (d) { return d.id !== currentUser.uid; });
         if (taken) {
@@ -543,6 +580,11 @@
     }).catch(function (err) {
       submitBtn.disabled = false;
       statusEl.hidden = true;
+      if (err.code === "moderation-blocked") {
+        AgoraModeration.showBlocked(errorEl, err.logId,
+          err.field + " didn't pass Agora's content filter, so nothing was saved. ");
+        return;
+      }
       showError(err.code === "handle-taken"
         ? "That handle is already taken – please choose another."
         : err.message);

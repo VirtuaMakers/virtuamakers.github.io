@@ -139,6 +139,15 @@
     return Date.now() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
   }
 
+  // View counts (Chris, 2026-08-13) - a simple, undeduped increment on
+  // every render, same spirit as the homepage hit counter (see CLAUDE.md):
+  // this is a directional "how much is this getting looked at" number,
+  // not an anti-fraud metric. Fails silently so a permission hiccup never
+  // breaks rendering.
+  function recordView(docRef) {
+    docRef.update({ viewCount: firebase.firestore.FieldValue.increment(1) }).catch(function () {});
+  }
+
   function sanitizeBody(el, raw) {
     if (raw && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
       el.innerHTML = DOMPurify.sanitize(raw, {
@@ -266,7 +275,8 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true);
+      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true) +
+        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
       item.appendChild(meta);
 
       var body = document.createElement("p");
@@ -277,6 +287,8 @@
       if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
         attachInlineEdit(item, doc.ref, data, body);
       }
+
+      recordView(doc.ref);
 
       return item;
     }
@@ -357,28 +369,38 @@
         toggleBtn.disabled = true;
         status.hidden = false;
 
-        var now = firebase.firestore.FieldValue.serverTimestamp();
-        getDisplayName(currentUser).then(function (authorName) {
-          return postRef.collection("comments").add({
-            body: body,
-            authorUid: currentUser.uid,
-            authorName: authorName,
-            createdAt: now,
+        AgoraModeration.checkText(body, "wallComment", { postId: postRef.id }).then(function (result) {
+          if (result.decision === "block") {
+            toggleBtn.disabled = false;
+            status.hidden = true;
+            AgoraModeration.showBlocked(error, result.logId);
+            return;
+          }
+
+          var now = firebase.firestore.FieldValue.serverTimestamp();
+          getDisplayName(currentUser).then(function (authorName) {
+            return postRef.collection("comments").add({
+              body: body,
+              authorUid: currentUser.uid,
+              authorName: authorName,
+              createdAt: now,
+              viewCount: 0,
+            });
+          }).then(function () {
+            return postRef.update({
+              commentCount: firebase.firestore.FieldValue.increment(1),
+              lastActivityAt: now,
+            });
+          }).then(function () {
+            toggleBtn.disabled = false;
+            status.hidden = true;
+            close();
+          }).catch(function (err) {
+            toggleBtn.disabled = false;
+            status.hidden = true;
+            error.textContent = err.message;
+            error.hidden = false;
           });
-        }).then(function () {
-          return postRef.update({
-            commentCount: firebase.firestore.FieldValue.increment(1),
-            lastActivityAt: now,
-          });
-        }).then(function () {
-          toggleBtn.disabled = false;
-          status.hidden = true;
-          close();
-        }).catch(function (err) {
-          toggleBtn.disabled = false;
-          status.hidden = true;
-          error.textContent = err.message;
-          error.hidden = false;
         });
       }
 
@@ -413,7 +435,8 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true);
+      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true) +
+        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
       post.appendChild(meta);
 
       var body = document.createElement("p");
@@ -424,6 +447,8 @@
       if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
         attachInlineEdit(post, doc.ref, data, body);
       }
+
+      recordView(doc.ref);
 
       var commentsWrap = document.createElement("div");
       commentsWrap.className = "wall-comments";
@@ -527,27 +552,37 @@
       postSubmit.disabled = true;
       postStatus.hidden = false;
 
-      var now = firebase.firestore.FieldValue.serverTimestamp();
-      getDisplayName(currentUser).then(function (authorName) {
-        return AgoraDB.collection("wallPosts").add({
-          profileUid: profileUid,
-          body: body,
-          authorUid: currentUser.uid,
-          authorName: authorName,
-          createdAt: now,
-          lastActivityAt: now,
-          commentCount: 0,
+      AgoraModeration.checkText(body, "wallPost", { profileUid: profileUid }).then(function (result) {
+        if (result.decision === "block") {
+          postSubmit.disabled = false;
+          postStatus.hidden = true;
+          AgoraModeration.showBlocked(postError, result.logId);
+          return;
+        }
+
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        getDisplayName(currentUser).then(function (authorName) {
+          return AgoraDB.collection("wallPosts").add({
+            profileUid: profileUid,
+            body: body,
+            authorUid: currentUser.uid,
+            authorName: authorName,
+            createdAt: now,
+            lastActivityAt: now,
+            commentCount: 0,
+            viewCount: 0,
+          });
+        }).then(function () {
+          postBody.value = "";
+          postSubmit.disabled = false;
+          postStatus.hidden = true;
+          loadWall();
+        }).catch(function (err) {
+          postSubmit.disabled = false;
+          postStatus.hidden = true;
+          postError.textContent = err.message;
+          postError.hidden = false;
         });
-      }).then(function () {
-        postBody.value = "";
-        postSubmit.disabled = false;
-        postStatus.hidden = true;
-        loadWall();
-      }).catch(function (err) {
-        postSubmit.disabled = false;
-        postStatus.hidden = true;
-        postError.textContent = err.message;
-        postError.hidden = false;
       });
     });
 
@@ -585,6 +620,7 @@
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
+    recordView: recordView,
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,
     attachPerManumButton: attachPerManumButton,

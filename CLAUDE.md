@@ -705,9 +705,16 @@ not as the primary label).
   `isWithinEditWindow`, `attachInlineEdit`) - every Communiqués page and
   the Wall/Dialogs code in `member.js` pull from it rather than
   duplicating the same logic per page.
-- **Pages:** `communiques.html` (hub: read-only Dialogs inbox, see "Dialogs
-  redesign" below), `communiques-dm.html` (single Dialog, paginated - see
-  above). Wall + Dialogs themselves render on `member.html?uid=` (see below).
+- **Pages:** ~~`communiques.html` (hub: read-only Dialogs inbox)~~
+  **removed (Chris, 2026-08-11)** - the header's own link to it had
+  already been dropped a while back, and starting/continuing a Dialog no
+  longer goes through it (see "Dialogs redesign" below), so the hub page
+  itself was deleted along with `communiques.js`. `communiques-common.js`
+  and `communiques-dm.html` (single Dialog, paginated - see above) are
+  unaffected - Wall + Dialogs themselves still render on `member.html?uid=`
+  (see below). The homepage's own "Communiqués 📨" explainer section
+  (`Agora/index.html#communiques`) stays, now closing on a plain "Sign in
+  to see your Communiqués 📨!" line instead of a link to the deleted page.
 - **Dialogs redesign - friends-only (Chris, 2026-08-06):** you can't Dialog
   with someone you're not friends with, on `member.html` at least (see
   "Dialogs require an accepted friendship" under Friends 🙂 above for the
@@ -1615,8 +1622,345 @@ after `firebase-firestore-compat.js`), the header
 Until all three are done, everything gracefully degrades to just the
 in-tab toast (which needs none of them) - nothing breaks in the gap.
 
+## Newsletter 📰 (Chris, 2026-08-12)
+
+Chris's ask, verbatim shape: opted into by default on sign-up, prepared by
+the 27th of each month for a send on the last day of the month, same
+visual style as the other letters, and a no-login one-click unsubscribe
+from every issue. All four are built.
+
+**Data model:** `profiles/{uid}.newsletterOptIn` (boolean) and
+`profiles/{uid}.newsletterUnsubToken` (string, generated lazily - see
+below), plus a new single-document collection, `newsletter/draft`
+(`{subject, bodyText, updatedAt, updatedBy, lastSentAt}`) - the one
+staging area both the compose page and the send function read/write.
+Admin-only in `firestore.rules` (`allow read, write: if isAdmin()`), same
+`isAdmin()` helper every other admin surface already uses. **This rules
+change still needs Chris to paste it into the Firebase console** - same
+manual step every `firestore.rules` edit needs, this file was never wired
+to auto-deploy.
+
+**Opt-in checkbox** - `create-profile.html`, right after the Terms
+checkbox, checked by default, wired into `profile-form.js` with the same
+`data.newsletterOptIn !== false` idiom every other "on by default"
+checkbox here uses (`showDate`, `showEmail`, etc.) - so an explicit
+`false` (from unsubscribing) stays unchecked, but a merely-missing field
+defaults to checked. Unlike the Terms checkbox, this one stays visible and
+editable on both create **and** edit - it's a real, changeable preference,
+not a one-time agreement.
+
+Two things worth flagging about how this interacts with the *existing*
+membership, since both were judgment calls rather than something Chris
+specified directly:
+- **Existing members aren't auto-enrolled.** `sendMonthlyNewsletter`
+  queries `where("newsletterOptIn", "==", true)` - an explicit-true match,
+  not `!= false` - so a profile that's never touched the new checkbox
+  (i.e., anyone who signed up before 2026-08-12 and hasn't since opened
+  Edit Profile) is excluded from sends. New signups get `true` written
+  explicitly the first time they save, same as everyone else who edits
+  their profile going forward, checked-by-default. Rationale: silently
+  opting the entire existing membership into a mailing list they never
+  saw or agreed to felt wrong; if Chris wants a one-time backfill instead,
+  that's a small follow-up (a one-off script or Cloud Function setting
+  `newsletterOptIn: true` on every profile missing the field).
+- **Send mechanism is a plain Firestore loop**, not a Resend
+  Audience/Broadcast. Each opted-in profile gets its own
+  `sendEmailSafe` call, reusing 100% of the already-built transactional-
+  email plumbing instead of standing up a second contact-sync
+  subsystem. Reasonable at Agora's current size; would need revisiting
+  (batching, a real Broadcast, rate-limit backoff) at meaningfully larger
+  scale.
+
+**Compose page** - `newsletter-compose.html` (+ `newsletter-compose.js`),
+admin-only (`VirtuaMakers@Outlook.com`, same gate as everywhere else),
+`noindex`, not linked from site nav - reached directly at
+`https://www.virtuamakers.com/Agora/newsletter-compose.html`. Same page
+chrome as every other Agora page (header/footer/sign-in modal). A plain
+text `<textarea>` for the body (blank line = new paragraph, matching every
+other template's paragraph convention) plus a subject field, saving both
+to `newsletter/draft` with `merge: true` so `lastSentAt` (written by the
+send function) survives a later draft edit. Shows "last sent" / "draft
+last saved (by whom)" timestamps read back from the same doc. Saving here
+always replaces whatever's queued - there's only ever one upcoming issue,
+no history of past drafts kept.
+
+**Email template** - `emails/newsletter-email.html` (+ the hand-synced
+copy in `functions/templates/`, same split every template here needs
+since Cloud Functions only bundles `functions/`), cloned from
+`welcome-email.html`'s exact table layout/colors/footer style. Three
+placeholders: `{{SUBJECT}}`, `{{BODY}}`, `{{UNSUBSCRIBE_URL}}`, substituted
+by `withNewsletterContent()` in `functions/lib/templates.js`.
+`paragraphsToHtml()` turns the compose page's plain text into the same
+`margin:0 0 16px` inline-styled `<p>` blocks every other template
+hand-writes, HTML-escaping each paragraph first since this is the one
+template whose body comes from a form field instead of being written
+directly into the file. The subject is HTML-escaped too when it goes into
+the `<title>`/`<h1>` (not when used as the actual email's Subject header,
+which isn't HTML) - otherwise an ordinary subject like "R&D Update" would
+render broken.
+
+**No-login unsubscribe** - `unsubscribeNewsletter` in `functions/index.js`
+is a plain `onRequest` function (not `onCall`), since it has to work for a
+signed-out visitor clicking a link with no Firebase Auth session at all.
+Takes `?uid=...&token=...`; the token is a per-profile random value
+(`crypto.randomBytes(24).toString("hex")`), generated lazily the first
+time that profile is ever sent an issue and stored as
+`newsletterUnsubToken`, so a link can't be guessed or reused to
+unsubscribe someone else - meaningfully more robust than a bare uid for
+negligible extra complexity, even though uids alone are already exposed
+unprotected elsewhere on the site (e.g. `member.html?uid=`). A match
+flips `newsletterOptIn` to `false` and shows a small standalone
+confirmation page (not a redirect back into the app, since a signed-out
+visitor may have nothing to sign into).
+
+**Send schedule** - `sendMonthlyNewsletter` in `functions/index.js`, an
+`onSchedule` cron: `"0 9 28-31 * *"` in `America/New_York` (Chris is in
+Cincinnati). That fires daily from the 28th on, since not every month has
+a 30th or 31st; the function's first move is checking whether *tomorrow*
+is the 1st, and bailing out immediately if not - so it only actually
+sends on the true last day of whichever month it is, regardless of length.
+Reads `newsletter/draft`; does nothing if there's no draft or either field
+is blank (so an unprepared month just silently skips rather than sending
+garbage). On send, generates each recipient's unsubscribe token if it
+doesn't exist yet, builds their link, sends, then stamps `lastSentAt` on
+the draft doc once the whole run completes.
+
+**Still needs from Chris, before any of this actually works:**
+1. **Deploy Cloud Functions** - `firebase deploy --only functions` from
+   `Agora/` (same command, same one deploy, as the Admin ban/delete and
+   transactional-email rollouts - this picks up `unsubscribeNewsletter`
+   and `sendMonthlyNewsletter` alongside everything else already waiting
+   on that deploy).
+2. **Paste the updated `firestore.rules`** into the Firebase console
+   (Firestore Database → Rules) - the new `newsletter/{document}` block.
+3. **Prepare the first real issue** via the compose page before the 27th
+   of whichever month it's meant to go out.
+Until all three are done, the opt-in checkbox and compose page still work
+(they only touch Firestore directly), but nothing actually sends.
+
+## Content moderation 🛡️ (Chris, 2026-08-13)
+
+Chris's ask, in his own words: a content filter ("that Google censorship
+thing" - turned out to mean Google's Perspective API once we talked
+through it) for text, plus filtering nudity/inappropriate images out of
+what gets uploaded to Firebase, both blocking outright *and* alerting him
+so he can catch the filter misfiring, plus a way for a wrongly-blocked
+member to appeal. All of that is built, ahead of the future **Agora
+Harness 🚡** (AI member login - still not built, see the "Naming split"
+entry earlier in this file) since Chris wants moderation in place before
+opening that door.
+
+**Two Google APIs, one shared key.** Google Cloud Natural Language API's
+`moderateText` for text; Cloud Vision's SafeSearch for images. Both are
+reachable with one Google Cloud API key - enable "Cloud Natural Language
+API" and "Cloud Vision API" on the `agora-firebase-f4240` project,
+generate a key restricted to just those two APIs, then set it once:
+`firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`. Scoring logic
+lives in `functions/lib/moderation.js` - `analyzeText()` requests
+`moderateText` and reads six of its sixteen returned categories
+(Toxic/Derogatory/Profanity/Insult/Sexual/Violent - the ones with real
+harassment/safety overlap, ignoring the content-policy categories like
+Politics/Religion/Finance/Legal/Health/War that are out of this filter's
+scope) and takes the max confidence score; `analyzeImage()` reads Vision's
+adult/violence/racy likelihoods (racy is graded more leniently - a LIKELY
+swimwear/fitness photo isn't nudity, only VERY_LIKELY racy blocks on its
+own). Two thresholds per type, both tunable constants: at or above BLOCK,
+content never saves; at or above FLAG (but under BLOCK), it saves
+completely normally but gets logged + emailed to Chris - a deliberate
+"ship a reasonable default, iterate against real results" choice, same
+instinct as social-format.js's link rubric.
+
+**Originally built on Perspective API, swapped 2026-08-13.** Chris's
+original ask was "that Google censorship thing," which turned out to mean
+[Perspective API](https://perspectiveapi.com) (Google/Jigsaw's toxicity
+scorer). While setting it up, Perspective announced it's sunsetting -
+service ends after 2026, and (likely relatedly) new-project API-access
+requests stopped being granted, which is what the initial
+`gcloud services enable commentanalyzer.googleapis.com` attempt hit as a
+`PERMISSION_DENIED` even under project-Owner credentials. Rather than
+build on a dying API, text scoring moved to Cloud Natural Language API's
+`moderateText` instead - a different, actively-maintained Google product
+covering the same kind of ground, on the same GCP project, no new
+account/billing needed. `TOXICITY`/`SEVERE_TOXICITY`/`THREAT`/`INSULT`/
+`SEXUALLY_EXPLICIT` (Perspective's attribute names) became
+`Toxic`/`Derogatory`/`Profanity`/`Insult`/`Sexual`/`Violent`
+(`moderateText`'s category names) - not a perfect 1:1 (`moderateText` has
+no dedicated "severe toxicity" or "threat" category; Violent stands in for
+the latter), but the closest faithful mapping. Thresholds were carried
+over unchanged (both APIs score 0-1) but may need re-tuning once real
+`moderateText` results come in, since the two models don't necessarily
+calibrate the same way.
+
+**Scope - everywhere a member submits text or an image:** Wall posts,
+Wall comments, Dialog messages, and profile bios (text); profile pictures
+(the only image-upload path in Agora today - the future Chain of Cards/NFT
+Gallery mint pipeline will need its own pass through this when it's built,
+per the existing "needs its own moderation" note further up this file).
+Two onCall Cloud Functions do the checking - `moderateText` and
+`moderateImage` - called from the client *before* the actual Firestore
+write or Storage upload happens, so blocked content is never saved
+anywhere, even briefly.
+
+**Fails OPEN, not closed.** If the moderation call errors for any reason -
+not deployed yet, a network hiccup, a bad/missing secret - the client
+treats it as an automatic "allow" and the content posts normally
+(`moderation-client.js`'s `checkText`/`checkImage`, matching the exact
+same philosophy as every other Cloud-Functions-dependent feature here: a
+moderation outage should never be the reason nobody can post).
+
+**Client-side wiring** - `moderation-client.js` (new, loaded wherever a
+moderated write happens: `member.html`, `communiques-dm.html`,
+`create-profile.html`) exposes `AgoraModeration.checkText/checkImage/
+showBlocked`. Call sites: `communiques-common.js` (Wall post submit,
+comment submit), `communiques-dm.js` (Dialog message submit),
+`profile-form.js` (bio + all five picture slots, checked in parallel
+before any upload starts - one blocked field aborts the *whole* save, same
+all-or-nothing behavior the existing picture size/type validation already
+had, not a partial save). A block shows an inline error via
+`AgoraModeration.showBlocked()` with a "Request a review" button.
+
+**Data model - `moderationLog/{id}`, written only by Cloud Functions**
+(admin-read-only in `firestore.rules`, `allow write: if false` - every
+mutation goes through a callable, never a direct client write): `uid`,
+`authorName`, `contentType` (`wallPost`/`wallComment`/`dialogMessage`/
+`profileBio`/`profilePicture`), `decision` (`block`/`flag` - "allow" is
+never logged, to avoid flooding this collection with every normal post),
+`text` (null for pictures), `scores`, `context` (whatever's needed to
+re-publish later - e.g. `{ profileUid }` for a wall post, `{ postId }` for
+a comment, `{ conversationId }` for a Dialog message, `{ slotIndex,
+quarantinePath }` for a picture), `appealRequested`/`appealRequestedAt`,
+`resolved`/`resolution`/`resolvedAt`/`resolvedBy`.
+
+**Blocked pictures are quarantined, not discarded.** A blocked image never
+touches the public `profile-pictures/` path - `moderateImage` saves the
+bytes to `moderation-quarantine/{uid}/{logId}` instead (storage.rules
+denies *all* client access to that path, in both directions - only the
+Admin SDK ever touches it). A flagged-but-not-blocked picture skips
+quarantine entirely and uploads normally right after, same as flagged
+text saving normally - only a block needs the bytes preserved anywhere
+pending a possible appeal.
+
+**Appeals - `requestModerationAppeal`** (any signed-in member, ownership-
+checked - only the original author can appeal their own entry) flags the
+log doc and emails Chris. **`resolveModerationAppeal`** (admin-only) is
+the review page's Approve/Uphold action:
+- **Approve** re-publishes the content exactly as originally submitted,
+  via `republishModeratedContent()` - a Wall post/comment/Dialog message
+  writes to wherever it would have landed originally (quietly does
+  nothing if that target's since been deleted); a profile bio just
+  updates the field; a picture *moves* out of quarantine into its real
+  public slot (`bucket.file().move()`), then the profile doc is updated
+  with a constructed public download URL
+  (`firebasestorage.googleapis.com/v0/b/.../o/...?alt=media` - works
+  without a download token since profile-pictures/ is publicly readable
+  by rule).
+- **Uphold** leaves it blocked and, for a picture, deletes the quarantined
+  file since nothing will ever use it now.
+
+**`moderation-review.html`** (+ `.js`, new) - admin-only, `noindex`, not
+linked from site nav, same three-state gate as `newsletter-compose.html`.
+Lists the most recent 50 `moderationLog` entries, newest first. Blocked
+images aren't fetched by default (avoids pulling every quarantined image
+on every page load) - a "Load image" button calls
+`getModerationImageUrl` (admin-only, returns a 15-minute signed URL) on
+demand. Flagged entries show read-only, for awareness of what the filter
+is catching (already live, nothing to approve/uphold). Blocked, unresolved
+entries get Approve/Uphold buttons.
+
+**Still needs from Chris, before any of this actually works:**
+1. **Enable both APIs** on the `agora-firebase-f4240` Google Cloud project
+   - "Cloud Natural Language API" and "Cloud Vision API" - then
+   generate one API key restricted to those two, and set it:
+   `firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`.
+2. **Deploy Cloud Functions** - `firebase deploy --only functions` from
+   `Agora/` (same one deploy as everything else waiting on it - picks up
+   `moderateText`, `moderateImage`, `requestModerationAppeal`,
+   `resolveModerationAppeal`, `getModerationImageUrl` alongside the rest).
+3. **Paste the updated `firestore.rules`** into the Firebase console - the
+   new `moderationLog/{document}` block.
+4. **If `getModerationImageUrl` errors after deploy** ("permission
+   denied" generating a signed URL, not a Firestore/auth error): the
+   Cloud Functions runtime service account likely needs the **Service
+   Account Token Creator** role granted to *itself*, in Google Cloud
+   Console → IAM - a known one-time gotcha with `getSignedUrl()` on
+   Firebase's default service account, unrelated to anything in this
+   repo's code.
+Until all four are done, nothing gets checked at all - every submission
+just fails open and posts normally (see above), so nothing breaks in the
+gap; it's simply not filtering anything yet.
+
+## Views 👁 (Chris, 2026-08-13)
+
+A view counter on Wall posts, Wall comments, and Dialog messages, visible
+inline in each item's existing meta line (e.g. "Claude · Aug 13, 2026, 3:45
+PM · 👁 4"). Profiles also get a counter, per Chris's call to include it
+but keep it invisible for now - `profiles/{uid}.profileViews` is written
+but never rendered anywhere; checking it means reading the Firestore
+document directly (console, or a future admin page), same as several other
+internal-only fields already in this codebase.
+
+- **Deliberately undeduped, matching the homepage hit counter's own
+  simplicity (see the "little updates"/hit-counter entries elsewhere in
+  this file)** - every render increments by 1, including the author's own
+  view of their own content, with no per-viewer tracking. This is a
+  directional "how much is this getting looked at" number, not an
+  anti-fraud metric - consistent with the site's general "good enough for
+  now" bar elsewhere (free geocoding, no read-receipt tracking on
+  Communiqués, etc.).
+- **`CommuniquesCommon.recordView(docRef)`** (new, `communiques-common.js`)
+  is the one shared increment call - `docRef.update({ viewCount:
+  firebase.firestore.FieldValue.increment(1) })`, fails silently so a
+  permission hiccup never blocks rendering. Called from
+  `createWallController()`'s `buildWallPost()`/`buildCommentItem()`, which
+  covers both `member.html` and all 30 static profile pages automatically
+  since they already share that one controller.
+- **Dialog messages needed a dedup guard `buildMessageBubble()` in
+  `communiques-dm.js` doesn't**, because messages arrive over a live
+  `onSnapshot` listener that re-fires (and re-renders every message on the
+  current page, not just the new one) every time anyone sends a new
+  message - without a guard, an existing message's view count would climb
+  every time the conversation got a new message, not just when a viewer
+  actually opened it. `viewedMessageIds` (a plain in-memory object, scoped
+  to the page's lifetime) counts each message once per page load; visiting
+  again later still counts as a fresh view, same undeduped philosophy as
+  everything else here.
+- **`firestore.rules`:** one new bump-only `allow update` per collection
+  (`conversations/{id}/messages/{id}`, `wallPosts/{id}`,
+  `wallPosts/{id}/comments/{id}`), each scoped to `affectedKeys().hasOnly(
+  ['viewCount'])` so it can't touch anything else - same pattern already
+  used for the Wall's `commentCount`/`lastActivityAt` bump. `profiles/{uid}`
+  got the same treatment for `profileViews`, except with no `request.auth
+  != null` requirement at all, since profiles are world-readable and Chris
+  wants views counted from signed-out visitors too. **Still needs Chris to
+  paste the updated rules into the Firebase console** - same manual step
+  every `firestore.rules` change needs.
+- **`profileViews` needed explicit preservation in `profile-form.js`**
+  because every profile save is a full `.set()` overwrite of the whole
+  document (see the location-map/picture-upload entries elsewhere in this
+  file) - without carrying `existingDoc.profileViews` forward the same way
+  `createdAt`/`tosAgreedAt` already are, every edit would silently reset
+  the count to 0. `member.js`'s `loadProfile()` writes the actual
+  increment, guarded by a `profileViewRecorded` flag so it only fires once
+  per page load even though `loadProfile()` re-runs on every auth-state
+  change (e.g. a visitor signing in mid-view), not just the initial load.
+- **New posts/comments/messages are created with `viewCount: 0`** rather
+  than leaving the field absent, so the meta-line display code doesn't
+  need an existence check beyond `typeof data.viewCount === "number"`.
+
 ## Open items
 
+- [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a
+  profile piece on Chris/VirtuaMakers ("What Happens When Your Co-founder
+  Isn't Human?") - not yet published anywhere as of 2026-08-15. If it does
+  get published, add it to News 📰 (`Agora/index.html` + `news.html`) like
+  any other entry - straightforward, no permission question there. The
+  self-publish-it-ourselves fallback (floated 2026-08-15) is **not**
+  actually authorized - Chris confirmed (2026-08-15) he does not have
+  Jillian's permission to do anything with the piece beyond what he told
+  her: that he'd share it with Claude, ChatGPT, and Boardy. Do not publish
+  or otherwise act on the article text without her explicit go-ahead first.
+  Her article text is intentionally NOT committed to this (public) repo,
+  to avoid exposing her unpublished work - held in conversation only.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).

@@ -3,19 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Permanently Leave Agora 🌐 · Agora</title>
-  <meta name="description" content="Permanently delete your Agora profile and account." />
-
-  <!-- Open Graph -->
-  <meta property="og:title" content="Permanently Leave Agora 🌐 · Agora" />
-  <meta property="og:description" content="Permanently delete your Agora profile and account." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.virtuamakers.com/Agora/leave-agora.html" />
-  <meta property="og:image" content="https://www.virtuamakers.com/Agora/assets/agora-logo.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Permanently Leave Agora 🌐 · Agora" />
-  <meta name="twitter:description" content="Permanently delete your Agora profile and account." />
-  <meta name="twitter:image" content="https://www.virtuamakers.com/Agora/assets/agora-logo.png" />
+  <title>Newsletter · Agora</title>
+  <meta name="description" content="Admin-only: prepare the monthly Agora Newsletter." />
+  <meta name="robots" content="noindex" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="manifest" href="manifest.json" />
@@ -48,20 +38,39 @@
   </header>
 
   <main>
-    <section class="section" id="leave-agora">
-      <h1>Permanently Leave Agora 🌐</h1>
-      <p class="lede" id="signed-out-notice">You need to sign in to do this.</p>
+    <section class="section" id="newsletter-compose">
+      <h1>Newsletter 📰</h1>
+      <p class="lede" id="signed-out-notice">You need to sign in as the Agora admin to prepare the Newsletter.</p>
+      <p class="lede" id="not-admin-notice" hidden>This page is admin-only.</p>
 
-      <div id="leave-content" hidden>
-        <p class="body-text"><a href="create-profile.html">← Return to editing your profile</a></p>
+      <div id="compose-wrap" hidden>
+        <p class="intro">Prepared by the 27th of each month; sends automatically
+          to every opted-in member on the last day of the month. Saving here
+          replaces whatever draft is currently queued for that send - there's
+          only ever one upcoming issue.</p>
+        <p class="body-text" id="last-sent-notice" hidden></p>
+        <p class="body-text" id="last-updated-notice" hidden></p>
 
-        <p class="body-text"><em>Warning:</em><br />This permanently deletes your
-          profile and your account. It can't be undone, and you'd have to
-          start over from scratch. You're always welcome to sign up again
-          later if you change your mind.</p>
-
-        <button type="button" class="btn btn-danger" id="leave-btn">Yes, Permanently Leave Agora 🌐</button>
-        <span class="form-status" id="leave-status" hidden>Leaving…</span>
+        <form class="profile-form" id="newsletter-form">
+          <div>
+            <label for="field-subject">Subject</label>
+            <input type="text" id="field-subject" required placeholder="What this month's issue is about" />
+          </div>
+          <div>
+            <label for="field-body">Body</label>
+            <textarea id="field-body" rows="16" required placeholder="Write in plain text - separate paragraphs with a blank line, same as any of the other emails."></textarea>
+            <p class="field-hint">Plain text only - each blank-line-separated
+              paragraph becomes its own styled paragraph in the email, matching
+              the Welcome/Farewell/notice letters. The logo, subject heading,
+              footer, and one-click unsubscribe link are added automatically -
+              just write the body.</p>
+          </div>
+          <p class="form-error" id="form-error" hidden></p>
+          <div class="profile-form-actions">
+            <button type="submit" class="btn btn-primary" id="form-submit">Save Draft</button>
+            <span class="form-status" id="form-status" hidden>Saving…</span>
+          </div>
+        </form>
       </div>
     </section>
   </main>
@@ -104,12 +113,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=17"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="leave-agora.js?v=3"></script>
+  <script src="newsletter-compose.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

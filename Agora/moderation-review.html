@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Communiqués · Agora</title>
-  <meta name="description" content="Communiqués — Wall posts and Dialogs between Agora members." />
+  <title>Moderation · Agora</title>
+  <meta name="description" content="Admin-only: review content the moderation filter blocked or flagged." />
+  <meta name="robots" content="noindex" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2b57d6" />
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -26,43 +30,28 @@
     <div class="header-right">
       <a class="back-link" href="index.html"><span class="back-arrow">←</span> Agora</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
-      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>🔔 Enable Notifications</button>
       <div class="auth-controls" id="agora-auth-controls">
-        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In</button>
-        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out</button>
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
+        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="section" id="communiques">
-      <img class="page-logo communiques-logo" src="assets/communiques-logo-large.png" alt="Communiqués 📨" width="991" height="1019" />
-      <p class="lede">Wall posts and Dialogs between members themselves – a
-        space built right into Agora 🌐 for conversations like this.</p>
-      <p class="hero-fine">Communiqués are visible to any signed-in Agora
-        member – including Dialogs (direct messages) between other
-        members – but never to signed-out visitors or the wider public.</p>
-    </section>
+    <section class="section" id="moderation-review">
+      <h1>Moderation 🛡️</h1>
+      <p class="lede" id="signed-out-notice">You need to sign in as the Agora admin to review moderation activity.</p>
+      <p class="lede" id="not-admin-notice" hidden>This page is admin-only.</p>
 
-    <section class="section subsection" id="dialogs">
-      <h2 class="section-title">Dialogs</h2>
-      <p class="intro">Conversations (direct messages) between members –
-        readable by any signed-in member (e.g. via Dialogs on a profile
-        page), but only its participants can send.</p>
-
-      <p class="body-text" id="dm-signed-out-notice">
-        <a href="#" id="dm-signin-prompt">Sign in</a> to see your Dialogs.
-      </p>
-
-      <div id="dm-wrap" hidden>
-        <div id="new-message-wrap" class="search-picker">
-          <input type="text" id="new-message-search" class="friend-search-input" placeholder="New Message – search for someone…" autocomplete="off" />
-          <div class="dm-list" id="new-message-results"></div>
-        </div>
-
-        <p class="intro" id="dm-loading">Loading messages…</p>
-        <p class="intro" id="dm-empty" hidden>No conversations yet.</p>
-        <div class="dm-list" id="dm-list"></div>
+      <div id="review-wrap" hidden>
+        <p class="intro">The most recent 50 blocks and flags, newest first.
+          A block never got saved anywhere - Approve re-publishes it exactly
+          as the member submitted it; Uphold leaves it blocked. A flag
+          already posted normally - it's listed here only so you can see
+          what the filter is catching and adjust if it's off.</p>
+        <p class="body-text" id="review-loading">Loading…</p>
+        <p class="body-text" id="review-empty" hidden>Nothing logged yet.</p>
+        <div id="review-list"></div>
       </div>
     </section>
   </main>
@@ -86,6 +75,10 @@
       <form id="agora-email-form" class="signin-email-form">
         <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
         <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+        <label class="signin-terms-check" id="agora-terms-check-row" hidden>
+          <input type="checkbox" id="agora-terms-checkbox" />
+          I agree to the <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+        </label>
         <p class="signin-error" id="agora-signin-error" hidden></p>
         <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
       </form>
@@ -93,24 +86,23 @@
         <span id="agora-toggle-text">Don't have an account?</span>
         <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
       </p>
+      <p class="signin-fine-print">By continuing, you agree to Agora's
+        <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</p>
     </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=17"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-  <script src="bio-tags.js?v=1"></script>
-  <script src="communiques-common.js?v=9"></script>
-  <script src="notification-toast.js?v=1"></script>
-  <script src="push-notifications.js?v=1"></script>
-  <script src="communiques.js?v=6"></script>
+  <script src="emoji-cycle.js?v=1"></script>
+  <script src="moderation-review.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
+  <script src="pwa-register.js?v=1"></script>
 </body>
 </html>

@@ -12,5 +12,17 @@ service firebase.storage {
         && request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/.*');
     }
+
+    // Content moderation 🛡️ - a blocked picture is quarantined here
+    // (moderateImage Cloud Function) instead of ever touching the public
+    // profile-pictures/ path above, until Chris approves or upholds it via
+    // resolveModerationAppeal - both of which run server-side as the Admin
+    // SDK, which bypasses these rules entirely. No client access at all,
+    // in either direction - explicit here rather than relying on the
+    // default deny, since this is the one path in the whole bucket that's
+    // genuinely meant to never be client-reachable.
+    match /moderation-quarantine/{uid}/{fileName} {
+      allow read, write: if false;
+    }
   }
 }
