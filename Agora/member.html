@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=83" />
+  <link rel="stylesheet" href="style.css?v=84" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -202,6 +202,16 @@ You've 10 minutes to begin editing any Communiqué (Message, Post, or Comment) b
             </div>
           </div>
 
+          <div class="subsection profile-panel" id="member-admin-panel" hidden>
+            <h2 class="panel-title">Admin Panel</h2>
+            <p class="body-text">Current role: <strong id="admin-panel-role-value">None</strong></p>
+            <div class="profile-form-actions">
+              <button type="button" class="btn" id="admin-panel-make-moderator">Make Moderator</button>
+              <button type="button" class="btn" id="admin-panel-make-admin">Make Admin</button>
+              <button type="button" class="btn btn-danger" id="admin-panel-remove-role">Remove Role</button>
+            </div>
+          </div>
+
           <div class="subsection" id="member-dialogs" hidden>
             <h2 class="section-title">Dialogs</h2>
             <p class="intro">Search your friends to start or continue a Dialog with them.</p>
@@ -271,7 +281,7 @@ You've 10 minutes to begin editing any Communiqué (Message, Post, or Comment) b
   <script src="communiques-common.js?v=11"></script>
   <script src="notification-toast.js?v=1"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=20"></script>
+  <script src="member.js?v=21"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

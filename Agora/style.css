@@ -1624,6 +1624,21 @@ main > .section:first-child {
   transform: translateY(1px);
 }
 
+/* Every .btn sets its own explicit colors, so without this a disabled
+   button (Post/Send/Approve/the new Admin Panel role buttons/etc. across
+   the site) rendered identically to an enabled one apart from not
+   responding to clicks - no visual cue at all that it's inactive. */
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  border-color: var(--line);
+  background: var(--surface);
+  transform: none;
+}
+
 .btn + .btn {
   margin-left: 0.7rem;
 }
