@@ -1987,6 +1987,70 @@ actually blocked server-side yet (only the client-side notice shows), and
 the milestone email won't send - same graceful-degradation pattern as
 every other pending Functions change.
 
+## Site search 🔍 (Chris, 2026-08-15)
+
+A header search box, mainly geared toward finding members ("friends"),
+but also covering VirtuaMakers Exchange 💱 products and Pursuit of
+Justice ⚖️ topics per Chris's "whatever really" - v1 scope is deliberately
+named pages/sections, not full-text indexing of every paragraph on the
+site (matches the site's "little updates" philosophy: ship something
+real and useful now, broaden later, rather than building an actual search
+engine for a site this size).
+
+- **UX: a live dropdown, not a results page** (Chris's call) - collapses
+  to a single 🔍 icon in the header's normal flex flow so it never
+  crowds the row itself; clicking it opens an absolutely-positioned
+  panel (input + results) that floats over the page, same pattern as
+  `.notification-toast`. Debounced 150ms after each keystroke.
+- **Positioned last in `.header-right`, after `.auth-controls`** - not
+  where it was first inserted (before auth-controls). With `right: 0`
+  on the panel, its horizontal position is anchored to wherever the 🔍
+  icon itself sits in the row - putting the icon anywhere but the last
+  flex child left the panel's right edge short of the true page edge,
+  which risked the panel overflowing off the left side of narrow phone
+  screens. Caught and fixed during testing, not shipped with the bug.
+- **Three content sources combined in `Agora/site-search.js`:**
+  1. Real Firestore `profiles` (fetched once per page load, cached) -
+     handle-preferred display name, same resolution logic as everywhere
+     else.
+  2. The 30 static AI/Human profile pages - no Firestore doc to query,
+     so a hand-maintained `STATIC_MEMBER_INDEX` manifest (name + slug,
+     copied from each page's own `window.StaticProfile`) is the only way
+     to make them findable. Keep this in sync by hand if a static
+     profile is ever added, renamed, or removed - nothing regenerates it.
+  3. Two more hardcoded manifests: `EXCHANGE_INDEX` (the catalogue cover
+     + all 18 product pages) and `JUSTICE_INDEX` (one entry per
+     `index.html`'s `.pillar-toc` anchor). Same "keep in sync by hand"
+     caveat if either list changes.
+- **Matching:** case-insensitive, per-word-start preferred over
+  mid-string substring (so "bruck" still surfaces "Christopher
+  Bruckmann" via its second word, but a title starting with the query
+  ranks first) - capped at 8 results, grouped under a heading per type
+  (Member / Exchange / Pursuit of Justice).
+- **Real bug caught in testing, not just a sandbox artifact:** the
+  initial guard was `if (typeof AgoraDB === "undefined") return;` at
+  the top of the whole script - reasonable-looking, but wrong. `AgoraDB`
+  is declared with `const` in `firebase-config.js`, sharing this page's
+  top-level scope across every classic `<script>` tag (no modules, no
+  build step). If that `const`'s own initializer throws (e.g. the
+  Firebase SDK failed to load for any reason - a real possibility on a
+  flaky connection, not just this sandbox), the `AgoraDB` binding is
+  still hoisted into scope but permanently stuck in the temporal dead
+  zone for the rest of the page - and `typeof` does **not** safely guard
+  against a TDZ reference the way it does a truly undeclared variable;
+  only `try/catch` does. Fixed by wrapping the access in `loadRealMembers()`
+  in `try { db = AgoraDB; } catch (e) {}` instead, so a Firebase hiccup
+  degrades to "static content still searchable, real members just
+  aren't" rather than silently killing search entirely (the open/close
+  toggle and static-manifest matching need no Firestore access at all).
+- **Rolled out to all 60 pages** with the header `auth-controls` block
+  (every Agora page now that `moderation-review.html`/
+  `newsletter-compose.html` exist) - `site-search.js?v=1` loaded right
+  after `auth-ui.js`, unlike the notification toast/push scripts this
+  one isn't excluded from `create-profile.html`/`leave-agora.html`,
+  since it's a stable nav element (like the Profile link or sign-in/out
+  controls) rather than a popup that could interrupt those flows.
+
 ## Open items
 
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a

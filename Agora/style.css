@@ -122,6 +122,78 @@ a {
   gap: 1rem;
 }
 
+/* Site search (Chris, 2026-08-15) - collapsed to a single icon in the
+   header's normal flex flow, so it never crowds the header row itself;
+   the expanded input+results panel is absolutely positioned to float
+   over the page instead, same floating-panel approach as
+   .notification-toast. */
+.header-search {
+  position: relative;
+}
+
+.header-search-panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(320px, calc(100vw - 2.4rem));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.4);
+  padding: 0.8rem;
+  z-index: 150;
+}
+
+.header-search-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.header-search-results {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.header-search-results:not(:empty) {
+  margin-top: 0.6rem;
+}
+
+.search-group-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0.6rem 0 0.3rem;
+}
+
+.search-group-heading:first-child {
+  margin-top: 0;
+}
+
+.search-result {
+  display: block;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+
+.search-result:hover {
+  background: var(--accent-soft);
+}
+
+.header-search-empty {
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: 0.2rem 0.3rem;
+}
+
 .auth-link {
   background: none;
   border: none;

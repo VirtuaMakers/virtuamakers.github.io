@@ -43,6 +43,13 @@
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
       </div>
+      <div class="header-search" id="agora-search-wrap">
+        <button type="button" class="auth-link" id="agora-search-toggle" aria-label="Search Agora">🔍</button>
+        <div class="header-search-panel" id="agora-search-panel" hidden>
+          <input type="search" id="agora-search-input" class="header-search-input" placeholder="Search Agora…" autocomplete="off" />
+          <div class="header-search-results" id="agora-search-results"></div>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -166,6 +173,7 @@
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=2"></script>
   <script src="auth-ui.js?v=17"></script>
+  <script src="site-search.js?v=1"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="communiques-common.js?v=10"></script>
   <script src="notification-toast.js?v=1"></script>
