@@ -30,19 +30,46 @@ var AgoraModeration = (function () {
     return callFn("moderateText", { text: text, contentType: contentType, context: context || {} });
   }
 
+  // SafeSearch doesn't need a full-resolution photo, so the copy sent for
+  // moderation is downscaled/re-encoded first - the real picture upload
+  // (uploadPicture() in profile-form.js) still sends the original file to
+  // Storage untouched. Without this, saving several full-size pictures at
+  // once meant every picture went out over the wire twice (once here as
+  // base64, again as the real upload) - on a save with 5 pictures near the
+  // 5MB Storage cap each, that's ~25MB to Storage plus another ~33MB of
+  // base64 here, comfortably enough to blow the save chain's 30s deadline
+  // on an ordinary home connection. Falls back to "allow" (fails open,
+  // same as every other moderation failure mode) if the resize itself
+  // fails for any reason - a broken/corrupt image shouldn't block a save.
+  function resizeForModeration(file) {
+    return new Promise(function (resolve, reject) {
+      var img = new Image();
+      var url = URL.createObjectURL(file);
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var maxEdge = 1024;
+        var scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        var dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        resolve(String(dataUrl).split(",")[1] || "");
+      };
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error("Could not load image for moderation check."));
+      };
+      img.src = url;
+    });
+  }
+
   // file is a File; resolves the same {decision, logId} shape as checkText.
   function checkImage(file, slotIndex) {
-    return new Promise(function (resolve) {
-      var reader = new FileReader();
-      reader.onload = function () {
-        // reader.result is "data:image/png;base64,AAAA..." - the API wants
-        // just the base64 payload.
-        var base64 = String(reader.result).split(",")[1] || "";
-        callFn("moderateImage", { base64: base64, mimeType: file.type, slotIndex: slotIndex })
-          .then(resolve);
-      };
-      reader.onerror = function () { resolve({ decision: "allow" }); };
-      reader.readAsDataURL(file);
+    return resizeForModeration(file).then(function (base64) {
+      return callFn("moderateImage", { base64: base64, mimeType: "image/jpeg", slotIndex: slotIndex });
+    }).catch(function () {
+      return { decision: "allow" };
     });
   }
 

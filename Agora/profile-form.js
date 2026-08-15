@@ -606,11 +606,17 @@
         .collection("private").doc("data").set({ region: regionValue });
     });
 
-    // 30s deadline on the whole chain above (moderation checks, picture
+    // 60s deadline on the whole chain above (moderation checks, picture
     // uploads, both Firestore writes) - see withTimeout()'s own comment for
     // why none of those pieces are individually guaranteed to ever settle
-    // on a bad connection.
-    withTimeout(savePromise, 30000,
+    // on a bad connection. Originally 30s, raised (Chris, 2026-08-15) after
+    // a save with 5 full-size pictures (up to 5MB each, the Storage cap)
+    // genuinely needed more than that on an ordinary home connection -
+    // moderation's own upload cost was separately cut way down by
+    // resizeForModeration() in moderation-client.js, but the real Storage
+    // uploads still send the original files at full size, so this alone
+    // wasn't enough to guarantee 30s was ever realistic for 5 pictures.
+    withTimeout(savePromise, 60000,
       "Saving is taking longer than expected. Please check your connection and try again."
     ).then(function () {
       window.location.href = "member.html?uid=" + encodeURIComponent(currentUser.uid);
