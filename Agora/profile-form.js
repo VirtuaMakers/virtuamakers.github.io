@@ -43,27 +43,121 @@
   var pictureRemoveCheckboxes = [1, 2, 3, 4, 5].map(function (n) {
     return document.getElementById("field-picture-" + n + "-remove");
   });
+  var pictureStatusEls = [1, 2, 3, 4, 5].map(function (n) {
+    return document.getElementById("field-picture-" + n + "-status");
+  });
   // The URL already on the profile for each picture slot, kept separate
   // from the file inputs (which only ever hold a *new* file the member is
   // uploading) - unchanged slots fall back to this on save.
   var existingPictureUrls = [1, 2, 3, 4, 5].map(function () { return ""; });
+  // Set once a newly-chosen picture actually finishes uploading (below) -
+  // save() reads from here instead of doing any picture work itself.
+  var uploadedPictureUrls = [1, 2, 3, 4, 5].map(function () { return null; });
+  // "idle" | "checking" | "uploading" | "done" | "blocked" | "error" - save()
+  // refuses to submit while any slot is still checking/uploading, or is
+  // blocked/errored, rather than silently saving without that picture.
+  var pictureUploadState = [1, 2, 3, 4, 5].map(function () { return "idle"; });
 
   var MAX_PICTURE_BYTES = 5 * 1024 * 1024;
+
+  // Uploads on the spot, the moment a picture is chosen, rather than
+  // bundling all 5 into the Save click (Chris, 2026-08-15) - a save with
+  // several full-size pictures at once was unreliable even after raising
+  // its timeout, since 5 uploads competing for the same connection at once
+  // is real bandwidth contention, not just a deadline problem. Spreading
+  // uploads out over however long the member spends filling in the rest of
+  // the form, and queuing the actual Storage puts one at a time (below)
+  // instead of letting all 5 run concurrently, fixes the underlying cause
+  // instead of just giving it more time to finish.
+  //
+  // pictureUploadQueue serializes only the actual Storage upload step
+  // (the heavy, uncapped-until-5MB part) across all 5 slots - the
+  // moderation check ahead of it can still run per-slot in parallel, since
+  // resizeForModeration() already keeps that payload small.
+  var pictureUploadQueue = Promise.resolve();
+  // Per-slot counters so a stale async result (moderation/upload) from a
+  // picture the member has since replaced with a different one doesn't
+  // clobber the newer selection's status.
+  var pictureGenerations = [0, 0, 0, 0, 0];
+
+  function setPictureStatus(i, text, isError) {
+    var el = pictureStatusEls[i];
+    el.textContent = text || "";
+    el.hidden = !text;
+    el.classList.toggle("field-error-inline", !!isError);
+    el.classList.toggle("field-hint", !isError);
+  }
 
   pictureInputs.forEach(function (input, i) {
     input.addEventListener("change", function () {
       var file = input.files[0];
       if (!file) return;
+
+      var myGeneration = ++pictureGenerations[i];
+      function stillCurrent() { return pictureGenerations[i] === myGeneration; }
+
       // A newly chosen file replaces whatever was there, so a pending
-      // "remove the existing picture" request no longer makes sense.
+      // "remove the existing picture" request no longer makes sense, and
+      // any previous upload result/state for this slot no longer applies.
       pictureRemoveCheckboxes[i].checked = false;
       pictureRemoveWraps[i].hidden = true;
+      uploadedPictureUrls[i] = null;
+      pictureUploadState[i] = "idle";
+
       var reader = new FileReader();
       reader.onload = function () {
+        if (!stillCurrent()) return;
         pictureThumbs[i].src = reader.result;
         pictureThumbs[i].hidden = false;
       };
       reader.readAsDataURL(file);
+
+      if (file.size > MAX_PICTURE_BYTES) {
+        pictureUploadState[i] = "error";
+        setPictureStatus(i, "Too large - please choose a file under 5MB.", true);
+        return;
+      }
+      if (!/^image\//.test(file.type)) {
+        pictureUploadState[i] = "error";
+        setPictureStatus(i, "That's not an image file.", true);
+        return;
+      }
+
+      pictureUploadState[i] = "checking";
+      setPictureStatus(i, "Checking…");
+
+      AgoraModeration.checkImage(file, i + 1).then(function (result) {
+        if (!stillCurrent()) return;
+        if (result.decision === "block") {
+          pictureUploadState[i] = "blocked";
+          setPictureStatus(i, "", false);
+          AgoraModeration.showBlocked(pictureStatusEls[i], result.logId,
+            "Didn't pass Agora's content filter. ");
+          pictureStatusEls[i].classList.add("field-error-inline");
+          return;
+        }
+
+        pictureUploadState[i] = "uploading";
+        setPictureStatus(i, "Uploading…");
+
+        pictureUploadQueue = pictureUploadQueue.then(function () {
+          if (!stillCurrent()) return;
+          return uploadPicture(currentUser.uid, i + 1, file).then(function (url) {
+            if (!stillCurrent()) return;
+            uploadedPictureUrls[i] = url;
+            pictureUploadState[i] = "done";
+            setPictureStatus(i, "Uploaded ✓");
+          }).catch(function () {
+            if (!stillCurrent()) return;
+            pictureUploadState[i] = "error";
+            setPictureStatus(i, "Upload failed - try choosing this picture again.", true);
+          });
+        });
+      }).catch(function () {
+        if (!stillCurrent()) return;
+        pictureUploadState[i] = "error";
+        setPictureStatus(i, "Something went wrong checking this picture - try again.", true);
+      });
     });
   });
   var socialInputs = [1, 2, 3].map(function (n) {
@@ -447,15 +541,22 @@
       return info && info.unrecognized;
     });
 
+    // Pictures upload on the spot as they're chosen (see the change
+    // listeners above) - by Save time each slot is already "done" (or was
+    // never touched), so this just refuses to submit while one is still in
+    // flight or didn't make it, rather than silently saving without it.
     for (var pi = 0; pi < pictureInputs.length; pi++) {
-      var pictureFile = pictureInputs[pi].files[0];
-      if (!pictureFile) continue;
-      if (pictureFile.size > MAX_PICTURE_BYTES) {
-        showError("Picture " + (pi + 1) + " is too large - please choose a file under 5MB.");
+      var state = pictureUploadState[pi];
+      if (state === "checking" || state === "uploading") {
+        showError("Picture " + (pi + 1) + " is still uploading - give it a moment and try saving again.");
         return;
       }
-      if (!/^image\//.test(pictureFile.type)) {
-        showError("Picture " + (pi + 1) + " isn't an image file.");
+      if (state === "blocked") {
+        showError("Picture " + (pi + 1) + " didn't pass Agora's content filter - remove it or choose a different picture before saving.");
+        return;
+      }
+      if (state === "error") {
+        showError("Picture " + (pi + 1) + " didn't upload successfully - try choosing it again before saving.");
         return;
       }
     }
@@ -474,15 +575,15 @@
       showLocation: locationVisible.checked,
       showMap: mapVisible.checked,
       organizations: document.getElementById("field-orgs").value.trim(),
-      // Placeholder values - a slot with a newly chosen file gets its real
-      // Storage download URL filled in below, after upload finishes. A slot
-      // with "Remove this picture" checked clears to ""; anything else
-      // keeps whatever was already saved for that slot.
-      picture1: pictureRemoveCheckboxes[0].checked ? "" : existingPictureUrls[0],
-      picture2: pictureRemoveCheckboxes[1].checked ? "" : existingPictureUrls[1],
-      picture3: pictureRemoveCheckboxes[2].checked ? "" : existingPictureUrls[2],
-      picture4: pictureRemoveCheckboxes[3].checked ? "" : existingPictureUrls[3],
-      picture5: pictureRemoveCheckboxes[4].checked ? "" : existingPictureUrls[4],
+      // A slot with "Remove this picture" checked clears to ""; a slot
+      // with a newly chosen file already finished uploading by now (the
+      // guard above refuses to reach here otherwise) so uses that real
+      // Storage URL; anything else keeps whatever was already saved.
+      picture1: pictureRemoveCheckboxes[0].checked ? "" : (uploadedPictureUrls[0] || existingPictureUrls[0]),
+      picture2: pictureRemoveCheckboxes[1].checked ? "" : (uploadedPictureUrls[1] || existingPictureUrls[1]),
+      picture3: pictureRemoveCheckboxes[2].checked ? "" : (uploadedPictureUrls[2] || existingPictureUrls[2]),
+      picture4: pictureRemoveCheckboxes[3].checked ? "" : (uploadedPictureUrls[3] || existingPictureUrls[3]),
+      picture5: pictureRemoveCheckboxes[4].checked ? "" : (uploadedPictureUrls[4] || existingPictureUrls[4]),
       bio: document.getElementById("field-bio").value.trim(),
       link: linkValue,
       portal: portalValue,
@@ -543,11 +644,13 @@
 
     var geocodePromise = geocodeLocation(city, regionValue, country);
 
-    // Moderation runs before anything is actually uploaded/saved. A block
-    // anywhere aborts the whole save (same all-or-nothing behavior as the
-    // synchronous size/type checks above) - merely flagged content still
-    // goes through the normal upload/write, just logged + emailed to Chris
-    // server-side.
+    // Picture moderation/upload no longer happens here at all (Chris,
+    // 2026-08-15) - it already ran per-slot the moment each picture was
+    // chosen (see the change listeners above), and the guard earlier in
+    // this function already refused to reach here if any slot is still
+    // in flight, blocked, or errored. Only the bio still gets checked at
+    // save time, since text moderation is fast and has no comparable
+    // bandwidth cost to spread out.
     var moderationBlock = null;
 
     var bioCheck = data.bio
@@ -558,27 +661,12 @@
         })
       : Promise.resolve();
 
-    // A slot with no newly chosen file resolves to null immediately - only
-    // slots the member actually picked a new picture for touch Storage.
-    var picturePromises = pictureInputs.map(function (input, i) {
-      var file = input.files[0];
-      if (!file) return Promise.resolve(null);
-      return AgoraModeration.checkImage(file, i + 1).then(function (result) {
-        if (result.decision === "block") {
-          if (!moderationBlock) moderationBlock = { field: "Picture " + (i + 1), logId: result.logId };
-          return null;
-        }
-        return uploadPicture(currentUser.uid, i + 1, file);
-      });
-    });
-
-    var savePromise = Promise.all([handleCheck, geocodePromise, bioCheck].concat(picturePromises)).then(function (results) {
+    var savePromise = Promise.all([handleCheck, geocodePromise, bioCheck]).then(function (results) {
       if (moderationBlock) {
         throw { code: "moderation-blocked", field: moderationBlock.field, logId: moderationBlock.logId };
       }
       var snapshot = results[0];
       var coords = results[1];
-      var pictureUrls = results.slice(3);
       if (snapshot) {
         var taken = snapshot.docs.some(function (d) { return d.id !== currentUser.uid; });
         if (taken) {
@@ -593,9 +681,6 @@
         data.locationLat = coords.lat;
         data.locationLng = coords.lng;
       }
-      pictureUrls.forEach(function (url, i) {
-        if (url) data["picture" + (i + 1)] = url;
-      });
       return AgoraDB.collection("profiles").doc(currentUser.uid).set(data);
     }).then(function () {
       // Region lives in a separate, owner-only-readable document rather
@@ -606,17 +691,15 @@
         .collection("private").doc("data").set({ region: regionValue });
     });
 
-    // 60s deadline on the whole chain above (moderation checks, picture
-    // uploads, both Firestore writes) - see withTimeout()'s own comment for
-    // why none of those pieces are individually guaranteed to ever settle
-    // on a bad connection. Originally 30s, raised (Chris, 2026-08-15) after
-    // a save with 5 full-size pictures (up to 5MB each, the Storage cap)
-    // genuinely needed more than that on an ordinary home connection -
-    // moderation's own upload cost was separately cut way down by
-    // resizeForModeration() in moderation-client.js, but the real Storage
-    // uploads still send the original files at full size, so this alone
-    // wasn't enough to guarantee 30s was ever realistic for 5 pictures.
-    withTimeout(savePromise, 60000,
+    // 30s deadline on the chain above (handle check, geocoding, bio
+    // moderation, both Firestore writes) - see withTimeout()'s own comment
+    // for why none of those pieces are individually guaranteed to ever
+    // settle on a bad connection. Back down from the 60s this briefly grew
+    // to (Chris, 2026-08-15) - picture uploads no longer count against
+    // this deadline at all now that they run on the spot instead of being
+    // bundled into Save, so the original, tighter budget is realistic
+    // again for what's actually left in this chain.
+    withTimeout(savePromise, 30000,
       "Saving is taking longer than expected. Please check your connection and try again."
     ).then(function () {
       window.location.href = "member.html?uid=" + encodeURIComponent(currentUser.uid);
