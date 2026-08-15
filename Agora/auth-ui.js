@@ -11,6 +11,7 @@
   var emailForm = document.getElementById("agora-email-form");
   var emailInput = document.getElementById("agora-email-input");
   var passwordInput = document.getElementById("agora-password-input");
+  var passwordToggle = document.getElementById("agora-password-toggle");
   var emailSubmitBtn = document.getElementById("agora-email-submit");
   var toggleModeBtn = document.getElementById("agora-toggle-mode");
   var toggleText = document.getElementById("agora-toggle-text");
@@ -53,11 +54,20 @@
     modal.hidden = false;
   }
 
+  function resetPasswordVisibility() {
+    if (passwordInput) passwordInput.type = "password";
+    if (passwordToggle) {
+      passwordToggle.textContent = "👁️";
+      passwordToggle.setAttribute("aria-label", "Show password");
+    }
+  }
+
   function closeModal() {
     if (!modal) return;
     modal.hidden = true;
     clearError();
     if (emailForm) emailForm.reset();
+    resetPasswordVisibility();
   }
 
   function setMode(isSignUp) {
@@ -84,6 +94,15 @@
   if (toggleModeBtn) {
     toggleModeBtn.addEventListener("click", function () {
       setMode(!signUpMode);
+    });
+  }
+
+  if (passwordToggle && passwordInput) {
+    passwordToggle.addEventListener("click", function () {
+      var showing = passwordInput.type === "text";
+      passwordInput.type = showing ? "password" : "text";
+      passwordToggle.textContent = showing ? "👁️" : "🙈";
+      passwordToggle.setAttribute("aria-label", showing ? "Show password" : "Hide password");
     });
   }
 
