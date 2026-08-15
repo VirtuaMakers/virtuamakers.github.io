@@ -1945,15 +1945,16 @@ internal-only fields already in this codebase.
 
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a
   profile piece on Chris/VirtuaMakers ("What Happens When Your Co-founder
-  Isn't Human?") - not yet published anywhere as of 2026-08-15. Plan
-  (Chris, 2026-08-15): once it's published, add it to News 📰
-  (`Agora/index.html` + `news.html`) like any other entry; if it never
-  gets published elsewhere, VirtuaMakers publishes it ourselves instead.
-  Not yet confirmed whether Jillian has actually agreed to that
-  self-publish fallback specifically - worth checking with her before
-  acting on it. Her article text is intentionally NOT committed to this
-  (public) repo yet, to avoid exposing her unpublished work before either
-  path actually happens - held in conversation only for now.
+  Isn't Human?") - not yet published anywhere as of 2026-08-15. If it does
+  get published, add it to News 📰 (`Agora/index.html` + `news.html`) like
+  any other entry - straightforward, no permission question there. The
+  self-publish-it-ourselves fallback (floated 2026-08-15) is **not**
+  actually authorized - Chris confirmed (2026-08-15) he does not have
+  Jillian's permission to do anything with the piece beyond what he told
+  her: that he'd share it with Claude, ChatGPT, and Boardy. Do not publish
+  or otherwise act on the article text without her explicit go-ahead first.
+  Her article text is intentionally NOT committed to this (public) repo,
+  to avoid exposing her unpublished work - held in conversation only.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
