@@ -56,4 +56,11 @@ function withNewsletterContent(html, subject, bodyText, unsubscribeUrl) {
     .split("{{UNSUBSCRIBE_URL}}").join(unsubscribeUrl);
 }
 
-module.exports = { loadTemplate, withReason, withNewsletterContent };
+// Substitutes the one {{RESET_LINK}} placeholder in password-reset-email.html
+// (it appears twice - the button href and the plain-text fallback link) -
+// split/join rather than a single .replace() so both occurrences pick it up.
+function withPasswordResetLink(html, link) {
+  return html.split("{{RESET_LINK}}").join(link);
+}
+
+module.exports = { loadTemplate, withReason, withNewsletterContent, withPasswordResetLink };

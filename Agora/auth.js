@@ -22,8 +22,20 @@ function agoraSignInWithEmail(email, password) {
   return AgoraAuth.signInWithEmailAndPassword(email, password);
 }
 
+// sendPasswordReset (Cloud Function) sends our own branded letterhead
+// email via Resend instead of Firebase Auth's plain default template -
+// falls back to the raw client-side sendPasswordResetEmail() (unbranded,
+// but still functional) if the function isn't deployed yet or the call
+// fails for any other reason, same fallback pattern as leave-agora.js's
+// selfDeleteAccount call.
 function agoraSendPasswordReset(email) {
-  return AgoraAuth.sendPasswordResetEmail(email);
+  var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
+    ? firebase.functions().httpsCallable("sendPasswordReset")({ email: email })
+    : Promise.reject(new Error("sendPasswordReset not available"));
+
+  return viaFunction.catch(function () {
+    return AgoraAuth.sendPasswordResetEmail(email);
+  });
 }
 
 function agoraSignOut() {

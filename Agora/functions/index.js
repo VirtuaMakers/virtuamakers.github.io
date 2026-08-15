@@ -23,7 +23,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { resendApiKey, sendEmailSafe } = require("./lib/resend");
-const { loadTemplate, withReason, withNewsletterContent } = require("./lib/templates");
+const { loadTemplate, withReason, withNewsletterContent, withPasswordResetLink } = require("./lib/templates");
 const { notify, resolveDisplayName } = require("./lib/notify");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
 
@@ -128,6 +128,41 @@ exports.selfDeleteAccount = onCall({ secrets: [resendApiKey] }, async (request) 
 
   await profileRef.delete();
   await admin.auth().deleteUser(uid);
+  return { success: true };
+});
+
+// Sends our own branded password-reset email via Resend instead of
+// Firebase Auth's plain default template - the Admin SDK generates the
+// real reset link server-side (still Firebase's own action-handling page
+// on the other end of it, just our letterhead around the link itself, not
+// a custom landing page - that's a bigger build Chris didn't ask for).
+// Never reveals whether the email is registered: generatePasswordResetLink
+// throws auth/user-not-found for an unregistered email, which is
+// swallowed here exactly like a real send, matching the generic "if an
+// account exists…" wording already in the sign-in modal (auth-ui.js) - the
+// client can't tell the two cases apart either way.
+exports.sendPasswordReset = onCall({ secrets: [resendApiKey] }, async (request) => {
+  const email = ((request.data && request.data.email) || "").trim();
+  if (!email) {
+    throw new HttpsError("invalid-argument", "Email is required.");
+  }
+
+  let link;
+  try {
+    link = await admin.auth().generatePasswordResetLink(email);
+  } catch (err) {
+    if (err.code === "auth/user-not-found") {
+      return { success: true };
+    }
+    throw new HttpsError("invalid-argument", "That doesn't look like a valid email address.");
+  }
+
+  await sendEmailSafe({
+    to: email,
+    subject: "Reset Your Agora 🌐 Password",
+    html: withPasswordResetLink(loadTemplate("password-reset-email.html"), link),
+  });
+
   return { success: true };
 });
 

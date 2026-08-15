@@ -2198,9 +2198,10 @@ Real bug report: Chris got locked out of his own email/password account
 with no way to reset it - the sign-in modal's email/password form never
 had a password-reset path, only sign-in and sign-up.
 
-- **`auth.js`'s `agoraSendPasswordReset(email)`** - a thin wrapper over
-  Firebase Auth's own `sendPasswordResetEmail()`, matching the file's
-  existing one-liner-per-Auth-call convention.
+- **`auth.js`'s `agoraSendPasswordReset(email)`** - originally a thin
+  wrapper over Firebase Auth's own `sendPasswordResetEmail()`; see the
+  "Branded password-reset email" entry below for why that's now the
+  fallback path, not the primary one.
 - **New "Forgot password?" link** (`#agora-forgot-password-row`/
   `#agora-forgot-password-btn`) in the sign-in modal, right below the
   password field - added to all 60 pages carrying the modal. Hidden in
@@ -2230,6 +2231,61 @@ had a password-reset path, only sign-in and sign-up.
   never asked for ToS agreement. Worth a real fix later.
 - Bumped `auth.js` to `v=3`, `auth-ui.js` to `v=18`, `style.css` to
   `v=83`, all 60 pages.
+
+### Branded password-reset email + the real silent-failure cause (Chris, 2026-08-15)
+
+Chris tried the new "Forgot password?" link and got no email at all -
+"it says it's going to email me and then it doesn't do anything." Two
+separate things going on here, both addressed:
+
+- **The email had no letterhead to begin with.** The first cut called
+  Firebase Auth's own `sendPasswordResetEmail()` directly, which sends
+  through *Firebase's* mail system with Firebase's own plain default
+  template - never touches Resend, never gets our branding, unlike every
+  other transactional email in this codebase (Welcome/Farewell/Ban/
+  Deletion/Comment-cap). Fixed the same way as those: new
+  `Agora/emails/password-reset-email.html` (+ `functions/templates/`
+  copy) matching the established letterhead, and a new `sendPasswordReset`
+  onCall Cloud Function in `functions/index.js` that generates the real
+  reset link server-side via `admin.auth().generatePasswordResetLink()`
+  and sends it through Resend with our template
+  (`withPasswordResetLink()`, new in `functions/lib/templates.js`, same
+  split/join substitution pattern as `withNewsletterContent`). The link
+  still lands on Firebase's own default password-entry page - only the
+  *email* got a letterhead, not a custom landing page, since that's a
+  separate, bigger build Chris didn't ask for. Enumeration-safety is
+  preserved server-side too: `generatePasswordResetLink()`'s own
+  `auth/user-not-found` is swallowed and still returns `{success: true}`,
+  so the client genuinely can't distinguish a real send from a skipped
+  one. `auth.js`'s `agoraSendPasswordReset()` now tries this Cloud
+  Function first and falls back to the old plain
+  `sendPasswordResetEmail()` call if it's not deployed yet or errors for
+  any other reason - same fallback shape as `selfDeleteAccount`/
+  `leave-agora.js`. Required adding the `firebase-functions-compat.js`
+  SDK script to the 57 pages that carry the sign-in modal but didn't
+  already load it (only `member.html`/`create-profile.html`/
+  `moderation-review.html`/`communiques-dm.html`/`leave-agora.html` had
+  it before this).
+- **The actual reason nothing arrived is very likely Firebase's own
+  Email Enumeration Protection**, not a bug in this codebase at all.
+  Modern Firebase Auth projects have this on by default: a password-reset
+  request for an email with no matching account resolves *successfully*
+  client-side (no `auth/user-not-found` thrown) while Firebase silently
+  sends nothing - by design, so a bad actor can't use the reset flow to
+  discover which emails have accounts. Combined with Firebase's newer
+  sign-in behavior (a wrong password and a nonexistent account both now
+  return the same generic `auth/invalid-credential` error, not distinct
+  codes), there's no way to tell from the client alone whether
+  `VirtuaMakers@Outlook.com` has a real email/password credential on this
+  project. Chris's own hunch - "maybe the original accounts didn't
+  actually get set up" - is a very plausible explanation: if that account
+  was only ever created via Google/X sign-in, it has no password
+  credential at all, and a reset request for it would (correctly, safely)
+  do nothing. **Next step is checking Firebase Console → Authentication →
+  Users** for that email and confirming whether it has a Password
+  provider listed, not just Google/X - this repo has no way to check that
+  from here.
+- Bumped `auth.js` again to `v=4`.
 
 ## Open items
 
