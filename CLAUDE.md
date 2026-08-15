@@ -1458,15 +1458,16 @@ copy anyway, not permanently occupying header real estate.
   same complaint as `member.html`; the real exception is the 18 Exchange
   *product* pages one level below `exchange.html`, which say "← Catalogue
   Cover" (not "← VirtuaMakers Exchange" as first written here either) -
-  genuinely distinct, accurate breadcrumb text. So the still-outstanding
-  "← Agora" cleanup actually spans 39 pages, not 9: `create-profile.html`,
-  `exchange.html`, `leave-agora.html`, `communiques-dm.html`,
-  `privacy.html`, `terms.html`, `per-manum.html`,
-  `newsletter-compose.html`, `moderation-review.html`, plus all 30 static
-  `/Agora/profiles/*.html` pages. Left alone pending Chris's call on scope
-  - the static profile pages' back-links point at a specific homepage
-  anchor (`#members`/`#humans`) rather than just the plain homepage, same
-  "generic label, specific destination" mismatch `member.html` had.
+  genuinely distinct, accurate breadcrumb text. So the actual "← Agora"
+  cleanup spanned 39 pages, not 9: `create-profile.html`, `exchange.html`,
+  `leave-agora.html`, `communiques-dm.html`, `privacy.html`, `terms.html`,
+  `per-manum.html`, `newsletter-compose.html`, `moderation-review.html`,
+  plus all 30 static `/Agora/profiles/*.html` pages - the static profile
+  pages' back-links pointed at a specific homepage anchor (`#members`/
+  `#humans`) rather than just the plain homepage, same "generic label,
+  specific destination" mismatch `member.html` had. **Removed from all 39
+  (Chris, 2026-08-15)** - full sweep done, no page carries the redundant
+  link anymore.
 
 ## Loading-failure hardening on create-profile.html / member.html (Chris, 2026-08-11)
 
