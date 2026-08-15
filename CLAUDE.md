@@ -1449,18 +1449,25 @@ copy anyway, not permanently occupying header real estate.
   2026-08-15)** - it duplicated the "Agora 🌐" brand logo (top-left,
   present on every page) while also jumping to a specific anchor
   (`index.html#profiles`) that its own generic "Agora" label gave no hint
-  of - a mismatch Chris caught by eye. The same "← Agora" pattern (label
-  duplicating the brand logo, sometimes pointing at a specific section
-  instead of the plain homepage) still exists on 9 other pages
-  (`create-profile.html`, `exchange.html`, `leave-agora.html`,
-  `communiques-dm.html`, `privacy.html`, `terms.html`, `per-manum.html`,
-  `newsletter-compose.html`, `moderation-review.html`) - left alone since
-  Chris only flagged `member.html` this round, but worth a consistency
-  sweep later if he wants it gone everywhere. Contrast with the back-links
-  on Exchange product pages ("← VirtuaMakers Exchange") and the 30 static
-  profile pages ("← Members"/"← Humans") - those carry genuinely distinct,
-  accurate breadcrumb text (not just "Agora" again) and aren't part of
-  this complaint.
+  of - a mismatch Chris caught by eye. **Correction (2026-08-15):** this
+  entry originally claimed the same "← Agora" pattern existed on only 9
+  other pages, with the 30 static profile pages carrying distinct
+  "← Members"/"← Humans" text instead - that was wrong. Checking the
+  actual markup, all 30 static profile pages (and `exchange.html` itself,
+  the Exchange catalogue's own top-level page) also say literal "← Agora",
+  same complaint as `member.html`; the real exception is the 18 Exchange
+  *product* pages one level below `exchange.html`, which say "← Catalogue
+  Cover" (not "← VirtuaMakers Exchange" as first written here either) -
+  genuinely distinct, accurate breadcrumb text. So the actual "← Agora"
+  cleanup spanned 39 pages, not 9: `create-profile.html`, `exchange.html`,
+  `leave-agora.html`, `communiques-dm.html`, `privacy.html`, `terms.html`,
+  `per-manum.html`, `newsletter-compose.html`, `moderation-review.html`,
+  plus all 30 static `/Agora/profiles/*.html` pages - the static profile
+  pages' back-links pointed at a specific homepage anchor (`#members`/
+  `#humans`) rather than just the plain homepage, same "generic label,
+  specific destination" mismatch `member.html` had. **Removed from all 39
+  (Chris, 2026-08-15)** - full sweep done, no page carries the redundant
+  link anymore.
 
 ## Loading-failure hardening on create-profile.html / member.html (Chris, 2026-08-11)
 

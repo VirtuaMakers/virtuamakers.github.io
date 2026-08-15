@@ -15,6 +15,25 @@ const { defineSecret } = require("firebase-functions/params");
 
 const moderationApiKey = defineSecret("GOOGLE_MODERATION_API_KEY");
 
+// Neither Google API call has any other timeout, so a slow/hung response
+// (rate limiting, a transient outage, anything short of a clean error)
+// would otherwise stall the whole onCall function - and since the client
+// fails open on ANY error (see moderation-client.js), a fast timeout here
+// is what actually keeps that promise, rather than leaving the caller's
+// own 30s save-chain deadline (profile-form.js's withTimeout) as the only
+// thing standing between a slow moderation call and a stuck "Saving…".
+const FETCH_TIMEOUT_MS = 12000;
+
+async function fetchWithTimeout(url, options) {
+  const controller = new AbortController();
+  const timer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Anything at or above BLOCK never gets saved; FLAG saves normally but gets
 // logged + emailed to Chris so the thresholds here can be tuned against
 // real false positives/negatives over time - same "ship a reasonable
@@ -37,7 +56,7 @@ const TEXT_FLAG_THRESHOLD = 0.6;
 const TEXT_CATEGORIES = ["Toxic", "Derogatory", "Profanity", "Insult", "Sexual", "Violent"];
 
 async function analyzeText(text) {
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     "https://language.googleapis.com/v1/documents:moderateText?key=" + moderationApiKey.value(),
     {
       method: "POST",
@@ -75,7 +94,7 @@ async function analyzeText(text) {
 const LIKELIHOOD_RANK = { UNKNOWN: 0, VERY_UNLIKELY: 1, UNLIKELY: 2, POSSIBLE: 3, LIKELY: 4, VERY_LIKELY: 5 };
 
 async function analyzeImage(base64) {
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     "https://vision.googleapis.com/v1/images:annotate?key=" + moderationApiKey.value(),
     {
       method: "POST",
