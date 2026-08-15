@@ -138,6 +138,18 @@ a {
   color: var(--text);
 }
 
+.signin-emoji {
+  display: inline-block;
+}
+
+/* Unicode has no gray/metallic skin-tone modifier, so the "AI" stop in
+   emoji-cycle.js's rotation reuses the base ✍️ glyph and fakes a
+   steel-gray look with a filter - color filters (unlike `color` itself)
+   do affect color-glyph emoji, since they operate on rendered pixels. */
+.signin-emoji--ai {
+  filter: grayscale(1) brightness(1.2) contrast(1.05) drop-shadow(0 0 1px rgba(120, 140, 160, 0.7));
+}
+
 .auth-email {
   color: var(--muted);
   font-size: 0.9rem;
