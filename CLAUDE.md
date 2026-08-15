@@ -2311,6 +2311,89 @@ own `npm install` runs, just was never checked into the repo) so his next
 `npm install` pulls these exact tested versions rather than whatever the
 loosest matching semver resolves to later.
 
+## Multi-admin system (Chris, 2026-08-15)
+
+Prompted by Chris realizing `VirtuaMakers@Outlook.com` (the site's only
+admin, hardcoded everywhere) had no real Firebase Auth login at all - and
+by his own explicit ask: "we're going to need multiple moderator or admin
+accounts as the site gets bigger." The old system was a single hardcoded
+email string checked in both `firestore.rules` and every Cloud Function -
+no way to add a second admin without editing code and redeploying, and no
+moderator tier at all.
+
+- **`VirtuaMakers@Outlook.com` is now a permanent "owner"** - checked by
+  email alone (`isOwner()` in rules, `OWNER_EMAIL` in Cloud Functions),
+  never stored in Firestore, can never be locked out even if every other
+  admin doc were deleted.
+- **New `admins/{uid}` Firestore collection** - one doc per member granted
+  a role beyond ordinary member, `{ role: "admin" | "moderator", grantedAt,
+  grantedBy }`. **Only the owner can write to this collection** (grant or
+  revoke, either role) - deliberately not delegated to admins themselves,
+  so there's always one single clear authority over who else has elevated
+  access, avoiding any privilege-escalation chain. A member can read their
+  own role doc (so the client can show/hide admin UI for themselves); only
+  the owner can read anyone else's.
+- **Two tiers, split by actual sensitivity:**
+  - **Admin** (`isFullAdmin()` in rules, `assertIsAdmin()` in Functions) -
+    same power the single hardcoded admin always had: suspend/delete
+    member accounts (`adminBanUser`/`adminDeleteUser`), and read/write the
+    `newsletter` draft doc.
+  - **Moderator** (`isAtLeastModerator()` in rules, `assertIsModerator()`
+    in Functions) - narrower: read the `moderationLog` collection and call
+    `getModerationImageUrl`/`resolveModerationAppeal` - i.e., everything
+    `moderation-review.html` needs and nothing more. A moderator can't
+    suspend/delete accounts or touch the newsletter.
+  - Every full admin is automatically also at-least-moderator (checked via
+    `isFullAdmin() ||` inside `isAtLeastModerator()`), so an admin never
+    loses moderation-queue access.
+- **`functions/index.js`'s `assertIsAdmin()` had to become async** (it
+  now does a Firestore read to check `admins/{uid}` when the caller isn't
+  the owner) - every call site (`adminDeleteUser`, `adminBanUser`) picked
+  up an `await`. The two moderation functions (`getModerationImageUrl`,
+  `resolveModerationAppeal`) switched to the new `assertIsModerator()`
+  instead, matching the tier split above. `resolveModerationAppeal`'s
+  `resolvedBy` field also switched from the old hardcoded admin email to
+  `request.auth.token.email` - the actual caller, now that more than one
+  person can resolve an appeal, correcting what would otherwise have been
+  a misleading audit trail once a second admin/moderator existed.
+- **Client-side admin UI now checks the role system, not a hardcoded
+  email** - `member.js`'s old `ADMIN_EMAIL` string comparison (used only
+  to decide whether to *show* the Suspend/Delete buttons; the real
+  enforcement was always server-side) is replaced by `loadViewerRole()`,
+  fetched once per auth-state change and cached (`null` |
+  `"moderator"` | `"admin"` | `"owner"`). Suspend/Delete now show for
+  admin-or-owner viewers (not moderators, matching the Functions-side
+  split); the suspended-profile visibility bypass follows the same rule.
+- **New "Admin Panel" container on `member.html`** (Chris's own placement
+  call: "below the Wall, in its own container") - owner-only, hidden on
+  your own profile and for anyone below owner. Shows the profile being
+  viewed's current role (None/Moderator/Admin) and three buttons - Make
+  Moderator, Make Admin, Remove Role - each just a direct Firestore write/
+  delete to `admins/{uid}`, no Cloud Function needed since
+  `firestore.rules`' own `write: if isOwner()` is the actual enforcement
+  (matching the site's existing "simple client, rules do the real work"
+  pattern used for friend requests elsewhere). The button matching the
+  current role is disabled.
+- **Real, previously-invisible gap fixed along the way: `.btn` never had
+  a `:disabled` style at all**, site-wide - a disabled Post/Send/Approve/
+  Save-Draft/etc. button (there are many) rendered pixel-identical to an
+  enabled one since every `.btn` variant sets its own explicit colors,
+  with nothing overriding them for the disabled state. Only surfaced now
+  because the Admin Panel's own buttons needed to visibly show "already
+  this role." Added a generic `.btn:disabled` rule (dimmed, `not-allowed`
+  cursor, hover effects suppressed) that fixes every disabled button on
+  the site at once, not just the new ones.
+- Bumped `style.css` to `v=84` (all 60 pages) and `member.js` to `v=21`.
+
+**Needs from Chris before this is live:** the usual two steps - paste the
+updated `firestore.rules` into the Firebase console (the new `admins/{uid}`
+match block, plus `isOwner()`/`isFullAdmin()`/`isAtLeastModerator()`
+replacing the old `isAdmin()`), then `firebase deploy --only functions`
+to pick up the async `assertIsAdmin()`/new `assertIsModerator()`. Until
+both are done, the old single-hardcoded-admin behavior keeps working
+exactly as before (nothing breaks in the gap) - the Admin Panel UI itself
+will just fail closed (no role docs readable) until the rules are live.
+
 ## Open items
 
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a

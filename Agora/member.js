@@ -2,7 +2,7 @@
 // and shows admin (suspend/delete) or owner (edit) controls when relevant.
 
 (function () {
-  var ADMIN_EMAIL = "VirtuaMakers@Outlook.com";
+  var OWNER_EMAIL = "VirtuaMakers@Outlook.com";
 
   var params = new URLSearchParams(window.location.search);
   var uid = params.get("uid");
@@ -11,6 +11,34 @@
   var content = document.getElementById("member-content");
   var adminActions = document.getElementById("admin-actions");
   var ownerEditLink = document.getElementById("owner-edit-link");
+  var adminPanel = document.getElementById("member-admin-panel");
+  var adminPanelRoleValue = document.getElementById("admin-panel-role-value");
+  var adminPanelMakeModerator = document.getElementById("admin-panel-make-moderator");
+  var adminPanelMakeAdmin = document.getElementById("admin-panel-make-admin");
+  var adminPanelRemoveRole = document.getElementById("admin-panel-remove-role");
+
+  // Multi-admin system (Chris, 2026-08-15) - the owner (VirtuaMakers@
+  // Outlook.com) is permanent and never stored anywhere; anyone else's
+  // role (if any) lives in admins/{uid}, readable by themselves (see
+  // firestore.rules). Fetched once per auth change and cached here rather
+  // than re-fetched on every refreshControls() call.
+  var viewerRole = null; // null | "moderator" | "admin" | "owner"
+
+  function loadViewerRole() {
+    if (!currentUser) {
+      viewerRole = null;
+      return Promise.resolve();
+    }
+    if (currentUser.email === OWNER_EMAIL) {
+      viewerRole = "owner";
+      return Promise.resolve();
+    }
+    return AgoraDB.collection("admins").doc(currentUser.uid).get().then(function (doc) {
+      viewerRole = doc.exists ? doc.data().role : null;
+    }).catch(function () {
+      viewerRole = null;
+    });
+  }
 
   var profileData = null;
   var currentUser = null;
@@ -226,17 +254,40 @@
     if (!currentUser || !profileData) {
       adminActions.hidden = true;
       ownerEditLink.hidden = true;
+      adminPanel.hidden = true;
       return;
     }
 
-    var isOwner = currentUser.uid === uid;
-    var isAdmin = currentUser.email === ADMIN_EMAIL;
+    var isOwnProfile = currentUser.uid === uid;
+    var viewerIsFullAdmin = viewerRole === "owner" || viewerRole === "admin";
 
-    ownerEditLink.hidden = !isOwner;
-    adminActions.hidden = !(isAdmin && !isOwner);
+    ownerEditLink.hidden = !isOwnProfile;
+    adminActions.hidden = !(viewerIsFullAdmin && !isOwnProfile);
 
     document.getElementById("suspend-btn").textContent =
       profileData.status === "suspended" ? "Reinstate" : "Suspend";
+
+    refreshAdminPanel(isOwnProfile);
+  }
+
+  // Owner-only (matching firestore.rules' admins/{uid} write: if isOwner())
+  // - grants or revokes admin/moderator status for the profile being
+  // viewed. Writes/deletes admins/{uid} directly, no Cloud Function
+  // needed since the rule itself is the real enforcement.
+  function refreshAdminPanel(isOwnProfile) {
+    var canManageRoles = viewerRole === "owner" && !isOwnProfile;
+    adminPanel.hidden = !canManageRoles;
+    if (!canManageRoles) return;
+
+    AgoraDB.collection("admins").doc(uid).get().then(function (doc) {
+      var role = doc.exists ? doc.data().role : null;
+      adminPanelRoleValue.textContent = role === "admin" ? "Admin"
+        : role === "moderator" ? "Moderator"
+        : "None";
+      adminPanelMakeModerator.disabled = role === "moderator";
+      adminPanelMakeAdmin.disabled = role === "admin";
+      adminPanelRemoveRole.disabled = !role;
+    });
   }
 
   function loadProfile() {
@@ -245,17 +296,21 @@
       return;
     }
 
-    AgoraDB.collection("profiles").doc(uid).get().then(function (doc) {
+    Promise.all([
+      loadViewerRole(),
+      AgoraDB.collection("profiles").doc(uid).get(),
+    ]).then(function (results) {
+      var doc = results[1];
       if (!doc.exists) {
         showNotice("This profile doesn't exist.");
         return;
       }
       profileData = doc.data();
 
-      var viewerIsOwnerOrAdmin = currentUser &&
-        (currentUser.uid === uid || currentUser.email === ADMIN_EMAIL);
+      var isOwnProfile = currentUser && currentUser.uid === uid;
+      var viewerIsFullAdmin = viewerRole === "owner" || viewerRole === "admin";
 
-      if (profileData.status === "suspended" && !viewerIsOwnerOrAdmin) {
+      if (profileData.status === "suspended" && !isOwnProfile && !viewerIsFullAdmin) {
         showNotice("This profile is currently suspended.");
         return;
       }
@@ -326,6 +381,27 @@
       .then(function () {
         window.location.href = "index.html";
       });
+  });
+
+  // Admin Panel (owner-only) - grants or revokes this profile's role.
+  // Direct Firestore writes, no Cloud Function: firestore.rules' own
+  // admins/{uid} write: if isOwner() is the actual enforcement.
+  function setRole(role) {
+    AgoraDB.collection("admins").doc(uid).set({
+      role: role,
+      grantedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      grantedBy: currentUser.uid,
+    }).then(function () {
+      refreshAdminPanel(false);
+    });
+  }
+
+  adminPanelMakeModerator.addEventListener("click", function () { setRole("moderator"); });
+  adminPanelMakeAdmin.addEventListener("click", function () { setRole("admin"); });
+  adminPanelRemoveRole.addEventListener("click", function () {
+    AgoraDB.collection("admins").doc(uid).delete().then(function () {
+      refreshAdminPanel(false);
+    });
   });
 
   // --- Wall + Dialogs (Communiqués 📨) -------------------------------------

@@ -21,7 +21,7 @@ service cloud.firestore {
         && request.resource.data.status == 'active';
 
       allow update: if request.auth != null && (
-        isAdmin() ||
+        isFullAdmin() ||
         (request.auth.uid == uid
           && request.resource.data.status == resource.data.status)
       );
@@ -33,7 +33,7 @@ service cloud.firestore {
       allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews']);
 
       allow delete: if request.auth != null
-        && (isAdmin() || request.auth.uid == uid);
+        && (isFullAdmin() || request.auth.uid == uid);
 
       // Genuinely private profile data (e.g. the State/Province/Territory
       // field, used only to disambiguate the location map's geocoding
@@ -259,7 +259,7 @@ service cloud.firestore {
     // just a staging area for content that isn't public until it's
     // actually emailed out.
     match /newsletter/{document} {
-      allow read, write: if isAdmin();
+      allow read, write: if isFullAdmin();
     }
 
     // Content moderation 🛡️ - every block/flag the moderateText and
@@ -269,13 +269,53 @@ service cloud.firestore {
     // so client writes are never allowed here at all - moderation-review.js
     // reads this collection directly, but every action a moderator takes
     // goes through resolveModerationAppeal instead of a direct write.
+    // Moderators can see this queue too, not just full admins/the owner -
+    // reviewing flagged/blocked content is exactly a moderator's job.
     match /moderationLog/{document} {
-      allow read: if isAdmin();
+      allow read: if isAtLeastModerator();
       allow write: if false;
     }
 
-    function isAdmin() {
-      return request.auth.token.email == 'VirtuaMakers@Outlook.com';
+    // Multi-admin system (Chris, 2026-08-15) - one doc per member who's
+    // been granted a role beyond ordinary member, doc ID = their uid.
+    // VirtuaMakers@Outlook.com is a separate, permanent "owner" account
+    // that's never stored here and can never be locked out - it's checked
+    // by email in isOwner() below, not by a doc that could be deleted.
+    // Only the owner can grant or revoke a role (admin or moderator) -
+    // deliberately not delegated to admins themselves, so there's always
+    // one clear, single authority over who else has elevated access. A
+    // member can read their own role doc (so the client can show/hide
+    // admin UI for themselves); nobody but the owner can read anyone
+    // else's, since who holds admin/moderator status isn't public
+    // information the way a profile is.
+    match /admins/{uid} {
+      allow read: if request.auth != null
+        && (isOwner() || request.auth.uid == uid);
+      allow write: if isOwner();
+    }
+
+    function isOwner() {
+      return request.auth != null && request.auth.token.email == 'VirtuaMakers@Outlook.com';
+    }
+
+    // Full admin power (suspend/delete accounts, newsletter, granting
+    // nothing themselves - only the owner grants) - the owner always
+    // qualifies, plus anyone with an admins/{uid} doc whose role is
+    // "admin".
+    function isFullAdmin() {
+      return isOwner()
+        || (request.auth != null
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+          && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Moderator or above - covers the moderation queue only, not account
+    // suspend/delete or the newsletter.
+    function isAtLeastModerator() {
+      return isFullAdmin()
+        || (request.auth != null
+          && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+          && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'moderator');
     }
 
     // Whether two arbitrary uids (not already known to be sorted) are

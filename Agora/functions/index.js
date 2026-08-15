@@ -29,10 +29,30 @@ const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderatio
 
 admin.initializeApp();
 
-const ADMIN_EMAIL = "VirtuaMakers@Outlook.com";
+const OWNER_EMAIL = "VirtuaMakers@Outlook.com";
 
-function assertIsAdmin(auth) {
-  if (!auth || auth.token.email !== ADMIN_EMAIL) {
+// Multi-admin system (Chris, 2026-08-15) - mirrors firestore.rules'
+// isOwner()/isFullAdmin()/isAtLeastModerator(). The owner is a permanent,
+// never-lockoutable account checked by email alone; anyone else's role
+// (if any) lives in admins/{uid}, granted/revoked only by the owner (see
+// firestore.rules for why that's not delegated to admins themselves).
+async function getRole(auth) {
+  if (!auth) return null;
+  if (auth.token.email === OWNER_EMAIL) return "owner";
+  const snap = await admin.firestore().collection("admins").doc(auth.uid).get();
+  return snap.exists ? snap.data().role : null;
+}
+
+async function assertIsAdmin(auth) {
+  const role = await getRole(auth);
+  if (role !== "owner" && role !== "admin") {
+    throw new HttpsError("permission-denied", "Admin only.");
+  }
+}
+
+async function assertIsModerator(auth) {
+  const role = await getRole(auth);
+  if (!role) {
     throw new HttpsError("permission-denied", "Admin only.");
   }
 }
@@ -43,7 +63,7 @@ function assertIsAdmin(auth) {
 // before actually deleting anything, since the email needs the profile's
 // address while it still exists.
 exports.adminDeleteUser = onCall({ secrets: [resendApiKey] }, async (request) => {
-  assertIsAdmin(request.auth);
+  await assertIsAdmin(request.auth);
   const uid = request.data && request.data.uid;
   const reason = request.data && request.data.reason;
   if (!uid) {
@@ -74,7 +94,7 @@ exports.adminDeleteUser = onCall({ secrets: [resendApiKey] }, async (request) =>
 // notice when actually suspending, not on reinstatement - there's no
 // "welcome back" email.
 exports.adminBanUser = onCall({ secrets: [resendApiKey] }, async (request) => {
-  assertIsAdmin(request.auth);
+  await assertIsAdmin(request.auth);
   const uid = request.data && request.data.uid;
   const disabled = !!(request.data && request.data.disabled);
   const reason = request.data && request.data.reason;
@@ -197,7 +217,7 @@ exports.notifyFlaggedSocial = onDocumentWritten(
     if (before && before.socialsFlagged) return;
 
     await sendEmailSafe({
-      to: ADMIN_EMAIL,
+      to: OWNER_EMAIL,
       subject: "Agora: a social link needs a look",
       html: "<p>A member's profile has an unrecognized social-media link "
         + "(uid: " + event.params.uid + "). Check its social1/social2/"
@@ -465,7 +485,7 @@ function writeModerationLog(ref, { uid, authorName, contentType, decision, text,
 function emailAdminOfModeration({ logId, uid, authorName, contentType, decision, excerpt }) {
   const verb = decision === "block" ? "blocked" : "flagged";
   return sendEmailSafe({
-    to: ADMIN_EMAIL,
+    to: OWNER_EMAIL,
     subject: "Agora moderation: " + verb + " " + contentType,
     html: "<p>A " + contentType + " from " + authorName + " (uid: " + uid + ") was " + verb
       + " by the content filter.</p>"
@@ -579,7 +599,7 @@ exports.requestModerationAppeal = onCall({ secrets: [resendApiKey] }, async (req
   });
 
   await sendEmailSafe({
-    to: ADMIN_EMAIL,
+    to: OWNER_EMAIL,
     subject: "Agora moderation: appeal requested",
     html: "<p>" + (log.authorName || "A member") + " is appealing a blocked " + log.contentType
       + ". Review at <a href=\"https://www.virtuamakers.com/Agora/moderation-review.html\">"
@@ -589,11 +609,11 @@ exports.requestModerationAppeal = onCall({ secrets: [resendApiKey] }, async (req
   return { success: true };
 });
 
-// Admin-only: a short-lived signed URL so moderation-review.html can show
-// a quarantined image without that Storage path ever being publicly
-// readable.
+// Moderator-or-above: a short-lived signed URL so moderation-review.html
+// can show a quarantined image without that Storage path ever being
+// publicly readable.
 exports.getModerationImageUrl = onCall(async (request) => {
-  assertIsAdmin(request.auth);
+  await assertIsModerator(request.auth);
   const logId = request.data && request.data.logId;
   if (!logId) {
     throw new HttpsError("invalid-argument", "Missing logId.");
@@ -672,12 +692,12 @@ async function republishModeratedContent(log) {
   }
 }
 
-// Admin-only: the two buttons on moderation-review.html. Approving
-// re-publishes the original content (see above); upholding leaves it
-// blocked and, for a picture, deletes the quarantined file since nothing
-// will ever use it now.
+// Moderator-or-above: the two buttons on moderation-review.html.
+// Approving re-publishes the original content (see above); upholding
+// leaves it blocked and, for a picture, deletes the quarantined file
+// since nothing will ever use it now.
 exports.resolveModerationAppeal = onCall(async (request) => {
-  assertIsAdmin(request.auth);
+  await assertIsModerator(request.auth);
   const logId = request.data && request.data.logId;
   const approve = !!(request.data && request.data.approve);
   if (!logId) {
@@ -702,7 +722,7 @@ exports.resolveModerationAppeal = onCall(async (request) => {
     resolved: true,
     resolution: approve ? "approved" : "upheld",
     resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
-    resolvedBy: ADMIN_EMAIL,
+    resolvedBy: request.auth.token.email,
   });
 
   return { success: true };
