@@ -2185,6 +2185,12 @@ engine for a site this size).
   one isn't excluded from `create-profile.html`/`leave-agora.html`,
   since it's a stable nav element (like the Profile link or sign-in/out
   controls) rather than a popup that could interrupt those flows.
+- **`#agora-search-toggle`'s label changed from icon-only `🔍` to
+  `Search 🔍`** (Chris, 2026-08-15) - matches the site's existing
+  text-then-emoji button convention (`Sign out 🫥`, `Profile 🙂`) rather
+  than being the one icon-only control in that row. Plain text change
+  across all 60 pages, no CSS needed - confirmed no overflow at 360px
+  width via Playwright.
 
 ## Open items
 
