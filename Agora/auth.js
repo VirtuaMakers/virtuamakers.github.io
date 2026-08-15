@@ -22,6 +22,10 @@ function agoraSignInWithEmail(email, password) {
   return AgoraAuth.signInWithEmailAndPassword(email, password);
 }
 
+function agoraSendPasswordReset(email) {
+  return AgoraAuth.sendPasswordResetEmail(email);
+}
+
 function agoraSignOut() {
   return AgoraAuth.signOut();
 }

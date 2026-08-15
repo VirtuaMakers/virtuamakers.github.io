@@ -14,6 +14,8 @@
   var emailSubmitBtn = document.getElementById("agora-email-submit");
   var toggleModeBtn = document.getElementById("agora-toggle-mode");
   var toggleText = document.getElementById("agora-toggle-text");
+  var forgotPasswordRow = document.getElementById("agora-forgot-password-row");
+  var forgotPasswordBtn = document.getElementById("agora-forgot-password-btn");
   var googleBtn = document.getElementById("agora-provider-google");
   var xBtn = document.getElementById("agora-provider-x");
   var termsCheckRow = document.getElementById("agora-terms-check-row");
@@ -23,12 +25,24 @@
 
   function showError(message) {
     if (!errorEl) return;
+    errorEl.classList.remove("signin-success");
+    errorEl.textContent = message;
+    errorEl.hidden = false;
+  }
+
+  // Reuses the same element as showError(), just recolored - a password
+  // reset confirmation isn't an error, but the modal only has the one
+  // message slot.
+  function showInfo(message) {
+    if (!errorEl) return;
+    errorEl.classList.add("signin-success");
     errorEl.textContent = message;
     errorEl.hidden = false;
   }
 
   function clearError() {
     if (!errorEl) return;
+    errorEl.classList.remove("signin-success");
     errorEl.hidden = true;
     errorEl.textContent = "";
   }
@@ -54,6 +68,9 @@
     if (toggleModeBtn) toggleModeBtn.textContent = isSignUp ? "Sign in" : "Create one";
     if (termsCheckRow) termsCheckRow.hidden = !isSignUp;
     if (termsCheckbox) termsCheckbox.checked = false;
+    // Resetting a password only makes sense for an account that already
+    // exists, so this hides right alongside the sign-up-only ToS row.
+    if (forgotPasswordRow) forgotPasswordRow.hidden = isSignUp;
   }
 
   if (modalClose) modalClose.addEventListener("click", closeModal);
@@ -106,6 +123,34 @@
       action.then(function () {
         closeModal();
       }).catch(function (err) {
+        showError(err.message);
+      });
+    });
+  }
+
+  // Doesn't reveal whether an account exists for the typed email - shows
+  // the same "if an account exists…" message whether the send actually
+  // succeeded or Firebase reported no matching user, so this can't be used
+  // to probe which emails are registered. A malformed address is still
+  // called out directly, since that's not account information.
+  if (forgotPasswordBtn) {
+    forgotPasswordBtn.addEventListener("click", function () {
+      var email = emailInput.value.trim();
+      if (!email) {
+        showError("Enter your email above, then click “Forgot password?” again.");
+        return;
+      }
+      agoraSendPasswordReset(email).then(function () {
+        showInfo("If an account exists for that email, a password reset link has been sent.");
+      }).catch(function (err) {
+        if (err.code === "auth/invalid-email") {
+          showError("That doesn't look like a valid email address.");
+          return;
+        }
+        if (err.code === "auth/user-not-found") {
+          showInfo("If an account exists for that email, a password reset link has been sent.");
+          return;
+        }
         showError(err.message);
       });
     });

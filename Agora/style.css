@@ -397,6 +397,19 @@ a {
   font-size: 0.85rem;
 }
 
+.signin-error.signin-success {
+  color: var(--teal);
+}
+
+.signin-forgot-password {
+  text-align: right;
+  margin: -0.2rem 0 0;
+}
+
+.signin-forgot-password .auth-link {
+  font-size: 0.82rem;
+}
+
 .signin-submit-btn {
   padding: 0.65rem 1rem;
   border-radius: 8px;

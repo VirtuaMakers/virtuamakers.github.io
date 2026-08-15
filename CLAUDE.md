@@ -2192,6 +2192,45 @@ engine for a site this size).
   across all 60 pages, no CSS needed - confirmed no overflow at 360px
   width via Playwright.
 
+## Forgot password (Chris, 2026-08-15)
+
+Real bug report: Chris got locked out of his own email/password account
+with no way to reset it - the sign-in modal's email/password form never
+had a password-reset path, only sign-in and sign-up.
+
+- **`auth.js`'s `agoraSendPasswordReset(email)`** - a thin wrapper over
+  Firebase Auth's own `sendPasswordResetEmail()`, matching the file's
+  existing one-liner-per-Auth-call convention.
+- **New "Forgot password?" link** (`#agora-forgot-password-row`/
+  `#agora-forgot-password-btn`) in the sign-in modal, right below the
+  password field - added to all 60 pages carrying the modal. Hidden in
+  sign-up mode alongside the ToS checkbox row (`setMode()` in
+  `auth-ui.js`), since resetting a password only makes sense for an
+  account that already exists.
+- **Doesn't reveal whether an email is registered** - clicking it with an
+  email typed shows the same "If an account exists for that email, a
+  password reset link has been sent." message whether Firebase actually
+  found a matching account or returned `auth/user-not-found`, so this
+  can't be used to enumerate which emails have Agora accounts. A
+  malformed address (`auth/invalid-email`) is still called out directly,
+  since that's not account information. An empty email field asks the
+  member to fill it in first rather than silently doing nothing.
+  `showInfo()` (new, alongside the existing `showError()`) reuses the
+  same `#agora-signin-error` element for this confirmation - the modal
+  only has the one message slot - just recolored via a new
+  `.signin-error.signin-success` rule (teal, matching the site's existing
+  color for non-error confirmations) instead of the error red.
+- **`communiques-dm.html`'s modal was missing the ToS checkbox block
+  entirely** (`#agora-terms-check-row`) - a pre-existing gap from before
+  this round, unrelated to the fix itself, discovered only because it
+  broke the otherwise-identical-across-60-pages bulk edit for this
+  change. Left as-is (out of scope for what Chris asked for this round) -
+  `auth-ui.js`'s `termsCheckRow`/`termsCheckbox` lookups are already
+  null-safe, so email sign-up from this specific page's modal has quietly
+  never asked for ToS agreement. Worth a real fix later.
+- Bumped `auth.js` to `v=3`, `auth-ui.js` to `v=18`, `style.css` to
+  `v=83`, all 60 pages.
+
 ## Open items
 
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a
