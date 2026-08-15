@@ -114,6 +114,13 @@ a {
   display: flex;
   align-items: center;
   gap: 1rem;
+  /* Pins this flush to the row's right edge even when .site-header wraps
+     it onto its own line below .brand on narrow viewports - without this,
+     a lone flex item on a wrapped line sits at flex-start under
+     justify-content: space-between, not flex-end, which left the search
+     icon short of the true right edge and made .header-search-panel's
+     right: 0 anchor overflow off the left side of the screen. */
+  margin-left: auto;
 }
 
 .auth-controls {

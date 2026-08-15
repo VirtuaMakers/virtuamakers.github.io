@@ -2014,6 +2014,37 @@ engine for a site this size).
   flex child left the panel's right edge short of the true page edge,
   which risked the panel overflowing off the left side of narrow phone
   screens. Caught and fixed during testing, not shipped with the bug.
+- **Two real bugs shipped anyway, caught by Chris on his phone
+  2026-08-15 after the fact, both now fixed:**
+  1. **`style.css`'s `?v=N` cache-bust query was never bumped** across
+     the three commits that touched it for search (initial add, the
+     right-edge reposition above, an indentation cleanup) - it sat at
+     the same `v=81` a prior, unrelated commit had already set, so any
+     browser that had `style.css` cached from before search shipped
+     kept serving that old copy indefinitely, with zero rules for
+     `.header-search*`/`.search-result`. Without them, the panel
+     rendered as an unstyled block (pushing the rest of the header down
+     instead of floating over it) and each `.search-result` `<a>`
+     defaulted to inline display (running multiple results together on
+     one line instead of stacking). This is exactly the cache-busting
+     convention documented elsewhere in this file for `main.js` -
+     apparently not followed consistently enough in practice to survive
+     several edits to the same file. Bumped to `v=82` to fix.
+  2. **A genuine responsive layout bug, independent of the cache issue:**
+     `.site-header` gets `flex-wrap: wrap` under `max-width: 560px`
+     (a real phone width, unlike whatever was used for the "caught and
+     fixed during testing" repositioning fix above). When `.header-right`
+     wraps onto its own row below `.brand`, it's the *sole* flex item on
+     that row - and `justify-content: space-between` on the parent has
+     nothing to space a single item between, so it lands at the row's
+     start (left) rather than its end (right). That left the 🔍 icon well
+     short of the true right edge on narrow phones, so `.header-search-
+     panel`'s `right: 0` (anchored to the icon, not the viewport) put the
+     panel's left edge off-screen. Fixed with `margin-left: auto` on
+     `.header-right` - claims all leftover space on its row and pushes it
+     flush right whether it's sharing that row with `.brand` or wrapped
+     onto one alone, so the icon (and therefore the panel) is reliably at
+     the true right edge at every width.
 - **Three content sources combined in `Agora/site-search.js`:**
   1. Real Firestore `profiles` (fetched once per page load, cached) -
      handle-preferred display name, same resolution logic as everywhere
