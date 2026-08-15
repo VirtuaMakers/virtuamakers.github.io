@@ -1,10 +1,12 @@
 // Drives communiques-dm.html: loads a Dialog by ?c= from Firestore.
 // Readable by any signed-in Agora member (see firestore.rules), but the
-// compose form, message editing, and the add-friend/leave controls only
-// appear for the Dialog's current participants. A Dialog starts as exactly
-// two people and can grow into a group from there (see the "Adding a
-// friend / leaving" section below). Requires firebase-config.js, auth.js,
-// and communiques-common.js to run first.
+// compose form and message editing only appear for the Dialog's two
+// participants. A Dialog is always exactly two people (Chris, 2026-08-15) -
+// group conversations live in Multi-Chat 🗨️ instead, not here; the
+// add-participant/leave machinery this file used to have is being
+// repurposed as that feature's foundation rather than kept in both places.
+// Requires firebase-config.js, auth.js, and communiques-common.js to run
+// first.
 //
 // A Dialog's messages are paginated at a flat 10 per page (Chris,
 // 2026-08-15 - matching the Wall's own "10 posts per page" convention),
@@ -25,7 +27,6 @@
   var unsubscribeConversation = null;
   var participants = [];
   var participantNames = {};
-  var friendsCache = [];
 
   var pages = [];
   var currentPageIndex = 0;
@@ -146,93 +147,7 @@
   var activeConversationRef = null;
   var messagesWatched = false;
 
-  // A quiet backstop against abuse, not a published feature - see
-  // CLAUDE.md. Once a Dialog hits this size the add-friend control just
-  // disappears, no message explaining why.
-  var MAX_PARTICIPANTS = 1000;
-
   C.attachPerManumButton(document.getElementById("dm-compose-per-manum"), document.getElementById("dm-compose-body"));
-
-  // --- Adding someone / leaving -------------------------------------------
-  // A Dialog starts as exactly two people, same as before, but any current
-  // participant can grow it by adding another member at a time. Messaging
-  // is open by default (Chris, 2026-08-06) - firestore.rules allows adding
-  // anyone who hasn't opted into requireFriendToMessage, and falls back to
-  // requiring an accepted friendship for those who have. Adding someone
-  // does NOT grant them any read access they didn't already have, since
-  // every Dialog is already member-readable - it only lets them send
-  // messages and puts this Dialog in their own inbox. Leaving just removes
-  // your own uid - there's no way to remove anyone else.
-
-  var participantsActions = document.getElementById("dm-participants-actions");
-  var addFriendWrap = document.getElementById("dm-add-friend-wrap");
-  var addFriendSearch = document.getElementById("dm-add-friend-search");
-  var addFriendResults = document.getElementById("dm-add-friend-results");
-  var leaveBtn = document.getElementById("dm-leave-btn");
-  var addableMembers = [];
-
-  // Matches the header search's own cap (site-search.js) - both are the
-  // same "live dropdown" pattern now, just scoped to different content.
-  var RESULT_LIMIT = 8;
-
-  function loadFriends() {
-    C.fetchAcceptedFriendships(currentUser.uid).then(function (snap) {
-      friendsCache = snap.docs.map(function (doc) {
-        var data = doc.data();
-        var otherUid = (data.participants || []).filter(function (p) { return p !== currentUser.uid; })[0];
-        return { uid: otherUid, name: (data.participantNames && data.participantNames[otherUid]) || "Member" };
-      });
-    });
-  }
-
-  function loadAddableMembers() {
-    C.loadMessagableMembers(currentUser.uid).then(function (members) {
-      addableMembers = members;
-      if (isParticipant) renderAddFriendResults(addFriendSearch.value);
-    });
-  }
-
-  function addParticipant(uid, name) {
-    if (!window.confirm("Add " + name + " to this Dialog? They'll be able to send messages here.")) return;
-    var update = { participants: firebase.firestore.FieldValue.arrayUnion(uid), lastAddedUid: uid };
-    update["participantNames." + uid] = name;
-    activeConversationRef.update(update).catch(function (err) {
-      window.alert(err.message);
-    });
-  }
-
-  // Same "nothing until you type" behavior as the header search
-  // (site-search.js) - no default-shown suggestions with an empty box.
-  function renderAddFriendResults(query) {
-    addFriendResults.textContent = "";
-    if (!query.trim()) return;
-    var friendUids = friendsCache.map(function (f) { return f.uid; });
-    var matches = C.filterMessagable(addableMembers, friendUids, participants, query).slice(0, RESULT_LIMIT);
-    matches.forEach(function (m) {
-      var item = document.createElement("button");
-      item.type = "button";
-      item.className = "dm-item";
-      item.textContent = m.name;
-      item.addEventListener("click", function () { addParticipant(m.uid, m.name); });
-      addFriendResults.appendChild(item);
-    });
-  }
-
-  // Debounced 150ms after each keystroke, same as the header search.
-  var addFriendDebounce = null;
-  addFriendSearch.addEventListener("input", function () {
-    clearTimeout(addFriendDebounce);
-    var query = addFriendSearch.value;
-    addFriendDebounce = setTimeout(function () { renderAddFriendResults(query); }, 150);
-  });
-
-  leaveBtn.addEventListener("click", function () {
-    if (!activeConversationRef) return;
-    if (!window.confirm("Leave this Dialog? You can only rejoin if another participant adds you back.")) return;
-    activeConversationRef.update({
-      participants: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
-    });
-  });
 
   function loadConversation() {
     if (!conversationId) {
@@ -256,9 +171,6 @@
       isParticipant = participants.indexOf(currentUser.uid) !== -1;
       document.getElementById("dm-readonly-notice").hidden = isParticipant;
       composeForm.hidden = !isParticipant;
-      participantsActions.hidden = !isParticipant;
-      addFriendWrap.hidden = participants.length >= MAX_PARTICIPANTS;
-      if (isParticipant) renderAddFriendResults(addFriendSearch.value);
 
       activeConversationRef = conversationRef;
       content.hidden = false;
@@ -334,8 +246,6 @@
       showNotice("Sign in to view this Dialog.");
       return;
     }
-    loadFriends();
-    loadAddableMembers();
     loadConversation();
   });
 })();

@@ -2161,24 +2161,10 @@ button.dm-item {
   cursor: pointer;
 }
 
-.dm-participants-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 1rem 0;
-}
-
-.dm-add-friend {
-  flex: 1 1 320px;
-}
-
 .search-picker {
   margin: 0.6rem 0 1.4rem;
 }
 
-.dm-add-friend .dm-list,
 .search-picker .dm-list {
   margin-top: 0.4rem;
   max-height: 220px;
