@@ -2287,6 +2287,30 @@ separate things going on here, both addressed:
   from here.
 - Bumped `auth.js` again to `v=4`.
 
+### Deploy timeout root cause: firebase-functions was 2 major versions stale (Chris, 2026-08-15)
+
+The `sendPasswordReset` deploy above hit the same "Cannot determine
+backend specification. Timeout after 10000" error documented earlier in
+this file (Node 20 vs. 22) - but this time Node wasn't the problem, a
+fresh `firebase-functions: package.json indicates an outdated version...
+Please upgrade` warning was. `functions/package.json` had
+`"firebase-functions": "^5.0.0"` (resolving to the installed `5.1.1`)
+against a `firebase-tools` CLI that's moved well past that - two major
+versions behind (latest is `7.x`). Newer CLI versions' local
+backend-discovery step (the same step that times out) expects a newer
+`firebase-functions` runtime to introspect against, and a big enough gap
+between the two apparently breaks that handshake outright rather than
+just printing a warning. Bumped the dependency to `^7.0.0` and verified
+locally (`require("./index.js")` in this sandbox, all 18 exports load
+without error) before pushing, rather than just taking the CLI's warning
+on faith - `firebase-admin` came along for the ride too, staying within
+its existing `^12.0.0` range (`12.7.0` now) so no separate compatibility
+risk there. **Committed `functions/package-lock.json` for the first time
+alongside this** (it existed locally on Chris's machine already from his
+own `npm install` runs, just was never checked into the repo) so his next
+`npm install` pulls these exact tested versions rather than whatever the
+loosest matching semver resolves to later.
+
 ## Open items
 
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a
