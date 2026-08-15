@@ -1947,6 +1947,46 @@ internal-only fields already in this codebase.
   than leaving the field absent, so the meta-line display code doesn't
   need an existence check beyond `typeof data.viewCount === "number"`.
 
+## Wall comment cap (Chris, 2026-08-15)
+
+Each Wall post is capped at **100 comments** - Chris's own number, picked
+so a page's worst case stays bounded (10 posts/page × 100 comments = 1,000
+comment renders max) while still comfortably covering a real "good debate"
+post (Chris: "I've had posts get 100 comments before"). Comments
+themselves still have no length limit beyond the existing 9,999-character
+body cap shared by every Communiqué.
+
+- **Enforced server-side in `firestore.rules`** - the comment `create`
+  rule now also requires `get()`-ing the parent `wallPosts/{postId}` doc
+  and checking `commentCount < 100`. This is correct without a transaction
+  because the client's own `commentCount` increment happens in a
+  *separate*, later write (after the comment doc itself is created) - so
+  at create-time the counter still reflects the count *before* this
+  comment, meaning the check correctly blocks the 101st attempt while
+  still allowing the 100th.
+- **Client-side mirror in `communiques-common.js`'s `buildWallPost()`** -
+  once `data.commentCount >= 100`, the Comment toggle/form is replaced
+  with a plain "This post has reached its maximum of 100 comments."
+  notice instead, so nobody types a comment only to have the write
+  rejected after the fact.
+- **New milestone email** (`Agora/emails/comment-cap-email.html` +
+  `functions/templates/` copy) - fires once, to the *post's own author*
+  (not necessarily the Wall's owner, if those differ), via the new
+  `notifyOnCommentCap` trigger in `functions/index.js`. Uses the same
+  before/after transition-guard pattern as `notifyFlaggedSocial`
+  (`onDocumentWritten` on `wallPosts/{postId}`, firing only when
+  `commentCount` actually crosses to exactly 100, not on every later
+  write to that post) so it can never send twice for the same post.
+
+**Needs from Chris before this is live:** the same two steps as every
+other recent Cloud Functions change - re-paste the updated
+`firestore.rules` into the Firebase console (Firestore Database → Rules),
+then `firebase deploy --only functions` from `Agora/` to pick up
+`notifyOnCommentCap`. Until both are done, comments past 100 aren't
+actually blocked server-side yet (only the client-side notice shows), and
+the milestone email won't send - same graceful-degradation pattern as
+every other pending Functions change.
+
 ## Open items
 
 - [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a

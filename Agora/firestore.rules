@@ -198,9 +198,15 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if request.auth != null;
 
+        // Capped at 100 comments per post (Chris, 2026-08-15) - checked
+        // against the parent post's own commentCount, which only reflects
+        // completed comments (the client's follow-up increment() on the
+        // post happens after this create succeeds), so this correctly
+        // blocks the 101st attempt while still allowing the 100th.
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
-          && validBody(request.resource.data.body);
+          && validBody(request.resource.data.body)
+          && get(/databases/$(database)/documents/wallPosts/$(postId)).data.commentCount < 100;
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();

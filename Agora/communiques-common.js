@@ -468,9 +468,20 @@
           });
         });
 
-      // Comments are optional, so the form stays tucked behind the
-      // toggle/submit button instead of sitting open under every post.
-      if (currentUser) {
+      // Capped at 100 comments per post (Chris, 2026-08-15) - enforced
+      // server-side in firestore.rules; this just hides the form and
+      // explains why once a post's own counter reaches the cap, rather
+      // than letting someone type a comment only to have the write
+      // rejected.
+      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
+      if (commentCount >= 100) {
+        var capNotice = document.createElement("p");
+        capNotice.className = "communique-item-meta";
+        capNotice.textContent = "This post has reached its maximum of 100 comments.";
+        post.appendChild(capNotice);
+      } else if (currentUser) {
+        // Comments are optional, so the form stays tucked behind the
+        // toggle/submit button instead of sitting open under every post.
         post.appendChild(buildCommentForm(doc.ref));
       }
 

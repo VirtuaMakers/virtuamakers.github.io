@@ -266,6 +266,33 @@ exports.notifyOnWallComment = onDocumentCreated(
   }
 );
 
+// Comment cap milestone email (Chris, 2026-08-15) - Wall posts are capped
+// at 100 comments (enforced server-side in firestore.rules' comment
+// create rule); this fires the one email once a post's own commentCount
+// field actually crosses that line, not on every subsequent write to the
+// post (e.g. a later edit), matching the same before/after transition
+// pattern notifyFlaggedSocial already uses.
+exports.notifyOnCommentCap = onDocumentWritten(
+  { document: "wallPosts/{postId}", secrets: [resendApiKey] },
+  async (event) => {
+    const after = event.data.after.exists ? event.data.after.data() : null;
+    const before = event.data.before.exists ? event.data.before.data() : null;
+    if (!after || after.commentCount !== 100) return;
+    if (before && before.commentCount === 100) return;
+
+    const profileSnap = await admin.firestore()
+      .collection("profiles").doc(after.authorUid).get();
+    const email = profileSnap.exists ? profileSnap.data().email : null;
+    if (!email) return;
+
+    await sendEmailSafe({
+      to: email,
+      subject: "Your Post Just Hit 100 Comments! 🎉",
+      html: loadTemplate("comment-cap-email.html"),
+    });
+  }
+);
+
 // Newsletter 📰 (Chris, 2026-08-12) - a monthly issue, opted into by
 // default from create-profile.html, prepared via newsletter-compose.html
 // (admin-only, writes to the single newsletter/draft doc) by the 27th of
