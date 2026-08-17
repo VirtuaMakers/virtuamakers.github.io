@@ -173,6 +173,7 @@
       composeForm.hidden = !isParticipant;
 
       activeConversationRef = conversationRef;
+      notice.hidden = true;
       content.hidden = false;
       if (!messagesWatched) {
         messagesWatched = true;

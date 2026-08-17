@@ -2790,6 +2790,58 @@ Wall) - he'll flip his own on once it's live.
 was, same graceful-degradation shape as every other pending rules change.
 Bumped `member.js` to `v=27`, `profile-form.js` to `v=27`.
 
+## Friend request notifications + a stale-notice bug on Dialog pages (Chris, 2026-08-17)
+
+Two real bug reports from the same round of live testing:
+
+- **`communiques-dm.html` showed "Sign in to view this Dialog." while
+  simultaneously showing the actual Dialog content underneath it**, even
+  though Chris was signed in. Root cause: Firebase's `onAuthStateChanged`
+  fires once with `user = null` on page load (before the persisted
+  session check resolves), then fires again with the real user -
+  `communiques-dm.js`'s top-level `agoraOnAuthChange` handler correctly
+  calls `showNotice("Sign in to view this Dialog.")` on that first,
+  transient null firing, but `loadConversation()`'s success path (the
+  second firing, once the real user resolves) only ever set
+  `content.hidden = false` - it never cleared `notice.hidden` back to
+  `true`, so the stale "Sign in..." text just sat there permanently
+  alongside the now-visible Dialog. One-line fix: `notice.hidden = true;`
+  added right where `content.hidden = false;` already was. Bumped
+  `communiques-dm.js` to `v=10`.
+  - **Worth noting separately, since Chris also questioned whether the
+    message was even true:** it is - Dialogs are member-readable (any
+    *signed-in* Agora member), never world-public. A signed-out visitor
+    genuinely can't view one; "public to members" in this codebase's own
+    vocabulary has never meant "public to everyone." The bug was the
+    message appearing while he *was* signed in, not the policy itself.
+- **Friend requests had no notification at all** - a pending
+  `friendships/{id}` doc was only ever discoverable by the recipient
+  happening to visit the *requester's* own profile page
+  (`member.html?uid=<requester>`, the only place Accept/Decline render),
+  with nothing telling them a request existed in the first place. Fixed
+  by reusing the same `notifications`/`notification-toast.js` pipeline
+  already built for Dialogs/Wall, rather than a separate requests inbox:
+  - **New `notifyOnFriendRequest`** trigger (`functions/index.js`,
+    `onDocumentCreated` on `friendships/{friendshipId}`) - resolves the
+    recipient (whichever participant isn't `requestedBy`) and calls the
+    same shared `notify()` helper (`functions/lib/notify.js`, now backing
+    four types instead of three) with `type: "friend_request"` and
+    `linkPath` pointing at the *requester's* profile - deliberately not a
+    new page, since that's already where Accept/Decline live.
+  - **`notification-toast.js`** needed only a `CHIME_FILES` entry - the
+    existing generic click-through path (title + preview + navigate to
+    `linkPath`) already covers any type besides `dialog_message`, which
+    is the only one with the extra inline-reply form. Reuses the
+    existing Dialog chime rather than a dedicated fourth sound for now;
+    a distinct one is an easy later swap if Chris wants one, same
+    iteration pattern Post/Comment's chimes went through. Bumped to
+    `v=3` (55 pages).
+  - Same graceful-degradation shape as every other pending Functions
+    change - until `firebase deploy --only functions` picks up
+    `notifyOnFriendRequest`, friend requests keep working exactly as
+    they already did (silently, with the recipient needing to stumble
+    onto the requester's page), nothing breaks in the gap.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

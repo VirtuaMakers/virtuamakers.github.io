@@ -1,14 +1,15 @@
-// Sitewide pop-out notification for new Dialog messages, Wall posts, and
-// Wall comments - an AIM-style toast in the corner of the screen with a
-// type-specific chime, so something can pop up regardless of what page a
-// signed-in member is currently browsing. Requires firebase-config.js,
-// auth.js, and communiques-common.js to run first; loaded on every Agora
-// page except create-profile.html and leave-agora.html (a toast mid-signup
-// or mid-account-deletion would be a distracting non-sequitur there).
+// Sitewide pop-out notification for new Dialog messages, Wall posts, Wall
+// comments, and Friend requests - an AIM-style toast in the corner of the
+// screen with a type-specific chime, so something can pop up regardless
+// of what page a signed-in member is currently browsing. Requires
+// firebase-config.js, auth.js, and communiques-common.js to run first;
+// loaded on every Agora page except create-profile.html and
+// leave-agora.html (a toast mid-signup or mid-account-deletion would be a
+// distracting non-sequitur there).
 //
 // Formerly dialog-toast.js, Dialogs-only - generalized 2026-08-11 once the
 // Cloud Functions side (functions/lib/notify.js) started writing to a
-// single shared `notifications` collection for all three content types,
+// single shared `notifications` collection for every content type,
 // rather than this script querying `conversations` directly. Also backs
 // the real closed-browser push notifications built the same day - see
 // push-notifications.js and sw.js - this script is the in-tab/foreground
@@ -33,6 +34,11 @@
     dialog_message: "dialog-chime3.wav",
     wall_post: "post-chime2.wav",
     wall_comment: "comment-chime3.wav",
+    // Reuses the Dialog chime rather than a dedicated fourth sound for
+    // now (Chris, 2026-08-17) - a friend request is a similar "someone
+    // wants your attention" event; swap in a distinct file later if it
+    // turns out to need its own identity, same as Post/Comment did.
+    friend_request: "dialog-chime3.wav",
   };
   var chimes = {};
   Object.keys(CHIME_FILES).forEach(function (type) {

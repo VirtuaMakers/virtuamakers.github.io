@@ -412,6 +412,34 @@ exports.notifyOnWallComment = onDocumentCreated(
   }
 );
 
+// Friend requests had no notification at all until now (Chris,
+// 2026-08-17) - a pending friendships/{id} doc was only ever discoverable
+// by the recipient happening to visit the requester's own profile page
+// (member.html?uid=<requester>, the only place Accept/Decline render),
+// with nothing telling them a request existed. This reuses the same
+// notifications/notification-toast pipeline as Dialogs/Wall instead of
+// building a separate inbox - linkPath points at the requester's profile,
+// since that's already where Accept/Decline live; no dedicated requests
+// page was added.
+exports.notifyOnFriendRequest = onDocumentCreated(
+  "friendships/{friendshipId}",
+  async (event) => {
+    const friendship = event.data.data();
+    const participants = friendship.participants || [];
+    const recipientUid = participants.find((uid) => uid !== friendship.requestedBy);
+    if (!recipientUid) return;
+
+    await notify({
+      recipientUid,
+      actorUid: friendship.requestedBy,
+      type: "friend_request",
+      preview: "Wants to be friends with you.",
+      linkPath: "member.html?uid=" + encodeURIComponent(friendship.requestedBy),
+      pushTitle: (name) => name + " wants to be friends",
+    });
+  }
+);
+
 // Comment cap milestone email (Chris, 2026-08-15) - Wall posts are capped
 // at 100 comments (enforced server-side in firestore.rules' comment
 // create rule); this fires the one email once a post's own commentCount

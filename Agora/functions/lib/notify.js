@@ -1,5 +1,6 @@
-// Shared helper backing all three notification triggers (Dialog message,
-// Wall post, Wall comment) in index.js - writes the notifications/{id} doc
+// Shared helper backing all four notification triggers (Dialog message,
+// Wall post, Wall comment, Friend request) in index.js - writes the
+// notifications/{id} doc
 // the in-tab toast listens for, then best-effort pushes to any of the
 // recipient's registered devices via FCM. A push failure never blocks the
 // notification doc itself from being written - the in-tab experience
@@ -66,8 +67,9 @@ async function sendPush(recipientUid, title, body, linkPath) {
   ));
 }
 
-// type is one of "dialog_message" | "wall_post" | "wall_comment" - the
-// client's notification-toast.js switches its chime/click-through on this.
+// type is one of "dialog_message" | "wall_post" | "wall_comment" |
+// "friend_request" - the client's notification-toast.js switches its
+// chime/click-through on this.
 async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTitle }) {
   if (recipientUid === actorUid) return; // never notify someone about their own action
 
