@@ -1918,6 +1918,10 @@ label.field-checkbox-inline {
   margin-top: 0.3rem;
 }
 
+#change-email-section {
+  margin-top: 2rem;
+}
+
 .danger-zone {
   max-width: 520px;
   margin-top: 2.5rem;
