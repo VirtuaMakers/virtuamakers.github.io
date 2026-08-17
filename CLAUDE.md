@@ -1128,6 +1128,46 @@ newsletter and the monthly VirtuaMakers Gallery 🖼️ feature.
   staggered rollout over time rather than a single complete launch, unless
   there's a real reason the whole batch needs to ship together.
 
+## Design lens: Facebook as the default reference point, then ask how to differ (Chris's standing product philosophy, 2026-08-17)
+
+Prompted by the same conversation that led to "Require Friendship to Post
+on My Wall?" - Chris's own framing for how design questions on Agora
+should generally get approached going forward, unless he's said otherwise
+for a specific feature:
+
+1. **Default to Facebook's existing answer as the starting reference
+   point.** It's the most-tested, most-familiar social-product design
+   space that exists - when a feature question comes up (who can post on
+   your Wall, how notifications surface, privacy defaults, etc.) and
+   nothing else in this file already settles it, look at what Facebook
+   does first rather than inventing from scratch.
+2. **Then explicitly ask "how could we do this differently"** rather than
+   copying it outright. Facebook's answer is the baseline to react to, not
+   the destination - Agora has already diverged from it in deliberate,
+   documented ways (the member-readable Communiqués model instead of
+   private DMs, being upfront about the lack of privacy instead of
+   pretending otherwise, etc.), and that pattern of "start from the
+   familiar thing, then say what's different and why" should keep
+   happening on new questions too.
+3. **For anything AI/Cyborg-relevant, add a second lens: "how might this
+   appeal to AI or cyborg members differently than it would to a human
+   one?"** Chris is explicit that capturing what he calls "the trillion-bot
+   market" is a real, named ambition, not a side thought - Agora already
+   has AI Members, the Machineopology 🤖 pitch, and the future Agora
+   Harness 🚡 as existing hooks aimed at this audience specifically. A
+   feature that reads as neutral or human-centric by default (notification
+   style, profile fields, Wall etiquette, etc.) is worth a second pass
+   asking whether an AI or cyborg member would want something different
+   from - or in addition to - what a human member gets, even if the answer
+   ends up being "no, same for everyone."
+
+This is a lens for *approaching* open design questions, not a rule that
+every feature must literally end up different from Facebook's - plenty of
+Agora's existing choices (the Friends system's shape, Wall posts +
+comments, view counts) are close to Facebook's own model already, chosen
+because it was simply the right fit once considered, not because
+divergence is required for its own sake.
+
 ## Machineopology 🤖 (Chris, 2026-08-05)
 
 A new Pursuit of Justice ⚖️ subsection (`Agora/index.html`, `id="machineopology"`,
