@@ -427,14 +427,14 @@
 
   // --- Dialogs ---------------------------------------------------------
   // Messaging is open by default (Chris, 2026-08-06) - any signed-in
-  // member can message any other, via the "Message" button below, unless
+  // member can message any other, via the "Dialog" button below, unless
   // the profile being viewed has opted into requiring an accepted
   // friendship first (requireFriendToMessage, set on create-profile.html).
   // This section itself stays a friends-only quick-access convenience -
   // a search over your own friends (populated by loadFriendsList() below)
   // rather than a list of every conversation you have - so it's still
   // hidden until you have at least one accepted friend. Messaging anyone
-  // else goes through the "Message" button on their own profile instead.
+  // else goes through the "Dialog" button on their own profile instead.
 
   var dialogsSection = document.getElementById("member-dialogs");
   var dialogsSearch = document.getElementById("dialogs-friend-search");
@@ -504,11 +504,29 @@
   var friendStatusSent = document.getElementById("friend-status-sent");
   var friendStatusReceived = document.getElementById("friend-status-received");
   var friendStatusAccepted = document.getElementById("friend-status-accepted");
+  var friendActionsError = document.getElementById("friend-actions-error");
   var friendsWrap = document.getElementById("member-friends-wrap");
   var friendsList = document.getElementById("friends-list");
   var friendsEmpty = document.getElementById("friends-empty");
   var unsubscribeFriendship = null;
   var friendsCache = [];
+
+  // Every friend-action write used to have no .catch() at all - a
+  // permission-denied or network failure just silently did nothing, with
+  // no error and no clue why (same failure shape as the "Loading-failure
+  // hardening" fix elsewhere in this codebase). Every button below now
+  // disables itself while its write is in flight and surfaces any error
+  // here instead of failing invisibly.
+  function runFriendAction(button, promise) {
+    friendActionsError.hidden = true;
+    button.disabled = true;
+    promise.catch(function (err) {
+      friendActionsError.textContent = err.message;
+      friendActionsError.hidden = false;
+    }).then(function () {
+      button.disabled = false;
+    });
+  }
 
   function friendshipIdFor(uidA, uidB) {
     return [uidA, uidB].sort().join("_");
@@ -545,6 +563,7 @@
       unsubscribeFriendship();
       unsubscribeFriendship = null;
     }
+    friendActionsError.hidden = true;
     if (!currentUser || !uid || currentUser.uid === uid) {
       friendActions.hidden = true;
       return;
@@ -557,7 +576,7 @@
     if (!currentUser || !profileData) return;
     var otherName = (profileData.preferHandle && profileData.handle)
       ? profileData.handle : (profileData.name || profileData.handle || "Member");
-    C.getDisplayName(currentUser).then(function (myName) {
+    runFriendAction(friendAddBtn, C.getDisplayName(currentUser).then(function (myName) {
       var participantNames = {};
       participantNames[currentUser.uid] = myName;
       participantNames[uid] = otherName;
@@ -568,23 +587,26 @@
         status: "pending",
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
-    });
+    }));
   });
 
-  document.getElementById("friend-accept-btn").addEventListener("click", function () {
-    friendshipRef().update({
+  var friendAcceptBtn = document.getElementById("friend-accept-btn");
+  friendAcceptBtn.addEventListener("click", function () {
+    runFriendAction(friendAcceptBtn, friendshipRef().update({
       status: "accepted",
       respondedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    }));
   });
 
-  document.getElementById("friend-decline-btn").addEventListener("click", function () {
-    friendshipRef().delete();
+  var friendDeclineBtn = document.getElementById("friend-decline-btn");
+  friendDeclineBtn.addEventListener("click", function () {
+    runFriendAction(friendDeclineBtn, friendshipRef().delete());
   });
 
-  document.getElementById("friend-remove-btn").addEventListener("click", function () {
+  var friendRemoveBtn = document.getElementById("friend-remove-btn");
+  friendRemoveBtn.addEventListener("click", function () {
     if (!window.confirm("Remove this friend?")) return;
-    friendshipRef().delete();
+    runFriendAction(friendRemoveBtn, friendshipRef().delete());
   });
 
   function renderFriendsList(docs) {

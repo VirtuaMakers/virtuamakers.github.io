@@ -79,7 +79,7 @@
           </div>
 
           <div class="friend-actions" id="friend-actions" hidden>
-            <button type="button" class="btn btn-primary" id="message-btn" hidden>Message</button>
+            <button type="button" class="btn btn-primary" id="message-btn" hidden>Dialog</button>
             <button type="button" class="btn btn-primary" id="friend-add-btn" hidden>Add Friend</button>
             <span class="form-status" id="friend-status-sent" hidden>Friend request sent</span>
             <span id="friend-status-received" hidden>
@@ -92,6 +92,7 @@
               <button type="button" class="btn" id="friend-remove-btn">Remove Friend</button>
             </span>
           </div>
+          <p class="form-error" id="friend-actions-error" hidden></p>
 
           <dl class="profile-fields">
             <div class="profile-field">
@@ -282,7 +283,7 @@ You've 10 minutes to begin editing any Communiqué (Message, Post, or Comment) b
   <script src="im-window.js?v=1"></script>
   <script src="notification-toast.js?v=2"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=24"></script>
+  <script src="member.js?v=25"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

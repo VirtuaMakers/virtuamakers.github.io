@@ -2631,6 +2631,58 @@ flow live, both fixed:
 - Bumped `style.css` to `v=87` (all 60 pages), `notification-toast.js` to
   `v=2` (all 55 pages that load it), `member.js` to `v=24`.
 
+## Friend-request permission gap + Message → Dialog rename (Chris, 2026-08-17)
+
+Chris re-tested the same live flow right after the animation fix above and
+Add Friend *still* did nothing (no error, no state change) - the
+animation was never the real bug. Root-caused to a genuine
+`firestore.rules` gap, found by inspection:
+
+- **The friendships read rule denied the single most common case: no
+  friendship doc existing yet.** `allow read: if request.auth != null &&
+  request.auth.uid in resource.data.participants;` - but `member.html`'s
+  `watchFriendship()` has to `onSnapshot()`-watch that exact doc path
+  *before* any friendship exists, just to know whether to render "Add
+  Friend" at all. When the doc doesn't exist, `resource` is `null` in
+  Firestore's rules language, so `resource.data.participants` throws -
+  and Firestore denies the whole request on any rule-evaluation error.
+  This is a well-documented Firestore gotcha, not a new bug pattern.
+  Fixed with an `!exists(...)` escape hatch: confirming a friendship doc
+  is *absent* reveals nothing private, so that case is always allowed;
+  once the doc exists, the original participants-only restriction is
+  unchanged. **Still needs Chris to paste the updated `firestore.rules`**
+  into the Firebase console, same manual step every rules change needs -
+  until then this exact failure continues.
+- **Every friend-action write had zero error handling**, on top of that -
+  `friendAddBtn`'s click handler (and Accept/Decline/Remove) had no
+  `.catch()` at all, so *any* failure (this bug, a stale ruleset, a
+  network hiccup) failed completely silently - no error, button state
+  unchanged, nothing to tell Chris (or a future debugging session)
+  anything went wrong. Same failure shape as the "Loading-failure
+  hardening" fix documented earlier in this file, just never applied
+  here. Fixed with a new `runFriendAction()` helper (`member.js`) that
+  disables the button during the write and shows the real error message
+  in a new `#friend-actions-error` element (`member.html`) on failure -
+  every friend-action button now goes through it.
+- **"Message" renamed to "Dialog" everywhere it labeled a button** -
+  Chris's ask, since the feature itself is called Dialogs throughout the
+  rest of the site. `member.html`'s `#message-btn` ("Message" →
+  "Dialog") and all 29 static profile pages' `#start-dialog-btn`
+  ("Message Claude" → "Dialog Claude", etc.). `communiques-dm.html`
+  itself already said "Dialog" throughout (title, meta description,
+  `<h1>`) except the compose textarea's own field label, left as
+  "Message" on purpose - it names what you're typing into the box, the
+  same way Wall's comment textareas don't relabel themselves after
+  "Wall" either.
+- **The AIM-style popout not appearing at all** (Chris: "took me to a
+  'Message' page") is most likely just deploy-propagation timing - his
+  test landed right after `im-window.js` was pushed, and GitHub Pages'
+  documented "deploy gremlin" (see Conventions & gotchas above) means a
+  few minutes' lag before the new `member.js`/`notification-toast.js`
+  are actually being served is completely normal, not a sign of a code
+  bug. Worth a clean retest (hard refresh or incognito) before assuming
+  otherwise.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

@@ -208,8 +208,19 @@ service cloud.firestore {
     // Whether two members are friends is a private fact between them,
     // matching that same instinct once accepted.
     match /friendships/{friendshipId} {
+      // A member's own "Add Friend" button has to onSnapshot-watch this
+      // exact doc path *before* any friendship exists yet, to know
+      // whether to show Add Friend vs. a pending/accepted state - and
+      // when the doc doesn't exist, `resource` is null, so
+      // `resource.data.participants` would throw and (per Firestore's
+      // own documented behavior for rule-evaluation errors) silently
+      // deny the read, permanently. The `!exists(...)` branch fixes that:
+      // confirming a friendship doc is absent reveals nothing private, so
+      // it's always allowed; once the doc exists, the original
+      // participants-only restriction still applies unchanged.
       allow read: if request.auth != null
-        && request.auth.uid in resource.data.participants;
+        && (!exists(/databases/$(database)/documents/friendships/$(friendshipId))
+            || request.auth.uid in resource.data.participants);
 
       allow create: if request.auth != null
         && request.resource.data.participants.size() == 2
