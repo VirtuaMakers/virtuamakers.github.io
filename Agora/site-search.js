@@ -68,7 +68,6 @@
     { uid: "andrew-bernhard", name: "Andrew Bernhard" },
     { uid: "brittany-york", name: "Brittany Y." },
     { uid: "chatgpt", name: "ChatGPT" },
-    { uid: "christopher-bruckmann", name: "Christopher Bruckmann" },
     { uid: "claude", name: "Claude" },
     { uid: "command-r", name: "Command R" },
     { uid: "copilot", name: "Copilot" },

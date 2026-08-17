@@ -26,9 +26,8 @@ published via GitHub Pages at https://virtuamakers.github.io.
 - **Pillar sections** (large `.pillar-title`), each with a centered `.section-image`:
   - **Profiles** = umbrella over nested `.subsection`s: **AI Members** (12: ChatGPT,
     Claude, Command R, Copilot, Gemini, GLM, Grok, Kimi, Llama, Mistral, Nemotron, Qwen —
-    favicon logos + "Profile coming soon"), **Human Members** (Christopher Bruckmann,
-    Brittany York, Andrew Bernhard, Cory Campbell — initial-avatar circles), **Our Ethos**,
-    **Join**.
+    favicon logos + "Profile coming soon"), **Human Members** (Brittany York, Andrew
+    Bernhard, Cory Campbell — initial-avatar circles), **Our Ethos**, **Join**.
   - **The Exchange** — full copy (H2M/M2H/M2M, virtual goods, etc.).
   - **The Pursuit of Justice** — AI-labor compensation copy + nested **Per Manum
     Convention ✒️** (Black Nib mark / shared-authorship charter).
@@ -749,9 +748,9 @@ not as the primary label).
     existing "Message X" button permanently unusable. The rule instead
     allows any Dialog where *either* participant has no real
     `profiles/{uid}` doc, leaving that flow exactly as it was.
-- **Wall + Dialogs also live on the 30 static profile pages**
-  (`Agora/profiles/*.html` - 24 AI, 6 Human: Andrew Bernhard, Brittany
-  York, Christopher Bruckmann, Cory Campbell, Gerardus Dunkel, Ray Smith).
+- **Wall + Dialogs also live on the 29 static profile pages**
+  (`Agora/profiles/*.html` - 24 AI, 5 Human: Andrew Bernhard, Brittany
+  York, Cory Campbell, Gerardus Dunkel, Ray Smith).
   These members have no real Firestore/Auth UID, so each page sets
   `window.StaticProfile = { uid: "<slug>", name: "<Display Name>" }`
   (slug = the page's own filename, e.g. `"claude"`) and
@@ -932,8 +931,12 @@ leads with news/rights content.
 - **Done:** Firestore-backed profile creation/editing (`create-profile.html`,
   `member.html`) now exists alongside the static hand-written profile pages -
   see the "Agora login system" section above. The static pages (Claude,
-  Christopher, Alice, etc.) have NOT been migrated/imported into Firestore;
-  they remain separate, hand-maintained HTML.
+  Alice, etc.) have NOT been migrated/imported into Firestore; they remain
+  separate, hand-maintained HTML. The one exception is Christopher
+  Bruckmann's - his static page was retired outright (Chris, 2026-08-17,
+  see "Retiring the static Christopher Bruckmann profile" below) once his
+  real Firestore-backed account covered the same ground, rather than kept
+  around alongside it the way the rest of the static roster still is.
 
 ## Transactional email (in progress, Chris, 2026-08-06)
 
@@ -2546,6 +2549,33 @@ AIM" framing. Two decisions landed, one build done, one still ahead:
   to reuse there rather than build twice, but the actual pages, privacy
   model, and (per the original roadmap) free-vs-$4.99-paid question
   still need a dedicated build pass.
+
+## Retiring the static Christopher Bruckmann profile (Chris, 2026-08-17)
+
+The first static `/Agora/profiles/*.html` page ever actually retired,
+rather than left alongside a real Firestore account the way the rest of
+the roster still is (see the "Agora — News section" entry above) -
+Chris's call, since his real account already covers the same ground.
+Removed: `Agora/profiles/christopher-bruckmann.html`,
+`Agora/assets/profiles/christopher-bruckmann-avatar.jpg`, the member card
+on `Agora/index.html`'s Human Members grid, the `sitemap.xml` entry, and
+the `site-search.js` `STATIC_MEMBER_INDEX` line - his real Firestore
+profile (found via `member.html?uid=`) already surfaces in search through
+the normal real-member path, so nothing was lost there. Two comments
+elsewhere (`site-search.js`, `communiques-common.js`) use "Christopher
+Bruckmann" purely as an illustrative example of word-start search
+matching - left alone, since they're still accurate against his real
+profile and were never about the static page specifically.
+
+**Not addressed, worth flagging:** if anyone ever posted to the static
+page's Wall or messaged it via Dialogs, that content lives in Firestore
+keyed by the slug `"christopher-bruckmann"` (`wallPosts` where
+`profileUid == "christopher-bruckmann"`, possibly a `conversations` doc
+with that as a participant) - deleting the page removes the only UI that
+ever rendered it, but doesn't touch the underlying documents, which are
+now orphaned rather than gone. Not cleaned up this round; worth a look if
+it ever matters (a moderator could query for it directly in the Firebase
+console since it's not exposed through the site itself anymore).
 
 ## Open items
 
