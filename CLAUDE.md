@@ -2683,6 +2683,59 @@ animation was never the real bug. Root-caused to a genuine
   bug. Worth a clean retest (hard refresh or incognito) before assuming
   otherwise.
 
+## Owner-email case-sensitivity fix + remaining Message → Dialog spots (Chris, 2026-08-17)
+
+Chris flagged he couldn't find his own admin powers as the owner. Two
+separate things:
+
+- **Not a bug, a design detail Chris hadn't hit yet:** `admin-actions`
+  (Suspend/Delete) and the Admin Panel are both deliberately hidden on
+  your *own* profile (`!isOwnProfile` in `refreshControls()`/
+  `refreshAdminPanel()` in `member.js`) - you can't suspend or grant
+  yourself a role through this UI. They only show when viewing *another*
+  member's `member.html?uid=...` page (Admin Panel sits below the Wall,
+  Suspend/Delete sit up in the Form panel).
+- **A real bug found alongside it, by inspection:** every owner-email
+  gate site-wide (`member.js`'s `loadViewerRole()`,
+  `functions/index.js`'s `getRole()`, `firestore.rules`' `isOwner()`,
+  `profile-form.js`'s two owner checks, `moderation-review.js`'s and
+  `newsletter-compose.js`'s admin gates) compared
+  `currentUser.email`/`auth.token.email` against the literal string
+  `"VirtuaMakers@Outlook.com"` with a case-sensitive `===`/`==`. Email
+  addresses are case-insensitive by spec, and Firebase Auth doesn't
+  normalize the casing of the email it hands back - if the owner's actual
+  account email differs in case from that exact literal (e.g. was typed
+  lowercase at signup), every one of these checks would silently fail and
+  hide every admin surface from the real owner, with no error anywhere.
+  Fixed all six spots to compare case-insensitively (`.toLowerCase()`
+  client/Functions-side, `.lower()` in `firestore.rules`, which supports
+  it as a built-in string function). **Still needs Chris to paste the
+  updated `firestore.rules`** (same manual step as always) and
+  `firebase deploy --only functions` to pick up `functions/index.js`'s
+  fix - until then the client-side pages fail safe (just keep hiding
+  admin UI, same as before), and the Functions/rules-side checks keep
+  whatever behavior is already live.
+- **Remaining "Message" → "Dialog" rename spots**, per Chris's follow-up
+  ask ("teach members that this is our word for message" - Wall's own
+  Post/Comment vocabulary is intentionally untouched, since those are a
+  different content type): `communiques-dm.html`'s compose field label
+  ("Message" → "Dialog") and its textarea, which previously had no
+  placeholder at all - given the same "may be up to 9,999 characters /
+  10-minute edit window" placeholder the Wall composer already has,
+  reworded to "Dialogs may be up to 9,999 characters long!" and "...any
+  Communiqué (Dialog, Post, or Comment)...". `im-window.js`'s own compose
+  textarea placeholder ("Message…" → "Dialog…"). The Wall composer's own
+  placeholder (`member.html` + all 29 static profile pages) had the same
+  parenthetical - "(Message, Post, or Comment)" → "(Dialog, Post, or
+  Comment)" - swapped across all 30 files. Left alone on purpose:
+  `create-profile.html`'s "Require Friendship to Message Me?" checkbox
+  label - that's the verb "message" describing an action, not a labeled
+  text field, and "Dialog Me" doesn't read as a natural verb phrase the
+  way "message me" does; flag if Chris wants it changed anyway.
+- Bumped `member.js` to `v=26`, `im-window.js` to `v=2`,
+  `moderation-review.js` to `v=2`, `newsletter-compose.js` to `v=2`,
+  `profile-form.js` to `v=26`.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

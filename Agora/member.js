@@ -29,7 +29,13 @@
       viewerRole = null;
       return Promise.resolve();
     }
-    if (currentUser.email === OWNER_EMAIL) {
+    // Case-insensitive on purpose - matches firestore.rules' isOwner(),
+    // which had the same fragile literal == comparison until this same
+    // pass; Firebase Auth doesn't normalize email casing for you, so a
+    // strict === here could silently hide every admin control from the
+    // real owner if their account's email differs in case from this
+    // exact string.
+    if (currentUser.email && currentUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
       viewerRole = "owner";
       return Promise.resolve();
     }

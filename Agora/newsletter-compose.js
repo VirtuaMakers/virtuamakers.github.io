@@ -48,7 +48,7 @@
   }
 
   agoraOnAuthChange(function (user) {
-    var isAdmin = !!user && user.email === ADMIN_EMAIL;
+    var isAdmin = !!user && !!user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 
     signedOutNotice.hidden = !!user;
     notAdminNotice.hidden = !user || isAdmin;

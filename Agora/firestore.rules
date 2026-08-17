@@ -288,8 +288,15 @@ service cloud.firestore {
       allow write: if isOwner();
     }
 
+    // Case-insensitive on purpose - email addresses are case-insensitive
+    // by spec, and Firebase Auth doesn't normalize the casing of
+    // request.auth.token.email for you, so a literal == comparison here
+    // would silently lock the real owner out if their account's email
+    // happens to differ in case from this exact string (e.g. was typed in
+    // lowercase at signup).
     function isOwner() {
-      return request.auth != null && request.auth.token.email == 'VirtuaMakers@Outlook.com';
+      return request.auth != null && request.auth.token.email != null
+        && request.auth.token.email.lower() == 'virtuamakers@outlook.com';
     }
 
     // Full admin power (suspend/delete accounts, newsletter, granting

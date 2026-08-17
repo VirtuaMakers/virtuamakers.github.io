@@ -45,7 +45,11 @@ const OWNER_EMAIL = "VirtuaMakers@Outlook.com";
 // firestore.rules for why that's not delegated to admins themselves).
 async function getRole(auth) {
   if (!auth) return null;
-  if (auth.token.email === OWNER_EMAIL) return "owner";
+  // Case-insensitive on purpose - matches firestore.rules' isOwner();
+  // Firebase Auth doesn't normalize email casing, so a literal ===
+  // could silently deny the real owner if their account's email differs
+  // in case from this exact string.
+  if (auth.token.email && auth.token.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) return "owner";
   const snap = await admin.firestore().collection("admins").doc(auth.uid).get();
   return snap.exists ? snap.data().role : null;
 }

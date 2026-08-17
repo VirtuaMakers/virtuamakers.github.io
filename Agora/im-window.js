@@ -112,7 +112,7 @@
     form.className = "im-window-compose";
 
     var textarea = document.createElement("textarea");
-    textarea.placeholder = "Message…";
+    textarea.placeholder = "Dialog…";
     textarea.maxLength = 9999;
     form.appendChild(textarea);
 

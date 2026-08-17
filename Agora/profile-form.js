@@ -442,7 +442,7 @@
     if (!existingDoc) return;
 
     changeEmailCurrent.textContent = currentUser.email || "(no email on file)";
-    changeEmailOwnerWarning.hidden = currentUser.email !== OWNER_EMAIL;
+    changeEmailOwnerWarning.hidden = !currentUser.email || currentUser.email.toLowerCase() !== OWNER_EMAIL.toLowerCase();
 
     var providerId = currentUser.providerData[0] && currentUser.providerData[0].providerId;
     var isPasswordAccount = providerId === "password";
@@ -469,7 +469,7 @@
     var newEmail = changeEmailNewInput.value.trim();
     if (!newEmail) return;
 
-    if (currentUser.email === OWNER_EMAIL) {
+    if (currentUser.email && currentUser.email.toLowerCase() === OWNER_EMAIL.toLowerCase()) {
       var confirmed = window.confirm(
         "This is Agora's owner account email. Changing it will move permanent " +
         "owner access to the new address once it's confirmed. Are you sure you want to continue?"
