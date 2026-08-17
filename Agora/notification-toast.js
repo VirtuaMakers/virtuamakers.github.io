@@ -54,7 +54,12 @@
   // filename + query rather than the full pathname.
   function isViewingLinkPath(linkPath) {
     var currentFile = window.location.pathname.split("/").pop() + window.location.search;
-    return currentFile === linkPath;
+    if (currentFile === linkPath) return true;
+    if (typeof AgoraIMWindow !== "undefined") {
+      var conversationId = (linkPath.match(/[?&]c=([^&]+)/) || [])[1];
+      if (conversationId && AgoraIMWindow.isOpenFor(conversationId)) return true;
+    }
+    return false;
   }
 
   var currentUser = null;

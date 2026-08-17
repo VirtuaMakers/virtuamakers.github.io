@@ -473,9 +473,13 @@
     if (!currentUser || !profileData) return;
     var otherName = (profileData.preferHandle && profileData.handle)
       ? profileData.handle : (profileData.name || profileData.handle || "Member");
-    C.startOrOpenDialog(currentUser, uid, otherName).then(function (conversationId) {
-      window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
-    });
+    if (typeof AgoraIMWindow !== "undefined") {
+      AgoraIMWindow.open(currentUser, uid, otherName);
+    } else {
+      C.startOrOpenDialog(currentUser, uid, otherName).then(function (conversationId) {
+        window.location.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      });
+    }
   });
 
   agoraOnAuthChange(function (user) {

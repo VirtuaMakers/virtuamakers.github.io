@@ -2577,6 +2577,60 @@ now orphaned rather than gone. Not cleaned up this round; worth a look if
 it ever matters (a moderator could query for it directly in the Firebase
 console since it's not exposed through the site itself anymore).
 
+## Add Friend animation + a real AIM-style Message popout (Chris, 2026-08-17)
+
+Two real bug reports from Chris testing `member.html`'s Friends/Message
+flow live, both fixed:
+
+- **"Add Friend" looked like it did nothing.** The button's own click
+  handler only ever wrote the `friendships` doc - all the actual visible
+  feedback (hiding Add Friend, showing "Friend request sent") came from
+  `renderFriendActions()` reacting a moment later to the real-time
+  `onSnapshot` listener, and that reaction was an instant `hidden`
+  attribute swap with zero transition, so a fast connection made the
+  whole state change look like a no-op. Fixed with a CSS-only
+  `friendActionIn` keyframe animation (`style.css`) on
+  `.friend-actions button:not([hidden])`/`.form-status:not([hidden])`/
+  `span:not([hidden])` - since these elements are toggled via the `hidden`
+  IDL property (not a class), removing `hidden` naturally re-matches the
+  `:not([hidden])` selector and restarts the animation, so no JS changes
+  were needed to trigger it. Covers every friend-action state change
+  (Add Friend → Sent, Received → Accepted, etc.), not just the one Chris
+  hit.
+- **The "Message" button felt unresponsive / not what Chris wanted.** It
+  worked (created-or-found the Dialog, then did a full
+  `window.location.href` navigation to `communiques-dm.html`), but Chris
+  wants the eventual AIM-style pop-out window (see the "Communiqués
+  redesign" entry above) sooner rather than later, and a full page jump
+  read as a dead click while the create-or-find call was in flight. Built
+  a real first version now rather than waiting for the bigger chat-heads
+  redesign: **`Agora/im-window.js`** (new) - a single floating chat
+  window (reusing `.notification-toast`'s corner/slide-in look, new
+  `.im-window*` CSS classes) that opens in place on Message click instead
+  of navigating away. Shows the most recent 20 messages via a live
+  `onSnapshot` (an "⤢" link opens the full paginated Dialog for older
+  history/editing), and a compose box that posts through the same
+  moderation-check + Firestore-write path `communiques-dm.js` already
+  uses. Deliberately scoped like `notification-toast.js` was at v1: one
+  window at a time, no drag, no stacking - a real usable version to
+  iterate on, not a placeholder. `member.js`'s Message handler now calls
+  `AgoraIMWindow.open(...)` when it's loaded, falling back to the old
+  navigate-to-`communiques-dm.html` behavior if it isn't (mirrors every
+  other "gracefully degrade if the new script isn't loaded yet" pattern
+  in this codebase). `notification-toast.js`'s `isViewingLinkPath()` also
+  checks `AgoraIMWindow.isOpenFor(conversationId)` now, so a Dialog
+  message doesn't pop a redundant toast on top of the window already
+  showing it live - same suppression idea as the existing "already on
+  that Dialog's own page" check.
+- Only wired into `member.html` this round (where the Message button and
+  the bug report both live) - the 30 static profile pages' own "Message
+  X" button (`static-profile-communiques.js`) still navigates to
+  `communiques-dm.html` unchanged; worth carrying `im-window.js` there
+  too in a later pass if Chris wants the popout everywhere Dialogs can be
+  started from.
+- Bumped `style.css` to `v=87` (all 60 pages), `notification-toast.js` to
+  `v=2` (all 55 pages that load it), `member.js` to `v=24`.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
