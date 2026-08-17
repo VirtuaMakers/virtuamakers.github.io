@@ -2736,6 +2736,60 @@ separate things:
   `moderation-review.js` to `v=2`, `newsletter-compose.js` to `v=2`,
   `profile-form.js` to `v=26`.
 
+## Require Friendship to Post on My Wall (Chris, 2026-08-17)
+
+Chris's own worry, prompted by the "Require Friendship for Dialogs?"
+rename earlier the same day: Facebook-style flaming on his own Wall once
+Agora gets more visible ("I have my haters"). Facebook itself defaults
+posting-on-your-timeline to friends-only, so the instinct is a reasonable
+one - but Chris chose **off by default** for Agora anyway (matches how
+every other opt-in gate here has shipped, and doesn't retroactively lock
+up Wall posting on the 30 static profile pages or any existing member's
+Wall) - he'll flip his own on once it's live.
+
+- **New `requireFriendToPost` field** on `profiles/{uid}` (off by
+  default), a second checkbox on `create-profile.html` right under
+  "Require Friendship for Dialogs?" - **"Require Friendship to Post on My
+  Wall?"** - deliberately a separate field from `requireFriendToMessage`,
+  not a shared toggle, since a member might reasonably want one open and
+  the other locked down.
+- **`firestore.rules`:** `requiresFriendshipToPost(uid)`/
+  `canPostToWall(sender, wallOwner)` mirror `requiresFriendship()`/
+  `canMessage()` exactly, applied to both the `wallPosts` create rule and
+  a new `canCreateComment(sender, postId)` (comments check the same
+  setting as top-level posts, keyed to the *Wall's owner* -
+  `wallPosts/{postId}`'s own `profileUid` - not the comment's author,
+  fetched once alongside the existing 100-comment-cap check rather than
+  as a second `get()` call). **A real self-lockout bug caught before
+  shipping:** without a `sender == wallOwner` short-circuit,
+  `canPostToWall` would have blocked a member from posting on their
+  *own* Wall the moment they turned this on, since no friendship doc
+  with yourself can ever exist (`isFriendsWith(uid, uid)` always resolves
+  false) - added that check first, so posting/commenting on your own
+  Wall is always allowed regardless of the setting.
+- **Client-side mirror in `member.js`:** `updateWallComposerVisibility()`
+  (parallel to the existing `updateMessageButtonVisibility()`) hides
+  `#wall-post-form` and shows a `#wall-post-restricted-notice` ("This
+  member only accepts Wall posts and comments from friends.") for a
+  visitor who isn't an accepted friend of a Wall that requires it - wired
+  into the same three call sites `updateMessageButtonVisibility()`
+  already used (profile load, and both branches of the friendship
+  listener), so it resolves correctly regardless of which of the two
+  async sources (profile fetch vs. friendship snapshot) settles first.
+  The 30 static profile pages are unaffected - no profile doc means
+  `requiresFriendshipToPost()` already resolves to open, same reasoning
+  as the Dialogs equivalent.
+- **Not extended to the static pages' own Wall composer** - same
+  reasoning as `requireFriendToMessage` never touching them: no
+  Firestore profile doc to hold the setting, and no owner who could ever
+  turn it on.
+
+**Needs from Chris before this is live:** paste the updated
+`firestore.rules` into the Firebase console (Firestore Database → Rules)
+- until then, Wall posting stays open for everyone exactly as it already
+was, same graceful-degradation shape as every other pending rules change.
+Bumped `member.js` to `v=27`, `profile-form.js` to `v=27`.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

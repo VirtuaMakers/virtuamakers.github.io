@@ -177,6 +177,7 @@
   var emailInput = document.getElementById("field-email");
   var emailVisible = document.getElementById("field-email-visible");
   var requireFriendCheckbox = document.getElementById("field-require-friend");
+  var requireFriendPostCheckbox = document.getElementById("field-require-friend-post");
   var tosInput = document.getElementById("field-tos");
   var newsletterCheckbox = document.getElementById("field-newsletter");
   var errorEl = document.getElementById("form-error");
@@ -293,6 +294,7 @@
     emailInput.value = data.email || "";
     emailVisible.checked = data.showEmail !== false;
     requireFriendCheckbox.checked = !!data.requireFriendToMessage;
+    requireFriendPostCheckbox.checked = !!data.requireFriendToPost;
     // Respects an explicit false (e.g. from the no-login unsubscribe link
     // in a newsletter email) same as every other "on by default" checkbox
     // here - only an explicit false unchecks it, not a merely-missing field.
@@ -699,6 +701,7 @@
       email: email,
       showEmail: emailVisible.checked,
       requireFriendToMessage: requireFriendCheckbox.checked,
+      requireFriendToPost: requireFriendPostCheckbox.checked,
       newsletterOptIn: newsletterCheckbox.checked,
       status: existingDoc ? existingDoc.status : "active",
       // Invisible view counter, written directly by member.html - not part

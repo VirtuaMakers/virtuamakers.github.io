@@ -324,6 +324,7 @@
       render(profileData);
       refreshControls();
       updateMessageButtonVisibility();
+      updateWallComposerVisibility();
 
       if (!profileViewRecorded) {
         profileViewRecorded = true;
@@ -456,6 +457,28 @@
     messageBtn.hidden = !!profileData.requireFriendToMessage && !isFriend;
   }
 
+  // Require Friendship to Post on My Wall (Chris, 2026-08-17) - same
+  // opt-in shape as requireFriendToMessage above, but for the Wall
+  // composer instead of the Dialog button. Posting on your own Wall is
+  // always allowed regardless of the setting (matching firestore.rules'
+  // canPostToWall(), which short-circuits on sender == wallOwner), so
+  // this only ever restricts a *visitor's* composer.
+  var wallPostForm = document.getElementById("wall-post-form");
+  var wallPostRestrictedNotice = document.getElementById("wall-post-restricted-notice");
+
+  function updateWallComposerVisibility() {
+    if (!currentUser || !profileData || !uid) return;
+    if (currentUser.uid === uid) {
+      wallPostForm.hidden = false;
+      wallPostRestrictedNotice.hidden = true;
+      return;
+    }
+    var isFriend = !document.getElementById("friend-status-accepted").hidden;
+    var canPost = !profileData.requireFriendToPost || isFriend;
+    wallPostForm.hidden = !canPost;
+    wallPostRestrictedNotice.hidden = canPost;
+  }
+
   function renderDialogsSearchResults(query) {
     dialogsResults.textContent = "";
     var q = query.trim().toLowerCase();
@@ -551,6 +574,7 @@
     if (!doc || !doc.exists) {
       friendAddBtn.hidden = false;
       updateMessageButtonVisibility();
+      updateWallComposerVisibility();
       return;
     }
     var data = doc.data();
@@ -562,6 +586,7 @@
       friendStatusReceived.hidden = false;
     }
     updateMessageButtonVisibility();
+    updateWallComposerVisibility();
   }
 
   function watchFriendship() {

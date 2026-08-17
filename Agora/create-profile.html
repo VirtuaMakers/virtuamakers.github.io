@@ -520,8 +520,14 @@
             <label><input type="checkbox" id="field-require-friend" /> Require Friendship for Dialogs?</label>
             <p class="field-hint">Off by default – any signed-in member can start a Dialog
               with you. Turn this on if you'd rather only accept Dialogs from members
-              you've accepted as a friend. This only covers Dialogs – any signed-in
-              member can still post or comment on your Wall either way, friend or not.</p>
+              you've accepted as a friend. This only covers Dialogs – see the separate
+              Wall setting below for posts and comments.</p>
+          </div>
+          <div class="field-checkbox">
+            <label><input type="checkbox" id="field-require-friend-post" /> Require Friendship to Post on My Wall?</label>
+            <p class="field-hint">Off by default – any signed-in member can post or
+              comment on your Wall. Turn this on if you'd rather only accept Wall
+              posts and comments from members you've accepted as a friend.</p>
           </div>
           <div class="field-checkbox" id="field-tos-wrap">
             <label><input type="checkbox" id="field-tos" required />
@@ -628,7 +634,7 @@
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
   <script src="moderation-client.js?v=1"></script>
-  <script src="profile-form.js?v=26"></script>
+  <script src="profile-form.js?v=27"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

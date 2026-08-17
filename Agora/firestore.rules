@@ -156,14 +156,21 @@ service cloud.firestore {
 
     // Communiqués 📨 - a member's Wall. `profileUid` names whose Wall the
     // post is on; any signed-in member may post or comment on any Wall
-    // (not just their own), matching a typical social-wall model.
+    // (not just their own) by default, matching a typical social-wall
+    // model - unless the wall's owner has opted into requiring an
+    // accepted friendship first (requireFriendToPost, off by default -
+    // Chris, 2026-08-17, same opt-in shape as requireFriendToMessage for
+    // Dialogs, added after Chris flagged wanting a way to stop strangers
+    // from being able to flame his own Wall once the site gets more
+    // visible). See canPostToWall()/canCreateComment() below.
     match /wallPosts/{postId} {
       allow read: if request.auth != null;
 
       allow create: if request.auth != null
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.profileUid is string
-        && validBody(request.resource.data.body);
+        && validBody(request.resource.data.body)
+        && canPostToWall(request.auth.uid, request.resource.data.profileUid);
 
       allow update: if editableWithinWindow(['body']);
       allow delete: if deletableWithinWindow();
@@ -181,15 +188,15 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if request.auth != null;
 
-        // Capped at 100 comments per post (Chris, 2026-08-15) - checked
-        // against the parent post's own commentCount, which only reflects
-        // completed comments (the client's follow-up increment() on the
-        // post happens after this create succeeds), so this correctly
-        // blocks the 101st attempt while still allowing the 100th.
+        // Capped at 100 comments per post (Chris, 2026-08-15) and gated
+        // by the same requireFriendToPost setting as top-level posts
+        // (Chris, 2026-08-17) - both checked in canCreateComment() below
+        // off a single fetch of the parent post, since a comment lands on
+        // the same Wall a top-level post would.
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
           && validBody(request.resource.data.body)
-          && get(/databases/$(database)/documents/wallPosts/$(postId)).data.commentCount < 100;
+          && canCreateComment(request.auth.uid, postId);
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
@@ -343,6 +350,38 @@ service cloud.firestore {
     // already be friends with them.
     function canMessage(sender, target) {
       return !requiresFriendship(target) || isFriendsWith(sender, target);
+    }
+
+    // Same opt-in shape as requiresFriendship() above, but for posting on
+    // someone's Wall rather than starting a Dialog with them - a separate
+    // field (requireFriendToPost) since a member might want one open and
+    // the other locked down (Chris, 2026-08-17). Off by default; a uid
+    // with no profile doc at all (the 30 static profile-page slugs)
+    // resolves to false (open), same reasoning as requiresFriendship().
+    function requiresFriendshipToPost(uid) {
+      return exists(/databases/$(database)/documents/profiles/$(uid))
+        && get(/databases/$(database)/documents/profiles/$(uid)).data.requireFriendToPost == true;
+    }
+
+    // sender == wallOwner (posting or commenting on your own Wall) is
+    // always allowed and short-circuits before the friendship check -
+    // without this, turning requireFriendToPost on would lock a member
+    // out of their own Wall, since no friendship doc with yourself can
+    // ever exist.
+    function canPostToWall(sender, wallOwner) {
+      return sender == wallOwner
+        || !requiresFriendshipToPost(wallOwner)
+        || isFriendsWith(sender, wallOwner);
+    }
+
+    // A comment lands on the same Wall a top-level post would, so it's
+    // gated by the same requireFriendToPost setting as canPostToWall()
+    // above - fetches the parent post once for both the friendship check
+    // (against its profileUid, i.e. the Wall it's actually on) and the
+    // existing 100-comment cap, rather than two separate get() calls.
+    function canCreateComment(sender, postId) {
+      let post = get(/databases/$(database)/documents/wallPosts/$(postId)).data;
+      return post.commentCount < 100 && canPostToWall(sender, post.profileUid);
     }
 
     function validBody(body) {
