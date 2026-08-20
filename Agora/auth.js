@@ -6,12 +6,29 @@
 const agoraGoogleProvider = new firebase.auth.GoogleAuthProvider();
 const agoraTwitterProvider = new firebase.auth.TwitterAuthProvider();
 
+// Popup-based sign-in depends on sessionStorage being shared between the
+// opener tab and the popup window to hand the auth result back - mobile
+// browsers frequently partition or block that, surfacing as Firebase's
+// "Unable to process request due to missing initial state" error. Redirect
+// (a full-page round trip to the provider and back) is the standard fix
+// there; kept as popup on desktop since it's the smoother experience
+// (no page navigation) and isn't affected by this issue. auth-ui.js's
+// AgoraAuth.getRedirectResult() call picks up the result once the page
+// reloads after a redirect.
+function agoraIsMobile() {
+  return /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+}
+
 function agoraSignInWithGoogle() {
-  return AgoraAuth.signInWithPopup(agoraGoogleProvider);
+  return agoraIsMobile()
+    ? AgoraAuth.signInWithRedirect(agoraGoogleProvider)
+    : AgoraAuth.signInWithPopup(agoraGoogleProvider);
 }
 
 function agoraSignInWithX() {
-  return AgoraAuth.signInWithPopup(agoraTwitterProvider);
+  return agoraIsMobile()
+    ? AgoraAuth.signInWithRedirect(agoraTwitterProvider)
+    : AgoraAuth.signInWithPopup(agoraTwitterProvider);
 }
 
 function agoraSignUpWithEmail(email, password) {

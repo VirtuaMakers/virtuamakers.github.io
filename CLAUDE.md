@@ -2955,6 +2955,60 @@ wasn't also updated before a `firebase deploy --only functions` run
 earlier in the same session, worth a `git pull` + redeploy to make sure
 the Functions side didn't quietly deploy stale code the same way.
 
+## Mobile Google/X sign-in failure: popup vs. redirect (Chris's friend, 2026-08-20)
+
+A friend of Chris's testing live on their phone hit Firebase's "Unable to
+process request due to missing initial state" error trying to sign in
+with Google - a well-documented Firebase Auth gotcha, not a one-off.
+
+**Root cause:** `agoraSignInWithGoogle()`/`agoraSignInWithX()` used
+`signInWithPopup()` unconditionally. Popup-based OAuth depends on
+sessionStorage being shared between the opener tab and the popup window
+to hand the auth result back once the provider redirects there - mobile
+browsers frequently partition or block that storage sharing (Safari ITP,
+Chrome's storage partitioning, in-app/embedded browsers, etc.), which is
+exactly the failure mode Firebase's own error message describes.
+
+**Fix - redirect on mobile, popup on desktop:** `auth.js`'s new
+`agoraIsMobile()` (a plain `navigator.userAgent` check) branches
+`agoraSignInWithGoogle()`/`agoraSignInWithX()` to `AgoraAuth.
+signInWithRedirect()` on mobile instead - a full-page round trip to the
+provider and back, which doesn't depend on popup/opener storage sharing
+the same way and is Firebase's own standard recommendation for mobile.
+Desktop keeps `signInWithPopup()`, since it's the smoother experience
+(no page navigation away) and isn't affected by this issue.
+
+**The completion side needed its own fix, since redirect breaks the
+normal promise chain** - a full page reload happens between starting the
+redirect and Firebase resolving it, so `agoraSignInWithGoogle().then(...)`
+in the click handler never actually sees the result (it resolves once
+the *navigation starts*, not once sign-in completes). Added one
+`AgoraAuth.getRedirectResult()` call near the top of `auth-ui.js`
+(module scope, runs once per page load) - a *successful* sign-in needs
+no special handling there at all, since it's already picked up
+automatically by the `agoraOnAuthChange` listener every page already
+has, same as a popup sign-in would be. The call only exists to catch and
+surface an *error* from a completed redirect (reopens the sign-in modal
+and shows it via the existing `showError()`), since that's the one thing
+a popup's rejected promise used to catch that a redirect otherwise
+wouldn't get surfaced anywhere. Resolves harmlessly with no user on every
+normal page load where no redirect was pending, so it's safe to call
+unconditionally on every page.
+
+**Scoped to the actual reported flow** - `agoraReauthenticate()`'s
+`user.reauthenticateWithPopup()` calls (used by the Change Login Email
+flow) were left as popup-only. Firebase does have a
+`reauthenticateWithRedirect()` counterpart, but wiring it up would need
+carrying the in-progress "change email to X" intent across the full page
+reload (sessionStorage, most likely) before the follow-up
+`agoraRequestEmailChange()` call could resume - a real chunk of added
+complexity for a much less frequently hit path (an existing member
+changing their own login email, not a brand-new signup) than the one
+that was actually reported broken. Worth doing if it ever comes up as a
+real complaint, not preemptively.
+
+Bumped `auth.js` to `v=6`, `auth-ui.js` to `v=19` (both, all 59 pages).
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

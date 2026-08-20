@@ -83,6 +83,20 @@
     if (forgotPasswordRow) forgotPasswordRow.hidden = isSignUp;
   }
 
+  // Completes a mobile Google/X sign-in that used signInWithRedirect (see
+  // auth.js's agoraIsMobile()) - that flow navigates away to the provider
+  // and back with a full page reload, so any error from it can't be
+  // caught in the click handler that started it the way a popup's promise
+  // rejection can. A successful sign-in needs no handling here at all -
+  // it's already picked up automatically by every page's own
+  // agoraOnAuthChange listener, same as a popup sign-in would be. This
+  // resolves harmlessly with no user on every normal page load where no
+  // redirect was pending, so it's safe to call unconditionally.
+  AgoraAuth.getRedirectResult().catch(function (err) {
+    openModal();
+    showError(err.message);
+  });
+
   if (modalClose) modalClose.addEventListener("click", closeModal);
 
   if (modal) {
