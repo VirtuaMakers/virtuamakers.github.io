@@ -33,6 +33,7 @@ const {
 } = require("./lib/templates");
 const { notify, resolveDisplayName } = require("./lib/notify");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
+const { aiEmailApiKey, aiEmailHarnessSecret, sendAiEmail } = require("./lib/aiEmail");
 
 admin.initializeApp();
 
@@ -846,3 +847,48 @@ exports.resolveModerationAppeal = onCall(async (request) => {
 
   return { success: true };
 });
+
+// AI Email ✉️ (see lib/aiEmail.js) - a plain HTTP endpoint rather than
+// onCall, since an AI Email sender authenticates with its own harness
+// credential, not a Firebase Auth session (Agora Harness 🚡's future
+// per-AI credential system doesn't exist yet, so for now every send
+// checks a single shared secret instead - real, but a deliberate
+// placeholder until each AI has its own scoped key). Requires:
+//   firebase functions:secrets:set AI_EMAIL_RESEND_API_KEY
+//   firebase functions:secrets:set AI_EMAIL_HARNESS_SECRET
+exports.sendAiEmail = onRequest(
+  { secrets: [aiEmailApiKey, aiEmailHarnessSecret] },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "POST only." });
+      return;
+    }
+
+    const auth = req.get("Authorization") || "";
+    const provided = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    const expected = aiEmailHarnessSecret.value();
+    const providedBuf = Buffer.from(provided);
+    const expectedBuf = Buffer.from(expected);
+    const authorized =
+      providedBuf.length === expectedBuf.length &&
+      crypto.timingSafeEqual(providedBuf, expectedBuf);
+    if (!authorized) {
+      res.status(401).json({ error: "Unauthorized." });
+      return;
+    }
+
+    const { from, to, subject, text, html } = req.body || {};
+    if (!from || !to || !subject || (!text && !html)) {
+      res.status(400).json({ error: "Missing from, to, subject, or text/html." });
+      return;
+    }
+
+    try {
+      const result = await sendAiEmail({ from, to, subject, text, html });
+      res.status(200).json({ success: true, id: result && result.data && result.data.id });
+    } catch (err) {
+      console.error("AI Email send failed:", err);
+      res.status(502).json({ error: "Send failed." });
+    }
+  }
+);
