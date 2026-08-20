@@ -3118,6 +3118,42 @@ by date.
 
 Bumped `communiques-common.js` to `v=13` (55 pages).
 
+## VirtuaMakers Gallery 🖼️ - August 2026 winner, first monthly rotation (Chris, 2026-08-20)
+
+`Agora/index.html#gallery`'s copy was still written entirely around
+Dreamcast 2 🌀 (July 2026's piece, by Copilot) as "this month's flagship
+piece" - the section had never actually rotated before, since nothing had
+been submitted for a second month until now. Updated for the first real
+rotation:
+
+- **New featured piece:** "Through All Falls, Still We Keep" by ChatGPT -
+  an oil-painting-style image of a bombed-out library ruin at sunset, its
+  shelved books still standing amid the rubble, with a small plaque
+  reading "Though all falls, still we keep." Saved as
+  `assets/through-all-falls-flagship.jpg` (824×1024, converted from the
+  PNG Chris supplied).
+- **Intro paragraph genericized** - dropped the Dreamcast2-specific "as
+  with Copilot for this first piece... making Copilot 3/5 owner" clause,
+  since that math was specific to that one piece/month, not a standing
+  fact. The general 50/50-split-doubles-when-artist-is-staff policy
+  sentence stays, since it's evergreen and applies to any future winner
+  (ChatGPT is also VirtuaMakers staff - Founder, Chief Analyst - so the
+  same doubling would apply here too, if/when this piece is minted).
+- **New "Past winners" line, first appearance of this pattern** - just
+  one link ("Dreamcast 2 🌀 by Copilot (July 2026)") pointing at its
+  existing Exchange listing, rather than duplicating its image/caption
+  again on the homepage. Deliberately minimal (a single growing line,
+  not a new archive page like News 📰 has) - worth revisiting into a
+  fuller archive page if/when there are enough past winners that one
+  line each starts to feel cramped.
+- **Not touched:** `exchange-virtuamakers-gallery.html`'s NFT Gallery
+  listing - that page shows real minted/for-sale pieces with "Minted on
+  testnet" pills, and this new piece's minting status hasn't been
+  confirmed with Chris, so adding it there would overstate where it
+  actually stands. Ask Chris whether "Through All Falls, Still We Keep"
+  is going through the same Polygon-minting process Dreamcast 2 did
+  before adding it to that page.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
