@@ -3182,6 +3182,52 @@ rotation:
   explicit ask) once he confirms it for this piece - don't guess a version
   string into public-facing copy.
 
+## Firestore rules published + Cloud Functions deployed (Chris, 2026-08-20)
+
+The two recurring "still needs from Chris" manual steps that had been
+accumulating across many rounds of work (multi-admin, push
+notifications, the 100-comment cap, the newsletter, password reset,
+change-login-email, moderation) both actually happened this round -
+worth a dedicated entry since so many earlier sections point back to
+this as their blocker.
+
+- **`firestore.rules` pasted into the Firebase console and published.**
+  The version now live is the 409-line file as of commit `a41eccb`
+  (includes `isOwner()`/`isFullAdmin()`/`isAtLeastModerator()`, the
+  `admins/{uid}` collection, `requireFriendToPost`/
+  `requireFriendToMessage`, the 100-comment cap check, view-count bump
+  rules, and the friendship-doc `!exists()` fix).
+- **`firebase deploy --only functions` completed successfully** from
+  Chris's local clone - all 20 functions (`adminDeleteUser`,
+  `adminBanUser`, `selfDeleteAccount`, `sendPasswordReset`,
+  `requestEmailChange`, `sendWelcomeEmail`, `notifyFlaggedSocial`,
+  `cleanupAbandonedSignups`, `notifyOnDialogMessage`, `notifyOnWallPost`,
+  `notifyOnWallComment`, `notifyOnFriendRequest`, `notifyOnCommentCap`,
+  `unsubscribeNewsletter`, `sendMonthlyNewsletter`, `moderateText`,
+  `moderateImage`, `requestModerationAppeal`, `getModerationImageUrl`,
+  `resolveModerationAppeal`) reported "Skipped (No changes detected)" -
+  i.e. already live and matching this exact codebase, not newly pushed.
+  So all of the above were likely already deployed from an earlier local
+  session; what actually blocked *this* attempt was a stale local
+  `node_modules` (git-ignored, never touched by `git pull`) still
+  running the old pre-`^7.0.0` `firebase-functions`, reproducing the
+  same "Cannot determine backend specification" timeout documented
+  earlier under "Deploy timeout root cause." Fixed for good, not just
+  this once: `Agora/firebase.json`'s functions config now has
+  `"predeploy": ["npm --prefix \"$RESOURCE_DIR\" ci"]`, so every future
+  `firebase deploy --only functions` reinstalls from the committed
+  `package-lock.json` first automatically, instead of relying on
+  remembering to `npm install`/`npm ci` by hand after a dependency bump.
+- **Still open, separately:** whether the Google Cloud side for content
+  moderation (Cloud Natural Language API + Cloud Vision API enabled on
+  `agora-firebase-f4240`, and `GOOGLE_MODERATION_API_KEY` set via
+  `firebase functions:secrets:set`) has actually been done - Chris is
+  checking with other sessions that might know. Until confirmed,
+  `moderateText`/`moderateImage` are deployed and callable but may still
+  be failing open silently (no API key → error → client treats it as
+  "allow" - see "Content moderation 🛡️" above), so don't assume posts are
+  actually being filtered yet.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
