@@ -2882,6 +2882,79 @@ Two real bug reports from the same round of live testing:
     they already did (silently, with the recipient needing to stumble
     onto the requester's page), nothing breaks in the gap.
 
+## The real Add Friend / ✓ Friends bug: [hidden] losing to author `display` rules, fixed globally (Chris, 2026-08-20)
+
+After merging this session's branch into `main` (see below) so Chris was
+finally looking at current code, the "Add Friend" button and "✓ Friends –
+Remove Friend" kept showing at the same time on River's profile - not a
+stale-code artifact after all, a real bug.
+
+**Root cause:** the browser's built-in `[hidden] { display: none; }` rule
+is a *normal*-priority User Agent rule, and CSS cascade origin rules mean
+normal *author* rules always beat normal *user-agent* rules, regardless of
+selector specificity. `.btn { display: inline-block; ... }` is exactly
+such an author rule - so any `.btn`-classed element (here, `#friend-add-
+btn`) that JS sets `.hidden = true` on stays visually shown anyway, since
+`.btn`'s `display: inline-block` wins over `[hidden]`'s `display: none`.
+`renderFriendActions()` in `member.js` was working correctly the whole
+time - it does reset and show exactly one state per call - the bug was
+purely that "hidden" didn't actually mean hidden for that specific
+element.
+
+**This wasn't a new bug class - it was the third time it'd been hit:**
+first `.wall-comment-form` (documented earlier in this file, fixed with a
+scoped `[hidden]` guard on that one selector), then `.admin-actions`/
+`.friend-actions` as *containers* (a `.kind-selector[hidden],
+.profile-form[hidden], .admin-actions[hidden], .friend-actions[hidden] {
+display: none; }` rule, added at some point without a CLAUDE.md entry),
+and now an individual `.btn` *child* inside an otherwise-correctly-shown
+container. Three scoped patches for the same underlying mechanism was a
+sign the pattern itself was the problem, not any one selector.
+
+**Fixed once, globally, instead of a fourth scoped patch:**
+```css
+[hidden] {
+  display: none !important;
+}
+```
+added right after the `*` reset at the top of `style.css` - a legitimate,
+narrow use of `!important` (guaranteeing a semantic HTML attribute's
+meaning can never be silently overridden by a presentational rule
+elsewhere in the stylesheet, which is exactly what kept happening).
+**Removed as redundant**, since this supersedes all of them:
+`.signin-modal-backdrop[hidden]`, `.signin-terms-check[hidden]`, the
+`.kind-selector`/`.profile-form`/`.admin-actions`/`.friend-actions[hidden]`
+group rule, and `.bag-count[hidden]` - every one was just `display: none;`,
+now handled globally. The `.friend-actions button:not([hidden])` etc.
+entrance-animation rule (see "Add Friend animation" above) is unrelated
+and stays - it only adds an `animation` property, never `display`, so it
+was never part of this bug. Bumped `style.css` to `v=88` (all 59 pages).
+
+## Merging the session branch into `main` (Chris, 2026-08-20)
+
+A meta-bug underneath several rounds of "why doesn't this look right"
+confusion this week: every frontend change from an extended session -
+the Message→Dialog rename, the IM window popout, the friend-actions error
+handling, the Wall friendship gate UI, all of it - had been committed and
+pushed to a feature branch (`claude/moderation-deploy-setup-6gyglz`), but
+`main` (what GitHub Pages actually builds from) had never been updated to
+include any of it. `firestore.rules` (pasted manually into the Firebase
+console) and whatever was in Chris's own local `functions/index.js` at
+deploy time were the only parts of each round that ever actually went
+live - every HTML/CSS/JS change sat unmerged the entire time. Confirmed
+by a live symptom: a profile page kept showing "Message" instead of
+"Dialog" days after that rename shipped, even after a hard cache-clear.
+Fixed with a clean fast-forward merge (`main` had no divergent commits of
+its own) - `git checkout main && git merge
+origin/claude/moderation-deploy-setup-6gyglz --ff-only && git push origin
+main`. **Worth double-checking after any future long session**: confirm
+`main` actually reflects the working branch's tip before spending time
+debugging what looks like a code bug but might just be an unmerged
+branch - and if Chris's local clone (`C:\Users\Virtu\virtuamakers.github.io`)
+wasn't also updated before a `firebase deploy --only functions` run
+earlier in the same session, worth a `git pull` + redeploy to make sure
+the Functions side didn't quietly deploy stale code the same way.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

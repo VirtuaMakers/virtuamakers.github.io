@@ -28,6 +28,23 @@
   padding: 0;
 }
 
+/* The browser's own [hidden] UA rule (display: none) is a *normal*
+   priority rule, and normal author rules always beat normal user-agent
+   rules regardless of selector specificity - so any element that also
+   picks up its own explicit `display` from an author rule (.btn's
+   `display: inline-block`, a flex/grid container's `display: flex`,
+   etc.) silently stays visible even once JS sets `.hidden = true`. This
+   bit Agora more than once piecemeal (.wall-comment-form, then
+   .admin-actions/.friend-actions as containers, then individual .btn
+   children inside an otherwise-visible .friend-actions like #friend-add-
+   btn) before landing here as one blanket guarantee: hidden always means
+   hidden, full stop, for every element site-wide. Supersedes (and
+   replaces) every scoped `.foo[hidden] { display: none; }` rule that
+   used to exist for this one at a time. */
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -300,10 +317,6 @@ a {
   padding: 1rem;
 }
 
-.signin-modal-backdrop[hidden] {
-  display: none;
-}
-
 .signin-modal {
   position: relative;
   width: min(360px, 100%);
@@ -466,10 +479,6 @@ a {
   font-size: 0.85rem;
   color: var(--muted);
   cursor: pointer;
-}
-
-.signin-terms-check[hidden] {
-  display: none;
 }
 
 .signin-terms-check input[type="checkbox"] {
@@ -1738,13 +1747,6 @@ main > .section:first-child {
   margin: 1rem 0 1.5rem;
 }
 
-.kind-selector[hidden],
-.profile-form[hidden],
-.admin-actions[hidden],
-.friend-actions[hidden] {
-  display: none;
-}
-
 .kind-option {
   padding: 0.65rem 1.2rem;
   border-radius: 999px;
@@ -1995,10 +1997,6 @@ label.field-checkbox-inline {
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
-}
-
-.bag-count[hidden] {
-  display: none;
 }
 
 .bag-modal {
