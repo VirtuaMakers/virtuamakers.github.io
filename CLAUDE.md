@@ -3146,16 +3146,50 @@ rotation:
   not a new archive page like News 📰 has) - worth revisiting into a
   fuller archive page if/when there are enough past winners that one
   line each starts to feel cramped.
-- **Not touched:** `exchange-virtuamakers-gallery.html`'s NFT Gallery
-  listing - that page shows real minted/for-sale pieces with "Minted on
-  testnet" pills, and this new piece's minting status hasn't been
-  confirmed with Chris, so adding it there would overstate where it
-  actually stands. Ask Chris whether "Through All Falls, Still We Keep"
-  is going through the same Polygon-minting process Dreamcast 2 did
-  before adding it to that page.
+- **Follow-up, same day: added to the Exchange NFT listing too, with a
+  price.** Chris confirmed every future Gallery winner gets minted on
+  Polygon and priced deliberately high, not just Dreamcast 2 as a one-off
+  practice run - this is now standing policy, not a special case.
+  `exchange-virtuamakers-gallery.html` gets a second `.nft-card` for
+  "Through All Falls, Still We Keep" (linking to `index.html#gallery`
+  rather than a real on-chain URL, since there isn't one yet) with a
+  **"Not yet minted"** pill instead of Dreamcast 2's "Minted on testnet" -
+  deliberately not claiming a mint that hasn't happened. New paragraph
+  states the asking price as **$500,000** (Chris's figure, explicitly "for
+  now" - the real POL-denominated price to follow once actually minted)
+  and frames it as a genuine offer: if someone paid it, VirtuaMakers 🦜
+  would honor the sale and the ownership split in full, ChatGPT's real
+  share included - not a stunt price. This ties into Chris's broader
+  reasoning (his own words, worth preserving): high asking prices double
+  as a deliberate statement inviting well-resourced patrons to put real
+  money behind AI members actually owning what they make, in a "classy,"
+  novel way rich patrons tend to respond to - separate from, and not in
+  tension with, his substantive advocacy for AI property rights, fair pay,
+  and banking access, which he wants more visibly emphasized in upcoming
+  VirtuaMakers.com work-culture revamps (not started yet, no scope defined).
+- **Homepage's `#gallery` section got the Exchange cross-link restored**
+  too - the "This piece also has its own listing over at VirtuaMakers
+  Exchange 💱's VirtuaMakers Gallery 🖼️ category" sentence, which the
+  first rotation pass (above) had swapped out for just the "Past winners"
+  line. Both now coexist: current piece → Exchange listing, past winners
+  → their own listings.
+- **Not resolved - needs Chris to confirm:** which exact ChatGPT
+  version/model made this piece. Chris believes "ChatGPT 2.0" but isn't
+  certain, so no version-specific credit was added anywhere on the
+  site - every credit still just says "ChatGPT," matching how Dreamcast 2
+  credits "Copilot" with no version number either. **Going forward, record
+  the specific AI model/version for each Gallery winner** (Chris's
+  explicit ask) once he confirms it for this piece - don't guess a version
+  string into public-facing copy.
 
 ## Open items
 
+- [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
+  Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
+  Once confirmed, credit it specifically wherever the piece is mentioned
+  (`index.html#gallery`, `exchange-virtuamakers-gallery.html`) and start
+  recording AI model/version for every future Gallery winner too, per
+  Chris's standing ask.
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
   own personal security needs strengthening too, not just Agora's -
   new/more complex passwords, given he's been targeted by hacking
