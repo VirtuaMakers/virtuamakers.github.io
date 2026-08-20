@@ -3078,18 +3078,20 @@ Bumped `communiques-common.js` to `v=12` (55 pages), `style.css` to
   grows. Noted here as a standing reminder, his own to-do rather than
   a codebase task - nothing built or prescribed, just tracked so it
   doesn't get lost.
-- [ ] **Godsil profile piece:** Irish journalist Jillian Godsil wrote a
-  profile piece on Chris/VirtuaMakers ("What Happens When Your Co-founder
-  Isn't Human?") - not yet published anywhere as of 2026-08-15. If it does
-  get published, add it to News 📰 (`Agora/index.html` + `news.html`) like
-  any other entry - straightforward, no permission question there. The
-  self-publish-it-ourselves fallback (floated 2026-08-15) is **not**
-  actually authorized - Chris confirmed (2026-08-15) he does not have
-  Jillian's permission to do anything with the piece beyond what he told
-  her: that he'd share it with Claude, ChatGPT, and Boardy. Do not publish
-  or otherwise act on the article text without her explicit go-ahead first.
-  Her article text is intentionally NOT committed to this (public) repo,
-  to avoid exposing her unpublished work - held in conversation only.
+- [x] **Godsil profile piece - published, added to News 📰 (2026-08-20).**
+  Jillian Godsil's profile piece on Chris/VirtuaMakers, "What Happens When
+  Your Co-founder Isn't Human?", went live at Blockleaders
+  (`https://blockleaders.io/what-happens-when-your-co-founder-isnt-human/`).
+  Added as the newest entry to both `Agora/index.html`'s `#news` and the
+  full archive `Agora/news.html`, per the plan already noted here before
+  publication - homepage trimmed back to 7 by dropping the oldest entry
+  (the Wired AI-art-gallery piece, which stays in the uncapped archive).
+  Image is a real photo of Chris (portrait orientation, 896×1112 -
+  `assets/news/virtuamakers-cofounder-isnt-human.jpg`), unlike every other
+  News entry's landscape stock/press photo - a deliberate exception since
+  this is a photo of Chris himself for a piece specifically about him, not
+  a generic illustrative image. Pull-quote is the one Chris relayed
+  directly, attributed to Jillian Godsil.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
