@@ -289,6 +289,26 @@
     var pages = [[]];
     var currentPageIndex = 0;
 
+    // A rejected Wall/comment write only has one real cause today - the
+    // wall owner's requireFriendToPost setting - so a raw Firestore
+    // "permission-denied" is translated into the same plain-language
+    // explanation member.js's own composer-hidden notice already uses,
+    // instead of leaking Firestore's own error text (Chris, 2026-08-20).
+    function friendlyWallError(err) {
+      if (err && err.code === "permission-denied") {
+        return "This member only accepts Wall posts and comments from friends.";
+      }
+      return err.message;
+    }
+
+    // communiques-common.js is loaded from both member.html (Agora root)
+    // and the 30 static /profiles/*.html pages (one directory deeper) -
+    // same relative-path pattern notification-toast.js's memberBase() uses.
+    function dmPath(conversationId) {
+      var base = window.location.pathname.indexOf("/profiles/") !== -1 ? "../communiques-dm.html" : "communiques-dm.html";
+      return base + "?c=" + encodeURIComponent(conversationId);
+    }
+
     function buildCommentItem(doc) {
       var data = doc.data();
       var currentUser = getCurrentUser();
@@ -420,7 +440,7 @@
           }).catch(function (err) {
             toggleBtn.disabled = false;
             status.hidden = true;
-            error.textContent = err.message;
+            error.textContent = friendlyWallError(err);
             error.hidden = false;
           });
         });
@@ -510,12 +530,43 @@
       return post;
     }
 
+    // Dialogs on Walls (Chris, 2026-08-20) - every Dialog a profile is
+    // part of shows up alongside their Posts, one card per Dialog (not
+    // one card per message, which would flood the feed with fragments of
+    // a single back-and-forth). Read-only here on purpose - no comments
+    // (yet) - clicking through opens the real paginated transcript on
+    // communiques-dm.html, which already handles the participant-vs-
+    // fellow-member distinction correctly. Fetched the same way for
+    // whichever profile's Wall is being viewed, so the same conversation
+    // naturally appears on both participants' Walls.
+    function buildDialogCard(doc) {
+      var data = doc.data();
+      var otherUid = (data.participants || []).filter(function (p) { return p !== profileUid; })[0];
+      var otherName = (data.participantNames && data.participantNames[otherUid]) || "Member";
+
+      var card = document.createElement("a");
+      card.className = "wall-post wall-dialog-card";
+      card.href = dmPath(doc.id);
+
+      var meta = document.createElement("p");
+      meta.className = "communique-item-meta";
+      meta.textContent = "Dialog with " + otherName + " · " + formatDate(data.lastMessageAt || data.createdAt, true);
+      card.appendChild(meta);
+
+      var body = document.createElement("p");
+      body.className = "body-text communique-body";
+      body.textContent = data.lastMessage || "No messages yet.";
+      card.appendChild(body);
+
+      return card;
+    }
+
     function renderPage(index) {
       currentPageIndex = Math.max(0, Math.min(index, pages.length - 1));
 
       wallList.textContent = "";
-      pages[currentPageIndex].forEach(function (doc) {
-        wallList.appendChild(buildWallPost(doc));
+      pages[currentPageIndex].forEach(function (item) {
+        wallList.appendChild(item.type === "dialog" ? buildDialogCard(item.doc) : buildWallPost(item.doc));
       });
 
       var multiPage = pages.length > 1;
@@ -530,14 +581,23 @@
     olderBottom.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
     newerBottom.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
 
-    function renderWall(docs) {
+    // Posts and Dialogs share one date-sorted feed, tagged by type so
+    // renderPage() knows which builder to use. Sorted by createdAt (when
+    // each item was made), not bumped by later activity - matching the
+    // same "newest posts at the top, not newest activity" call already
+    // made for Wall posts vs. their own comments (see CLAUDE.md) - a
+    // Dialog's card doesn't jump up the feed just because a new message
+    // arrived in it.
+    function renderWall(postDocs, dialogDocs) {
       wallLoading.hidden = true;
-      docs = docs.slice().sort(function (a, b) {
-        var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
-        var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
+      var items = postDocs.map(function (doc) { return { type: "post", doc: doc }; })
+        .concat(dialogDocs.map(function (doc) { return { type: "dialog", doc: doc }; }));
+      items.sort(function (a, b) {
+        var aTime = a.doc.data().createdAt ? a.doc.data().createdAt.toMillis() : 0;
+        var bTime = b.doc.data().createdAt ? b.doc.data().createdAt.toMillis() : 0;
         return bTime - aTime;
       });
-      if (!docs.length) {
+      if (!items.length) {
         wallEmpty.hidden = false;
         wallList.textContent = "";
         pagBottom.hidden = true;
@@ -545,8 +605,8 @@
       }
       wallEmpty.hidden = true;
       pages = [];
-      for (var i = 0; i < docs.length; i += POSTS_PER_PAGE) {
-        pages.push(docs.slice(i, i + POSTS_PER_PAGE));
+      for (var i = 0; i < items.length; i += POSTS_PER_PAGE) {
+        pages.push(items.slice(i, i + POSTS_PER_PAGE));
       }
       renderPage(0);
     }
@@ -556,13 +616,18 @@
       wallEmpty.hidden = true;
       wallList.textContent = "";
 
-      AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
+      var loadPosts = AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
         .orderBy("createdAt", "desc").get()
-        .then(function (snap) { renderWall(snap.docs); })
         .catch(function () {
-          AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get()
-            .then(function (snap) { renderWall(snap.docs); });
+          return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get();
         });
+
+      var loadDialogs = AgoraDB.collection("conversations")
+        .where("participants", "array-contains", profileUid).get();
+
+      Promise.all([loadPosts, loadDialogs]).then(function (results) {
+        renderWall(results[0].docs, results[1].docs);
+      });
     }
 
     var postForm = document.getElementById("wall-post-form");
@@ -613,7 +678,7 @@
         }).catch(function (err) {
           postSubmit.disabled = false;
           postStatus.hidden = true;
-          postError.textContent = err.message;
+          postError.textContent = friendlyWallError(err);
           postError.hidden = false;
         });
       });

@@ -3009,6 +3009,66 @@ real complaint, not preemptively.
 
 Bumped `auth.js` to `v=6`, `auth-ui.js` to `v=19` (both, all 59 pages).
 
+## Friendly Wall-post permission error + Dialogs on Walls (Chris, 2026-08-20)
+
+Two things from the same live testing round with Chris's friend Ky:
+
+- **A raw Firestore "Missing or insufficient permissions." was showing**
+  when a non-friend tried to post on a Wall that has `requireFriendToPost`
+  turned on - `communiques-common.js`'s Wall-post and Wall-comment submit
+  handlers both just rendered `err.message` verbatim. New
+  `friendlyWallError(err)` helper maps a `permission-denied` code to the
+  same plain-language explanation `member.js`'s composer-hidden notice
+  already uses ("This member only accepts Wall posts and comments from
+  friends.") - a `permission-denied` on either of these two writes has
+  exactly one real cause today, so the mapping is safe and unconditional,
+  not a guess.
+- **Dialogs now show on Walls, one card per Dialog** - Chris's ask, after
+  floating it earlier the same session: a Wall is now a merged,
+  date-sorted feed of Posts (with comments) and Dialogs (without comments,
+  for now), not two separate sections. Built in
+  `createWallController()`/`loadWall()` (`communiques-common.js`), shared
+  by `member.html` and all 29 static profile pages automatically since
+  they already share that one controller:
+  - `loadWall()` now fetches `conversations` (`where participants
+    array-contains profileUid`) alongside `wallPosts`, in parallel.
+    Symmetric by construction - the exact same query run for whichever
+    profile's Wall is being viewed means a given Dialog naturally shows
+    up on *both* participants' Walls, no extra work needed for that.
+  - **One card per Dialog, not one per message** - the deliberate choice
+    here, since a real back-and-forth (even 10-15 messages) would flood
+    both people's Walls with fragments if each message posted separately.
+    `buildDialogCard()` renders the other participant's name and a live
+    preview of `lastMessage`, reusing the `conversations` doc's own
+    existing fields - no new collection, no per-message duplication.
+  - **Sorted by `createdAt` (when the Dialog started), not bumped by new
+    messages** - same "newest posts at the top, not newest activity" call
+    already made for Wall posts vs. comments earlier in this file. A
+    Dialog's position stays fixed once it's on the feed; only its preview
+    text updates on a future page load, not its rank.
+  - **No comments on a Dialog card (yet)** - it's a plain link through to
+    the real paginated transcript (`communiques-dm.html?c=`), which
+    already correctly handles the participant-vs-fellow-member
+    distinction (read-only notice, compose form only for the two actual
+    participants) - no need to duplicate that logic here.
+  - **Not literally live-updating without a reload** - "as they happen"
+    is satisfied in the sense that a Dialog appears on the Wall the
+    next time that Wall loads, matching the existing one-time-`.get()`
+    pattern the Wall's Post list already uses, rather than adding a second
+    `onSnapshot` listener into an already-paginated list (which would
+    fight with pagination on an in-place reorder/insert). Real "happening
+    now" liveness is already covered separately by the notification toast
+    + IM popout.
+  - New `.wall-dialog-card` CSS (teal accent border, whole card
+    clickable) - `dmPath()` helper reuses the same `/profiles/` path-depth
+    check `notification-toast.js`'s `memberBase()` already uses.
+  - **No `firestore.rules` change needed** - `conversations` was already
+    `allow read: if request.auth != null`, which is exactly the access
+    this needed.
+
+Bumped `communiques-common.js` to `v=12` (55 pages), `style.css` to
+`v=89` (all 59 pages).
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

@@ -2298,6 +2298,23 @@ button.dm-item {
   padding: 1rem 1.2rem;
 }
 
+/* Dialogs on Walls (Chris, 2026-08-20) - one card per Dialog, styled off
+   .wall-post's own look but rendered as a clickable <a> (through to the
+   full transcript) with a teal accent border to read as its own content
+   type at a glance, next to plain Posts. */
+.wall-dialog-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-color: var(--teal);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.wall-dialog-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--teal-deep);
+}
+
 .wall-comments {
   display: flex;
   flex-direction: column;
