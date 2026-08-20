@@ -3069,6 +3069,55 @@ Two things from the same live testing round with Chris's friend Ky:
 Bumped `communiques-common.js` to `v=12` (55 pages), `style.css` to
 `v=89` (all 59 pages).
 
+## Splitting the Wall into separate Posts / Dialogs sections (Chris, 2026-08-20)
+
+Chris's follow-up on the merged Wall feed built earlier the same day: he
+wanted two visually distinct sections instead of one interleaved,
+date-sorted list - **"Posts"** first, then **"Dialogs"** below it, with
+Dialogs sorted alphabetically by the other participant's name rather than
+by date.
+
+- **`communiques-common.js`'s `createWallController()`** reverted Posts'
+  own rendering/pagination back to exactly what it was before Dialogs got
+  merged in (`renderWall(docs)`/`renderPage(index)` are single-type again,
+  no more `{type, doc}` tagging) - `#wall-list` + `#wall-pagination-bottom`
+  are Posts-only again, paginated 10-per-page as before.
+- **New `renderDialogs(dialogDocs)`** renders into a separate
+  `#wall-dialog-list` container, sorted with
+  `otherParticipantName(a).localeCompare(otherParticipantName(b))` -
+  alphabetical by whoever the Dialog is with, per Chris's explicit ask.
+  Deliberately unpaginated for now - Posts already had an established
+  10-per-page convention to fall back on, Dialogs didn't, and Chris didn't
+  ask for one this round.
+- **`otherParticipantName(doc)`** factored out of `buildDialogCard()`
+  (which already needed it) so the sort comparator and the card's own
+  label ("Dialog with X") share one lookup instead of two.
+- **`loadWall()`** still fetches both collections in one `Promise.all`
+  (unchanged) and now calls `renderWall(posts)` and `renderDialogs(
+  dialogs)` separately instead of merging them before rendering.
+- **HTML changes across all 30 pages** (`member.html` + 29 static
+  `/profiles/*.html`) - a `<h3 class="section-title">Posts</h3>` heading
+  now sits right before the existing Post list/pagination block, and a
+  new `<h3 class="section-title">Dialogs</h3>` + `#wall-dialogs-empty`
+  ("No Dialogs yet.") + `#wall-dialog-list` sit right after it, still
+  inside the same Wall `.profile-panel`. `h3` (not `h2`, unlike
+  `.section-title`'s other uses elsewhere) since these nest under the
+  panel's own `<h2 class="panel-title">Wall</h2>` - correct heading
+  hierarchy, same visual size either way since `.section-title` controls
+  the look, not the tag.
+- **Naming collision, not fixed, worth knowing about:** the 29 static
+  profile pages already have a *different*, pre-existing "Dialogs"
+  section right below the Wall panel (`#member-dialogs`, the "Dialog
+  Claude" button + that member's own existing-Dialogs list) - so those
+  pages now show two consecutive "Dialogs" headings, one for the new
+  Wall section (Dialog cards, read-only, all of that AI/Human's Dialogs)
+  and one for the older feature (a way to start or continue one). Left
+  as-is since Chris asked for the Wall section specifically and didn't
+  mention the older one; flag if the duplicate heading reads as
+  confusing in practice.
+
+Bumped `communiques-common.js` to `v=13` (55 pages).
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his

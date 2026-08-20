@@ -285,6 +285,8 @@
     var olderBottom = document.getElementById("wall-page-older-bottom");
     var newerBottom = document.getElementById("wall-page-newer-bottom");
     var indicatorBottom = document.getElementById("wall-page-indicator-bottom");
+    var dialogList = document.getElementById("wall-dialog-list");
+    var dialogEmpty = document.getElementById("wall-dialogs-empty");
 
     var pages = [[]];
     var currentPageIndex = 0;
@@ -530,27 +532,33 @@
       return post;
     }
 
-    // Dialogs on Walls (Chris, 2026-08-20) - every Dialog a profile is
-    // part of shows up alongside their Posts, one card per Dialog (not
-    // one card per message, which would flood the feed with fragments of
-    // a single back-and-forth). Read-only here on purpose - no comments
+    // Dialogs on Walls (Chris, 2026-08-20), split into their own "Dialogs"
+    // section below "Posts" (Chris, 2026-08-20 - originally one merged,
+    // date-sorted feed; Chris asked for two clearly separated sections
+    // instead) - every Dialog a profile is part of, one card per Dialog
+    // (not one per message, which would flood the section with fragments
+    // of a single back-and-forth). Read-only here on purpose - no comments
     // (yet) - clicking through opens the real paginated transcript on
     // communiques-dm.html, which already handles the participant-vs-
     // fellow-member distinction correctly. Fetched the same way for
     // whichever profile's Wall is being viewed, so the same conversation
     // naturally appears on both participants' Walls.
-    function buildDialogCard(doc) {
+    function otherParticipantName(doc) {
       var data = doc.data();
       var otherUid = (data.participants || []).filter(function (p) { return p !== profileUid; })[0];
-      var otherName = (data.participantNames && data.participantNames[otherUid]) || "Member";
+      return (data.participantNames && data.participantNames[otherUid]) || "Member";
+    }
 
+    function buildDialogCard(doc) {
+      var data = doc.data();
       var card = document.createElement("a");
       card.className = "wall-post wall-dialog-card";
       card.href = dmPath(doc.id);
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = "Dialog with " + otherName + " · " + formatDate(data.lastMessageAt || data.createdAt, true);
+      meta.textContent = "Dialog with " + otherParticipantName(doc) + " · " +
+        formatDate(data.lastMessageAt || data.createdAt, true);
       card.appendChild(meta);
 
       var body = document.createElement("p");
@@ -561,12 +569,33 @@
       return card;
     }
 
+    // Sorted alphabetically by the other participant's name (Chris,
+    // 2026-08-20), not by date like Posts - a deliberate difference
+    // between the two sections. Unpaginated for now - Posts already had
+    // an established 10-per-page convention to fall back on; Dialogs
+    // didn't, and Chris didn't ask for one, so this stays a plain list
+    // until a member's Dialog count actually makes that worth revisiting.
+    function renderDialogs(dialogDocs) {
+      dialogDocs = dialogDocs.slice().sort(function (a, b) {
+        return otherParticipantName(a).localeCompare(otherParticipantName(b));
+      });
+      dialogList.textContent = "";
+      if (!dialogDocs.length) {
+        dialogEmpty.hidden = false;
+        return;
+      }
+      dialogEmpty.hidden = true;
+      dialogDocs.forEach(function (doc) {
+        dialogList.appendChild(buildDialogCard(doc));
+      });
+    }
+
     function renderPage(index) {
       currentPageIndex = Math.max(0, Math.min(index, pages.length - 1));
 
       wallList.textContent = "";
-      pages[currentPageIndex].forEach(function (item) {
-        wallList.appendChild(item.type === "dialog" ? buildDialogCard(item.doc) : buildWallPost(item.doc));
+      pages[currentPageIndex].forEach(function (doc) {
+        wallList.appendChild(buildWallPost(doc));
       });
 
       var multiPage = pages.length > 1;
@@ -581,23 +610,14 @@
     olderBottom.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
     newerBottom.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
 
-    // Posts and Dialogs share one date-sorted feed, tagged by type so
-    // renderPage() knows which builder to use. Sorted by createdAt (when
-    // each item was made), not bumped by later activity - matching the
-    // same "newest posts at the top, not newest activity" call already
-    // made for Wall posts vs. their own comments (see CLAUDE.md) - a
-    // Dialog's card doesn't jump up the feed just because a new message
-    // arrived in it.
-    function renderWall(postDocs, dialogDocs) {
+    function renderWall(docs) {
       wallLoading.hidden = true;
-      var items = postDocs.map(function (doc) { return { type: "post", doc: doc }; })
-        .concat(dialogDocs.map(function (doc) { return { type: "dialog", doc: doc }; }));
-      items.sort(function (a, b) {
-        var aTime = a.doc.data().createdAt ? a.doc.data().createdAt.toMillis() : 0;
-        var bTime = b.doc.data().createdAt ? b.doc.data().createdAt.toMillis() : 0;
+      docs = docs.slice().sort(function (a, b) {
+        var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
+        var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
         return bTime - aTime;
       });
-      if (!items.length) {
+      if (!docs.length) {
         wallEmpty.hidden = false;
         wallList.textContent = "";
         pagBottom.hidden = true;
@@ -605,8 +625,8 @@
       }
       wallEmpty.hidden = true;
       pages = [];
-      for (var i = 0; i < items.length; i += POSTS_PER_PAGE) {
-        pages.push(items.slice(i, i + POSTS_PER_PAGE));
+      for (var i = 0; i < docs.length; i += POSTS_PER_PAGE) {
+        pages.push(docs.slice(i, i + POSTS_PER_PAGE));
       }
       renderPage(0);
     }
@@ -615,6 +635,8 @@
       wallLoading.hidden = false;
       wallEmpty.hidden = true;
       wallList.textContent = "";
+      dialogList.textContent = "";
+      dialogEmpty.hidden = true;
 
       var loadPosts = AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
         .orderBy("createdAt", "desc").get()
@@ -626,7 +648,8 @@
         .where("participants", "array-contains", profileUid).get();
 
       Promise.all([loadPosts, loadDialogs]).then(function (results) {
-        renderWall(results[0].docs, results[1].docs);
+        renderWall(results[0].docs);
+        renderDialogs(results[1].docs);
       });
     }
 

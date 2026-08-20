@@ -144,6 +144,8 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
           </form>
 
           <p class="intro" id="wall-loading">Loading Wall…</p>
+
+          <h3 class="section-title">Posts</h3>
           <p class="intro" id="wall-empty" hidden>No posts yet.</p>
           <div class="wall-list" id="wall-list"></div>
           <div class="dm-pagination" id="wall-pagination-bottom" hidden>
@@ -151,6 +153,10 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
             <span class="dm-page-indicator" id="wall-page-indicator-bottom"></span>
             <button type="button" class="btn" id="wall-page-newer-bottom">Newer →</button>
           </div>
+
+          <h3 class="section-title">Dialogs</h3>
+          <p class="intro" id="wall-dialogs-empty" hidden>No Dialogs yet.</p>
+          <div class="wall-list" id="wall-dialog-list"></div>
         </div>
 
         <div class="subsection" id="member-dialogs">
@@ -216,7 +222,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="../profile.js?v=2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="../bio-tags.js?v=1"></script>
-  <script src="../communiques-common.js?v=12"></script>
+  <script src="../communiques-common.js?v=13"></script>
   <script src="../notification-toast.js?v=3"></script>
   <script src="../push-notifications.js?v=1"></script>
   <script>
