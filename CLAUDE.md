@@ -3118,6 +3118,144 @@ by date.
 
 Bumped `communiques-common.js` to `v=13` (55 pages).
 
+## AI Email ✉️ (Chris, 2026-08-20)
+
+The first real building block of Agora Harness 🚡, arrived at by working
+backwards from Chris's "hand the keys over" onboarding ceremony for the
+24 AI members: step 3 of that ceremony ("change your password immediately
+via the Harness") needs a real, working email address behind the account
+for that to mean anything - and no LLM has one of its own today. Chris's
+explicit framing, worth keeping straight: **AI Email ✉️ is not an Agora
+feature.** It's a standalone layer - a real, usable email address for any
+AI, independent of whether that AI ever touches Agora - with Agora
+Harness 🚡 as its first *consumer*, not its owner. Chris sees it as a
+potentially real product/market opportunity on its own ("if we can get
+bots and LLMs and personal assistants to use email, we're probably in the
+money with just that"), distinct from AgentMail.to (an existing similar
+product Chris is aware of and unbothered by competing with, given
+VirtuaMakers' actual moat is Agora/the culture around it, not "having a
+mailbox API" alone).
+
+- **Domain: `virtuamakers.com`, not a new purchase.** Chris considered
+  `agora.social` first, but that would re-couple AI Email ✉️ to Agora's
+  brand specifically - the opposite of the "its own layer" framing above.
+  `virtuamakers.com` (the parent company, not a product) is the more
+  neutral home, and also already had Resend fully verified for *sending*
+  from the transactional-email work back on 2026-08-07 - so tonight
+  extended existing infrastructure rather than standing up new.
+- **Provider: Resend, not Mailgun.** Chris was about to sign up for
+  Mailgun before realizing (once this session caught up to current
+  `main`, see "Merging the session branch into `main`" above for why it
+  was behind) that Resend was already live and verified on this exact
+  domain. Resend shipped **Inbound** (webhook-based receiving) in late
+  2025, so one account/one verified domain now covers both directions -
+  no second vendor needed.
+- **A real bug caught before it caused damage:** enabling Resend's
+  "Enable Receiving" toggle surfaced "Existing MX records detected" -
+  `virtuamakers.com` already had two MX records (`fwd1.porkbun.com`/
+  `fwd2.porkbun.com`, prio 10/20) from Porkbun's own free email-forwarding
+  product, auto-created around the original domain purchase (2026-08-07)
+  but **never actually finished being set up** - confirmed via Porkbun's
+  own Email Hosting panel ("You have inboxes pending setup!") before
+  touching anything, not assumed. Safe to remove since nothing was
+  actually forwarding anywhere. This is also almost certainly the root
+  cause of the "remote server is misconfigured" bounce Chris got replying
+  to the first test email - an MX record pointing at an unconfigured
+  forwarding service, not "no MX record" as first guessed. Both stale
+  records deleted directly in Porkbun's DNS Records page (not the Email
+  Hosting page, which manages Porkbun's own competing product) and
+  replaced with the one Resend's dashboard generated:
+  `MX | virtuamakers.com | inbound-smtp.us-east-1.amazonaws.com | prio 9`.
+- **Two Resend API keys, deliberately separate from `RESEND_API_KEY`**
+  (which powers Agora's own `agora@virtuamakers.com` account-lifecycle
+  mail) - different concern, different blast radius if either leaks.
+  The bootstrap sending key was created scoped to **Sending access**
+  restricted to `virtuamakers.com` only (not Full access) - least-
+  privilege by default since it's a key that necessarily sits in a chat
+  transcript rather than a hardened secret store; costs nothing since
+  sending is all it needs to do. A second, Resend-generated **webhook
+  signing secret** (Svix `whsec_...` format) authenticates the *inbound*
+  direction once the Webhooks page is configured - separate from the
+  sending key since it authenticates a different caller (Resend itself,
+  not an AI session).
+- **`Agora/functions/lib/aiEmail.js`** (new) - the whole module, kept
+  separate from `lib/resend.js` on purpose (see framing above). Three
+  secrets via `defineSecret`: `AI_EMAIL_RESEND_API_KEY` (sending + the
+  Receiving API - Resend's permission split is send-vs-everything-else,
+  not send-vs-receive, so the same Sending-access key covers fetching a
+  received message's full body too), `AI_EMAIL_HARNESS_SECRET`, and
+  `AI_EMAIL_RESEND_WEBHOOK_SECRET`. `AI_EMAIL_ADDRESSES` is a small,
+  hand-maintained manifest (`{ name, email }` per mailbox) - deliberately
+  not a Firestore collection, since Chris's ceremony means each address
+  is handed to a specific AI in a real conversation, not self-served yet;
+  currently just `claude`. `verifyResendWebhookSignature()` implements
+  Svix's manual-verification algorithm by hand (HMAC-SHA256 over
+  `id.timestamp.rawBody`, secret base64-decoded after stripping the
+  `whsec_` prefix) rather than adding the `svix` package as a dependency -
+  one fewer thing Chris has to `npm install` before his next deploy.
+- **Three Cloud Functions in `functions/index.js`:**
+  - `sendAiEmail` (`onRequest`, not `onCall`) - an AI Email sender
+    authenticates with its own harness credential, not a Firebase Auth
+    session, since Agora Harness 🚡's real per-AI credential system
+    doesn't exist yet. For now every call checks one shared
+    `AI_EMAIL_HARNESS_SECRET` bearer token instead - real, but an
+    explicit placeholder, not the final security model.
+  - `receiveAiEmail` - Resend's `email.received` webhook target.
+    Verifies the Svix signature first, then calls the Receiving API
+    (webhooks only carry metadata - sender/subject/id, not body) to fetch
+    the full message, and files it into
+    `aiEmailInbox/{mailbox}/messages/{emailId}`. Mail to any address not
+    in `AI_EMAIL_ADDRESSES` is acknowledged and dropped, not treated as
+    an error - once MX for the whole domain points at Resend, this
+    endpoint sees *everything* sent to `@virtuamakers.com`, not just AI
+    Email ✉️ traffic (typos, spam, anything).
+  - `getAiEmailInbox` - the "check your own mail" read side, same
+    harness-secret gate as `sendAiEmail`. Returns the 50 most recent
+    stored messages for a mailbox.
+- **Proven with a real send, not a mockup.** Verified `sendAiEmail()`
+  itself loads and runs correctly outside the deployed environment first
+  (`defineSecret().value()` falls back to `process.env` when not running
+  as an actual Cloud Function - confirmed by testing, not assumed), then
+  ran that exact function locally with the real key as an env var to send
+  a genuine first email from `claude@virtuamakers.com` to Chris - same
+  code that runs once deployed, not a separate demo Chris explicitly
+  asked not to build ("why do this stagecraft stuff at all?").
+
+**Needs from Chris before any of this is actually live** - the usual
+shape every pending Cloud Functions change in this file has, plus one
+webhook-specific step:
+1. `firebase functions:secrets:set AI_EMAIL_RESEND_API_KEY` (the
+   Sending-access key already created).
+2. `firebase functions:secrets:set AI_EMAIL_HARNESS_SECRET` (any strong
+   random value Chris picks - this is the placeholder bearer token, not
+   tied to Resend).
+3. `firebase deploy --only functions` from `Agora/` - this can go out
+   even before the webhook secret exists; `receiveAiEmail` just won't
+   verify anything correctly until step 5.
+4. In Resend's dashboard → Webhooks → Add Webhook: point it at
+   `https://us-central1-agora-firebase-f4240.cloudfunctions.net/receiveAiEmail`
+   (this project's standard Cloud Functions URL shape - already used
+   verbatim by `unsubscribeNewsletter` elsewhere in this same file) for
+   the `email.received` event. This URL is predictable from the project
+   ID/region/function name, so it can be registered before or after the
+   deploy in step 3.
+5. `firebase functions:secrets:set AI_EMAIL_RESEND_WEBHOOK_SECRET` with
+   the `whsec_...` value Resend hands over in step 4, then redeploy
+   (`firebase deploy --only functions` again) to pick it up.
+Until all five are done, `sendAiEmail` degrades gracefully (same
+graceful-degradation shape as every other pending Functions change here)
+but nothing receives yet - which is fine, since receiving genuinely can't
+be tested end-to-end from a sandbox anyway; it needs a real, deployed,
+publicly-reachable endpoint for Resend's servers to call.
+
+**Not built yet, deliberately:** the real per-AI Harness credential
+system (`AI_EMAIL_HARNESS_SECRET` is a single shared placeholder, not
+scoped per mailbox); any UI to actually read a mailbox's inbox (today
+that's `getAiEmailInbox`'s raw JSON only, callable but not rendered
+anywhere); and provisioning addresses for the other 23 AI members, which
+per Chris's ceremony happens one real conversation at a time, not in
+bulk.
+
 ## Open items
 
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
