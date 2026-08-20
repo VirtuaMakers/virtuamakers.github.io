@@ -1971,26 +1971,40 @@ is catching (already live, nothing to approve/uphold). Blocked, unresolved
 entries get Approve/Uphold buttons.
 
 **Still needs from Chris, before any of this actually works:**
-1. **Enable both APIs** on the `agora-firebase-f4240` Google Cloud project
-   - "Cloud Natural Language API" and "Cloud Vision API" - then
-   generate one API key restricted to those two, and set it:
+1. ~~**Enable both APIs**~~ **Done, confirmed 2026-08-20** - "Cloud
+   Natural Language API" and "Cloud Vision API" both already enabled on
+   `agora-firebase-f4240`. The restricted key (Google Cloud Console →
+   Credentials → "Agora Moderation Key," created 2026-08-13, scoped to
+   just those two APIs) existed but had never actually been set as the
+   real secret - fixed 2026-08-20 via
    `firebase functions:secrets:set GOOGLE_MODERATION_API_KEY`.
-2. **Deploy Cloud Functions** - `firebase deploy --only functions` from
-   `Agora/` (same one deploy as everything else waiting on it - picks up
-   `moderateText`, `moderateImage`, `requestModerationAppeal`,
-   `resolveModerationAppeal`, `getModerationImageUrl` alongside the rest).
-3. **Paste the updated `firestore.rules`** into the Firebase console - the
-   new `moderationLog/{document}` block.
-4. **If `getModerationImageUrl` errors after deploy** ("permission
-   denied" generating a signed URL, not a Firestore/auth error): the
-   Cloud Functions runtime service account likely needs the **Service
-   Account Token Creator** role granted to *itself*, in Google Cloud
-   Console → IAM - a known one-time gotcha with `getSignedUrl()` on
-   Firebase's default service account, unrelated to anything in this
-   repo's code.
-Until all four are done, nothing gets checked at all - every submission
-just fails open and posts normally (see above), so nothing breaks in the
-gap; it's simply not filtering anything yet.
+2. ~~**Deploy Cloud Functions**~~ **Done, 2026-08-20** - the deploy that
+   picked up the fresh secret hit the recurring "Cannot determine backend
+   specification" timeout (see "Same error, recurring, real fix found"
+   under the Multi-admin section's deploy-timeout entry above) - fixed
+   with `$env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"`, then
+   `moderateText`/`moderateImage` both deployed and updated successfully.
+   `requestModerationAppeal`/`resolveModerationAppeal`/
+   `getModerationImageUrl` were already live from an earlier deploy this
+   same day (showed "Skipped - No changes detected").
+3. **Paste the updated `firestore.rules`** into the Firebase console -
+   the `moderationLog/{document}` block - **not confirmed done**, unlike
+   1 and 2 above. Worth double-checking directly in the console rather
+   than assuming, given how long the other two sat unconfirmed too.
+4. **If `getModerationImageUrl` errors** ("permission denied" generating
+   a signed URL, not a Firestore/auth error): the Cloud Functions runtime
+   service account likely needs the **Service Account Token Creator**
+   role granted to *itself*, in Google Cloud Console → IAM - a known
+   one-time gotcha with `getSignedUrl()` on Firebase's default service
+   account, unrelated to anything in this repo's code.
+Moderation is now live and actually filtering regardless of item 3 -
+`moderateText`/`moderateImage` write `moderationLog` via the Admin SDK,
+which bypasses Firestore rules entirely, so blocking/flagging works
+either way. What a missing rules paste would actually break is narrower:
+`moderation-review.html`'s admin panel reads that collection via the
+client SDK, so without the `moderationLog/{document}` rules block in
+place, that page just can't list entries for a human to review - still
+worth confirming/pasting, but it's not a filtering-correctness risk.
 
 ## Views 👁 (Chris, 2026-08-13)
 
@@ -2360,6 +2374,28 @@ alongside this** (it existed locally on Chris's machine already from his
 own `npm install` runs, just was never checked into the repo) so his next
 `npm install` pulls these exact tested versions rather than whatever the
 loosest matching semver resolves to later.
+
+**Same error, recurring, real fix found (Chris, 2026-08-20):** the
+version-mismatch fix above didn't make "Cannot determine backend
+specification. Timeout after 10000" go away for good - Chris kept
+hitting it on later deploys ("this part always fails"), most recently
+right after a fresh `npm install` (cold disk cache, no OS file-cache
+warm yet). Root cause per Firebase's own docs
+(`firebase.google.com/docs/functions/tips#avoid_deployment_timeouts_during_initialization`):
+this step just hardcodes a 10-second budget for the CLI to locally
+`require()` and analyze `functions/index.js` to figure out what to
+deploy - on a slower disk/machine, or right after a big dependency
+install, that's sometimes not enough time even for otherwise-healthy
+code (confirmed the code itself loads instantly and error-free in this
+session's sandbox both times this came up). Firebase ships an official
+escape hatch for exactly this rather than requiring a code change:
+```powershell
+$env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"
+firebase deploy --only functions
+```
+Set that env var in the PowerShell window first, then deploy - worked
+immediately. Worth trying this **before** assuming a real code/version
+regression next time this error shows up.
 
 ## Multi-admin system (Chris, 2026-08-15)
 
