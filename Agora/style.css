@@ -630,9 +630,17 @@ a.card.feature {
 
 /* The Pillars label sits inside .hero, not a .section, but is its own
    in-page anchor target (every pillar's "Back to The Pillars" link)
-   needing the same header-clearance treatment. */
+   needing the same header-clearance treatment. Sized up well past the
+   plain .section-title look it started from - Chris's call, so it reads
+   as a real heading introducing the tile grid below rather than a small
+   eyebrow label - with generous margin-top so it doesn't crowd against
+   the hero's closing paragraph above it. */
 #pillars {
   scroll-margin-top: 110px;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+  margin-top: 2.5rem;
+  margin-bottom: 1.2rem;
 }
 
 @media (max-width: 560px) {
