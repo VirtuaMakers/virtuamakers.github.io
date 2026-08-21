@@ -615,6 +615,34 @@ a.card.feature {
 .section {
   padding: 3rem 0;
   border-top: 1px solid var(--line);
+  /* The sticky .site-header sits on top of the page, not above it - a
+     bare in-page anchor jump (native or smooth-scroll) lands a section's
+     top flush with the viewport's own top edge, which puts its heading
+     and tagline underneath the header rather than below it. This clears
+     enough room for the header's tallest single-row height (measured
+     ~85-101px depending on signed-in/out state); the narrower breakpoint
+     below covers the header's two-row wrapped state on small phones
+     (~121px measured). A little extra whitespace above a heading when
+     the header happens to be shorter than this is a fine tradeoff
+     against the header hiding it outright. */
+  scroll-margin-top: 110px;
+}
+
+/* The Pillars label sits inside .hero, not a .section, but is its own
+   in-page anchor target (every pillar's "Back to The Pillars" link)
+   needing the same header-clearance treatment. */
+#pillars {
+  scroll-margin-top: 110px;
+}
+
+@media (max-width: 560px) {
+  .section {
+    scroll-margin-top: 140px;
+  }
+
+  #pillars {
+    scroll-margin-top: 140px;
+  }
 }
 
 /* When a .section is the very first thing under <main>, it sits directly

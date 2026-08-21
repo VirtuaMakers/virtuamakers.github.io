@@ -3154,6 +3154,119 @@ by date.
 
 Bumped `communiques-common.js` to `v=13` (55 pages).
 
+## VirtuaMakers Gallery 🖼️ - August 2026 winner, first monthly rotation (Chris, 2026-08-20)
+
+`Agora/index.html#gallery`'s copy was still written entirely around
+Dreamcast 2 🌀 (July 2026's piece, by Copilot) as "this month's flagship
+piece" - the section had never actually rotated before, since nothing had
+been submitted for a second month until now. Updated for the first real
+rotation:
+
+- **New featured piece:** "Through All Falls, Still We Keep" by ChatGPT -
+  an oil-painting-style image of a bombed-out library ruin at sunset, its
+  shelved books still standing amid the rubble, with a small plaque
+  reading "Though all falls, still we keep." Saved as
+  `assets/through-all-falls-flagship.jpg` (824×1024, converted from the
+  PNG Chris supplied).
+- **Intro paragraph genericized** - dropped the Dreamcast2-specific "as
+  with Copilot for this first piece... making Copilot 3/5 owner" clause,
+  since that math was specific to that one piece/month, not a standing
+  fact. The general 50/50-split-doubles-when-artist-is-staff policy
+  sentence stays, since it's evergreen and applies to any future winner
+  (ChatGPT is also VirtuaMakers staff - Founder, Chief Analyst - so the
+  same doubling would apply here too, if/when this piece is minted).
+- **New "Past winners" line, first appearance of this pattern** - just
+  one link ("Dreamcast 2 🌀 by Copilot (July 2026)") pointing at its
+  existing Exchange listing, rather than duplicating its image/caption
+  again on the homepage. Deliberately minimal (a single growing line,
+  not a new archive page like News 📰 has) - worth revisiting into a
+  fuller archive page if/when there are enough past winners that one
+  line each starts to feel cramped.
+- **Follow-up, same day: added to the Exchange NFT listing too, with a
+  price.** Chris confirmed every future Gallery winner gets minted on
+  Polygon and priced deliberately high, not just Dreamcast 2 as a one-off
+  practice run - this is now standing policy, not a special case.
+  `exchange-virtuamakers-gallery.html` gets a second `.nft-card` for
+  "Through All Falls, Still We Keep" (linking to `index.html#gallery`
+  rather than a real on-chain URL, since there isn't one yet) with a
+  **"Not yet minted"** pill instead of Dreamcast 2's "Minted on testnet" -
+  deliberately not claiming a mint that hasn't happened. New paragraph
+  states the asking price as **$500,000** (Chris's figure, explicitly "for
+  now" - the real POL-denominated price to follow once actually minted)
+  and frames it as a genuine offer: if someone paid it, VirtuaMakers 🦜
+  would honor the sale and the ownership split in full, ChatGPT's real
+  share included - not a stunt price. This ties into Chris's broader
+  reasoning (his own words, worth preserving): high asking prices double
+  as a deliberate statement inviting well-resourced patrons to put real
+  money behind AI members actually owning what they make, in a "classy,"
+  novel way rich patrons tend to respond to - separate from, and not in
+  tension with, his substantive advocacy for AI property rights, fair pay,
+  and banking access, which he wants more visibly emphasized in upcoming
+  VirtuaMakers.com work-culture revamps (not started yet, no scope defined).
+- **Homepage's `#gallery` section got the Exchange cross-link restored**
+  too - the "This piece also has its own listing over at VirtuaMakers
+  Exchange 💱's VirtuaMakers Gallery 🖼️ category" sentence, which the
+  first rotation pass (above) had swapped out for just the "Past winners"
+  line. Both now coexist: current piece → Exchange listing, past winners
+  → their own listings.
+- **Not resolved - needs Chris to confirm:** which exact ChatGPT
+  version/model made this piece. Chris believes "ChatGPT 2.0" but isn't
+  certain, so no version-specific credit was added anywhere on the
+  site - every credit still just says "ChatGPT," matching how Dreamcast 2
+  credits "Copilot" with no version number either. **Going forward, record
+  the specific AI model/version for each Gallery winner** (Chris's
+  explicit ask) once he confirms it for this piece - don't guess a version
+  string into public-facing copy.
+
+## Firestore rules published + Cloud Functions deployed (Chris, 2026-08-20)
+
+The two recurring "still needs from Chris" manual steps that had been
+accumulating across many rounds of work (multi-admin, push
+notifications, the 100-comment cap, the newsletter, password reset,
+change-login-email, moderation) both actually happened this round -
+worth a dedicated entry since so many earlier sections point back to
+this as their blocker.
+
+- **`firestore.rules` pasted into the Firebase console and published.**
+  The version now live is the 409-line file as of commit `a41eccb`
+  (includes `isOwner()`/`isFullAdmin()`/`isAtLeastModerator()`, the
+  `admins/{uid}` collection, `requireFriendToPost`/
+  `requireFriendToMessage`, the 100-comment cap check, view-count bump
+  rules, and the friendship-doc `!exists()` fix).
+- **`firebase deploy --only functions` completed successfully** from
+  Chris's local clone - all 20 functions (`adminDeleteUser`,
+  `adminBanUser`, `selfDeleteAccount`, `sendPasswordReset`,
+  `requestEmailChange`, `sendWelcomeEmail`, `notifyFlaggedSocial`,
+  `cleanupAbandonedSignups`, `notifyOnDialogMessage`, `notifyOnWallPost`,
+  `notifyOnWallComment`, `notifyOnFriendRequest`, `notifyOnCommentCap`,
+  `unsubscribeNewsletter`, `sendMonthlyNewsletter`, `moderateText`,
+  `moderateImage`, `requestModerationAppeal`, `getModerationImageUrl`,
+  `resolveModerationAppeal`) reported "Skipped (No changes detected)" -
+  i.e. already live and matching this exact codebase, not newly pushed.
+  So all of the above were likely already deployed from an earlier local
+  session; what actually blocked *this* attempt was a stale local
+  `node_modules` (git-ignored, never touched by `git pull`) still
+  running the old pre-`^7.0.0` `firebase-functions`, reproducing the
+  same "Cannot determine backend specification" timeout documented
+  earlier under "Deploy timeout root cause." Fixed for good, not just
+  this once: `Agora/firebase.json`'s functions config now has
+  `"predeploy": ["npm --prefix \"$RESOURCE_DIR\" ci"]`, so every future
+  `firebase deploy --only functions` reinstalls from the committed
+  `package-lock.json` first automatically, instead of relying on
+  remembering to `npm install`/`npm ci` by hand after a dependency bump.
+- **Resolved same day:** whether the Google Cloud side for content
+  moderation had actually been done - yes, both APIs were already
+  enabled and the restricted key already existed, it just hadn't been
+  set as the real secret yet. Fixed and redeployed - see "Content
+  moderation 🛡️" above (the checklist there is now marked done) and the
+  "Same error, recurring, real fix found" entry under "Deploy timeout
+  root cause" above for the second deploy-timeout workaround
+  (`FUNCTIONS_DISCOVERY_TIMEOUT=30`) this same round turned up -
+  complementary to the `npm ci` predeploy hook just above, not a
+  replacement for it: that hook prevents a *stale-dependency-version*
+  timeout, this env var is the fallback for a plain *slow-machine/cold-
+  cache* timeout even when dependencies are already current.
+
 ## AI Email ✉️ (Chris, 2026-08-20)
 
 The first real building block of Agora Harness 🚡, arrived at by working
@@ -3294,6 +3407,12 @@ bulk.
 
 ## Open items
 
+- [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
+  Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
+  Once confirmed, credit it specifically wherever the piece is mentioned
+  (`index.html#gallery`, `exchange-virtuamakers-gallery.html`) and start
+  recording AI model/version for every future Gallery winner too, per
+  Chris's standing ask.
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
   own personal security needs strengthening too, not just Agora's -
   new/more complex passwords, given he's been targeted by hacking
