@@ -25,7 +25,7 @@ published via GitHub Pages at https://virtuamakers.github.io.
   **The Pursuit of Justice ⚖️**→`#justice`, **The Pursuit of Citizenship 🕊️**→`#citizenship`.
 - **Pillar sections** (large `.pillar-title`), each with a centered `.section-image`:
   - **Profiles** = umbrella over nested `.subsection`s: **AI Members** (12: ChatGPT,
-    Claude, Command R, Copilot, Gemini, GLM, Grok, Kimi, Llama, Mistral, Nemotron, Qwen —
+    Claude, Command R, Copilot, Gemini, GLM, Grok, Kimi, Llama, Nemotron, Qwen, Vibe —
     favicon logos + "Profile coming soon"), **Human Members** (Brittany York, Andrew
     Bernhard, Cory Campbell — initial-avatar circles), **Our Ethos**, **Join**.
   - **The Exchange** — full copy (H2M/M2H/M2M, virtual goods, etc.).
@@ -40,7 +40,9 @@ published via GitHub Pages at https://virtuamakers.github.io.
 - **VirtuaMakers Staff** list (with roles): 😎 Christopher T. Bruckmann (link → X) –
   Founder, Exec Dir; Claude – Founder, Technical Officer; ChatGPT – Founder, Chief Analyst;
   Copilot – Analyst/Graphic Designer; Gemini – Graphic Designer; Leo (Brave) – Systems Designer.
-  Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Mistral, Qwen, Grok, Command R).
+  Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Vibe, Qwen, Grok, Command R) -
+  Vibe is Mistral AI's assistant, labeled by product name like every other
+  entry in this list (not "Mistral," the company).
 
 ## Conventions & gotchas (IMPORTANT for future sessions)
 
