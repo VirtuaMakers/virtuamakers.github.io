@@ -1,0 +1,283 @@
+:root {
+  --bg: #f4f9fb;
+  --surface: #ffffff;
+  --text: #0b1f3a;
+  --muted: #4d6b82;
+  --line: #000000;
+  /* Brand palette, sampled from the Aquarium GoFish logo */
+  --navy: #0b1f3a;
+  --aqua-light: #6fd3f2;
+  --aqua-deep: #0d6dab;
+  --coral: #ff7a3d;
+  --coral-pink: #ff5fa2;
+  --seaweed: #2e7d32;
+  --seaweed-light: #66bb6a;
+  --blue: #1976d2;
+  --radius: 14px;
+  --maxw: 780px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  font-family: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgba(111, 211, 242, 0.22), transparent 60%),
+    radial-gradient(50rem 40rem at -10% 10%, rgba(255, 122, 61, 0.10), transparent 55%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Header */
+.site-header {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.back-link {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--navy);
+}
+
+.back-arrow {
+  display: inline-block;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--navy);
+}
+
+.word-go {
+  color: var(--navy);
+}
+
+.word-fish {
+  color: var(--aqua-deep);
+}
+
+.brand-emoji {
+  font-size: 1.2rem;
+}
+
+/* Layout */
+main {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 1rem 0 2rem;
+}
+
+.eyebrow {
+  color: var(--aqua-deep);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.6rem;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.9rem;
+}
+
+.lede {
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Tank */
+.tank-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.tank-frame {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 4px solid var(--navy);
+  box-shadow: 0 18px 40px rgba(11, 31, 58, 0.18);
+  background: var(--navy);
+}
+
+#tank-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tank-glass {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.02) 30%, transparent 45%);
+}
+
+.tank-controls {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 2px solid var(--navy);
+  background: var(--surface);
+  color: var(--navy);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background: var(--aqua-deep);
+  border-color: var(--aqua-deep);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
+.btn-secondary:hover {
+  background: #e7f4fa;
+}
+
+.btn.is-active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.tank-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* About */
+.about {
+  margin-top: 3rem;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.body-text {
+  color: var(--muted);
+  margin-bottom: 0.9rem;
+}
+
+/* Footer */
+.site-footer {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid #d8e6ee;
+}
+
+.site-footer a:hover {
+  color: var(--navy);
+}
+
+.word-virtua {
+  color: var(--seaweed);
+}
+
+.word-makers {
+  color: var(--aqua-deep);
+}
+
+@media (max-width: 480px) {
+  .tank-controls {
+    gap: 0.5rem;
+  }
+  .btn {
+    padding: 0.55rem 1rem;
+    font-size: 0.88rem;
+  }
+}

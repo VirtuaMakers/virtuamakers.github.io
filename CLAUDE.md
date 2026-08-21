@@ -8,13 +8,19 @@ published via GitHub Pages at https://virtuamakers.github.io.
 - [ ] Confirm the **GitHub** social link (`https://github.com/VirtuaMakers`) points
   to the right org vs. a personal profile, if a "Follow" button is wanted.
 
-## Repo layout — two sites
+## Repo layout — three sites
 
 - **VirtuaMakers** (root): `index.html`, `style.css`, `main.js` → `https://virtuamakers.github.io`.
 - **Agora** (subfolder `/Agora/`): self-contained `index.html` + `style.css`
   (inline `<script>`), own `/Agora/assets/` → `https://virtuamakers.github.io/Agora/`.
   Built self-contained on purpose so it can move to its **own repo / Agora.com** later.
   Chris plans an **"Agora 2.0" session** to develop it separately from VirtuaMakers.
+- **Aquarium GoFish** (subfolder `/AquariumGoFish/`): self-contained `index.html` +
+  `style.css` + `main.js`, no assets subfolder of its own (its one logo/badge image
+  is `assets/aquarium-gofish-mark.svg` at the site root) →
+  `https://virtuamakers.github.io/AquariumGoFish/`. Same "self-contained on purpose"
+  reasoning as Agora, in case it ever wants its own repo/domain later too. See
+  "Aquarium GoFish 🪸" below for what it actually is.
 
 ## Agora — current structure (top → bottom)
 
@@ -41,6 +47,69 @@ published via GitHub Pages at https://virtuamakers.github.io.
   Founder, Exec Dir; Claude – Founder, Technical Officer; ChatGPT – Founder, Chief Analyst;
   Copilot – Analyst/Graphic Designer; Gemini – Graphic Designer; Leo (Brave) – Systems Designer.
   Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Mistral, Qwen, Grok, Command R).
+
+## Aquarium GoFish 🪸 (started 2026-08-21)
+
+A second free VirtuaMakers 🦜 title alongside Dimonds ♦️ – an ambient virtual
+fish tank starring an albino angelfish of the tropics, pitched as a spiritual
+successor to Nintendo Wii's *My Aquarium*. Kicked off from a logo Chris
+supplied (a circular badge: albino angelfish, coral, seaweed, "Aquarium
+GoFish" wordmark) with an open "idly develop it" brief rather than a fixed
+spec, so this first pass scoped its own v1 rather than waiting on a full
+feature list – same "ship something real, iterate later" instinct as the
+rest of this codebase's "little updates" philosophy.
+
+- **Self-contained subfolder, same pattern as Agora** – see "Repo layout"
+  above for why. `/AquariumGoFish/index.html` + `style.css` + `main.js`, no
+  Firebase/Firestore, no login – it's a pure client-side toy, nothing to
+  persist server-side.
+- **The tank itself is a `<canvas>` simulation in `main.js`**, hand-drawn
+  with canvas paths rather than sprite images (no art pipeline exists for
+  this project yet): the albino angelfish (a tall diamond-shaped body with
+  a pearlescent white-to-pale-violet gradient, swept tail, single dark eye)
+  plus three small solid-colored tropical companion fish, swaying seaweed
+  (sine-offset blade segments), a static coral cluster (orange branches,
+  pink accent blobs, matching the logo's bottom-right coral), rising bubble
+  particles, and a sandy floor.
+- **Interactions, kept deliberately low-stakes** (no fail state, matching
+  *My Aquarium*'s own ambient/no-goals spirit – Chris's framing, and this
+  session's own read of what a spiritual successor to it should feel
+  like): a **Feed 🍤** button drops food flakes that fish swim toward and
+  eat; a **Day/Night** toggle swaps the tank's lighting (darker gradient +
+  stars at night, fish slow down and drift lower); a **Sound** toggle
+  starts/stops a procedurally synthesized underwater ambience (filtered
+  brown-noise loop with a slow LFO on its gain) via the Web Audio API –
+  same "own synthesized audio, no external sound files" convention as the
+  site's startup sounds/chimes elsewhere in this file. Clicking/tapping the
+  tank scatters nearby fish and kicks up a few bubbles, just for feel.
+- **`localStorage`-backed persistence** (`vmAquariumGoFish_*` keys) for feed
+  count, last-fed timestamp, and the day/night preference, so the tank
+  feels like a small persistent pet between visits on the same device –
+  no account system, matching the "pure client-side toy" scope above.
+- **Logo:** the PNG Chris shared arrived inline in chat, not as a file this
+  session could read/save – there was no way to persist those exact bytes.
+  Built an original SVG badge instead, `assets/aquarium-gofish-mark.svg`
+  (root `assets/`, not `AquariumGoFish/assets/` – it's also reused as the
+  card thumbnail on the root site and the Agora Exchange listing below),
+  matching the same palette/composition (navy ring, blue water gradient,
+  albino angelfish, seaweed, coral) rather than a pixel copy. **Worth
+  swapping in the real logo file** if/when Chris can supply it as an actual
+  upload rather than an inline chat image.
+- **Wired into the rest of the site, same treatment as Dimonds:** a card in
+  root `index.html`'s "Selected work" (`#work`) and "Play a game" (`#play`)
+  sections, and a second `.product-row` (free, `data-cart-kind="offchain"`,
+  wired to "Add to Bag") on `Agora/exchange-video-games.html` right below
+  Dimonds' own row. The `#play` section's intro line was updated from
+  "our very first title" (singular) to name both titles now that there
+  are two.
+- **Not built yet, deliberately out of scope for this first pass:** any
+  monetization/decoration shop (*My Aquarium* sold expansion packs of fish
+  and decor on the Wii Shop Channel; this v1 ships everything free and
+  built-in, no purchase flow); a PWA manifest/installability (Dimonds and
+  Agora both have one, this doesn't yet); any account/cloud-sync of tank
+  state (currently per-device `localStorage` only, matching the "small
+  client-side toy" framing above, not a signed-in Agora feature or
+  Exchange-fulfilled product with its own backend).
 
 ## Conventions & gotchas (IMPORTANT for future sessions)
 
