@@ -48,6 +48,11 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 - **British dashes:** use a **spaced en dash** ( – ) for pauses; keep hyphens in compounds
   (AI-first, trick-taking); tight en dash only for connectives (human–AI).
+- **VirtuaMakers possessive (Chris, 2026-08-21):** apostrophe only, no
+  trailing "s" - **VirtuaMakers 🦜'**, not "VirtuaMakers 🦜's" (the name
+  already ends in "s"). Swept across all 6 existing occurrences
+  (`index.html`'s Guardian blurb, plus five Agora Exchange product pages)
+  when Chris flagged it.
 - **Emoji convention (Chris's rule):** each branded term (Agora 🌐, VirtuaMakers 🦜,
   VirtuaMakers Exchange 💱, Dimonds ♦️, Chain of Cards ⛓️, Per Manum Convention ✒️,
   Computerian Manifesto 🖥️, Machineopology 🤖, etc.) gets its emoji on its **first
