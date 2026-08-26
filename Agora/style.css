@@ -85,6 +85,14 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Always wrap-capable, not just under the narrow-phone breakpoint below -
+     a long display name in .brand-group left no room for .header-right's
+     items to stay unwrapped even at desktop widths once News joined the
+     row, forcing the browser to compress every item and wrap each one's
+     own emoji internally instead of just dropping .header-right to its
+     own line. Never triggers in the common case (short/no name, room to
+     spare), only in that combined edge case. */
+  flex-wrap: wrap;
 }
 
 .brand {
@@ -130,7 +138,7 @@ a {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem 1rem;
   /* Pins this flush to the row's right edge even when .site-header wraps
      it onto its own line below .brand on narrow viewports - without this,
      a lone flex item on a wrapped line sits at flex-start under
@@ -138,6 +146,25 @@ a {
      icon short of the true right edge and made .header-search-panel's
      right: 0 anchor overflow off the left side of the screen. */
   margin-left: auto;
+  /* Its own children can drop onto additional rows too (not just
+     .header-right as a whole wrapping under .brand) - same reasoning as
+     .site-header's own flex-wrap above, one level down. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-right .back-link,
+.header-right .auth-link {
+  white-space: nowrap;
+}
+
+/* News is the one header-right label allowed to wrap its own emoji onto
+   a second line (Chris's call, 2026-08-26) rather than stay nowrap like
+   every other item - a two-line "News 📰" reads fine wherever it lands,
+   and it's one less item competing for single-line width. */
+.header-right #agora-news-link {
+  white-space: normal;
+  text-align: center;
 }
 
 .auth-controls {
@@ -1744,7 +1771,6 @@ main > .section:first-child {
 
 @media (max-width: 560px) {
   .site-header {
-    flex-wrap: wrap;
     gap: 0.6rem;
     padding-left: 0.6rem;
     padding-right: 0.6rem;
@@ -1761,13 +1787,12 @@ main > .section:first-child {
   }
 
   .header-right {
-    gap: 0.7rem;
+    gap: 0.5rem 0.7rem;
   }
 
   .header-right .back-link,
   .header-right .auth-link {
     font-size: 0.74rem;
-    white-space: nowrap;
   }
 
   .auth-controls {
