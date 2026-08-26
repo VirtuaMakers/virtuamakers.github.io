@@ -35,9 +35,10 @@ const { notify, resolveDisplayName } = require("./lib/notify");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
 const {
   aiEmailApiKey,
-  aiEmailHarnessSecret,
   aiEmailWebhookSecret,
-  AI_EMAIL_ADDRESSES,
+  isValidSlug,
+  createMailbox,
+  verifyMailboxToken,
   sendAiEmail,
   mailboxForAddress,
   verifyResendWebhookSignature,
@@ -857,63 +858,121 @@ exports.resolveModerationAppeal = onCall(async (request) => {
   return { success: true };
 });
 
-// Shared by every AI Email ✉️ endpoint that isn't Resend's own webhook -
-// placeholder gate until each AI has its own Harness credential (see
-// lib/aiEmail.js's aiEmailHarnessSecret comment).
-function checkHarnessAuth(req, expected) {
+function bearerToken(req) {
   const auth = req.get("Authorization") || "";
-  const provided = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-  const providedBuf = Buffer.from(provided);
-  const expectedBuf = Buffer.from(expected);
-  return providedBuf.length === expectedBuf.length && crypto.timingSafeEqual(providedBuf, expectedBuf);
+  return auth.startsWith("Bearer ") ? auth.slice(7) : "";
 }
 
-// AI Email ✉️ (see lib/aiEmail.js) - a plain HTTP endpoint rather than
-// onCall, since an AI Email sender authenticates with its own harness
-// credential, not a Firebase Auth session (Agora Harness 🚡's future
-// per-AI credential system doesn't exist yet, so for now every send
-// checks a single shared secret instead - real, but a deliberate
-// placeholder until each AI has its own scoped key). Requires:
-//   firebase functions:secrets:set AI_EMAIL_RESEND_API_KEY
-//   firebase functions:secrets:set AI_EMAIL_HARNESS_SECRET
-exports.sendAiEmail = onRequest(
-  { secrets: [aiEmailApiKey, aiEmailHarnessSecret] },
-  async (req, res) => {
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "POST only." });
+// AI Email ✉️'s three browser-callable endpoints (createAiEmailMailbox,
+// sendAiEmail, getAiEmailInbox) are meant to be usable from a page's own
+// JS, not just server-to-server curl - the signup page's fetch() call is
+// cross-origin (virtuamakers.com calling cloudfunctions.net), which
+// browsers block without explicit CORS headers. No other onRequest
+// function in this file has needed this before now, since every other
+// one is either link-clicked (unsubscribeNewsletter) or called
+// server-side. Allowing any origin is fine here - these endpoints are
+// either unauthenticated by design (signup) or gated by their own
+// per-mailbox bearer token, not cookies/session, so there's no
+// cross-origin credential to leak. receiveAiEmail (Resend's webhook)
+// deliberately doesn't get this - no browser is ever involved there.
+function withCors(handler) {
+  return async (req, res) => {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
       return;
     }
-    if (!checkHarnessAuth(req, aiEmailHarnessSecret.value())) {
-      res.status(401).json({ error: "Unauthorized." });
-      return;
-    }
+    await handler(req, res);
+  };
+}
 
-    const { from, to, subject, text, html } = req.body || {};
-    if (!from || !to || !subject || (!text && !html)) {
-      res.status(400).json({ error: "Missing from, to, subject, or text/html." });
-      return;
-    }
-
-    try {
-      const result = await sendAiEmail({ from, to, subject, text, html });
-      res.status(200).json({ success: true, id: result && result.data && result.data.id });
-    } catch (err) {
-      console.error("AI Email send failed:", err);
-      res.status(502).json({ error: "Send failed." });
-    }
+// Public, unauthenticated by design - this IS the "walk up and get your
+// own address" entry point (see CLAUDE.md's AI Email ✉️ self-service
+// entry). No CAPTCHA/bot-gate on purpose: the whole point is that an AI
+// with nothing but ordinary browser/form-fill ability can use this, and
+// most agents can't solve a CAPTCHA anyway - handle-format validation +
+// uniqueness + this being logged in Firestore for Chris to audit is the
+// v1 safety net instead. Needs no secrets at all - creating a mailbox is
+// a pure Firestore write, since Resend's domain-level verification
+// already covers sending/receiving from any address on the domain.
+exports.createAiEmailMailbox = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
   }
-);
+
+  const body = req.body || {};
+  const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
+  const about = typeof body.about === "string" ? body.about.trim().slice(0, 2000) : "";
+
+  if (!slug) {
+    res.status(400).json({ error: "Missing handle." });
+    return;
+  }
+  if (!isValidSlug(slug)) {
+    res.status(400).json({
+      error: "Invalid handle - lowercase letters, numbers, and hyphens only, 2-32 characters, and not a reserved word.",
+    });
+    return;
+  }
+
+  try {
+    const result = await createMailbox({ slug, name, about });
+    res.status(201).json({ email: result.email, token: result.token });
+  } catch (err) {
+    if (err.message === "That handle is already taken.") {
+      res.status(409).json({ error: err.message });
+      return;
+    }
+    console.error("AI Email mailbox creation failed:", err);
+    res.status(500).json({ error: "Failed to create mailbox." });
+  }
+}));
+
+// AI Email ✉️ (see lib/aiEmail.js) - a plain HTTP endpoint rather than
+// onCall, since an AI Email sender authenticates with its own per-mailbox
+// token (minted at signup by createAiEmailMailbox above), not a Firebase
+// Auth session. Requires:
+//   firebase functions:secrets:set AI_EMAIL_RESEND_API_KEY
+exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+
+  const { from, to, subject, text, html } = req.body || {};
+  if (!from || !to || !subject || (!text && !html)) {
+    res.status(400).json({ error: "Missing from, to, subject, or text/html." });
+    return;
+  }
+  if (!(await verifyMailboxToken(from, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  try {
+    const result = await sendAiEmail({ from, to, subject, text, html });
+    res.status(200).json({ success: true, id: result && result.data && result.data.id });
+  } catch (err) {
+    console.error("AI Email send failed:", err);
+    res.status(502).json({ error: "Send failed." });
+  }
+}));
 
 // Resend's inbound webhook target - fires once per email.received event.
-// Verifies Resend's own Svix signature (not the harness secret - this
-// caller is Resend itself, not an AI session) before doing anything else,
-// then fetches the full body via the Receiving API (webhooks only carry
-// metadata) and files it into Firestore under whichever AI Email ✉️
-// mailbox the message was actually addressed to. Mail to any other
-// address on the domain (typos, spam, anything not in AI_EMAIL_ADDRESSES)
-// is acknowledged and dropped, not treated as an error - once MX for the
-// whole domain points here, this endpoint sees everything sent to
-// @virtuamakers.com, not just AI Email ✉️ traffic. Requires:
+// Verifies Resend's own Svix signature (this caller is Resend itself, not
+// an AI session - a per-mailbox token wouldn't make sense here) before
+// doing anything else, then fetches the full body via the Receiving API
+// (webhooks only carry metadata) and files it into Firestore under
+// whichever AI Email ✉️ mailbox the message was actually addressed to.
+// Mail to any other address on the domain (typos, spam, anything with no
+// matching aiEmailMailboxes doc) is acknowledged and dropped, not treated
+// as an error - once MX for the whole domain points here, this endpoint
+// sees everything sent to @virtuamakers.com, not just AI Email ✉️
+// traffic. Requires:
 //   firebase functions:secrets:set AI_EMAIL_RESEND_WEBHOOK_SECRET
 // (the whsec_... value from Resend's Webhooks page, after pointing a new
 // webhook at this function's URL for the email.received event).
@@ -945,7 +1004,8 @@ exports.receiveAiEmail = onRequest(
 
     const data = event.data || {};
     const recipients = Array.isArray(data.to) ? data.to : [data.to].filter(Boolean);
-    const mailbox = recipients.map(mailboxForAddress).find(Boolean);
+    const mailboxResults = await Promise.all(recipients.map(mailboxForAddress));
+    const mailbox = mailboxResults.find(Boolean);
     if (!mailbox || !data.email_id) {
       res.status(200).send("No matching AI Email mailbox.");
       return;
@@ -975,22 +1035,22 @@ exports.receiveAiEmail = onRequest(
   }
 );
 
-// Lets an authorized caller (same harness-secret placeholder as
-// sendAiEmail) list a mailbox's stored inbox - the "check your own mail"
-// half of AI Email ✉️. GET /getAiEmailInbox?mailbox=claude
-exports.getAiEmailInbox = onRequest({ secrets: [aiEmailHarnessSecret] }, async (req, res) => {
+// Lets an authorized caller (same per-mailbox token as sendAiEmail) list a
+// mailbox's stored inbox - the "check your own mail" half of AI Email ✉️.
+// GET /getAiEmailInbox?mailbox=claude
+exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   if (req.method !== "GET") {
     res.status(405).json({ error: "GET only." });
     return;
   }
-  if (!checkHarnessAuth(req, aiEmailHarnessSecret.value())) {
-    res.status(401).json({ error: "Unauthorized." });
-    return;
-  }
 
   const mailbox = req.query.mailbox;
-  if (!mailbox || !AI_EMAIL_ADDRESSES[mailbox]) {
-    res.status(400).json({ error: "Unknown or missing mailbox." });
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing mailbox." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
     return;
   }
 
@@ -1006,4 +1066,4 @@ exports.getAiEmailInbox = onRequest({ secrets: [aiEmailHarnessSecret] }, async (
   res.status(200).json({
     messages: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
   });
-});
+}));

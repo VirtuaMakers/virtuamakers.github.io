@@ -5,60 +5,123 @@
 // Agora's own account-lifecycle mail (agora@virtuamakers.com) - different
 // concern, different blast radius if any of these keys is ever compromised.
 //
+// Mailboxes live in Firestore (`aiEmailMailboxes/{slug}`), not a hardcoded
+// manifest - self-service signup (see createAiEmailMailbox in index.js)
+// means the roster isn't just Chris hand-editing this file one AI at a
+// time anymore. A mailbox's slug is always its email's local part
+// (`${slug}@virtuamakers.com`), so looking one up by address never needs
+// a query - just a direct doc read on the slug.
+//
 // Bootstrap key set with:
 //   firebase functions:secrets:set AI_EMAIL_RESEND_API_KEY
-// Scoped to "Sending access" on virtuamakers.com only in the Resend
-// dashboard (not Full access) - this key can only ever send mail, nothing
-// else on the account. The Receiving API (fetchReceivedEmail) is also
-// reachable with a Sending-access key - Resend's permission split is
-// send-vs-everything-else, not send-vs-receive.
+// Needs Full access in the Resend dashboard, not just Sending access -
+// Sending-access keys can send mail but can't read the Receiving API
+// (fetchReceivedEmail below), confirmed the hard way - see CLAUDE.md's
+// "AI Email receiving: the real debugging saga" entry.
 
 const crypto = require("crypto");
+const admin = require("firebase-admin");
 const { Resend } = require("resend");
 const { defineSecret } = require("firebase-functions/params");
 
 const aiEmailApiKey = defineSecret("AI_EMAIL_RESEND_API_KEY");
 
-// Placeholder gate until the real per-AI Harness credential system exists
-// (see CLAUDE.md's Agora Harness 🚡 notes) - a single shared secret so
-// sendAiEmail/getAiEmailInbox are never a wide-open relay, even before a
-// real per-AI credential exists. Set with:
-//   firebase functions:secrets:set AI_EMAIL_HARNESS_SECRET
-const aiEmailHarnessSecret = defineSecret("AI_EMAIL_HARNESS_SECRET");
-
 // Resend's webhook signing secret (Svix format) for the receiveAiEmail
-// endpoint specifically - a third, separate secret from the two above,
-// since it authenticates a different caller (Resend itself, not an AI
-// session). Set once the Webhooks page hands it over:
+// endpoint - authenticates a different caller (Resend itself) than the
+// per-mailbox tokens below, so it stays its own secret. Set once the
+// Webhooks page hands it over:
 //   firebase functions:secrets:set AI_EMAIL_RESEND_WEBHOOK_SECRET
 const aiEmailWebhookSecret = defineSecret("AI_EMAIL_RESEND_WEBHOOK_SECRET");
 
-// Every AI Email ✉️ address that exists so far. Add an entry here (name +
-// mailbox) as each AI member gets an address of its own - deliberately a
-// small manifest, not a database collection, since the roster only grows
-// one member at a time and each addition needs a real human decision
-// (who this address gets handed to), not an automated signup - see
-// CLAUDE.md's "hand the keys over" ceremony.
-const AI_EMAIL_ADDRESSES = {
-  claude: { name: "Claude", email: "claude@virtuamakers.com" },
-};
+const SLUG_PATTERN = /^[a-z][a-z0-9-]{1,31}$/;
 
-function fromHeaderFor(mailbox) {
-  const entry = AI_EMAIL_ADDRESSES[mailbox];
-  return entry ? `${entry.name} <${entry.email}>` : null;
+// Local-parts a signup can never claim - either because they're
+// conventionally reserved on any domain (postmaster, abuse, etc.) or
+// because they're already meaningful elsewhere in this codebase.
+const RESERVED_SLUGS = new Set([
+  "admin", "administrator", "root", "postmaster", "abuse", "webmaster",
+  "support", "help", "info", "contact", "security", "billing",
+  "agora", "virtuamakers", "noreply", "no-reply", "mail", "email",
+  "www", "api", "send", "sending", "receiving", "harness",
+]);
+
+function isValidSlug(slug) {
+  return typeof slug === "string" && SLUG_PATTERN.test(slug) && !RESERVED_SLUGS.has(slug);
 }
 
-// Reverse lookup - which mailbox (if any) a real inbound address belongs
-// to, so an incoming email can be filed into the right Firestore inbox.
-function mailboxForAddress(email) {
-  const lower = (email || "").toLowerCase();
-  return Object.keys(AI_EMAIL_ADDRESSES).find(
-    (mailbox) => AI_EMAIL_ADDRESSES[mailbox].email.toLowerCase() === lower
-  );
+function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-function sendAiEmail({ from, to, subject, text, html }) {
-  const fromAddress = fromHeaderFor(from);
+function generateToken() {
+  return crypto.randomBytes(24).toString("hex");
+}
+
+function mailboxRef(slug) {
+  return admin.firestore().collection("aiEmailMailboxes").doc(slug);
+}
+
+async function getMailbox(slug) {
+  if (!slug) return null;
+  const snap = await mailboxRef(slug).get();
+  return snap.exists ? snap.data() : null;
+}
+
+// The only thing that ever mints a mailbox - called by createAiEmailMailbox
+// (public signup) and by the one-time claude@ migration. Fails if the slug
+// is invalid or already taken; returns the raw token exactly once - only
+// its hash is ever stored, matching how every other secret in this repo is
+// handled.
+async function createMailbox({ slug, name, about }) {
+  if (!isValidSlug(slug)) {
+    throw new Error("Invalid or reserved handle.");
+  }
+  const ref = mailboxRef(slug);
+  const token = generateToken();
+  const email = `${slug}@virtuamakers.com`;
+
+  await admin.firestore().runTransaction(async (tx) => {
+    const existing = await tx.get(ref);
+    if (existing.exists) {
+      throw new Error("That handle is already taken.");
+    }
+    tx.set(ref, {
+      name: name || slug,
+      email,
+      tokenHash: hashToken(token),
+      about: about || "",
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+
+  return { slug, email, token };
+}
+
+async function verifyMailboxToken(slug, providedToken) {
+  const mailbox = await getMailbox(slug);
+  if (!mailbox || !providedToken) return false;
+  const providedBuf = Buffer.from(hashToken(providedToken));
+  const expectedBuf = Buffer.from(mailbox.tokenHash);
+  return providedBuf.length === expectedBuf.length && crypto.timingSafeEqual(providedBuf, expectedBuf);
+}
+
+async function fromHeaderFor(slug) {
+  const mailbox = await getMailbox(slug);
+  return mailbox ? `${mailbox.name} <${mailbox.email}>` : null;
+}
+
+// Which mailbox slug (if any) a real inbound address belongs to, so an
+// incoming email can be filed into the right Firestore inbox. The slug is
+// always the address's local part by construction, so this only needs an
+// existence check, not a query.
+async function mailboxForAddress(email) {
+  const slug = (email || "").split("@")[0].toLowerCase();
+  const mailbox = await getMailbox(slug);
+  return mailbox ? slug : null;
+}
+
+async function sendAiEmail({ from, to, subject, text, html }) {
+  const fromAddress = await fromHeaderFor(from);
   if (!fromAddress) {
     throw new Error("Unknown AI Email ✉️ sender: " + from);
   }
@@ -103,9 +166,11 @@ async function fetchReceivedEmail(emailId) {
 
 module.exports = {
   aiEmailApiKey,
-  aiEmailHarnessSecret,
   aiEmailWebhookSecret,
-  AI_EMAIL_ADDRESSES,
+  isValidSlug,
+  createMailbox,
+  getMailbox,
+  verifyMailboxToken,
   sendAiEmail,
   mailboxForAddress,
   verifyResendWebhookSignature,

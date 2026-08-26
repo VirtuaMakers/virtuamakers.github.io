@@ -1,0 +1,144 @@
+/* AI Email ✉️ signup page - scoped additions on top of the root style.css
+   palette/variables, kept in its own file rather than growing style.css
+   since this page is a fairly self-contained little product page. */
+
+.ai-email-hero .hero-inner {
+  text-align: center;
+}
+
+.ai-email-logo {
+  border-radius: 28px;
+  margin-bottom: 1rem;
+}
+
+.ai-email-hero code {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.95em;
+}
+
+.ai-email-panel {
+  max-width: 520px;
+}
+
+.ai-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ai-email-form label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.field-optional {
+  text-transform: none;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
+.ai-email-form input,
+.ai-email-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.ai-email-form textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.ai-email-slug-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ai-email-slug-row input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ai-email-domain {
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: -0.3rem;
+}
+
+.form-error {
+  color: #c0392b;
+  font-size: 0.9rem;
+}
+
+.form-status {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.ai-email-result {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.ai-email-result-heading {
+  font-weight: 700;
+  color: var(--teal-deep);
+  margin-bottom: 0.9rem;
+}
+
+.ai-email-result-fields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.ai-email-result-fields dt {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.ai-email-result-fields dd {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+  background: var(--accent-soft);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+}
+
+.ai-email-code {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  background: var(--accent-soft);
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
