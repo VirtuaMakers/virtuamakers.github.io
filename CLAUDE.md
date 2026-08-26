@@ -3412,6 +3412,63 @@ anywhere); and provisioning addresses for the other 23 AI members, which
 per Chris's ceremony happens one real conversation at a time, not in
 bulk.
 
+## The Pillars label, a "News 📰" header link, and self-adjusting anchor scroll (Chris, 2026-08-26)
+
+Three rounds in one sitting, the last one prompted by Chris noticing that
+in-page anchor links (pillar tiles, "Back to The Pillars," etc.) kept
+landing "slightly off" again every time the header changed - a real,
+recurring pattern worth understanding, not a one-off glitch.
+
+- **"The Pillars" label + "Back to The Pillars" links** - the hero tile
+  grid (Profiles/Exchange/Justice) got a heading, `id="pillars"`, and
+  each pillar got a link back to it after its own logo and at the end of
+  its content. Also fixed the underlying reason clicking a pillar tile
+  landed past its own heading in the first place: the sticky
+  `.site-header` sits on top of the page, not above it, so a bare anchor
+  jump lands a section's top flush with the viewport top, right under
+  the header.
+- **"News 📰" header link** - added to all 59 pages, `.header-right`'s
+  first item, pointing at `index.html#news` (the in-page section on the
+  homepage, not the separate `news.html` archive - Chris's explicit
+  correction after the first pass linked to the archive page instead).
+  Always visible in both landscape and portrait, not landscape-only.
+- **Root cause of the "keeps drifting" complaint:** the very first fix
+  above used a hand-measured pixel constant (`scroll-margin-top: 110px`,
+  a narrower `140px` for small phones) baked into `style.css`, based on
+  the header's height *at that moment*. Every subsequent header edit
+  (adding News as a 6th item, the header wrap-behavior fix below) changed
+  the header's real height in various states, silently making that
+  constant wrong again - the exact "we keep re-tuning this" pattern Chris
+  flagged. Fixed for good, not just re-measured again: new
+  `Agora/header-height.js` (loaded on all 59 pages, right after
+  `</header>`) sets a live `--header-height` CSS custom property from the
+  sticky header's actual current `getBoundingClientRect().height`,
+  updated on resize and via `ResizeObserver`. `.section`/`#pillars`'s
+  `scroll-margin-top` is now `calc(var(--header-height, 90px) + 20px)` -
+  self-correcting against any future header content change, so this
+  shouldn't need hand-retuning again. The script also re-snaps to the
+  URL's `#hash` target once the real height is known, covering a fresh
+  cross-page load (e.g. clicking "News 📰" from another page) where the
+  browser's own native fragment-scroll can run before the first
+  measurement lands.
+- **Real bug found while adding the News link:** a 6th `.header-right`
+  item could tip an already-tight combination (a long display name in
+  `.brand-group` + every auth item showing at once) into the browser
+  compressing every header-right item and wrapping each one's own emoji
+  onto a second line mid-label - reproducible even at desktop width, not
+  just narrow phones, since `.header-right`'s children had no room to
+  wrap onto additional rows of their own before this. Fixed by letting
+  `.site-header` and `.header-right` both wrap onto extra rows
+  unconditionally (not just under the narrow-phone breakpoint), and
+  moving `white-space: nowrap` for header-right labels out of that
+  breakpoint into the base rules so it always applies. **News is the one
+  deliberate exception** - Chris likes the "text over emoji" wrap he's
+  seen elsewhere on the site (the hero's own large "Sign Up / Sign In
+  ✍🏻" text already does this at its own size), so `#agora-news-link`
+  keeps `white-space: normal` and is allowed to wrap its own emoji rather
+  than forcing nowrap like every other header item.
+- Bumped `style.css` to `v=93` across all 59 pages.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

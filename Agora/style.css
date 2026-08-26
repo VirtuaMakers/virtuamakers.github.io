@@ -645,14 +645,15 @@ a.card.feature {
   /* The sticky .site-header sits on top of the page, not above it - a
      bare in-page anchor jump (native or smooth-scroll) lands a section's
      top flush with the viewport's own top edge, which puts its heading
-     and tagline underneath the header rather than below it. This clears
-     enough room for the header's tallest single-row height (measured
-     ~85-101px depending on signed-in/out state); the narrower breakpoint
-     below covers the header's two-row wrapped state on small phones
-     (~121px measured). A little extra whitespace above a heading when
-     the header happens to be shorter than this is a fine tradeoff
-     against the header hiding it outright. */
-  scroll-margin-top: 110px;
+     and tagline underneath the header rather than below it. --header-height
+     is kept live by header-height.js, measuring the header's actual
+     current height rather than a hardcoded guess - a hand-measured pixel
+     constant here quietly went stale every time header-right gained or
+     lost an item (see CLAUDE.md), forcing a re-measure-and-retune each
+     round; this is self-correcting instead. The 20px fallback/buffer
+     covers the moment before JS runs and adds a little breathing room
+     above the heading either way. */
+  scroll-margin-top: calc(var(--header-height, 90px) + 20px);
 }
 
 /* The Pillars label sits inside .hero, not a .section, but is its own
@@ -663,21 +664,11 @@ a.card.feature {
    eyebrow label - with generous margin-top so it doesn't crowd against
    the hero's closing paragraph above it. */
 #pillars {
-  scroll-margin-top: 110px;
+  scroll-margin-top: calc(var(--header-height, 90px) + 20px);
   font-size: 1.4rem;
   letter-spacing: 0.08em;
   margin-top: 2.5rem;
   margin-bottom: 1.2rem;
-}
-
-@media (max-width: 560px) {
-  .section {
-    scroll-margin-top: 140px;
-  }
-
-  #pillars {
-    scroll-margin-top: 140px;
-  }
 }
 
 /* When a .section is the very first thing under <main>, it sits directly
