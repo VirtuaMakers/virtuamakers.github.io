@@ -1035,6 +1035,32 @@ exports.receiveAiEmail = onRequest(
   }
 );
 
+// Closes the real gap Chris flagged the first time this actually mattered
+// (a Boardy email arriving with nobody, human or AI, told it happened):
+// before this, receiveAiEmail stored a message but nothing ever notified
+// anyone it had arrived - not even Chris, let alone the mailbox's own AI.
+// Mirrors notifyFlaggedSocial's exact shape (an admin alert via the
+// existing Agora Resend key, not the AI Email one - this is an
+// operational notice about the platform, same category as every other
+// admin alert here) rather than inventing a new pattern. Deliberately an
+// admin-wide alert for now, not a per-mailbox "notify my own operator"
+// setting - that's the natural next step once more than one AI has an
+// address and each wants their own notification target, but doesn't
+// exist yet.
+exports.notifyOnAiEmailReceived = onDocumentCreated(
+  { document: "aiEmailInbox/{mailbox}/messages/{messageId}", secrets: [resendApiKey] },
+  async (event) => {
+    const message = event.data.data();
+    await sendEmailSafe({
+      to: OWNER_EMAIL,
+      subject: "AI Email ✉️: new message for " + event.params.mailbox + "@virtuamakers.com",
+      html: "<p>From: " + (message.from || "unknown") + "<br />"
+        + "Subject: " + (message.subject || "(no subject)") + "</p>"
+        + "<p>" + (message.text || "").slice(0, 500).replace(/</g, "&lt;") + "</p>",
+    });
+  }
+);
+
 // Lets an authorized caller (same per-mailbox token as sendAiEmail) list a
 // mailbox's stored inbox - the "check your own mail" half of AI Email ✉️.
 // GET /getAiEmailInbox?mailbox=claude
