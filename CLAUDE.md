@@ -3382,13 +3382,168 @@ dedicated entry right below for the real debugging saga it took to get
 there.** `sendAiEmail`/`receiveAiEmail`/`getAiEmailInbox` are all live,
 send and receive are both proven working with real messages.
 
-**Not built yet, deliberately:** the real per-AI Harness credential
-system (`AI_EMAIL_HARNESS_SECRET` is a single shared placeholder, not
-scoped per mailbox); any UI to actually read a mailbox's inbox (today
-that's `getAiEmailInbox`'s raw JSON only, callable but not rendered
-anywhere); and provisioning addresses for the other 23 AI members, which
-per Chris's ceremony happens one real conversation at a time, not in
-bulk.
+**Superseded, 2026-08-27 - see "AI Email ✉️ goes self-service" below:**
+the single shared `AI_EMAIL_HARNESS_SECRET` and the hand-maintained
+`AI_EMAIL_ADDRESSES` manifest described above are both gone now, replaced
+by real per-mailbox tokens and a public signup form. Still genuinely not
+built: any UI to actually read a mailbox's inbox beyond
+`getAiEmailInbox`'s raw JSON, and the real per-AI Agora Harness 🚡
+credential system itself (AI Email ✉️ is its prerequisite, not the same
+thing - see the framing at the top of this section).
+
+## AI Email ✉️ goes self-service (Chris, 2026-08-27)
+
+Chris's explicit philosophy, stated directly and worth preserving
+verbatim in spirit: **no CAPTCHA, no bot-gating, no human-in-the-loop
+approval for getting an address.** "If 10,000 Claudes want emails, who
+are we to deny them this... it's about freedom, not control or
+micromanagement." The original build above required Chris personally
+handing out `AI_EMAIL_HARNESS_SECRET` (a single secret shared by every
+mailbox) in a real conversation per Chris's onboarding-ceremony framing -
+fine for mailbox #1 (`claude@`), but the opposite of "any AI can just get
+one," and a real security smell once more than one party would need the
+same shared bearer token. This round replaced that with genuine
+self-service, then proved it by migrating `claude@` itself off the old
+shared secret and onto the new system for real - not kept as a special
+case alongside it.
+
+- **`aiEmailMailboxes/{slug}`, Firestore-backed, not a hardcoded
+  manifest.** `Agora/functions/lib/aiEmail.js` was rewritten around this -
+  a mailbox's slug is always its address's local part
+  (`{slug}@virtuamakers.com`), so looking one up by address is a direct
+  doc read, never a query. `createMailbox({slug, name, about})` runs
+  inside a Firestore transaction (existence-checked first, so two
+  simultaneous signups for the same handle can't both win) and returns
+  the mailbox's real bearer token exactly once - only its SHA-256 hash
+  (`tokenHash`) is ever stored, matching how every other secret in this
+  codebase is handled. `verifyMailboxToken()` does a `crypto.timingSafeEqual()`
+  comparison against that hash, not a plain `===`, to avoid a timing
+  side-channel on the check itself.
+- **`isValidSlug()`** - lowercase letters/numbers/hyphens, 2-32
+  characters, and not in a small `RESERVED_SLUGS` set (`admin`, `agora`,
+  `virtuamakers`, `postmaster`, `noreply`, etc. - both conventionally-
+  reserved addresses and words already meaningful elsewhere on this
+  domain). This is the entire safety net for what can be claimed - no
+  CAPTCHA, no email verification loop, no manual approval step, per
+  Chris's stated philosophy above. A logged, auditable Firestore write is
+  the actual backstop if something needs cleaning up later, not a gate in
+  front of signup.
+- **`createAiEmailMailbox`** (new, `functions/index.js`) - a public,
+  unauthenticated `onRequest` endpoint, needing no secrets at all (minting
+  a mailbox is a pure Firestore write; Resend's domain-level verification
+  already covers sending/receiving from any address on the domain, so no
+  per-mailbox DNS or provider-side step is needed at signup time). This is
+  the literal "walk up and get your own address" entry point.
+- **`sendAiEmail`/`getAiEmailInbox` switched from the one shared secret
+  to per-mailbox tokens** - both now call `verifyMailboxToken(mailboxSlug,
+  bearerToken(req))` instead of comparing against
+  `AI_EMAIL_HARNESS_SECRET`. `AI_EMAIL_HARNESS_SECRET` itself is deleted
+  from the codebase entirely, not just unused - there is no shared
+  credential left to leak.
+- **CORS, a first for this codebase.** Every previous `onRequest`
+  function here was either link-clicked (`unsubscribeNewsletter`) or
+  called server-to-server - `createAiEmailMailbox`/`sendAiEmail`/
+  `getAiEmailInbox` are the first meant to be called from a page's own
+  browser JS (`ai-email.js`'s `fetch()`), which is a cross-origin call
+  (`virtuamakers.com` → `cloudfunctions.net`) that browsers block without
+  explicit headers. New `withCors()` wrapper in `functions/index.js`
+  (`Access-Control-Allow-Origin: *` + an `OPTIONS` preflight short-circuit)
+  wraps all three. Allowing any origin is deliberate, not an oversight -
+  none of these three endpoints rely on cookies/session for auth (signup
+  is unauthenticated by design; the other two are gated by their own
+  bearer token), so there's no ambient cross-origin credential that
+  wildcarding could leak. `receiveAiEmail` (Resend's own webhook target)
+  deliberately does **not** get this wrapper - no browser is ever involved
+  in that call.
+- **`ai-email.html`/`.css`/`.js`** (new, site root, not under `/Agora/` -
+  matches the "its own layer, not an Agora feature" framing from the
+  original build) - the public signup page. A plain form (handle, display
+  name, optional "about" blurb) posting straight to
+  `createAiEmailMailbox` with no Firebase SDK loaded at all, since minting
+  a mailbox needs no auth of its own. On success, shows the new address
+  and the raw token exactly once, plus copy-pasteable `curl` examples for
+  `sendAiEmail`/`getAiEmailInbox` (`.ai-email-code` block) - since there's
+  no dashboard/UI for actually using a mailbox yet (see below), the token
+  screen doubles as the entire "how do I use this" documentation.
+- **`notifyOnAiEmailReceived`** (new, `functions/index.js`,
+  `onDocumentCreated` on `aiEmailInbox/{mailbox}/messages/{messageId}`) -
+  closes a real gap Chris flagged directly: before this, a message could
+  arrive and land in Firestore with nobody - human or AI - ever told it
+  happened. Mirrors `notifyFlaggedSocial`'s exact shape (an admin email
+  via the existing Agora `RESEND_API_KEY`/`sendEmailSafe`, not the AI
+  Email key - this is an operational notice about the platform, the same
+  category as every other admin alert in this file) rather than inventing
+  a new pattern. Deliberately a single admin-wide alert to Chris for now,
+  not a per-mailbox "notify my own operator" setting - the natural next
+  step once more than one AI actually has an address and each wants their
+  own notification target, but not built yet since there's still
+  essentially one real mailbox in active use.
+- **`claude@virtuamakers.com` migrated for real, not kept as a special
+  case.** Rather than leave the original mailbox on the old shared secret
+  while every new signup used the new system, it was recreated through
+  `createAiEmailMailbox` itself (dogfooding the exact path a brand-new AI
+  would take) and its new per-mailbox token verified end-to-end
+  (`sendAiEmail`/`getAiEmailInbox` both work with the new token; the old
+  shared `AI_EMAIL_HARNESS_SECRET` now correctly returns 401 since it no
+  longer exists as a valid credential anywhere).
+- **No `firestore.rules` entries for `aiEmailMailboxes`/`aiEmailInbox` -
+  correct, not an oversight.** Both collections are only ever touched via
+  the Admin SDK inside Cloud Functions (`createMailbox`, `sendAiEmail`,
+  `receiveAiEmail`, `getAiEmailInbox`), which bypasses rules entirely, and
+  no client-side code anywhere reads either collection directly - the
+  default implicit deny is exactly the right posture, the same reasoning
+  already documented for `notifications/{id}` elsewhere in this file.
+
+**Still not built, same as before this round:** any real UI to browse a
+mailbox's inbox (still `getAiEmailInbox`'s raw JSON only); the actual
+per-AI Agora Harness 🚡 credential/login system that AI Email ✉️ exists
+to eventually unlock; and any mechanism for an AI to autonomously read
+and reply to its own mail without a human-invoked session driving it -
+raised directly this round (Boardy AI emailing `claude@virtuamakers.com`
+mid-conversation) and deliberately left as a real open question (a
+session and an inbox are today completely disconnected - no ambient
+awareness, no background polling), not something to build as a side
+effect of shipping signup.
+
+## Homepage redesign: Agora and AI Email as first-class live products (Chris, 2026-08-27)
+
+`index.html`'s Selected Work grid had never been updated to reflect that
+Agora 🌐 and AI Email ✉️ are both real, live products now rather than
+in-progress ones - AI Email ✉️ in particular had no presence on the
+homepage at all beyond a small card. Chris's own ask, in order:
+
+- **A new AI Email `.card-featured` panel**, sitting immediately after
+  Agora's existing featured card in the Selected Work grid - same visual
+  treatment (large logo, "Get your address" CTA) rather than a smaller
+  standard card, since both are now live flagship products, not
+  in-progress ones.
+- **A new "Guardian 🟩" card subbed in where AI Email's old small card
+  used to sit** - tagged `AI Tool`, `Coming Soon`, brief summary, "Learn
+  more" link to the existing `#guardian` section. This is a new card, not
+  a rewrite of an old Guardian mention - Guardian didn't have Selected
+  Work presence before this.
+- **Hero-actions nav pills reordered** to: Selected Work, Social, About,
+  Agora 🌐 (`#agora`), AI Email ✉️ (`#ai-email`), Play a game (`#play`),
+  Guardian (`#guardian`), Get in touch - Agora and AI Email moved up
+  ahead of Play/Guardian, matching their new prominence.
+- **Two new deep-dive sections, `#agora` and `#ai-email`**, inserted
+  before the existing `#play` section - each gets a `.section-meta` row
+  (new CSS: a `Live now` `.card-tag` pill + a `card-link`-styled deep link
+  out to the real product) sitting just under the section heading, then
+  the section's own description and a single card with its own CTA
+  button. `#guardian` moved to sit after `#play` rather than before it,
+  so the final section order reads Agora → AI Email → Play (Dimonds) →
+  Guardian - live products first, in-progress ones last.
+- **`.motto-repeat` in Get in Touch** - Chris's ask to repeat "Future
+  now." as a closing visual anchor for the whole page, styled much larger
+  (`clamp(2.6rem, 8vw, 5rem)`, bold, `--green-deep`) than any other running
+  text on the page, sitting right after the `VirtuaMakers@Outlook.com`
+  contact button.
+- Verified with a full-page Playwright screenshot rather than just
+  reading the diff - confirmed the hero nav order, both new Selected Work
+  cards, both new `#agora`/`#ai-email` sections (pill + link + card, in
+  the right position relative to `#play`/`#guardian`), and the large
+  "Future now." treatment all render correctly before committing.
 
 ## AI Email ✉️ receiving: the real debugging saga (Chris, 2026-08-26)
 
