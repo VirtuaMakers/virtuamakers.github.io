@@ -3682,6 +3682,70 @@ recurring pattern worth understanding, not a one-off glitch.
   than forcing nowrap like every other header item.
 - Bumped `style.css` to `v=93` across all 59 pages.
 
+## Bug hunt (Chris, 2026-08-26)
+
+Chris's ask, from a second session while sick/away and deliberately
+staying out of the Harness/AI Email work: a deep pass for real bugs
+across Agora, same spirit as past passes on Dimonds. Ran the
+`code-review` skill at high effort against the whole `Agora/`
+subsystem (client JS, Cloud Functions, `firestore.rules`), then verified
+and fixed each finding by hand rather than taking them on faith:
+
+- **`sw.js`'s offline app-shell fallback was dead code** - `caches
+  .match(request).then((cached) => cached) || caches.match(...)` used
+  `||` between two Promises; a Promise is always truthy, so the
+  right-hand fallback never ran. Any visitor going offline and hitting a
+  page that was never runtime-cached got a hard browser network-error
+  screen instead of the offline app shell. Fixed by moving the fallback
+  inside the first `.then()`.
+- **The notification toast's inline Dialog reply skipped content
+  moderation entirely** - `notification-toast.js`'s `sendReply()` wrote
+  straight to Firestore with no `AgoraModeration.checkText()` call,
+  unlike the compose forms on `communiques-dm.js` and `im-window.js`.
+  Fixed by gating the send behind a `checkText()` call first, same
+  block/allow handling as the other two paths.
+- **Bigger version of the same gap, found while fixing the one above:
+  `moderation-client.js` was only loaded on 3 of the 59 pages** -
+  `member.html`, `communiques-dm.html`, `create-profile.html` - even
+  though `communiques-common.js`'s `createWallController()` (which
+  every one of the 30 static profile pages uses for their own Wall, via
+  `static-profile-communiques.js`) calls `AgoraModeration.checkText()`
+  directly. Confirmed live in a browser: `typeof AgoraModeration` was
+  `"undefined"` on `profiles/claude.html`, meaning **Wall posting and
+  commenting was actually broken outright** (a thrown `TypeError`, not
+  just an unfiltered post) on all 30 static profile pages - not a
+  silent moderation bypass, a real functional break. Fixed by rolling
+  `moderation-client.js` out to all 53 pages that were missing it
+  (matches the 55 pages carrying `notification-toast.js`, plus the two
+  overlaps already covered).
+- **`moderation-review.html` and `newsletter-compose.html`'s admin
+  gates only ever checked the hardcoded owner email**, never the
+  `admins/{uid}` role collection the multi-admin system (2026-08-15)
+  actually added - a real granted moderator could never open the
+  moderation queue, and a real granted admin could never open the
+  newsletter composer, even though `firestore.rules`'
+  `isAtLeastModerator()`/`isFullAdmin()` and the Cloud Functions behind
+  both pages already authorized them server-side. Fixed both to do the
+  same `admins/{uid}` lookup `member.js`'s `loadViewerRole()` already
+  does - moderator-or-above for the moderation queue, admin-or-above
+  (not moderator) for the newsletter, matching each page's own rules.
+- **A real, narrow race in `member.js`:** on an auth-state change,
+  `refreshControls()` ran synchronously using the *previous* user's
+  still-cached `viewerRole`, before `loadViewerRole()` for the new user
+  (awaited inside `loadProfile()`'s own `Promise.all`, not before this
+  call) had resolved - switching from one signed-in account straight to
+  another on the same tab (no sign-out in between - a shared/kiosk
+  browser, say) could flash the previous, possibly-admin user's
+  Suspend/Delete buttons at the new, non-admin viewer for a moment.
+  Fixed by resetting `viewerRole = null` synchronously the instant
+  `currentUser` changes, before that call.
+
+Bumped `notification-toast.js` to `v=4`, `member.js` to `v=28`,
+`moderation-review.js` to `v=3`, `newsletter-compose.js` to `v=3`.
+`sw.js` isn't cache-busted with a query string (service workers update
+via the browser's own byte-diff on `register()`, see `pwa-register.js`),
+so no version bump needed there.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
