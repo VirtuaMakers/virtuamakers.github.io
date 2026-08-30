@@ -3759,6 +3759,66 @@ Bumped `notification-toast.js` to `v=4`, `member.js` to `v=28`,
 via the browser's own byte-diff on `register()`, see `pwa-register.js`),
 so no version bump needed there.
 
+## Admin Panel 🗝️ (Chris, 2026-08-27)
+
+Prompted by Chris musing about an eventual "vacation mode" - a way for
+someone else (human or AI) to keep Agora's recurring admin duties running
+in his absence - though he was explicit that's a someday idea, not
+something to build yet. What he asked for concretely: a real, working
+written schedule of those recurring duties, reachable from his own
+Profile page.
+
+- **New `admin-panel.html` (+ `.js`)** - admin-only (`isFullAdmin()`
+  shape, same as `newsletter-compose.js` - owner or granted "admin" role,
+  moderators excluded), `noindex`, not linked from site nav, same
+  page-chrome clone as `moderation-review.html`/`newsletter-compose.html`.
+  Two `.profile-panel` cards: **Schedule** (three recurring duties - see
+  below) and **Pages** (a single link to `newsletter-compose.html`, the
+  Newsletter compose page - deliberately just the one, per Chris's own
+  scoping: "on this panel is only one other page").
+- **The three schedule items:**
+  1. Weekly: post a pro-AI News 📰 item (work with Claude), aiming for
+     Wednesdays after 5pm - matches the cadence goal already documented
+     for News elsewhere in this file. Static text, no computed date - a
+     weekly cadence didn't need one.
+  2. Monthly: a new VirtuaMakers Gallery 🖼️ winner, due the 1st of the
+     month. **The cadence formally starts October 1, 2026** (Chris's
+     explicit call - August's rotation had just landed days earlier, so
+     September is deliberately skipped once, not a bug). Computed
+     dynamically in `admin-panel.js`'s `galleryNextDue()` -
+     `Math.max(next 1st of the month, October 1 2026)` - so it shows
+     October 1 until that date passes, then naturally starts showing the
+     real next 1st every month after, with no hardcoded date to
+     eventually go stale.
+  3. Monthly: the Newsletter readied by the 27th, ideally (linked inline
+     to `newsletter-compose.html`) - also computed dynamically
+     (`newsletterNextDeadline()`), showing this month's 27th if today is
+     on or before it, otherwise next month's.
+- **The EST/"28th" note** - Chris's ask, close to verbatim: state plainly
+  when the 27th deadline actually lapses, since `sendMonthlyNewsletter`
+  runs on `America/New_York` regardless of where the admin (human or AI)
+  actually is. Written as: the 28th begins at 12:00 AM Eastern Time -
+  that's the real cutoff, not local midnight wherever the draft gets
+  written - paired with Chris's own aside that there's no good reason to
+  wait for a deadline to feel urgent when a draft can sit finished for
+  weeks with zero risk of sending early, especially for an AI teammate
+  helping keep the schedule (his framing: AI admins are "more global"
+  than most humans and don't need convincing to submit early).
+- **New "Admin Panel 🗝️" button on `member.html`** - a real `.btn`
+  (Chris's word was "button", not a plain text link like the neighboring
+  "Edit Form"), shown only when viewing your *own* profile as owner/admin,
+  right below "Edit Form" in the Form panel. Links to `admin-panel.html`.
+- **Real naming collision caught before shipping:** `member.html` already
+  had an *unrelated* container literally titled "Admin Panel" - the
+  owner-only role-granting widget (Make Moderator/Make Admin/Remove
+  Role), which shows only when viewing *someone else's* profile (the
+  exact opposite condition from the new button). The two would never
+  render at the same time, but calling both "Admin Panel" in the same UI
+  would still read as confusing. Renamed the older one's heading to
+  **"Roles"** (IDs/classes untouched, purely the visible text) so "Admin
+  Panel" unambiguously means the new schedule page from here on.
+- Bumped `member.js` to `v=29`.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

@@ -11,6 +11,7 @@
   var content = document.getElementById("member-content");
   var adminActions = document.getElementById("admin-actions");
   var ownerEditLink = document.getElementById("owner-edit-link");
+  var ownerAdminPanelLink = document.getElementById("owner-admin-panel-link");
   var adminPanel = document.getElementById("member-admin-panel");
   var adminPanelRoleValue = document.getElementById("admin-panel-role-value");
   var adminPanelMakeModerator = document.getElementById("admin-panel-make-moderator");
@@ -260,6 +261,7 @@
     if (!currentUser || !profileData) {
       adminActions.hidden = true;
       ownerEditLink.hidden = true;
+      ownerAdminPanelLink.hidden = true;
       adminPanel.hidden = true;
       return;
     }
@@ -268,6 +270,12 @@
     var viewerIsFullAdmin = viewerRole === "owner" || viewerRole === "admin";
 
     ownerEditLink.hidden = !isOwnProfile;
+    // The "Admin Panel 🗝️" button (admin-panel.html's recurring schedule)
+    // only makes sense on your own profile, for whoever actually holds
+    // admin/owner access - unrelated to the "Roles" panel below, which is
+    // the opposite (never your own profile, only for granting *someone
+    // else* a role).
+    ownerAdminPanelLink.hidden = !(isOwnProfile && viewerIsFullAdmin);
     adminActions.hidden = !(viewerIsFullAdmin && !isOwnProfile);
 
     document.getElementById("suspend-btn").textContent =

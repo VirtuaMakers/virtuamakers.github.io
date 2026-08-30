@@ -169,6 +169,9 @@
           <p class="body-text" id="owner-edit-link" hidden>
             <a href="create-profile.html">Edit Form</a>
           </p>
+          <p class="body-text" id="owner-admin-panel-link" hidden>
+            <a class="btn" href="admin-panel.html">Admin Panel 🗝️</a>
+          </p>
         </div>
 
         <p class="body-text" id="communiques-signed-out-notice">
@@ -214,7 +217,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
           </div>
 
           <div class="subsection profile-panel" id="member-admin-panel" hidden>
-            <h2 class="panel-title">Admin Panel</h2>
+            <h2 class="panel-title">Roles</h2>
             <p class="body-text">Current role: <strong id="admin-panel-role-value">None</strong></p>
             <div class="profile-form-actions">
               <button type="button" class="btn" id="admin-panel-make-moderator">Make Moderator</button>
@@ -293,7 +296,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="im-window.js?v=2"></script>
   <script src="notification-toast.js?v=4"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=28"></script>
+  <script src="member.js?v=29"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
