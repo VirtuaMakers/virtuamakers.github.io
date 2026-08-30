@@ -47,14 +47,29 @@
     }).catch(function () {});
   }
 
+  // Owner-or-admin, matching firestore.rules' isFullAdmin() (the same
+  // rule guarding newsletter/{document} itself) - moderators are
+  // deliberately excluded, same as they can't suspend/delete accounts.
+  // Checking only the hardcoded owner email here locked out every real
+  // granted admin the multi-admin system was built to support.
+  function isFullAdmin(user) {
+    if (!user || !user.email) return Promise.resolve(false);
+    if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) return Promise.resolve(true);
+    return AgoraDB.collection("admins").doc(user.uid).get().then(function (doc) {
+      return doc.exists && doc.data().role === "admin";
+    }).catch(function () {
+      return false;
+    });
+  }
+
   agoraOnAuthChange(function (user) {
-    var isAdmin = !!user && !!user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    isFullAdmin(user).then(function (isAdmin) {
+      signedOutNotice.hidden = !!user;
+      notAdminNotice.hidden = !user || isAdmin;
+      composeWrap.hidden = !isAdmin;
 
-    signedOutNotice.hidden = !!user;
-    notAdminNotice.hidden = !user || isAdmin;
-    composeWrap.hidden = !isAdmin;
-
-    if (isAdmin) loadDraft();
+      if (isAdmin) loadDraft();
+    });
   });
 
   form.addEventListener("submit", function (e) {

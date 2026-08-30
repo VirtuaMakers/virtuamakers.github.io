@@ -168,14 +168,21 @@
         if (!text || !conversationId) return;
         sendBtn.disabled = true;
         error.hidden = true;
-        sendReply(conversationId, text, function (err) {
-          if (err) {
+        AgoraModeration.checkText(text, "dialogMessage", { conversationId: conversationId }).then(function (result) {
+          if (result.decision === "block") {
             sendBtn.disabled = false;
-            error.textContent = err.message;
-            error.hidden = false;
+            AgoraModeration.showBlocked(error, result.logId);
             return;
           }
-          removeToast();
+          sendReply(conversationId, text, function (err) {
+            if (err) {
+              sendBtn.disabled = false;
+              error.textContent = err.message;
+              error.hidden = false;
+              return;
+            }
+            removeToast();
+          });
         });
       });
 

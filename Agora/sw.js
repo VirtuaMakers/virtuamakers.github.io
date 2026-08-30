@@ -99,8 +99,9 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(
           () =>
-            caches.match(request).then((cached) => cached) ||
-            caches.match("/Agora/index.html")
+            caches.match(request).then(
+              (cached) => cached || caches.match("/Agora/index.html")
+            )
         )
     );
     return;

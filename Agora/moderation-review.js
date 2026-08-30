@@ -190,13 +190,29 @@
       });
   }
 
+  // Owner-or-moderator, matching firestore.rules' isAtLeastModerator() -
+  // this page only needs read access to moderationLog plus
+  // getModerationImageUrl/resolveModerationAppeal, all of which a granted
+  // moderator (not just a full admin/the owner) is authorized to call
+  // server-side. Checking only the hardcoded owner email here locked out
+  // every real moderator the multi-admin system was built to support.
+  function isAtLeastModerator(user) {
+    if (!user || !user.email) return Promise.resolve(false);
+    if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) return Promise.resolve(true);
+    return AgoraDB.collection("admins").doc(user.uid).get().then(function (doc) {
+      return doc.exists && (doc.data().role === "admin" || doc.data().role === "moderator");
+    }).catch(function () {
+      return false;
+    });
+  }
+
   agoraOnAuthChange(function (user) {
-    var isAdmin = !!user && !!user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    isAtLeastModerator(user).then(function (isAdmin) {
+      signedOutNotice.hidden = !!user;
+      notAdminNotice.hidden = !user || isAdmin;
+      reviewWrap.hidden = !isAdmin;
 
-    signedOutNotice.hidden = !!user;
-    notAdminNotice.hidden = !user || isAdmin;
-    reviewWrap.hidden = !isAdmin;
-
-    if (isAdmin) loadLog();
+      if (isAdmin) loadLog();
+    });
   });
 })();

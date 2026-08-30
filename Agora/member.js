@@ -340,6 +340,14 @@
 
   agoraOnAuthChange(function (user) {
     currentUser = user;
+    // Reset synchronously before this refreshControls() call, not just
+    // inside loadViewerRole()'s own (async, awaited by loadProfile() a
+    // moment later) resolution - without this, switching from one signed-
+    // in user straight to another on the same tab (no sign-out in
+    // between) would call refreshControls() here with the *previous*
+    // user's still-cached viewerRole, briefly showing their admin
+    // controls to the new, possibly non-admin viewer.
+    viewerRole = null;
     if (profileData) refreshControls();
     loadProfile();
     watchFriendship();
