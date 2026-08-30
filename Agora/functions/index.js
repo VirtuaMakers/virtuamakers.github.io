@@ -529,18 +529,16 @@ exports.unsubscribeNewsletter = onRequest(async (req, res) => {
   ));
 });
 
-// Cron covers the 28th-31st since not every month has a 31st (or a 30th) -
-// the tomorrow-rolls-into-day-1 check below is what actually restricts
-// this to firing on the true last day, whichever date that is. 9am
-// Eastern, matching Chris's own timezone.
+// Fires on the 1st of every month (Chris, 2026-08-27, changed from the
+// last-day-of-month schedule this originally shipped with) - day 1 exists
+// in every month, unlike day 30/31, so this needs none of the old
+// tomorrow-rolls-into-day-1 juggling to land on a real date. 9am Eastern,
+// matching Chris's own timezone. A draft prepared any time beforehand
+// (even weeks early) just sits in newsletter/draft until this fires - it
+// never sends early.
 exports.sendMonthlyNewsletter = onSchedule(
-  { schedule: "0 9 28-31 * *", timeZone: "America/New_York", secrets: [resendApiKey] },
+  { schedule: "0 9 1 * *", timeZone: "America/New_York", secrets: [resendApiKey] },
   async () => {
-    const now = new Date();
-    const tomorrow = new Date(now.getTime());
-    tomorrow.setDate(now.getDate() + 1);
-    if (tomorrow.getDate() !== 1) return;
-
     const draftRef = admin.firestore().collection("newsletter").doc("draft");
     const draftSnap = await draftRef.get();
     if (!draftSnap.exists) return;

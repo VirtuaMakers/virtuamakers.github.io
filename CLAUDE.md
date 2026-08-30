@@ -1824,11 +1824,14 @@ confirmation page (not a redirect back into the app, since a signed-out
 visitor may have nothing to sign into).
 
 **Send schedule** - `sendMonthlyNewsletter` in `functions/index.js`, an
-`onSchedule` cron: `"0 9 28-31 * *"` in `America/New_York` (Chris is in
-Cincinnati). That fires daily from the 28th on, since not every month has
-a 30th or 31st; the function's first move is checking whether *tomorrow*
-is the 1st, and bailing out immediately if not - so it only actually
-sends on the true last day of whichever month it is, regardless of length.
+`onSchedule` cron: `"0 9 1 * *"` in `America/New_York` (Chris is in
+Cincinnati) - fires on the 1st of every month. **Changed from
+last-day-of-month to the 1st (Chris, 2026-08-27)** - the original schedule
+fired on whichever day turned out to be the true last day of the month
+(a tomorrow-rolls-into-day-1 check, since not every month has a 30th or
+31st); day 1 exists in every month, so that check is gone too, not just
+the cron string. A draft prepared any time beforehand - even weeks early -
+just sits in `newsletter/draft` until the 1st; it never sends early.
 Reads `newsletter/draft`; does nothing if there's no draft or either field
 is blank (so an unprepared month just silently skips rather than sending
 garbage). On send, generates each recipient's unsubscribe token if it
