@@ -480,8 +480,8 @@ exports.notifyOnCommentCap = onDocumentWritten(
 
 // Newsletter 📰 (Chris, 2026-08-12) - a monthly issue, opted into by
 // default from create-profile.html, prepared via newsletter-compose.html
-// (admin-only, writes to the single newsletter/draft doc) by the 27th of
-// each month, sent on the last day of the month.
+// (admin-only, writes to the single newsletter/draft doc) any time before
+// the 1st of the month, sent automatically on the 1st.
 
 const UNSUBSCRIBE_BASE_URL = "https://us-central1-agora-firebase-f4240.cloudfunctions.net/unsubscribeNewsletter";
 

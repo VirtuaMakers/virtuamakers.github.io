@@ -1,6 +1,6 @@
 // Drives newsletter-compose.html: admin-only gate, loads/prefills the
 // current newsletter/draft doc, saves edits back to it. sendMonthlyNewsletter
-// (Cloud Function) reads this same doc on the last day of the month - see
+// (Cloud Function) reads this same doc on the 1st of the month - see
 // functions/index.js.
 
 (function () {
