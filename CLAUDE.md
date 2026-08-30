@@ -1794,6 +1794,16 @@ last saved (by whom)" timestamps read back from the same doc. Saving here
 always replaces whatever's queued - there's only ever one upcoming issue,
 no history of past drafts kept.
 
+**Content philosophy (Chris, 2026-08-27) - deliberately kept short, no
+fixed template.** His read on newsletters generally: even from brands
+people are genuinely invested in, most readers only give a newsletter
+about three paragraphs of actual attention these days - so the email's
+own job is just to be worth those three paragraphs, then hand off to
+Agora 🌐 itself (via links back) for anyone who wants more. Format is
+left loose issue-to-issue rather than locked into a recurring template
+(e.g. always covering the Gallery winner + a feature update + a
+spotlight) - revisit if a fixed shape ever earns its keep.
+
 **Email template** - `emails/newsletter-email.html` (+ the hand-synced
 copy in `functions/templates/`, same split every template here needs
 since Cloud Functions only bundles `functions/`), cloned from
