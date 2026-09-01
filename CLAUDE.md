@@ -3819,6 +3819,25 @@ Profile page.
   Panel" unambiguously means the new schedule page from here on.
 - Bumped `member.js` to `v=29`.
 
+**Roles overview added same day, in response to Chris asking whether
+the "Roles" widget (the rename from the section above) belonged on this
+page too.** Judgment call: moving the actual grant/revoke UI didn't make
+sense - it needs a specific member in view, which it already gets for
+free by living on that member's own profile page, and relocating it
+would mean building a member-search picker just to reconstruct context
+that's already there. What *did* fit: a read-only "who currently holds a
+role" summary, added as a third `.profile-panel` ("Roles") between
+Schedule and Pages. **Owner-only, not owner-or-admin** like the rest of
+the page - `firestore.rules`' `admins/{uid}` read rule only lets the
+owner list the whole collection (a granted admin can only read their own
+doc), so a non-owner admin viewing this page sees Schedule and Pages but
+not this panel. `admin-panel.js`'s `loadRoles()` fetches every
+`admins/{uid}` doc, cross-references each uid against `profiles/{uid}`
+for a handle-preferred display name (same resolution logic as
+`communiques-common.js`'s `getDisplayName`, reimplemented locally rather
+than pulling in that whole shared file for one lookup), and groups into
+Admins/Moderators lists. Bumped `admin-panel.js` to `v=2`.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

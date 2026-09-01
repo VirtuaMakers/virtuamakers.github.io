@@ -80,6 +80,15 @@
             waiting for a deadline to feel urgent.</p>
         </div>
 
+        <div class="profile-panel" id="roles-panel" hidden>
+          <h2 class="panel-title">Roles</h2>
+          <p class="body-text"><strong>Admins:</strong> <span id="roles-admins">Loading…</span></p>
+          <p class="body-text"><strong>Moderators:</strong> <span id="roles-moderators">Loading…</span></p>
+          <p class="field-hint">Owner-only - the site's Firestore rules
+            only let you read the full list, matching how granting or
+            revoking a role already works.</p>
+        </div>
+
         <div class="profile-panel">
           <h2 class="panel-title">Pages</h2>
           <p class="body-text"><a href="newsletter-compose.html">Monthly Newsletter →</a></p>
@@ -138,7 +147,7 @@
   <script src="auth-ui.js?v=19"></script>
   <script src="site-search.js?v=2"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=1"></script>
+  <script src="admin-panel.js?v=2"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
