@@ -3838,6 +3838,101 @@ for a handle-preferred display name (same resolution logic as
 than pulling in that whole shared file for one lookup), and groups into
 Admins/Moderators lists. Bumped `admin-panel.js` to `v=2`.
 
+## Newsletter Archive 📬 + Send Now (Chris, 2026-09-02)
+
+Chris's ask, in order: a public page listing every past Newsletter issue
+rendered exactly as it appeared in the inbox, written to that page
+automatically the moment an issue actually sends (not a separate manual
+step), and a way to send the currently-saved draft immediately instead of
+waiting for the 1st (since he suspected the first real issue hadn't gone
+out correctly).
+
+- **`newsletterIssues/{id}`, new Firestore collection** - same
+  world-readable/Admin-SDK-only-write shape as `notifications/{id}`
+  (`allow read: if true; allow write: if false;` in `firestore.rules`) -
+  no client ever writes here, only Cloud Functions via the Admin SDK,
+  which bypasses rules entirely.
+- **`functions/index.js` refactored around a new shared
+  `performNewsletterSend()`** - the actual send loop (read the draft,
+  email every opted-in profile, stamp `lastSentAt`) is unchanged, just
+  extracted out of `sendMonthlyNewsletter` so both the existing monthly
+  cron and the new manual trigger below share one code path instead of
+  drifting apart. It now also renders the same email template once more
+  with a placeholder unsubscribe link (there's no single real recipient
+  to point it at) and writes that HTML to a new `newsletterIssues` doc
+  (`subject`, `bodyText`, `html`, `sentAt`) right after the send loop
+  finishes - this is the literal "post it to the archive the same time it
+  sends" Chris asked for, not a separate scheduled job that could drift
+  out of sync with the real send.
+- **New `sendNewsletterNow` onCall function** - admin-gated
+  (`assertIsAdmin`, same tier as `adminBanUser`/the newsletter draft
+  itself), just calls `performNewsletterSend()` on demand and returns
+  `{sent, recipientCount}` or `{sent: false, reason}` (no draft saved, or
+  a missing subject/body) so the UI can show *why* nothing went out
+  rather than a bare failure.
+- **New "Send Now" panel on `newsletter-compose.html`** - sits below the
+  existing Save Draft form, a `.btn-danger` "Send Now" button behind a
+  `window.confirm()` ("...to every opted-in member? This can't be
+  undone."), wired in `newsletter-compose.js` to the new callable. Shows
+  the real recipient count on success or the callable's own `reason` on a
+  no-op, matching the error-surfacing pattern used elsewhere in this
+  codebase (e.g. the friend-action error handling).
+- **New public page `Agora/newsletter-archive.html` (+ `.js`)** -
+  deliberately **not** `noindex` and **not** gated like every other admin
+  tool in this file (`moderation-review.html`, `newsletter-compose.html`,
+  `admin-panel.html`) - Chris's explicit ask was for casual visitors and
+  search-engine crawlers to stumble onto it. Fetches `newsletterIssues`
+  ordered `sentAt desc`, one card per issue with a "Sent [date]" line and
+  the issue's stored `html` rendered inside an `<iframe srcdoc="...">` -
+  the actual email markup, unmodified, so it looks exactly like the real
+  inbox copy rather than being re-interpreted through the site's own
+  CSS. Linked from both `index.html`'s and `news.html`'s News sections
+  ("Read our Newsletter 📬 archive →", next to the existing "See all
+  news →" link) and added to `sitemap.xml`, per Chris's "more stuff for
+  spiders to index" framing.
+- **A real sandbox-testing gotcha, worth recording since it looked like a
+  genuine bug at first:** the initial cut sized the iframe by listening
+  for its own `load` event, then reading
+  `contentDocument.documentElement.scrollHeight`. In this sandbox that
+  `load` event never fired at all (confirmed by testing - even after a
+  multi-second wait), because the email template's logo image is a
+  remote, hotlinked `https://www.virtuamakers.com/...` URL the sandbox
+  can't reach, and `load` only fires once every embedded resource has
+  settled. The document was already fully parsed and correctly sized
+  the whole time (`readyState: "interactive"`, real `scrollHeight`
+  already correct) - it was only the `load` *event* that never arrived.
+  Since the logo already carries explicit `width`/`height` attributes,
+  its layout space is reserved regardless of whether the image itself
+  ever finishes loading, so waiting for full `load` was never actually
+  necessary. Fixed by polling `iframe.contentDocument.readyState` every
+  50ms instead of listening for `load` - this is a genuine robustness
+  improvement for the real, deployed site too, not just a sandbox
+  workaround: a slow or temporarily unreachable logo image (a flaky
+  connection, a CDN hiccup) could otherwise stall every issue's height
+  indefinitely, the same "don't let a slow resource silently break the
+  page" instinct behind this file's other loading-failure hardening
+  entries.
+- Bumped `style.css` to `v=94` (all 61 pages, for the new
+  `.newsletter-archive-frame` rule).
+
+**Needs from Chris before any of this is actually live:** paste the
+updated `firestore.rules` into the Firebase console (the new
+`newsletterIssues/{document}` block) and `firebase deploy --only
+functions` to pick up the refactored `performNewsletterSend()` and the
+new `sendNewsletterNow` - same two manual steps every recent round has
+needed. Until both are done, the existing monthly cron keeps working
+exactly as before (it just won't also write to the archive yet), Send
+Now will error as a function-not-found, and the archive page will show
+"No issues have gone out yet" indefinitely since nothing has ever
+written to the new collection.
+
+**Still open:** Chris offered to paste the actual text he originally
+submitted for the first Newsletter issue, to send/verify for real - not
+received yet this round. The sample content used to verify the archive
+page's rendering locally (visible only in this sandbox's own test
+screenshots, never committed or written to Firestore) was an
+approximation for testing purposes only, not Chris's real submitted copy.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

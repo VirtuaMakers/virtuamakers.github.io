@@ -17,6 +17,10 @@
   var errorEl = document.getElementById("form-error");
   var statusEl = document.getElementById("form-status");
   var submitBtn = document.getElementById("form-submit");
+  var sendNowBtn = document.getElementById("send-now-btn");
+  var sendNowError = document.getElementById("send-now-error");
+  var sendNowResult = document.getElementById("send-now-result");
+  var sendNowStatus = document.getElementById("send-now-status");
 
   function showError(message) {
     errorEl.textContent = message;
@@ -99,6 +103,37 @@
     }).finally(function () {
       submitBtn.disabled = false;
       setTimeout(function () { statusEl.hidden = true; statusEl.textContent = "Saving…"; }, 2000);
+    });
+  });
+
+  sendNowBtn.addEventListener("click", function () {
+    sendNowError.hidden = true;
+    sendNowResult.hidden = true;
+
+    if (!window.confirm("Send the currently saved draft right now, to every opted-in member? This can't be undone.")) {
+      return;
+    }
+
+    sendNowBtn.disabled = true;
+    sendNowStatus.hidden = false;
+
+    firebase.functions().httpsCallable("sendNewsletterNow")().then(function (result) {
+      var data = result.data;
+      if (!data.sent) {
+        sendNowError.textContent = data.reason || "Nothing was sent.";
+        sendNowError.hidden = false;
+        return;
+      }
+      sendNowResult.textContent = "Sent to " + data.recipientCount + " member"
+        + (data.recipientCount === 1 ? "" : "s") + ".";
+      sendNowResult.hidden = false;
+      loadDraft();
+    }).catch(function (err) {
+      sendNowError.textContent = err.message;
+      sendNowError.hidden = false;
+    }).finally(function () {
+      sendNowBtn.disabled = false;
+      sendNowStatus.hidden = true;
     });
   });
 })();

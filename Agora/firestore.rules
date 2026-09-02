@@ -252,15 +252,29 @@ service cloud.firestore {
         && request.auth.uid in resource.data.participants;
     }
 
-    // Newsletter 📰 - a single draft doc (subject + plain-text body) that
-    // Chris prepares by the 27th of each month via newsletter-compose.html,
-    // for the sendMonthlyNewsletter Cloud Function to send out on the last
-    // day of the month. Admin-only in both directions - not a public
+    // Newsletter 📬 - a single draft doc (subject + plain-text body) that
+    // Chris prepares via newsletter-compose.html, ideally by the 27th of
+    // each month, for the sendMonthlyNewsletter Cloud Function to send
+    // automatically on the 1st (or sendNewsletterNow to send immediately,
+    // admin-triggered). Admin-only in both directions - not a public
     // collection, and not member-readable like Communiqués - since it's
     // just a staging area for content that isn't public until it's
     // actually emailed out.
     match /newsletter/{document} {
       allow read, write: if isFullAdmin();
+    }
+
+    // Newsletter 📬 archive (Chris, 2026-09-02) - one doc per issue
+    // actually sent, written only by performNewsletterSend() in
+    // functions/index.js (Admin SDK, bypasses these rules - allow write:
+    // if false is correct here, matching notifications/{id}'s same
+    // pattern elsewhere in this file). World-readable on purpose, unlike
+    // the draft above - once an issue has actually gone out, Chris wants
+    // it browsable by anyone on newsletter-archive.html, the same way any
+    // other public page here is.
+    match /newsletterIssues/{document} {
+      allow read: if true;
+      allow write: if false;
     }
 
     // Content moderation 🛡️ - every block/flag the moderateText and

@@ -724,6 +724,19 @@ main > .section:first-child {
   margin-bottom: 1.2rem;
 }
 
+/* Newsletter Archive 📬 - the email template already carries its own
+   border/rounded-corner look inline (it has to, for email clients that
+   ignore a real stylesheet), so this just needs to size and center that
+   iframe - height is set in JS once the srcdoc content actually loads,
+   since issues vary in length. */
+.newsletter-archive-frame {
+  display: block;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border: none;
+}
+
 .intro {
   font-size: 1.05rem;
   color: var(--muted);

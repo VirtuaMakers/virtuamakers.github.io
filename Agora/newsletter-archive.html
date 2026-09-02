@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Computers, Wearables, & Hardware 🖥️ · VirtuaMakers Exchange · Agora</title>
-  <meta name="description" content="Computers, Wearables, & Hardware at VirtuaMakers Exchange." />
+  <title>Newsletter Archive 📬 · Agora</title>
+  <meta name="description" content="Every issue of the Agora Newsletter, exactly as it was sent." />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="Computers, Wearables, & Hardware 🖥️ · VirtuaMakers Exchange · Agora" />
-  <meta property="og:description" content="Computers, Wearables, & Hardware at VirtuaMakers Exchange." />
+  <meta property="og:title" content="Newsletter Archive 📬 · Agora" />
+  <meta property="og:description" content="Every issue of the Agora Newsletter, exactly as it was sent." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.virtuamakers.com/Agora/exchange-computers.html" />
+  <meta property="og:url" content="https://www.virtuamakers.com/Agora/newsletter-archive.html" />
   <meta property="og:image" content="https://www.virtuamakers.com/Agora/assets/agora-logo.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Computers, Wearables, & Hardware 🖥️ · VirtuaMakers Exchange · Agora" />
-  <meta name="twitter:description" content="Computers, Wearables, & Hardware at VirtuaMakers Exchange." />
+  <meta name="twitter:title" content="Newsletter Archive 📬 · Agora" />
+  <meta name="twitter:description" content="Every issue of the Agora Newsletter, exactly as it was sent." />
   <meta name="twitter:image" content="https://www.virtuamakers.com/Agora/assets/agora-logo.png" />
 
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
@@ -30,14 +30,15 @@
   <div class="backdrop" aria-hidden="true"></div>
 
   <header class="site-header">
-    <a class="brand" href="index.html">
-      <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
-      <span class="brand-globe">🌐</span>
-    </a>
+    <div class="brand-group">
+      <a class="brand" href="index.html">
+        <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+        <span class="brand-globe">🌐</span>
+      </a>
+      <span class="header-welcome" id="agora-user-info" hidden>Welcome, <a class="auth-email" id="agora-user-email" href="#"></a>!</span>
+    </div>
     <div class="header-right">
       <a class="back-link" id="agora-news-link" href="index.html#news">News 📰</a>
-      <a class="back-link" href="exchange.html"><span class="back-arrow">←</span> Catalogue Cover</a>
-      <button type="button" class="auth-link bag-btn" id="exchange-bag-btn">Bag 🛍️<span class="bag-count" id="exchange-bag-count" hidden>0</span></button>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
       <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
       <div class="auth-controls" id="agora-auth-controls">
@@ -56,18 +57,16 @@
   <script src="header-height.js?v=1"></script>
 
   <main>
-    <section class="section" id="category-intro">
-      <img class="category-hero-image category-hero-image-contain" src="assets/catalogue/computers-hero.jpg" alt="A white gaming PC tower with RGB fans and tempered glass panel, next to a matching keyboard and mouse" loading="lazy" />
-      <h1>Computers, Wearables, & Hardware 🖥️</h1>
-      <p class="body-text">Desktops, laptops, wearables, and the
-        peripherals that go with them.</p>
-      <span class="pill pill-soon">Coming soon</span>
-      <p class="category-nav-label">Page 7 of 18</p>
-      <div class="category-nav">
-        <a href="exchange-video.html" class="category-nav-prev">← Video 🎥</a>
-        <a href="exchange-blockchain.html" class="category-nav-next">Blockchain &amp; Crypto 🪙 →</a>
-      </div>
-      <p class="category-nav-back"><a href="exchange.html">← Back to the Catalogue Cover</a></p>
+    <section class="section" id="newsletter-archive">
+      <h1>Newsletter Archive 📬</h1>
+      <p class="lede">Every issue of the Agora 🌐 Newsletter 📬 we've ever
+        sent, shown exactly as it arrived in an inbox.</p>
+      <p class="body-text">Want the next one? <a href="create-profile.html">Sign in and opt in</a>
+        from your profile.</p>
+
+      <p class="body-text" id="archive-loading">Loading…</p>
+      <p class="body-text" id="archive-empty" hidden>No issues have gone out yet - check back after the 1st of the month.</p>
+      <div id="archive-list"></div>
     </section>
   </main>
 
@@ -112,71 +111,18 @@
     </div>
   </div>
 
-  <div class="signin-modal-backdrop" id="exchange-bag-modal" hidden>
-    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Your Bag">
-      <button type="button" class="signin-modal-close" id="exchange-bag-close" aria-label="Close">&times;</button>
-      <h2>Your Bag 🛍️</h2>
-      <p class="bag-empty" id="exchange-bag-empty">Your bag is empty – browse
-        the Catalogue Index and look for "Add to Bag."</p>
-      <div class="bag-groups" id="exchange-bag-groups" hidden>
-        <div class="bag-group" id="bag-group-offchain" hidden>
-          <h3 class="bag-group-title">Off-chain items</h3>
-          <ul class="bag-items" id="bag-items-offchain"></ul>
-        </div>
-        <div class="bag-group" id="bag-group-onchain" hidden>
-          <h3 class="bag-group-title">On-chain items</h3>
-          <ul class="bag-items" id="bag-items-onchain"></ul>
-        </div>
-      </div>
-      <button type="button" class="btn btn-primary bag-checkout-btn" id="exchange-bag-checkout" hidden>Checkout</button>
-    </div>
-  </div>
-
-  <div class="signin-modal-backdrop" id="exchange-checkout-modal" hidden>
-    <div class="signin-modal bag-modal" role="dialog" aria-modal="true" aria-label="Checkout">
-      <button type="button" class="signin-modal-close" id="exchange-checkout-close" aria-label="Close">&times;</button>
-      <h2>Checkout</h2>
-      <p class="bag-empty" id="exchange-checkout-empty">Your bag is empty.</p>
-
-      <div class="checkout-section" id="checkout-offchain-free-section" hidden>
-        <h3 class="bag-group-title">Off-chain · Free</h3>
-        <ul class="bag-items" id="checkout-offchain-free-list"></ul>
-        <p class="install-note">Nothing to pay here – confirm below and
-          you're set.</p>
-        <button type="button" class="btn btn-primary" id="exchange-checkout-confirm-free">Confirm Free Items</button>
-      </div>
-
-      <div class="checkout-section" id="checkout-offchain-paid-section" hidden>
-        <h3 class="bag-group-title">Off-chain · Payment required</h3>
-        <ul class="bag-items" id="checkout-offchain-paid-list"></ul>
-        <p class="install-note">Online payment isn't connected yet – check
-          back once that's set up.</p>
-      </div>
-
-      <div class="checkout-section" id="checkout-onchain-section" hidden>
-        <h3 class="bag-group-title">On-chain</h3>
-        <ul class="bag-items" id="checkout-onchain-list"></ul>
-        <p class="install-note">Wallet connection isn't wired up yet – check
-          back once the first piece is minted.</p>
-      </div>
-    </div>
-  </div>
-
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=6"></script>
   <script src="auth-ui.js?v=19"></script>
   <script src="site-search.js?v=2"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="communiques-common.js?v=13"></script>
-  <script src="moderation-client.js?v=1"></script>
   <script src="notification-toast.js?v=4"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="exchange-cart.js?v=1"></script>
+  <script src="newsletter-archive.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

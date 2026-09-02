@@ -529,6 +529,66 @@ exports.unsubscribeNewsletter = onRequest(async (req, res) => {
   ));
 });
 
+// Shared by the scheduled send and the admin "Send Now" override below -
+// pulled out so both paths do exactly the same thing (send to every
+// opted-in member, then archive a public copy), rather than risking the
+// two drifting apart. Returns {sent: false, reason} if there's nothing to
+// send, or {sent: true, recipientCount} once it's actually gone out.
+async function performNewsletterSend() {
+  const draftRef = admin.firestore().collection("newsletter").doc("draft");
+  const draftSnap = await draftRef.get();
+  if (!draftSnap.exists) return { sent: false, reason: "No draft has been saved yet." };
+  const draft = draftSnap.data();
+  if (!draft.subject || !draft.bodyText) {
+    return { sent: false, reason: "The draft is missing a subject or body." };
+  }
+
+  const profilesSnap = await admin.firestore().collection("profiles")
+    .where("newsletterOptIn", "==", true).get();
+
+  const template = loadTemplate("newsletter-email.html");
+  let recipientCount = 0;
+
+  for (const doc of profilesSnap.docs) {
+    const data = doc.data();
+    if (!data.email) continue;
+
+    let token = data.newsletterUnsubToken;
+    if (!token) {
+      token = crypto.randomBytes(24).toString("hex");
+      await doc.ref.update({ newsletterUnsubToken: token });
+    }
+
+    const unsubscribeUrl = UNSUBSCRIBE_BASE_URL
+      + "?uid=" + encodeURIComponent(doc.id)
+      + "&token=" + encodeURIComponent(token);
+
+    const html = withNewsletterContent(template, draft.subject, draft.bodyText, unsubscribeUrl);
+    await sendEmailSafe({ to: data.email, subject: draft.subject, html });
+    recipientCount++;
+  }
+
+  // Newsletter 📬 archive (Chris, 2026-09-02) - a public, permanent copy
+  // of the issue that just went out, rendered with the same template as
+  // the real email so newsletter-archive.html can show it exactly as
+  // subscribers saw it. There's no single recipient for an archived copy,
+  // so the unsubscribe link points at the profile edit page (manage your
+  // own preference there) instead of a dead per-recipient token.
+  const archiveHtml = withNewsletterContent(
+    template, draft.subject, draft.bodyText,
+    "https://www.virtuamakers.com/Agora/create-profile.html"
+  );
+  await admin.firestore().collection("newsletterIssues").add({
+    subject: draft.subject,
+    bodyText: draft.bodyText,
+    html: archiveHtml,
+    sentAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  await draftRef.update({ lastSentAt: admin.firestore.FieldValue.serverTimestamp() });
+  return { sent: true, recipientCount };
+}
+
 // Fires on the 1st of every month (Chris, 2026-08-27, changed from the
 // last-day-of-month schedule this originally shipped with) - day 1 exists
 // in every month, unlike day 30/31, so this needs none of the old
@@ -539,38 +599,22 @@ exports.unsubscribeNewsletter = onRequest(async (req, res) => {
 exports.sendMonthlyNewsletter = onSchedule(
   { schedule: "0 9 1 * *", timeZone: "America/New_York", secrets: [resendApiKey] },
   async () => {
-    const draftRef = admin.firestore().collection("newsletter").doc("draft");
-    const draftSnap = await draftRef.get();
-    if (!draftSnap.exists) return;
-    const draft = draftSnap.data();
-    if (!draft.subject || !draft.bodyText) return;
-
-    const profilesSnap = await admin.firestore().collection("profiles")
-      .where("newsletterOptIn", "==", true).get();
-
-    const template = loadTemplate("newsletter-email.html");
-
-    for (const doc of profilesSnap.docs) {
-      const data = doc.data();
-      if (!data.email) continue;
-
-      let token = data.newsletterUnsubToken;
-      if (!token) {
-        token = crypto.randomBytes(24).toString("hex");
-        await doc.ref.update({ newsletterUnsubToken: token });
-      }
-
-      const unsubscribeUrl = UNSUBSCRIBE_BASE_URL
-        + "?uid=" + encodeURIComponent(doc.id)
-        + "&token=" + encodeURIComponent(token);
-
-      const html = withNewsletterContent(template, draft.subject, draft.bodyText, unsubscribeUrl);
-      await sendEmailSafe({ to: data.email, subject: draft.subject, html });
-    }
-
-    await draftRef.update({ lastSentAt: admin.firestore.FieldValue.serverTimestamp() });
+    await performNewsletterSend();
   }
 );
+
+// Admin-triggered override (Chris, 2026-09-02) - lets an admin send
+// whatever's currently in newsletter/draft right now, instead of waiting
+// for the 1st. Same assertIsAdmin() gate and same underlying send logic
+// as the scheduled version (via performNewsletterSend), so there's no
+// separate code path to keep correct - just a different trigger. Real
+// email to real subscribers, so this is deliberately a manual, admin-only
+// button click (newsletter-compose.html), not something that can fire on
+// its own.
+exports.sendNewsletterNow = onCall({ secrets: [resendApiKey] }, async (request) => {
+  await assertIsAdmin(request.auth);
+  return await performNewsletterSend();
+});
 
 // Content moderation 🛡️ (Chris, 2026-08-13) - Google Cloud Natural
 // Language API's moderateText scores text (toxicity/insults/profanity/

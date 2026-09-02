@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=93" />
+  <link rel="stylesheet" href="style.css?v=94" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -80,6 +80,20 @@
             <span class="form-status" id="form-status" hidden>Saving…</span>
           </div>
         </form>
+
+        <div class="profile-panel">
+          <h2 class="panel-title">Send Now</h2>
+          <p class="body-text">Sends the currently <em>saved</em> draft
+            immediately, to everyone opted in right now - instead of
+            waiting for the 1st. Save your changes above first if you've
+            just edited it. There's no undo once it's sent.</p>
+          <p class="form-error" id="send-now-error" hidden></p>
+          <p class="body-text" id="send-now-result" hidden></p>
+          <div class="profile-form-actions">
+            <button type="button" class="btn btn-danger" id="send-now-btn">Send Now</button>
+            <span class="form-status" id="send-now-status" hidden>Sending…</span>
+          </div>
+        </div>
       </div>
     </section>
   </main>
