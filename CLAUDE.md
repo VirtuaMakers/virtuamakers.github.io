@@ -3970,6 +3970,20 @@ live since the original newsletter build), then either wait for the
 natural 1st-of-month send or use the new Send Now button once the
 Functions deploy above lands.
 
+**Resolved, 2026-09-03: the first issue did send correctly.** A
+screenshot of `newsletter-compose.html` showed a draft already existed
+(saved 2026-08-30, subject literally "Newsletter #1 (Testing, testing...
+is this thing on?)", body matching Chris's real text above) with
+`lastSentAt` stamped 2026-08-31 09:00:12 AM - meaning the pre-2026-08-27
+last-day-of-month cron had already fired and sent it (2026-08-31 was
+August's actual last day) before the schedule got changed to fire on the
+1st instead. Chris confirmed it did arrive - it had just landed in his
+Gmail's Promotions tab, unnoticed, which is normal categorization for a
+newsletter-shaped email and not a delivery bug. **Still worth fixing
+before any future send:** the subject field itself still reads that
+placeholder testing text - swap it for a real subject before the next
+Send Now or monthly send goes out under it.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
