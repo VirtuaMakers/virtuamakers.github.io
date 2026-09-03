@@ -2,15 +2,6 @@
    palette/variables, kept in its own file rather than growing style.css
    since this page is a fairly self-contained little product page. */
 
-.ai-email-hero .hero-inner {
-  text-align: center;
-}
-
-.ai-email-logo {
-  border-radius: 28px;
-  margin-bottom: 1rem;
-}
-
 .ai-email-hero code {
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.25);
