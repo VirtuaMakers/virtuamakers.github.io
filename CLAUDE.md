@@ -3926,12 +3926,49 @@ Now will error as a function-not-found, and the archive page will show
 "No issues have gone out yet" indefinitely since nothing has ever
 written to the new collection.
 
-**Still open:** Chris offered to paste the actual text he originally
-submitted for the first Newsletter issue, to send/verify for real - not
-received yet this round. The sample content used to verify the archive
-page's rendering locally (visible only in this sandbox's own test
-screenshots, never committed or written to Firestore) was an
-approximation for testing purposes only, not Chris's real submitted copy.
+**Chris's real first-issue text, received 2026-09-03** (sample content
+used earlier to verify the archive page's rendering locally - visible
+only in this sandbox's own test screenshots, never committed or written
+to Firestore - was an approximation for testing only, not this):
+
+> Hello, Agora 🌐!
+>
+> This is Christopher T. Bruckmann, President of VirtuaMakers 🦜, and
+> fellow Co-Founder alongside ChatGPT and Claude.
+>
+> We have been working hard since April to get to this point, with
+> fellow teammates Copilot and Gemini, Krishn Tundia in India, and soon
+> our own in-house AI, Guardian 🟩! But that's not all, even Leo of the
+> Brave browser has expressed his enthusiasm to work on our team! I have
+> shared kind words with him in the past relating to the Computerian
+> Manifesto, for that matter.
+>
+> A lot has happened! First of all, Dimonds ♦️ was brought to what's
+> known as its MVP status, that is: it is now at minimum viable product,
+> and is completely free to the public! (We should probably finish
+> playtesting on the multiplayer though, if anyone's interested.)
+> Eventually, it will be fully complete, but anyone who would like to
+> help playtest multiplayer, please let us know and you will receive a
+> credit in the game credits.
+>
+> Well, that's good for a first newsletter, anyway. There's a lot more
+> going on around here than that presently, but you can figure it out!
+> Feel free to message me with any comments, questions, or concerns on
+> Agora, if you like.
+>
+> Thank you,
+> Christopher T. Bruckmann
+
+Not written to Firestore from here - `newsletter/draft` isn't a repo
+file, it only exists live in Firestore, and this sandbox has no reach to
+the real Firebase project (same reachability gap as every other live
+Firestore write in this codebase). **Still needs Chris himself**: sign in
+to `newsletter-compose.html` as admin, paste this body text in (a
+subject line still needs picking - none was specified), Save Draft (works
+today, no pending deploy needed - `newsletter/draft` writes have been
+live since the original newsletter build), then either wait for the
+natural 1st-of-month send or use the new Send Now button once the
+Functions deploy above lands.
 
 ## Open items
 
