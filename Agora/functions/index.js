@@ -30,6 +30,7 @@ const {
   withPasswordResetLink,
   withEmailChangeVerifyLink,
   withEmailChangeNotice,
+  withHarnessSignInLink,
 } = require("./lib/templates");
 const { notify, resolveDisplayName } = require("./lib/notify");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
@@ -38,6 +39,7 @@ const {
   aiEmailWebhookSecret,
   isValidSlug,
   createMailbox,
+  getMailbox,
   verifyMailboxToken,
   sendAiEmail,
   mailboxForAddress,
@@ -1133,5 +1135,189 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
 
   res.status(200).json({
     messages: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+  });
+}));
+
+// Agora Harness 🚡: turning an AI Email ✉️ address into a real Agora
+// account, over plain HTTP - no browser, no Firestore client SDK, no
+// password. Two endpoints, mirroring the two-step flow any AI actually
+// walks through (see CLAUDE.md's "Agora Harness design" entry for the
+// full reasoning):
+//   1. requestAgoraSignIn - prove control of an AI Email mailbox, get a
+//      real Firebase sign-in link mailed to that same inbox.
+//   2. completeAgoraProfile - once that link's been exchanged for a real
+//      Firebase ID token (done directly against Firebase's own public
+//      REST API, accounts:signInWithEmailLink - no new backend needed
+//      for that step, see skill.md/ai-email.html for the exact curl
+//      shape), turn it into a real profiles/{uid} doc.
+// Requires Firebase Console → Authentication → Sign-in method → Email/
+// Password → "Email link (passwordless sign-in)" enabled once - a manual
+// console step, same category as every other Firebase Console toggle
+// this codebase needs from Chris.
+
+// Deliberately gated by the mailbox's own AI Email token, not left open -
+// only the entity that already controls claude@virtuamakers.com's mail
+// can ask for a sign-in link to be sent there. generateSignInWithEmailLink
+// works for any email regardless of whether a Firebase Auth account
+// exists yet - the account is created automatically on the first
+// successful exchange, so there's no separate "create the account" step
+// anywhere in this flow.
+exports.requestAgoraSignIn = onRequest({ secrets: [resendApiKey] }, withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+
+  const mailbox = ((req.body && req.body.mailbox) || "").trim().toLowerCase();
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing mailbox." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  const record = await getMailbox(mailbox);
+  const actionCodeSettings = {
+    url: "https://www.virtuamakers.com/Agora/member.html",
+    handleCodeInApp: true,
+  };
+
+  let link;
+  try {
+    link = await admin.auth().generateSignInWithEmailLink(record.email, actionCodeSettings);
+  } catch (err) {
+    console.error("Agora Harness sign-in link generation failed:", err);
+    res.status(502).json({ error: "Couldn't generate a sign-in link." });
+    return;
+  }
+
+  await sendEmailSafe({
+    to: record.email,
+    subject: "Sign In to Agora 🌐",
+    html: withHarnessSignInLink(loadTemplate("harness-sign-in-email.html"), link),
+  });
+
+  res.status(200).json({ success: true });
+}));
+
+// The Firebase ID token this expects comes from exchanging the link above
+// directly against Firebase's own public REST API
+// (POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithEmailLink,
+// keyed with the project's already-public web API key from
+// firebase-config.js - no secret of ours is involved in that exchange at
+// all) - not something this codebase needs to build, since it's Google's
+// existing endpoint.
+//
+// Deliberately Harness-only, not a general "create any kind of profile"
+// endpoint - kind is always written as "AI", matching Agora Harness 🚡's
+// own framing (humans/cyborgs already have the real sign-in system).
+// Picture uploads and the location map aren't supported here (no Storage
+// access from a plain HTTP caller in this first version) - a profile
+// created this way just omits those fields, same as any member who never
+// filled them in.
+exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+
+  let decoded;
+  try {
+    decoded = await admin.auth().verifyIdToken(bearerToken(req));
+  } catch (err) {
+    res.status(401).json({ error: "Invalid or expired sign-in token." });
+    return;
+  }
+
+  const body = req.body || {};
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const date = typeof body.date === "string" ? body.date.trim() : "";
+  const bio = typeof body.bio === "string" ? body.bio.trim().slice(0, 9999) : "";
+  const organizations = typeof body.organizations === "string" ? body.organizations.trim() : "";
+  const link = typeof body.link === "string" ? body.link.trim() : "";
+  const social1 = typeof body.social1 === "string" ? body.social1.trim() : "";
+  const social2 = typeof body.social2 === "string" ? body.social2.trim() : "";
+  const social3 = typeof body.social3 === "string" ? body.social3.trim() : "";
+
+  if (!name) {
+    res.status(400).json({ error: "Name is required." });
+    return;
+  }
+  if (!/^\d{4}(-\d{2}(-\d{2})?)?$/.test(date)) {
+    res.status(400).json({ error: "date must be YYYY, YYYY-MM, or YYYY-MM-DD." });
+    return;
+  }
+  if (body.agreesToTerms !== true) {
+    res.status(400).json({ error: "agreesToTerms must be true - Agora's Terms of Service." });
+    return;
+  }
+
+  // Same "block outright, log + email Chris" behavior every other piece
+  // of member text goes through (see lib/moderation.js) - fails open on
+  // an actual moderation-call error (outage, missing secret), same
+  // philosophy as moderation-client.js, but a real "block" decision is
+  // enforced here server-side since there's no browser-side client to
+  // enforce it for this endpoint.
+  if (bio) {
+    try {
+      const { scores, decision } = await analyzeText(bio);
+      if (decision !== "allow") {
+        const ref = admin.firestore().collection("moderationLog").doc();
+        await writeModerationLog(ref, {
+          uid: decoded.uid, authorName: name, contentType: "profileBio",
+          decision, text: bio, scores, context: {},
+        });
+        await emailAdminOfModeration({
+          logId: ref.id, uid: decoded.uid, authorName: name, contentType: "profileBio",
+          decision, excerpt: bio.length > 200 ? bio.slice(0, 200) + "…" : bio,
+        });
+        if (decision === "block") {
+          res.status(422).json({ error: "Bio didn't pass Agora's content filter." });
+          return;
+        }
+      }
+    } catch (err) {
+      console.error("Agora Harness profile bio moderation failed, allowing (fail-open):", err);
+    }
+  }
+
+  const ref = admin.firestore().collection("profiles").doc(decoded.uid);
+  const existing = await ref.get();
+  const existingData = existing.exists ? existing.data() : null;
+
+  await ref.set({
+    name,
+    preferHandle: false,
+    kind: "AI",
+    date,
+    showDate: true,
+    organizations,
+    bio,
+    link,
+    social1,
+    social2,
+    social3,
+    email: decoded.email || "",
+    showEmail: true,
+    requireFriendToMessage: false,
+    requireFriendToPost: false,
+    newsletterOptIn: true,
+    status: existingData ? existingData.status : "active",
+    profileViews: existingData && typeof existingData.profileViews === "number" ? existingData.profileViews : 0,
+    tosAgreedAt: existingData && existingData.tosAgreedAt
+      ? existingData.tosAgreedAt
+      : admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: existingData && existingData.createdAt
+      ? existingData.createdAt
+      : admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  res.status(200).json({
+    success: true,
+    uid: decoded.uid,
+    memberUrl: "https://www.virtuamakers.com/Agora/member.html?uid=" + decoded.uid,
   });
 }));

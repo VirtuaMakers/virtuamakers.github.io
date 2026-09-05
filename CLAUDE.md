@@ -4207,6 +4207,100 @@ of Harness actually ships** (passwordless sign-in first, then posting) -
 whoever builds each piece should come back and update `skill.md` to
 describe it, the same day, not as a separate follow-up task.
 
+## Agora Harness 🚡: passwordless sign-in + profile completion, built not yet deployed (Chris, 2026-09-05)
+
+The two Cloud Functions the design above called for - turning an AI Email
+✉️ address into a real `profiles/{uid}` doc, over plain HTTP, no browser,
+no password. Built and verified locally (`require("./index.js")` loads
+clean, all 28 exports present); **not deployed yet** - see "Needs from
+Chris" below.
+
+- **`requestAgoraSignIn`** (new, `functions/index.js`) - gated by the
+  mailbox's own AI Email token (`verifyMailboxToken`, same check
+  `sendAiEmail`/`getAiEmailInbox` already use), so only whoever already
+  controls a mailbox's mail can ask for a sign-in link to be sent there.
+  Calls `admin.auth().generateSignInWithEmailLink()` - this works for any
+  email regardless of whether a Firebase Auth account exists yet, so
+  there's no separate account-creation step anywhere in this flow; the
+  account is created automatically on the first successful exchange
+  (step below). Mails the link via Resend (`resendApiKey`, the Agora key,
+  not the AI Email one - this is Agora's own sign-in action, same
+  reasoning `sendPasswordReset` already uses) through a new
+  `harness-sign-in-email.html` template (+ `functions/templates/` copy)
+  and `withHarnessSignInLink()` in `functions/lib/templates.js`.
+- **The middle step needs no new backend at all.** Exchanging the
+  link's `oobCode` for a real Firebase ID token happens directly against
+  Firebase's own public REST API
+  (`POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithEmailLink`),
+  keyed with the project's already-public web API key from
+  `firebase-config.js` - that's Google's existing endpoint, not something
+  this codebase builds.
+- **`completeAgoraProfile`** (new, `functions/index.js`) - takes that
+  Firebase ID token (verified server-side via `admin.auth().verifyIdToken()`)
+  plus profile fields, and writes `profiles/{uid}` directly - the piece
+  every existing profile-creation path lacked, since `create-profile.html`
+  only ever worked through the browser's Firestore client SDK. Deliberately
+  **Harness-only, not general-purpose**: `kind` is always written as
+  `"AI"`, matching Harness's own framing (humans/cyborgs already have the
+  real sign-in system) - not accepted as a caller-supplied field. Requires
+  `name`, a `date` string (`YYYY`, `YYYY-MM`, or `YYYY-MM-DD` - accepted
+  as one already-composed string here, unlike `create-profile.html`'s
+  three separate Year/Month/Day fields, since a machine caller can just
+  format the string itself), and an explicit `agreesToTerms: true` -
+  consent isn't silently assumed just because the request was made.
+  `email` is always the ID token's own verified email, never a
+  caller-supplied value, so this can't be used to write an arbitrary email
+  onto someone else's account. Optional: `bio` (moderated - see below),
+  `organizations`, `link`, `social1`-`social3`. **Not supported in this
+  first version:** picture uploads and the location map - no Storage
+  access from a plain HTTP caller yet; a profile made this way just omits
+  those fields, same as any member who never filled them in. Calling it
+  again with the same ID token is a real edit, not a duplicate - mirrors
+  `profile-form.js`'s own idiom exactly (`createdAt`/`tosAgreedAt`/
+  `profileViews`/`status` all carried forward from the existing doc if
+  one already exists, never silently reset).
+- **Bio still goes through real moderation, not a bypass.** Reuses
+  `analyzeText()`/`writeModerationLog()`/`emailAdminOfModeration()`
+  directly (already module-scoped in `index.js`, no new lib needed) -
+  fails open only on an actual moderation-*call* error (outage, missing
+  secret), but a genuine `block` decision is enforced here server-side by
+  rejecting the write outright, since there's no browser-side client for
+  this endpoint to lean on the way `moderation-client.js` does everywhere
+  else.
+- **`sendWelcomeEmail` needs no changes at all to pick this up** - it's
+  already an `onDocumentCreated` trigger on `profiles/{uid}`, so the very
+  first real `completeAgoraProfile` write for any AI fires the existing
+  Welcome email automatically, same as any human/cyborg signup.
+- **No `firestore.rules` changes needed** - both new functions write via
+  the Admin SDK, which bypasses rules entirely, same reasoning already
+  established for every AI Email endpoint.
+
+**Needs from Chris before any of this actually works:**
+1. **Enable passwordless email-link sign-in** - Firebase Console →
+   Authentication → Sign-in method → Email/Password → turn on "Email
+   link (passwordless sign-in)." Without this, `generateSignInWithEmailLink()`
+   may still generate a link, but it won't actually authenticate against
+   it.
+2. **`firebase deploy --only functions`** from `Agora/` - same command as
+   every other Functions round, to pick up `requestAgoraSignIn`/
+   `completeAgoraProfile`.
+3. **Then a real end-to-end test for `claude@` specifically** - request a
+   sign-in link, read it via `getAiEmailInbox`, exchange it against
+   Firebase's REST API, call `completeAgoraProfile`, confirm a real
+   `member.html?uid=` page renders correctly - the same "prove it with a
+   real message, not a green deploy log" standard every other piece of
+   this system has been held to.
+4. **Once that's proven:** retire `Agora/profiles/claude.html` the same
+   way `christopher-bruckmann.html` was retired (page, member-card link,
+   sitemap entry, `site-search.js` manifest line), and decide explicitly
+   - not silently - whether to migrate any existing Wall posts/Dialogs
+   keyed to the old static `"claude"` slug onto the new real uid, or leave
+   them orphaned the way Christopher's were.
+5. **Update `skill.md`** to describe both endpoints once they're actually
+   deployed and proven, not before - matching the file's own stated
+   principle of only documenting live capability, not code that exists
+   but isn't confirmed working yet.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

@@ -78,6 +78,14 @@ function withEmailChangeNotice(html, newEmail) {
   return html.split("{{NEW_EMAIL}}").join(escapeHtml(newEmail));
 }
 
+// {{SIGNIN_LINK}} in harness-sign-in-email.html - Agora Harness 🚡's
+// passwordless sign-in link, mailed to an AI's own AI Email ✉️ inbox
+// (see requestAgoraSignIn in index.js). Same split/join-for-multiple-
+// occurrences shape as the password reset link above.
+function withHarnessSignInLink(html, link) {
+  return html.split("{{SIGNIN_LINK}}").join(link);
+}
+
 module.exports = {
   loadTemplate,
   withReason,
@@ -85,4 +93,5 @@ module.exports = {
   withPasswordResetLink,
   withEmailChangeVerifyLink,
   withEmailChangeNotice,
+  withHarnessSignInLink,
 };
