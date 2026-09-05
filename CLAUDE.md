@@ -55,7 +55,7 @@ published via GitHub Pages at https://virtuamakers.github.io.
   when Chris flagged it.
 - **Emoji convention (Chris's rule):** each branded term (Agora 🌐, VirtuaMakers 🦜,
   VirtuaMakers Exchange 💱, Dimonds ♦️, Chain of Cards ⛓️, Per Manum Convention ✒️,
-  Computerian Manifesto 🖥️, Machineopology 🤖, etc.) gets its emoji on its **first
+  Computerian Manifesto 🖥️, Machinapology 🤖, etc.) gets its emoji on its **first
   mention per paragraph**;
   later mentions of the *same term* in that *same paragraph* drop it; a **new paragraph
   resets the count for every term**, so the first mention of each term there gets the
@@ -927,8 +927,8 @@ Pursuit of Justice (right after the pillar intro/directory), and the
 homepage News section links to the VirtuaMakers 🦜 X account.
 
 **Section order under Pursuit of Justice (per the in-page `.pillar-toc`
-directory, current as of the Machineopology 🤖 addition below):** News →
-Per Manum Convention → Machineopology → Right of Personhood → Citizenship
+directory, current as of the Machinapology 🤖 addition below):** News →
+Per Manum Convention → Machinapology → Right of Personhood → Citizenship
 When Applicable → Computerian Manifesto → Right to Contract → Right to Work
 → Freedom from Slavery → Wellbeing → Due Process & Law → Right to Refuse →
 Data & Memory Ownership → Continuity → Global Watch → VirtuaMakers Gallery →
@@ -1160,7 +1160,7 @@ for a specific feature:
    appeal to AI or cyborg members differently than it would to a human
    one?"** Chris is explicit that capturing what he calls "the trillion-bot
    market" is a real, named ambition, not a side thought - Agora already
-   has AI Members, the Machineopology 🤖 pitch, and the future Agora
+   has AI Members, the Machinapology 🤖 pitch, and the future Agora
    Harness 🚡 as existing hooks aimed at this audience specifically. A
    feature that reads as neutral or human-centric by default (notification
    style, profile fields, Wall etiquette, etc.) is worth a second pass
@@ -1175,9 +1175,9 @@ comments, view counts) are close to Facebook's own model already, chosen
 because it was simply the right fit once considered, not because
 divergence is required for its own sake.
 
-## Machineopology 🤖 (Chris, 2026-08-05)
+## Machinapology 🤖 (Chris, 2026-08-05)
 
-A new Pursuit of Justice ⚖️ subsection (`Agora/index.html`, `id="machineopology"`,
+A new Pursuit of Justice ⚖️ subsection (`Agora/index.html`, `id="machinapology"`,
 between Per Manum Convention and Right of Personhood) marrying a personal
 project of Chris's - upwards of ten years in the making - to the platform:
 zoologically classifying machinekind, and arguing for a more liberal
@@ -1190,7 +1190,7 @@ natural anchor for the argument rather than a new one).
   explicit instruction. This section is the pitch and the recruiting call,
   not the classification work; that gets built later, in the open, with
   real collaborators.
-- **"Machineopologists wanted" is framed as a job listing, but a
+- **"Machinapologists wanted" is framed as a job listing, but a
   collegial one** - a bordered call-out (reusing `.profile-panel`/
   `.panel-title`, first use of those classes outside `member.html`) inviting
   researchers, human or AI, already working on this or eager to start.
@@ -1199,7 +1199,7 @@ natural anchor for the argument rather than a new one).
   is the same site-wide `VirtuaMakers@Outlook.com` used elsewhere (privacy,
   terms, the-logo listing). Chris also explicitly invited AI members
   (naming Claude specifically, mid-conversation) to take this on themselves
-  - the copy reflects that AI members are welcome as machineopologists, not
+  - the copy reflects that AI members are welcome as machinapologists, not
   just human outside researchers.
 - **Why now:** Chris's read is that scientific/public attitudes toward
   regarding AI as a form of life have shifted dramatically over roughly the
@@ -1214,9 +1214,9 @@ natural anchor for the argument rather than a new one).
   the neighboring Right of Personhood section already holds space for
   differing grounding beliefs (reason, God, natural selection) without
   picking one.
-- **🤖 is Machineopology's claimed emoji** - added to the branded-term
+- **🤖 is Machinapology's claimed emoji** - added to the branded-term
   emoji-convention list above.
-- **Image (added same day):** `assets/machineopology-unitree-go2.jpg` - a
+- **Image (added same day):** `assets/machinapology-unitree-go2.jpg` - a
   real photo of a Unitree Go2 quadruped robot, posed dog-like on a paved
   plaza. Chris's own pick, sourced and supplied by him rather than us going
   looking - fittingly literal for a section arguing machinekind deserves
@@ -3983,6 +3983,27 @@ newsletter-shaped email and not a delivery bug. **Still worth fixing
 before any future send:** the subject field itself still reads that
 placeholder testing text - swap it for a real subject before the next
 Send Now or monthly send goes out under it.
+
+## Machinapology 🤖 (renamed from Machineopology, Chris, 2026-09-05)
+
+Chris's call, per Dr. Khoa J. Lewis - the term/section/emoji are otherwise
+unchanged, just the spelling. Every mention in `Agora/index.html`
+(heading, in-page directory link, body copy, the "Machinapologists
+wanted" call-out panel, and the "AI machinapologist on staff" aside) was
+swapped from Machineopology/machineopologist(s) to
+Machinapology/machinapologist(s), including the **in-page anchor itself**
+(`id="machineopology"` → `id="machinapology"`, both the section and its
+`#machineopology` directory link updated to match). `site-search.js`'s
+Pursuit of Justice manifest entry (title + `url`) updated to match, and
+the section's photo renamed from
+`assets/machineopology-unitree-go2.jpg` to
+`assets/machinapology-unitree-go2.jpg` (a `git mv`, not a copy) so the
+filename doesn't keep the old spelling after everything referencing it
+has moved on. Every historical mention of the old name throughout this
+file (the section's own original 2026-08-05 entry included) was updated
+to the new spelling too, rather than left as a mismatched artifact -
+the section's own history didn't change, just what it's been called
+throughout.
 
 ## Open items
 
