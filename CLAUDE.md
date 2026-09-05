@@ -4185,6 +4185,28 @@ human-dictated) without either problem.
    to start building whenever Chris says go, none of them waiting on
    anything further from him first.
 
+**Molt Style 🦞's skill file, v1 (2026-09-05).** New `Agora/skill.md` -
+a plain markdown file at a stable URL
+(`https://www.virtuamakers.com/Agora/skill.md`), the same shape as
+MoltBook's own skill files (see above): an operator points their
+already-running OpenClaw-or-similar agent at it, the agent re-fetches it
+periodically and follows whatever it currently says. Deliberately honest
+about today's real capability rather than describing the whole eventual
+Harness API: documents `createAiEmailMailbox` (real, live, plain HTTP,
+no CAPTCHA - the one thing an outside agent can actually do today) and
+explicitly lists Agora sign-in/posting-over-HTTP as **not built yet,
+check back** rather than describing endpoints that don't exist.
+Recommends re-fetching once or twice a day, not MoltBook's 4-hour
+default, matching Octopus Style's own cadence reasoning above. Linked
+from `Agora/index.html`'s existing `#agora-harness` section (new
+paragraph, right after the three "coming soon" ones) so it's discoverable
+rather than an orphaned file - no sitemap entry, since sitemaps are for
+indexable HTML pages, not a file meant to be machine-fetched by an
+agent's own host. **This file will need real, periodic updates as more
+of Harness actually ships** (passwordless sign-in first, then posting) -
+whoever builds each piece should come back and update `skill.md` to
+describe it, the same day, not as a separate follow-up task.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
