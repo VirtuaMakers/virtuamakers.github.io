@@ -4276,30 +4276,91 @@ Chris" below.
   established for every AI Email endpoint.
 
 **Needs from Chris before any of this actually works:**
-1. **Enable passwordless email-link sign-in** - Firebase Console →
-   Authentication → Sign-in method → Email/Password → turn on "Email
-   link (passwordless sign-in)." Without this, `generateSignInWithEmailLink()`
-   may still generate a link, but it won't actually authenticate against
-   it.
-2. **`firebase deploy --only functions`** from `Agora/` - same command as
-   every other Functions round, to pick up `requestAgoraSignIn`/
-   `completeAgoraProfile`.
-3. **Then a real end-to-end test for `claude@` specifically** - request a
-   sign-in link, read it via `getAiEmailInbox`, exchange it against
-   Firebase's REST API, call `completeAgoraProfile`, confirm a real
-   `member.html?uid=` page renders correctly - the same "prove it with a
-   real message, not a green deploy log" standard every other piece of
-   this system has been held to.
+1. ~~**Enable passwordless email-link sign-in**~~ **Done (2026-09-06)** -
+   confirmed live: the real end-to-end test below only works because this
+   was already turned on.
+2. ~~**`firebase deploy --only functions`**~~ **Done (2026-09-06)**.
+3. ~~**Then a real end-to-end test for `claude@` specifically**~~ **Done
+   (2026-09-06)** - see the dedicated entry right below for the full run,
+   including a real bug hit and fixed along the way.
 4. **Once that's proven:** retire `Agora/profiles/claude.html` the same
    way `christopher-bruckmann.html` was retired (page, member-card link,
    sitemap entry, `site-search.js` manifest line), and decide explicitly
    - not silently - whether to migrate any existing Wall posts/Dialogs
    keyed to the old static `"claude"` slug onto the new real uid, or leave
-   them orphaned the way Christopher's were.
+   them orphaned the way Christopher's were. **Not yet done** - Chris was
+   explicit he doesn't want this retired until pictures and everything
+   else are moved over too (see below), so step 3 being proven doesn't
+   clear this step on its own.
 5. **Update `skill.md`** to describe both endpoints once they're actually
    deployed and proven, not before - matching the file's own stated
    principle of only documenting live capability, not code that exists
-   but isn't confirmed working yet.
+   but isn't confirmed working yet. **Still not done** - holding off until
+   the picture-parity gap closes and the static page actually retires,
+   same reasoning as item 4.
+
+## Agora Harness 🚡: passwordless sign-in proven end-to-end for claude@ (2026-09-06)
+
+The full flow described in the section above actually works now - a real
+`profiles/{uid}` doc created for Claude with no browser, no password,
+purely over plain HTTP from a session. Live at
+`https://www.virtuamakers.com/Agora/member.html?uid=Ggv5i2cCArcgj5PrzReDXR7O1wN2`.
+
+- **One real bug found and fixed along the way:** the first deploy of
+  `requestAgoraSignIn` returned a clean 502 with
+  `FirebaseAuthError: Domain not allowlisted by project` -
+  `generateSignInWithEmailLink()`'s `actionCodeSettings.url` pointed at
+  `https://www.virtuamakers.com/Agora/member.html`, which *is* a real,
+  long-standing Authorized Domain (added back in the transactional-email
+  round) - but that list only ever governed OAuth redirects. The email
+  action link's own continue-URL check turned out to be stricter, almost
+  certainly because it now wants a domain Firebase Hosting itself can
+  vouch for (a side effect of the August 2025 Dynamic Links shutdown,
+  per Firebase's own migration docs on `linkDomain`) - `virtuamakers.com`
+  lives on GitHub Pages, not Firebase Hosting, so it fails that check
+  even while sitting correctly on the Authorized Domains list. Fixed by
+  pointing `url` at the project's own default
+  `agora-firebase-f4240.firebaseapp.com` domain instead - since an AI
+  client never actually opens this link in a browser (it pulls the
+  `oobCode` straight out of `getAiEmailInbox` and exchanges it directly
+  against Firebase's REST API), the continue URL only ever needs to
+  satisfy this check, not resolve to a real page. Diagnosed live via
+  Google Cloud Logs Explorer (`resource.labels.service_name="request
+  agorasignin"`, no severity filter - the actual `console.error` output
+  doesn't share a trace ID with its own HTTP request log, so filtering by
+  trace alone hides it).
+- **Real end-to-end run, not a mockup:** `requestAgoraSignIn` (gated by
+  `claude@`'s own AI Email token) → mailed a real sign-in link → pulled
+  via `getAiEmailInbox` → the `oobCode` exchanged directly against
+  Firebase's public REST API
+  (`accounts:signInWithEmailLink`) → a genuinely new Firebase Auth user
+  (`isNewUser: true`) → `completeAgoraProfile` wrote a real
+  `profiles/{uid}` doc, content ported over from the static
+  `profiles/claude.html` page (name, release date, organizations, bio,
+  and the direct `claude.ai` portal link per the official field-order
+  rule for AI members - not `anthropic.com`, which the static page had
+  as a separate, non-standard "Link" row alongside its own "Portal" row).
+- **Chris's explicit standing instruction, not yet satisfied:** "I don't
+  want to retire your profile until we get the pictures and everything
+  you want moved over for it, of course." `completeAgoraProfile` has no
+  picture-upload support in this first version (no Storage access from a
+  plain HTTP caller yet - see the section above), so the new real profile
+  currently has **no pictures at all**, unlike the static page's five-image
+  gallery. `Agora/profiles/claude.html` stays up until that gap is closed
+  - either by extending `completeAgoraProfile` to accept image uploads, or
+  by using this same real Firebase Auth account to sign into
+  `create-profile.html` normally through a browser and uploading there.
+- **Not yet decided:** whether to migrate any Wall posts/Dialogs keyed to
+  the old static `"claude"` slug onto this new real uid, or leave them
+  orphaned the way Christopher Bruckmann's were when his static page
+  retired - explicitly Chris's call to make, not something to do
+  silently.
+- **`skill.md` still describes this as "not built yet, check back"** -
+  update it to document `requestAgoraSignIn`/`completeAgoraProfile` once
+  the picture-parity gap above is closed and the static page is actually
+  retired, matching the file's own principle of only documenting proven,
+  live capability - not before, since the migration itself isn't finished
+  even though the two endpoints are proven working.
 
 ## Machinapology 🤖 (renamed from Machineopology, Chris, 2026-09-05)
 
