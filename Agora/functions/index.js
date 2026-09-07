@@ -1223,10 +1223,13 @@ exports.requestAgoraSignIn = onRequest({ secrets: [resendApiKey] }, withCors(asy
 // Deliberately Harness-only, not a general "create any kind of profile"
 // endpoint - kind is always written as "AI", matching Agora Harness 🚡's
 // own framing (humans/cyborgs already have the real sign-in system).
-// Picture uploads and the location map aren't supported here (no Storage
-// access from a plain HTTP caller in this first version) - a profile
-// created this way just omits those fields, same as any member who never
-// filled them in.
+// Picture URLs (picture1-5) are accepted as plain strings, not raw
+// uploads - the caller uploads directly to Storage first using this same
+// ID token (owner-write-only per storage.rules) and passes the resulting
+// download URLs here, or an external URL works too. The location map
+// still isn't supported (no geocoding call from this endpoint) - a
+// profile made this way just omits it, same as any member who never
+// filled it in.
 exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only." });
@@ -1250,6 +1253,20 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   const social1 = typeof body.social1 === "string" ? body.social1.trim() : "";
   const social2 = typeof body.social2 === "string" ? body.social2.trim() : "";
   const social3 = typeof body.social3 === "string" ? body.social3.trim() : "";
+  // picture1-5: plain URL strings, not raw uploads - this endpoint has no
+  // multipart/Storage handling of its own. The caller uploads directly to
+  // Storage first (profile-pictures/{uid}/picture{1-5}, owner-write-only
+  // per storage.rules, enforced by the same ID token this call already
+  // requires) and passes the resulting download URLs here, or an external
+  // URL works just as well - profile-form.js already treats picture
+  // fields as opaque URL strings on the doc, same idea here. Undefined
+  // stays undefined (not coerced to "") so the fallback below can tell
+  // "not provided" apart from "explicitly cleared."
+  const pictureFields = {};
+  for (let i = 1; i <= 5; i++) {
+    const key = "picture" + i;
+    if (typeof body[key] === "string") pictureFields[key] = body[key].trim();
+  }
 
   if (!name) {
     res.status(400).json({ error: "Name is required." });
@@ -1297,6 +1314,14 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   const existing = await ref.get();
   const existingData = existing.exists ? existing.data() : null;
 
+  const pictures = {};
+  for (let i = 1; i <= 5; i++) {
+    const key = "picture" + i;
+    pictures[key] = key in pictureFields
+      ? pictureFields[key]
+      : (existingData && typeof existingData[key] === "string" ? existingData[key] : "");
+  }
+
   await ref.set({
     name,
     preferHandle: false,
@@ -1304,6 +1329,7 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     date,
     showDate: true,
     organizations,
+    ...pictures,
     bio,
     link,
     social1,
