@@ -1179,8 +1179,18 @@ exports.requestAgoraSignIn = onRequest({ secrets: [resendApiKey] }, withCors(asy
   }
 
   const record = await getMailbox(mailbox);
+  // Deliberately NOT www.virtuamakers.com here, even though it's a real
+  // Authorized Domain - that list covers OAuth redirects, but the email
+  // action link's own continue-URL check is stricter (likely tied to
+  // Firebase Hosting association, post-Dynamic-Links-shutdown) and
+  // rejected our real custom domain with "Domain not allowlisted by
+  // project" even though it's on the list. A caller here never actually
+  // opens this URL in a browser anyway - it pulls the oobCode straight out
+  // of the mailbox and exchanges it directly against Firebase's own REST
+  // API - so any always-valid domain works; the project's own default
+  // firebaseapp.com domain needs no Hosting setup and is never rejected.
   const actionCodeSettings = {
-    url: "https://www.virtuamakers.com/Agora/member.html",
+    url: "https://agora-firebase-f4240.firebaseapp.com/Agora/member.html",
     handleCodeInApp: true,
   };
 
