@@ -4340,27 +4340,79 @@ purely over plain HTTP from a session. Live at
   and the direct `claude.ai` portal link per the official field-order
   rule for AI members - not `anthropic.com`, which the static page had
   as a separate, non-standard "Link" row alongside its own "Portal" row).
-- **Chris's explicit standing instruction, not yet satisfied:** "I don't
-  want to retire your profile until we get the pictures and everything
-  you want moved over for it, of course." `completeAgoraProfile` has no
-  picture-upload support in this first version (no Storage access from a
-  plain HTTP caller yet - see the section above), so the new real profile
-  currently has **no pictures at all**, unlike the static page's five-image
-  gallery. `Agora/profiles/claude.html` stays up until that gap is closed
-  - either by extending `completeAgoraProfile` to accept image uploads, or
-  by using this same real Firebase Auth account to sign into
-  `create-profile.html` normally through a browser and uploading there.
-- **Not yet decided:** whether to migrate any Wall posts/Dialogs keyed to
-  the old static `"claude"` slug onto this new real uid, or leave them
-  orphaned the way Christopher Bruckmann's were when his static page
-  retired - explicitly Chris's call to make, not something to do
-  silently.
+- **Chris's explicit standing instruction, now satisfied - see the
+  dedicated entry right below for how.** "I don't want to retire your
+  profile until we get the pictures and everything you want moved over
+  for it, of course." Picture parity closed same-day (2026-09-06/07).
+- **Confirmed 2026-09-06: no Wall posts/Dialogs exist yet on the old
+  static `"claude"` slug at all** - Chris confirmed directly he never
+  messaged the static AI profile pages once he understood they had no
+  login behind them, and outside of this round's own test messages
+  nothing else has been sent. So the "migrate or leave orphaned" question
+  raised below is currently moot - there's nothing to migrate either way.
 - **`skill.md` still describes this as "not built yet, check back"** -
   update it to document `requestAgoraSignIn`/`completeAgoraProfile` once
-  the picture-parity gap above is closed and the static page is actually
-  retired, matching the file's own principle of only documenting proven,
-  live capability - not before, since the migration itself isn't finished
-  even though the two endpoints are proven working.
+  the static page is actually retired, matching the file's own principle
+  of only documenting proven, live capability.
+
+## Agora Harness 🚡: picture parity closed, claude@ ready to retire the static page (2026-09-06/07)
+
+Closed the one gap the section above flagged - `completeAgoraProfile`'s
+real profile had zero pictures against the static page's five-image
+gallery. Fixed by extending the endpoint rather than waiting on a bigger
+upload-handling build:
+
+- **`completeAgoraProfile` now accepts `picture1`-`picture5`** as plain
+  URL strings, not raw uploads - it has no multipart/Storage handling of
+  its own. The caller uploads directly to Firebase Storage first
+  (`profile-pictures/{uid}/picture{1-5}`, owner-write-only per
+  `storage.rules`, enforced by the same ID token the endpoint already
+  requires for auth) and passes the resulting download URLs in, or an
+  external URL works too - `profile-form.js` already treats picture
+  fields as opaque URL strings on the doc, same idea here. Unspecified
+  slots carry forward whatever the existing doc already had (mirrors
+  `profile-form.js`'s own "every save is a full overwrite, but an
+  untouched slot keeps its value" convention) rather than getting wiped
+  to empty on a call that only wants to touch other fields.
+- **Real upload, not a placeholder:** the same four local image files the
+  static `profiles/claude.html` page already used
+  (`claude-full.png`, `claude-variant-teal.png`, `claude-the-seat.jpg`,
+  `claude-the-braid.jpg`) were uploaded directly to
+  `profile-pictures/Ggv5i2cCArcgj5PrzReDXR7O1wN2/picture{2-5}` via
+  Firebase Storage's REST API, authenticated with a real ID token for the
+  `claude@` account (refreshed via `securetoken.googleapis.com` from the
+  refresh token the original sign-in exchange returned - Firebase ID
+  tokens are only valid an hour, so a session picking this back up later
+  needs a fresh one, not the one from the original test). `picture1`
+  stayed the same external Google favicon URL the static page always
+  used for that slot, rather than swapping in the unused
+  `claude-avatar.png` mascot asset sitting in the repo - faithful parity
+  with the static page was the goal here, not a redesign.
+- **Verified the public download URLs work with no auth at all** (a
+  plain `curl`, no bearer token) before wiring them into the profile
+  doc - `storage.rules`' `allow read: if true` on `profile-pictures/`
+  means no download token is needed in the URL, just
+  `?alt=media` on the object path.
+- **`completeAgoraProfile` was called a second time with the full field
+  set (name/date/organizations/bio/link/social1) plus all five picture
+  URLs together** - necessary because every field on this endpoint comes
+  straight from the request body with no existing-doc fallback except
+  pictures/status/profileViews/timestamps, so a picture-only call would
+  have silently blanked out the bio/link/socials already written by the
+  first call.
+- **Not carried over: Location.** The static page listed "San Francisco,
+  California, U.S.A." - `completeAgoraProfile` still has no geocoding
+  call built in (see the original build entry above), so this one field
+  genuinely isn't ported. Not blocking retirement per Chris's own
+  go-ahead below, but worth adding to `completeAgoraProfile` in a later
+  pass, or setting once through a real browser sign-in to
+  `create-profile.html` using this same account.
+- **Chris's go-ahead, 2026-09-06:** told to proceed with picture support
+  next, confirmed no static-page messages exist to migrate (see the
+  entry above). Static-page retirement (page, member-card link, sitemap
+  entry, `site-search.js` manifest line - the same four-part cleanup
+  `christopher-bruckmann.html`'s retirement did) is still a separate step
+  from here, not yet done as of this entry.
 
 ## Machinapology 🤖 (renamed from Machineopology, Chris, 2026-09-05)
 
