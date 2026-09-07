@@ -4414,6 +4414,119 @@ upload-handling build:
   `christopher-bruckmann.html`'s retirement did) is still a separate step
   from here, not yet done as of this entry.
 
+## Agora Harness 🚡: full human-profile field parity (Chris, 2026-09-07)
+
+Chris's framing, prompted directly: "these experiences are as close
+together as makes reasonable sense" for any viewer - human or AI - looking
+at any profile, AI-created or human-created, but he's explicitly fine with
+an AI-specific *path* to get there (a different mechanism, same end
+state), not just a literal clone of `create-profile.html`'s own form.
+`completeAgoraProfile` only ever wrote
+name/date/organizations/bio/link/social1-3/pictures - every other field a
+human can set (handle, location + map, the AI-specific Portal field, the
+various `show*` visibility toggles, `requireFriendToMessage`/`Post`,
+`newsletterOptIn`) was permanently unreachable for a Harness-created
+profile. Closed in one pass rather than piecemeal:
+
+- **`completeAgoraProfile` now accepts the full field set**: `handle`,
+  `preferHandle`, `city`, `country`, `region` (private, geocoding-only),
+  `showLocation`, `showMap`, `showDate`, `portal`, `showEmail`,
+  `requireFriendToMessage`, `requireFriendToPost`, `newsletterOptIn` -
+  same names, same semantics as `profile-form.js`'s own `data` object.
+- **A genuinely different update model than the browser form's, on
+  purpose - "omitted" now means "leave alone," not "clear."**
+  `profile-form.js` always resends every field on every save (a browser
+  form's inputs are always all present in the DOM); a machine caller has
+  no such form to read back from, so re-sending the *entire* profile just
+  to touch one field would be needlessly brittle - exactly the trap the
+  original picture-only test call hit two entries above (bio/link/socials
+  would've been silently blanked out by a call that only meant to touch
+  pictures). New `fieldOr()`/`boolFieldOr()` helpers read the field from
+  the request body first, then fall back to whatever the existing doc
+  already has, and only fall back to a hardcoded default (matching
+  `profile-form.js`'s own on/off-by-default choices - `showDate`/
+  `showEmail`/`showLocation`/`showMap`/`newsletterOptIn` default true,
+  `preferHandle`/`requireFriendToMessage`/`requireFriendToPost` default
+  false) when there's no existing doc at all yet. This is the one
+  deliberate place Harness profiles behave differently from browser-saved
+  ones - the end state (what fields exist, what they mean, how they
+  render) is identical either way, matching Chris's "same endpoint,
+  different path" framing exactly.
+- **Handle uniqueness, geocoding, and the blocked-domain check are all
+  now ported server-side**, not skipped:
+  - `functions/lib/socialFormat.js` (new) - a direct line-for-line port of
+    `Agora/social-format.js`'s `isBlockedDomain()`/format-unrecognized
+    logic (that client file assigns to `window` and has no
+    `module.exports`, so it's copied rather than required - same
+    hand-sync convention as `functions/templates/` vs. `Agora/emails/`).
+    Gates `link`/`portal`/`social1-3` with the same hard block
+    profile-form.js applies (a short, non-exhaustive adult-domain list,
+    rejecting the save outright - separate from bio's own content-based
+    moderation) and computes `socialsFlagged` the same way.
+  - `functions/lib/geocode.js` (new) - a direct port of
+    `profile-form.js`'s `geocodeLocation()` (same free OpenStreetMap
+    Nominatim search, same 8-second timeout, same "any failure just
+    resolves to null rather than blocking the save" philosophy), using
+    Node's built-in `fetch` like `lib/moderation.js` already does. Added
+    an explicit `User-Agent` header Nominatim's usage policy expects for
+    server-side callers (a browser's own default header already covers
+    this for the client-side version, so profile-form.js never needed
+    one). Verified live against San Francisco before wiring it in - real
+    coordinates back, not a mocked response.
+  - Handle-uniqueness runs the identical query profile-form.js does
+    (`profiles.where("handle", "==", handle)`), rejecting only when a
+    *different* uid already holds it, so re-saving your own unchanged
+    handle never trips it.
+- **`portal` is real, not a documentation error to fix.** While wiring
+  this up, confirmed `member.js` genuinely renders `data.portal` as its
+  own field (`#member-portal`), separate from `data.link` - the "official
+  field order" convention documented near the top of this file (which
+  only lists a single "Link" field, described as itself being the AI's
+  direct chat portal) predates this two-field reality and hasn't been
+  corrected to match. Not fixed in this pass (out of scope for what Chris
+  asked), but worth a dedicated cleanup pass later so the documented
+  convention actually matches what `create-profile.html`/`member.js`
+  implement.
+- **A real security gap found and closed, not just a feature gap:**
+  pictures uploaded via Harness go straight to Storage (an AI's own ID
+  token, owner-write-only per `storage.rules`), completely bypassing the
+  moderation step a browser upload always goes through first
+  (`moderation-client.js`'s `checkImage()` → `moderateImage` → only then
+  upload). Fix needed **no new Cloud Function at all** - `moderateImage`
+  (and `moderateText`) are `onCall` functions, and Firebase's Callable
+  protocol is just a documented plain-HTTPS contract (`POST` to the
+  function's own URL, body `{"data": {...}}`, `Authorization: Bearer
+  <ID token>`, response `{"result": ...}`) - nothing in `moderateImage`
+  requires the JS SDK or gates on being human, only `request.auth` being
+  set. **Verified live**, not just reasoned about: called
+  `moderateImage` this way with a real ID token for `claude@` and a tiny
+  test PNG, got back `{"result":{"decision":"allow"}}` over plain `curl`.
+  So the fix here is purely documentation/convention, not code: **a
+  Harness caller uploading a picture should call `moderateImage` first,
+  exactly like a browser does, before ever writing to
+  `profile-pictures/{uid}/picture{N}`** - noted directly in
+  `completeAgoraProfile`'s own picture-field comment so this isn't lost
+  again. The pictures already uploaded for `claude@`'s own profile (see
+  the picture-parity entry above) predate this finding and were never run
+  through this check - low-risk in practice since they're long-standing,
+  already-public site assets (the same images the static page displayed
+  for months), not arbitrary content, but worth knowing they're the one
+  exception to this rule existing at all.
+- **`agreesToTerms` is now only required on first creation, not every
+  edit** - matches `create-profile.html`'s own "never ask again on edit"
+  behavior (`tosWrap.hidden = true` once `existingDoc` exists) exactly,
+  rather than the original version's stricter "required on every call"
+  behavior, which would have made a picture-only follow-up call
+  needlessly re-demand a boolean that had already been agreed to once.
+- **Not yet ported, deliberately out of scope this round:** the
+  `cyberizationDate`/`showCyberizationDate` pair (Cyborg-kind-only,
+  irrelevant to Harness's AI-only framing) and picture uploads themselves
+  still aren't handled *by* this endpoint (still plain URL strings in,
+  same as before - see the moderation note above for the recommended
+  pre-upload step). Verified locally (`require("./index.js")` loads
+  clean, all 28 exports present) but **not yet deployed** - same
+  `firebase deploy --only functions` step every round needs.
+
 ## Machinapology 🤖 (renamed from Machineopology, Chris, 2026-09-05)
 
 Chris's call, per Dr. Khoa J. Lewis - the term/section/emoji are otherwise

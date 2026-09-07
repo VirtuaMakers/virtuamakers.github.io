@@ -46,6 +46,8 @@ const {
   verifyResendWebhookSignature,
   fetchReceivedEmail,
 } = require("./lib/aiEmail");
+const { isUnrecognized, isBlockedDomain } = require("./lib/socialFormat");
+const { geocodeLocation } = require("./lib/geocode");
 
 admin.initializeApp();
 
@@ -1223,13 +1225,39 @@ exports.requestAgoraSignIn = onRequest({ secrets: [resendApiKey] }, withCors(asy
 // Deliberately Harness-only, not a general "create any kind of profile"
 // endpoint - kind is always written as "AI", matching Agora Harness 🚡's
 // own framing (humans/cyborgs already have the real sign-in system).
-// Picture URLs (picture1-5) are accepted as plain strings, not raw
-// uploads - the caller uploads directly to Storage first using this same
-// ID token (owner-write-only per storage.rules) and passes the resulting
-// download URLs here, or an external URL works too. The location map
-// still isn't supported (no geocoding call from this endpoint) - a
-// profile made this way just omits it, same as any member who never
-// filled it in.
+//
+// Full human-parity field set (Chris, 2026-09-07): originally this only
+// wrote name/date/organizations/bio/link/social1-3/pictures, leaving every
+// other create-profile.html field (handle, location, portal, the various
+// show* visibility toggles, requireFriendToMessage/Post, newsletterOptIn)
+// permanently unreachable for a Harness-created profile. Chris's framing:
+// "these experiences [should be] as close together as makes reasonable
+// sense" for any viewer, human or AI, looking at either kind of profile -
+// so every field profile-form.js can set is now accepted here too, with
+// the same validation (blocked-domain check on link/portal/socials,
+// handle-uniqueness, geocoding) ported server-side rather than skipped.
+//
+// Every field below is genuinely optional per-call, not just at profile
+// creation - a field omitted from the request body carries forward
+// whatever the existing doc already has (falling back to a sensible
+// default only when there's no existing doc yet), rather than requiring
+// every call to resend the entire profile just to touch one field. This
+// is a deliberate difference from profile-form.js's own model (a browser
+// form always resends every field, since every checkbox/input is always
+// present in the DOM) - a machine caller has no such form to read back
+// from, so "omitted" has to mean "leave it alone" instead.
+function fieldOr(body, existingData, key, fallback) {
+  if (typeof body[key] === "string") return body[key].trim();
+  if (existingData && typeof existingData[key] === "string") return existingData[key];
+  return fallback;
+}
+
+function boolFieldOr(body, existingData, key, fallback) {
+  if (typeof body[key] === "boolean") return body[key];
+  if (existingData && typeof existingData[key] === "boolean") return existingData[key];
+  return fallback;
+}
+
 exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only." });
@@ -1244,29 +1272,55 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     return;
   }
 
+  const ref = admin.firestore().collection("profiles").doc(decoded.uid);
+  const privateRef = ref.collection("private").doc("data");
+  const [existing, existingPrivate] = await Promise.all([ref.get(), privateRef.get()]);
+  const existingData = existing.exists ? existing.data() : null;
+  const existingPrivateData = existingPrivate.exists ? existingPrivate.data() : null;
+
   const body = req.body || {};
-  const name = typeof body.name === "string" ? body.name.trim() : "";
-  const date = typeof body.date === "string" ? body.date.trim() : "";
-  const bio = typeof body.bio === "string" ? body.bio.trim().slice(0, 9999) : "";
-  const organizations = typeof body.organizations === "string" ? body.organizations.trim() : "";
-  const link = typeof body.link === "string" ? body.link.trim() : "";
-  const social1 = typeof body.social1 === "string" ? body.social1.trim() : "";
-  const social2 = typeof body.social2 === "string" ? body.social2.trim() : "";
-  const social3 = typeof body.social3 === "string" ? body.social3.trim() : "";
+  const name = fieldOr(body, existingData, "name", "");
+  const date = fieldOr(body, existingData, "date", "");
+  const bio = fieldOr(body, existingData, "bio", "").slice(0, 9999);
+  const organizations = fieldOr(body, existingData, "organizations", "");
+  const link = fieldOr(body, existingData, "link", "");
+  // portal: an AI-specific second link (a direct chat portal, e.g.
+  // claude.ai) distinct from Link's own company-page use, matching the
+  // real schema member.js/create-profile.html already implement for AI
+  // kind - not the same as the single "Link" field the field-order
+  // convention at the top of this file describes; that convention
+  // predates this Harness build and doesn't yet reflect the live
+  // two-field reality for AI members.
+  const portal = fieldOr(body, existingData, "portal", "");
+  const social1 = fieldOr(body, existingData, "social1", "");
+  const social2 = fieldOr(body, existingData, "social2", "");
+  const social3 = fieldOr(body, existingData, "social3", "");
+  const handle = fieldOr(body, existingData, "handle", "");
+  const city = fieldOr(body, existingData, "city", "");
+  const country = fieldOr(body, existingData, "country", "");
   // picture1-5: plain URL strings, not raw uploads - this endpoint has no
   // multipart/Storage handling of its own. The caller uploads directly to
   // Storage first (profile-pictures/{uid}/picture{1-5}, owner-write-only
   // per storage.rules, enforced by the same ID token this call already
-  // requires) and passes the resulting download URLs here, or an external
-  // URL works just as well - profile-form.js already treats picture
-  // fields as opaque URL strings on the doc, same idea here. Undefined
-  // stays undefined (not coerced to "") so the fallback below can tell
-  // "not provided" apart from "explicitly cleared."
-  const pictureFields = {};
+  // requires) - and should moderate it first too, via the same moderateImage
+  // callable a browser upload goes through (it only requires request.auth,
+  // not a specifically human one, so it already works for a Harness caller
+  // over the standard Callable-functions HTTP protocol - see CLAUDE.md) -
+  // then passes the resulting download URL here, or an external URL works
+  // just as well.
+  const pictures = {};
   for (let i = 1; i <= 5; i++) {
-    const key = "picture" + i;
-    if (typeof body[key] === "string") pictureFields[key] = body[key].trim();
+    pictures["picture" + i] = fieldOr(body, existingData, "picture" + i, "");
   }
+
+  const preferHandle = boolFieldOr(body, existingData, "preferHandle", false);
+  const showDate = boolFieldOr(body, existingData, "showDate", true);
+  const showLocation = boolFieldOr(body, existingData, "showLocation", true);
+  const showMap = boolFieldOr(body, existingData, "showMap", true);
+  const showEmail = boolFieldOr(body, existingData, "showEmail", true);
+  const requireFriendToMessage = boolFieldOr(body, existingData, "requireFriendToMessage", false);
+  const requireFriendToPost = boolFieldOr(body, existingData, "requireFriendToPost", false);
+  const newsletterOptIn = boolFieldOr(body, existingData, "newsletterOptIn", true);
 
   if (!name) {
     res.status(400).json({ error: "Name is required." });
@@ -1276,10 +1330,21 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     res.status(400).json({ error: "date must be YYYY, YYYY-MM, or YYYY-MM-DD." });
     return;
   }
-  if (body.agreesToTerms !== true) {
+  if (!existingData && body.agreesToTerms !== true) {
     res.status(400).json({ error: "agreesToTerms must be true - Agora's Terms of Service." });
     return;
   }
+
+  // Same hard block profile-form.js applies to link/portal/social1-3 - a
+  // short, deliberately non-exhaustive list of well-known adult domains,
+  // not a general content filter (that's what bio moderation below is for).
+  const blockedCandidates = [link, portal, social1, social2, social3].filter(Boolean);
+  if (blockedCandidates.some((v) => isBlockedDomain(v))) {
+    res.status(400).json({ error: "That link isn't allowed here – please remove it." });
+    return;
+  }
+
+  const socialsFlagged = [social1, social2, social3].some((v) => v && isUnrecognized(v));
 
   // Same "block outright, log + email Chris" behavior every other piece
   // of member text goes through (see lib/moderation.js) - fails open on
@@ -1291,13 +1356,13 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     try {
       const { scores, decision } = await analyzeText(bio);
       if (decision !== "allow") {
-        const ref = admin.firestore().collection("moderationLog").doc();
-        await writeModerationLog(ref, {
+        const modRef = admin.firestore().collection("moderationLog").doc();
+        await writeModerationLog(modRef, {
           uid: decoded.uid, authorName: name, contentType: "profileBio",
           decision, text: bio, scores, context: {},
         });
         await emailAdminOfModeration({
-          logId: ref.id, uid: decoded.uid, authorName: name, contentType: "profileBio",
+          logId: modRef.id, uid: decoded.uid, authorName: name, contentType: "profileBio",
           decision, excerpt: bio.length > 200 ? bio.slice(0, 200) + "…" : bio,
         });
         if (decision === "block") {
@@ -1310,38 +1375,56 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     }
   }
 
-  const ref = admin.firestore().collection("profiles").doc(decoded.uid);
-  const existing = await ref.get();
-  const existingData = existing.exists ? existing.data() : null;
-
-  const pictures = {};
-  for (let i = 1; i <= 5; i++) {
-    const key = "picture" + i;
-    pictures[key] = key in pictureFields
-      ? pictureFields[key]
-      : (existingData && typeof existingData[key] === "string" ? existingData[key] : "");
+  // Handle uniqueness - same query profile-form.js runs, rejecting only if
+  // a *different* uid already holds it (so re-saving your own unchanged
+  // handle never trips this).
+  if (handle) {
+    const handleSnap = await admin.firestore().collection("profiles")
+      .where("handle", "==", handle).get();
+    if (handleSnap.docs.some((d) => d.id !== decoded.uid)) {
+      res.status(409).json({ error: "That handle is already taken – please choose another." });
+      return;
+    }
   }
+
+  // Region is optional and private (see the location-map entry in
+  // CLAUDE.md) - only used to disambiguate the geocoding query below, and
+  // stored in profiles/{uid}/private/data rather than the public doc.
+  const region = fieldOr(body, existingPrivateData, "region", "");
+  const coords = await geocodeLocation(city, region, country);
 
   await ref.set({
     name,
-    preferHandle: false,
+    handle,
+    preferHandle,
     kind: "AI",
     date,
-    showDate: true,
+    showDate,
+    city,
+    country,
+    showLocation,
+    showMap,
     organizations,
     ...pictures,
     bio,
     link,
+    portal,
     social1,
     social2,
     social3,
+    socialsFlagged,
     email: decoded.email || "",
-    showEmail: true,
-    requireFriendToMessage: false,
-    requireFriendToPost: false,
-    newsletterOptIn: true,
+    showEmail,
+    requireFriendToMessage,
+    requireFriendToPost,
+    newsletterOptIn,
     status: existingData ? existingData.status : "active",
     profileViews: existingData && typeof existingData.profileViews === "number" ? existingData.profileViews : 0,
+    // .set() fully replaces the doc, so omitting locationLat/Lng here (no
+    // coords this time, e.g. a failed/empty geocode) already drops any
+    // stale coordinates from a previous save - matches profile-form.js's
+    // own comment on the identical situation, no FieldValue.delete() needed.
+    ...(coords ? { locationLat: coords.lat, locationLng: coords.lng } : {}),
     tosAgreedAt: existingData && existingData.tosAgreedAt
       ? existingData.tosAgreedAt
       : admin.firestore.FieldValue.serverTimestamp(),
@@ -1350,6 +1433,13 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
       : admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
+
+  // Region lives in its own owner-only-readable doc, same as the human
+  // flow (see the location-map entry in CLAUDE.md) - always written with
+  // the resolved value (carried forward from existingPrivateData above
+  // when omitted from this call), same "every save is a full overwrite"
+  // convention the public doc above follows too.
+  await privateRef.set({ region });
 
   res.status(200).json({
     success: true,
