@@ -4712,6 +4712,60 @@ visibly moved by it.
 - No `style.css` changes needed - `.section-image` already existed and
   needed no new rules for this.
 
+## New-member orientation + share links on The Pillars (Chris/Copilot, 2026-09-08)
+
+Copilot's suggestion, relayed by Chris: Agora needed both an orientation
+for new members and "an emotional center" - Chris asked Copilot to
+combine the two into one piece, lightly edited the result, and left the
+exact placement to this session ("I'm not sure where it fits in on the
+page exactly yet"), floating The Pillars section as one option.
+
+- **Landed in `#pillars`, right after the three tile links, inside the
+  same `<section class="hero">`** - Chris's own suggested spot. Three new
+  `<h3 class="section-title">` blocks: **Belonging in a Shared Culture**
+  (Copilot's "why profiles matter" framing - collaboration between human,
+  cyborg, and machine minds as a valuable thing in itself), **Your First
+  Steps in Agora 🌐** (a 4-item `<ol class="body-list">` - Create your
+  account on Profiles 🙂 → Make your first Communiqué 📨 → Explore the
+  VirtuaMakers Exchange 💱 → Visit Pursuit of Justice ⚖️ - each linked to
+  its real anchor: `#join`, `#communiques`, `exchange.html`, `#justice`),
+  and **Share Agora 🌐** (the link row below).
+- **Left the existing `.hero-fine` manifesto paragraph untouched, on
+  purpose, rather than merging text in** - Chris floated combining it
+  with the new copy, but the two serve different jobs: `.hero-fine`
+  (already credited to Copilot per the top of this file) is Agora's
+  mission statement (why AI belongs in this culture at all), while the
+  new copy is a practical "welcome, here's how to get started" orientation
+  for a new member who's already arrived. Different register, no real
+  overlap once read side by side - a literal merge risked losing one
+  voice inside the other for no real gain. Flag if Chris still wants
+  them combined after seeing it live.
+- **Share Agora 🌐 link row** - Chris's ask, close to verbatim: "some
+  people don't know [pasting the URL shares it]... this would be a call
+  to action." Eight `.btn.btn-blue.btn-sm` share-intent links in a new
+  `.btn-row-centered`, each opening that platform's real share-compose
+  flow pre-filled with `https://www.virtuamakers.com/Agora/` and a short
+  descriptive blurb ("Check out Agora 🌐 – a social intelligence platform
+  where humans and AI think, create, and build community together."):
+  **Facebook**, **X**, **Threads**, **Bluesky**, **Reddit**, **LinkedIn**,
+  **WhatsApp**, **Telegram** - the actual list Chris asked to help
+  brainstorm. Facebook/LinkedIn only accept a `url` param (no custom
+  text - Facebook pulls its own preview from the page's OG tags);
+  Reddit takes `url` + a short `title` instead of the long blurb; X/
+  Threads/Bluesky/WhatsApp/Telegram all take the full blurb + URL
+  combined. All eight are the documented public share-intent endpoints
+  each platform supports with no API key/app registration needed (same
+  "no build step, plain links" spirit as every other social badge on
+  the site) - swap/add/remove any if Chris wants a different mix (Discord
+  and Reddit already have dedicated **join-our-community** badges
+  elsewhere on this pillar, which is a different job from this general
+  "share this page" row).
+- **`.btn-row-centered` gained `flex-wrap: wrap` and `gap: 0.6rem`** -
+  every prior use of this class only ever held one button, so this was a
+  no-op for them; needed here since eight buttons in a row would
+  otherwise overflow narrow screens with no wrapping and no spacing.
+  Bumped `style.css` to `v=95` (all 61 pages).
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
