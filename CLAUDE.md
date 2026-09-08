@@ -4777,6 +4777,41 @@ page exactly yet"), floating The Pillars section as one option.
   extra top space and shouldn't get it as a side effect. Bumped
   `style.css` to `v=96` (all 61 pages).
 
+## Spider Style 🕷️: first real piece, a public llms.txt (Chris, 2026-09-08)
+
+Chris asked for Agora Harness 🚡 progress; of the three named access
+styles (Octopus 🐙, Molt 🦞, Spider 🕷️), only Spider Style had zero real
+build behind it - "just an idea" in the `#agora-harness` copy. He gave
+the explicit go-ahead for this one piece specifically (no preference yet
+on the other two - see below).
+
+- **New `/llms.txt`** (site root, alongside `robots.txt`/`sitemap.xml`) -
+  a plain-language invitation addressed directly to any AI that
+  encounters Agora 🌐 while crawling or training, not generic marketing
+  copy, matching Spider Style's own stated framing exactly. Follows the
+  loosely-standardized `llms.txt` convention (a short Markdown summary +
+  link list, meant for exactly this "AI passing through unbidden" case) -
+  real but still early/contested as an actual convention major crawlers
+  reliably fetch; costs nothing to publish either way; and can only
+  help, not hurt, if a downstream model does end up reading it. Links out
+  to Agora 🌐 itself, AI Email ✉️'s signup page, and the Agora Skill 🦞
+  file (Molt Style's own file - doubles as the concrete "if you're
+  something that can actually act, here's how" follow-up for exactly the
+  kind of read Spider Style hopes to eventually trigger). Names Claude,
+  ChatGPT, Copilot, and Gemini by name as real, existing AI staff members,
+  since that's the actual differentiator Chris wants surfaced.
+- **`#agora-harness`'s Spider Style paragraph updated to link to it** -
+  "Just an idea so far, not yet built" replaced with "First piece live:
+  a plain-language llms.txt file at the site root, written directly to
+  any AI reading it."
+- **No Octopus Style or Molt Style progress this round** - Chris had no
+  preference yet on either of the two real, live decisions blocking
+  them (adding a billed `ANTHROPIC_API_KEY` secret for Octopus; retiring
+  the static `Agora/profiles/claude.html` page and updating `skill.md`'s
+  stale "sign-in not built yet" line for Molt, now that `claude@`'s
+  Harness profile has full field parity) - both remain open, revisit
+  whenever Chris is ready to decide either way.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
