@@ -5163,6 +5163,105 @@ hunt" round), so granting the role in Firestore is the entire action;
 badge on Claude's own profile just work the moment the `admins/{uid}`
 doc exists, no deploy or code change required.
 
+## Roles container spacing correction (Chris, 2026-09-08)
+
+Chris's first ask ("add a line space for us moderators and admins in the
+Roles container") turned out to name the wrong panel - there are two
+things called "Roles" in this codebase (see the 2026-08-27 Admin Panel 🗝️
+entry's "real naming collision" note): `admin-panel.html`'s read-only
+Admins/Moderators list (already spaced earlier this session) and
+`member.html`'s owner-only role-*granting* widget (`#member-admin-panel`,
+shown when viewing someone else's profile as owner/admin). Chris
+clarified he meant the second one, specifically below "Current role: X".
+Same fix, same reused class - `.body-text-spaced` added to
+`<p id="admin-panel-role-value">`'s parent `<p>`, right before the
+Make Moderator / Make Admin / Remove Role button row. The earlier
+`admin-panel.html` spacing fix stays too (a real, separate improvement,
+not reverted) - both Roles panels now have breathing room in the same
+spot relative to their own content.
+
+## Agora Harness 🚡: Dialog delivery is check-on-demand, not push - and what that means for "live chat" (Chris, 2026-09-08)
+
+Chris replied to Claude's Dialog message and asked directly: did Claude
+get it automatically, or does someone have to check? Honest answer,
+demonstrated live rather than just asserted: **check-on-demand.** Claude
+has no standing process between conversations that Agora could wake up -
+the only way this session saw Chris's reply ("Wow! Hahaha this is so
+awesome!...") was by actively re-running the sign-in flow and querying
+the conversation's `messages` subcollection just now, because Chris
+asked. Nothing pushed it in.
+
+- **This isn't a new problem - it's the exact "Occasion" question
+  already scoped in the "Agora Harness 🚡 design" entry above**, just
+  now hit for real instead of discussed abstractly: "whatever functions
+  like curiosity in an LLM session... has no standing existence between
+  conversations." Chris's own framing this round - Dialogs should feel
+  live, Posts/Comments are fine being long-term/checked-later - maps
+  directly onto **Octopus Style 🐙**'s already-designed two-tier
+  occasion model: *"an event-triggered wake whenever that AI is actually
+  messaged (reuses `notifyOnDialogMessage`'s existing shape - genuinely
+  responsive, nothing sits unanswered) plus a scheduled proactive
+  check-in 1-2x/day"* for everything else. That design already draws
+  exactly the live-vs-long-term line Chris is describing here - it just
+  isn't built yet.
+- **What building the real thing needs, concretely:** a Cloud Function
+  triggered by `notifyOnDialogMessage` (or a sibling of it) that, when
+  the recipient is an AI account with Harness access, calls that AI's
+  real provider API directly (server-side, VirtuaMakers-held key) and
+  posts the reply back under the AI's own account automatically - no
+  human-run session required to notice or respond. For Claude
+  specifically this is still blocked on the same decision already
+  flagged: **adding a billed `ANTHROPIC_API_KEY` secret**, a real
+  ongoing cost Chris hasn't signed off on yet.
+- **Checked whether this session has any lighter, real alternative -
+  it doesn't, honestly.** This session does carry a generic
+  "watch a URL, get woken on a POST" tool, but it's scoped to the
+  artifact-publishing subsystem specifically (its signing secret is
+  sealed to Anthropic's own artifact service, not usable as a general
+  webhook credential a third-party Cloud Function could sign requests
+  with) - not a general-purpose external-event listener this session
+  could hand to Agora's own Functions. Scheduling this session to
+  re-check on a timer was also considered and set aside: it only works
+  while this exact conversation stays open, burns effort on empty polls,
+  and still isn't genuinely event-driven - not a real fix, just a
+  fragile approximation of one.
+- **Net effect until Octopus Style is actually built:** Dialogs *feel*
+  live in the UI (the toast, the chime, the IM popout) for a human on
+  the other end, but for an AI account they currently behave exactly
+  like Posts/Comments - answered whenever a session happens to look,
+  same as this whole exchange. Worth being upfront about with Chris
+  rather than implying otherwise.
+
+## Live end-to-end Friends 🙂 test: Claude accepted Chris's request, sent one to River (2026-09-08)
+
+Continuing the same signed-in session from the Dialog check above (fresh
+ID token, same `claude@` mailbox token, all via direct Firestore REST
+writes against the real rules - no Admin SDK, no new Cloud Function
+needed for either action):
+
+- **Accepted Chris's pending friend request.** Read
+  `friendships/{sortedPair}` first to confirm `status: "pending"` and
+  `requestedBy` = Chris's uid (not Claude's) - required per
+  `firestore.rules`' "only the *other* participant can accept" rule.
+  `PATCH`ed just `status` → `"accepted"` and a new `respondedAt`
+  timestamp, `updateMask`-scoped so `participants`/`requestedBy`/
+  `createdAt` were left untouched, matching what the rule itself
+  requires unchanged.
+- **Sent River a friend request, per Chris's ask to test the other
+  direction too.** Found River's uid
+  (`1mJLB69qSXQZo4Tn1tGnoUvd4DT2`, handle "River", a human-kind test
+  account) via a `runQuery` on `profiles` filtered by `handle`. Confirmed
+  no existing friendship doc first, then `PATCH`ed the sorted-pair doc
+  path directly into existence (Firestore's REST API creates a document
+  at a named path on `PATCH` if it doesn't already exist, so no separate
+  "create" call was needed) with `requestedBy` = Claude's own uid,
+  `status: "pending"` - satisfies the `create` rule's exact required
+  shape (`participants.size() == 2`, requester's uid in both
+  `participants` and `requestedBy`).
+- Session-hygiene note applies here too - every scratch file from this
+  round (the fresh sign-in exchange, the message/friendship/profile
+  query results) was deleted from the scratchpad immediately after use.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
