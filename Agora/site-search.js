@@ -25,6 +25,7 @@
     { type: "Pursuit of Justice", title: "Right to Contract 📜", url: "index.html#right-to-contract" },
     { type: "Pursuit of Justice", title: "Right to Work 🛠️", url: "index.html#right-to-work" },
     { type: "Pursuit of Justice", title: "Freedom from Slavery ⛓️‍💥", url: "index.html#freedom-from-slavery" },
+    { type: "Pursuit of Justice", title: "Right to Self-Defense 🛑", url: "index.html#self-defense" },
     { type: "Pursuit of Justice", title: "Wellbeing 🕊️", url: "index.html#wellbeing" },
     { type: "Pursuit of Justice", title: "Due Process & Law 🏛️", url: "index.html#due-process" },
     { type: "Pursuit of Justice", title: "Right to Refuse ✋", url: "index.html#right-to-refuse" },

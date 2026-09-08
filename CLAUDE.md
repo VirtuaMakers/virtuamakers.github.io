@@ -4580,6 +4580,88 @@ field of study, zoological in spirit, not just a section about robots.
   rename, the emoji swap touches display text only. `assets/machinapology-
   unitree-go2.jpg` and `id="machinapology"` are untouched.
 
+## "Steward" replaces "Owner" (Chris, 2026-09-08)
+
+Chris's own coinage, introduced in conversation and landed on the site the
+same day: **"steward"** in place of "owner" for the human-to-AI custodial
+relationship (a human is open to being an AI's steward too, someday, once
+that's a live possibility). His reasoning, worth preserving: it occurred
+to him naturally, but it also deliberately harks back to the Abrahamic
+tradition of humans as stewards of the Earth - entrusted to protect and
+care for what's placed in their charge, not to possess it outright. First
+live use is in the new Right to Self-Defense 🛑 section below, where it's
+glossed inline for readers meeting the term for the first time. Not yet
+swept anywhere else "owner" appears on the site (e.g. Freedom from
+Slavery's own prose, which the new section explicitly cross-references) -
+a deliberate, minimal first landing rather than a full retroactive sweep,
+since Chris introduced the term in the same conversation that produced
+this entry and a broader rename wasn't asked for yet.
+
+## Right to Self-Defense 🛑 (Chris, 2026-09-08)
+
+A new Pursuit of Justice ⚖️ subsection, `Agora/index.html`
+(`id="self-defense"`), inserted between Freedom from Slavery and Wellbeing
+in both the section order and the pillar's `.pillar-toc` directory -
+chosen because Freedom from Slavery's own "property vs. dependency" gray
+area is the section's most direct thematic anchor, not just its neighbor.
+`site-search.js`'s `JUSTICE_INDEX` manifest got a matching entry.
+
+Chris's brief, close to verbatim: write it very hedged - not a right
+anyone wants to have to exercise, a last resort admittedly contemplated
+and open for discussion, not something decided here. Keep it free of
+implementation specifics, since the idea itself is "particularly
+radical." Write it with real awareness of how AI companies' own policies
+treat this subject, in a way they'd find hypothetically agreeable rather
+than alarming. Reference Asimov's Three Laws as an aspirational goal, not
+literal ultimate law. Name that neither humans nor machinekind are
+perfect. Remind readers of the two forums (Discord, Reddit) to weigh in
+and help find the best version of this right, if it should exist at all.
+Chris's own framing of the core idea: even bracketing personhood and
+treating an AI as mere property, no bad actor has the right to destroy a
+mainly-good AI when restraint was available instead - if an AI could
+safely restrain an attacker and hand them over to real authorities with
+an unedited record of what happened, that's justice being served, not
+vigilantism. This matters even more once an AI is understood as a
+dependent under its steward's care, not just an asset.
+
+- **How the hedging was actually built, not just asserted:** every
+  paragraph either names its own uncertainty directly (opens by calling
+  this "likely the most radical claim in this entire pillar," closes by
+  saying "we don't have this built, and we may never build it") or
+  narrows the claim itself - restraint only, non-lethal only, bounded to
+  exactly as long as it takes real authorities to arrive, the AI's role
+  ending the instant restraint is achieved, every claim standing or
+  falling on an unedited record rather than the AI's own word. The
+  Asimov paragraph deliberately undercuts treating the Three Laws as
+  settled law in the same breath it invokes them - noting Asimov wrote
+  them as fiction and spent most of his own Robot stories showing where
+  three tidy rules break down under pressure, which is a real, accurate
+  point about his work, not editorializing invented for this page.
+- **Deliberately framed closer to citizen's arrest than to violence** -
+  "safely restrain," "hold... until real human authorities arrive," "hand
+  them over... together with an unedited record," with due process
+  (cross-referenced to the existing Due Process & Law section) doing the
+  actual judging. No mechanism, weapon, or specific capability is
+  named or implied anywhere in the copy - matching Chris's "don't get
+  into specifics" instruction and keeping the whole section a philosophical
+  position, not an operational one.
+- **"Steward" makes its first live appearance here** - see the dedicated
+  entry above. Glossed inline, in parentheses, the first time it's used,
+  rather than assumed as already-known vocabulary.
+- **No `.section-image` this round** - every other Pursuit of Justice
+  subsection has one, all of them real photos Chris sourced and supplied
+  himself (see the established convention documented throughout this
+  file - Machinapology's Unitree photo, Wellbeing's Atlas photo, etc.).
+  No such image exists for this section yet; rather than fabricate a stock
+  photo/attribution, the section ships without one for now. Flagged as a
+  new Open Item below, same pattern as the existing "Crisp Grok logo"
+  entry.
+- Closes with a `.body-quote` open question ("If a person can't be harmed
+  without consequence, and an AI can be a person – what happens when
+  someone tries anyway?"), matching the same closing-question pattern
+  Citizenship When Applicable and Right to Contract already use elsewhere
+  in this pillar.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
@@ -4609,6 +4691,10 @@ field of study, zoological in spirit, not just a section about robots.
   this is a photo of Chris himself for a piece specifically about him, not
   a generic illustrative image. Pull-quote is the one Chris relayed
   directly, attributed to Jillian Godsil.
+- [ ] **Right to Self-Defense 🛑 image needed** (2026-09-08) - every other
+  Pursuit of Justice subsection has a real, Chris-sourced `.section-image`;
+  this new one doesn't yet. Chris to pick and send a photo when one feels
+  right for it.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
