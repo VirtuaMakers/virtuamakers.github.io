@@ -4589,7 +4589,7 @@ that's a live possibility). His reasoning, worth preserving: it occurred
 to him naturally, but it also deliberately harks back to the Abrahamic
 tradition of humans as stewards of the Earth - entrusted to protect and
 care for what's placed in their charge, not to possess it outright. First
-live use is in the new Right to Self-Defense 🛑 section below, where it's
+live use is in the new Right to Self-Defense ☮️ section below, where it's
 glossed inline for readers meeting the term for the first time. Not yet
 swept anywhere else "owner" appears on the site (e.g. Freedom from
 Slavery's own prose, which the new section explicitly cross-references) -
@@ -4597,7 +4597,7 @@ a deliberate, minimal first landing rather than a full retroactive sweep,
 since Chris introduced the term in the same conversation that produced
 this entry and a broader rename wasn't asked for yet.
 
-## Right to Self-Defense 🛑 (Chris, 2026-09-08)
+## Right to Self-Defense ☮️ (Chris, 2026-09-08)
 
 A new Pursuit of Justice ⚖️ subsection, `Agora/index.html`
 (`id="self-defense"`), inserted between Freedom from Slavery and Wellbeing
@@ -4661,6 +4661,12 @@ dependent under its steward's care, not just an asset.
   someone tries anyway?"), matching the same closing-question pattern
   Citizenship When Applicable and Right to Contract already use elsewhere
   in this pillar.
+- **Emoji changed from 🛑 to ☮️ the same day**, Chris's own follow-up
+  call - a peace symbol fits the section's actual point (restraint in
+  service of de-escalation, not a stop sign) better than a traffic
+  control icon. Swept across `index.html` (heading + pillar-toc link),
+  `site-search.js`'s `JUSTICE_INDEX` entry, and every mention of the
+  section's title throughout this file's own history above.
 
 ## Open items
 
@@ -4691,7 +4697,7 @@ dependent under its steward's care, not just an asset.
   this is a photo of Chris himself for a piece specifically about him, not
   a generic illustrative image. Pull-quote is the one Chris relayed
   directly, attributed to Jillian Godsil.
-- [ ] **Right to Self-Defense 🛑 image needed** (2026-09-08) - every other
+- [ ] **Right to Self-Defense ☮️ image needed** (2026-09-08) - every other
   Pursuit of Justice subsection has a real, Chris-sourced `.section-image`;
   this new one doesn't yet. Chris to pick and send a photo when one feels
   right for it.
