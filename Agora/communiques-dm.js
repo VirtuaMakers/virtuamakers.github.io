@@ -66,6 +66,7 @@
       sender.className = "message-sender";
       sender.textContent = participantNames[data.authorUid] || "Member";
       bubble.appendChild(sender);
+      C.tagIfDeletedProfile(sender, data.authorUid);
     }
 
     var body = document.createElement("p");
@@ -165,8 +166,10 @@
       participants = data.participants || [];
       participantNames = data.participantNames || {};
 
-      document.getElementById("dm-other-name").textContent =
-        C.otherParticipantsLabel(participants, participantNames, currentUser.uid, 5);
+      var otherNameEl = document.getElementById("dm-other-name");
+      otherNameEl.textContent = C.otherParticipantsLabel(participants, participantNames, currentUser.uid, 5);
+      var otherUid = participants.filter(function (uid) { return uid !== currentUser.uid; })[0];
+      C.tagIfDeletedProfile(otherNameEl, otherUid);
 
       isParticipant = participants.indexOf(currentUser.uid) !== -1;
       document.getElementById("dm-readonly-notice").hidden = isParticipant;

@@ -161,6 +161,34 @@
     return Date.now() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
   }
 
+  // Communiqués content outlives its own author (Chris, 2026-09-08) - a
+  // Wall post/comment or Dialog message stores authorName as a plain
+  // string at write time, so it never reflects a profile deleted since.
+  // This is the shared per-uid existence check behind the "(Deleted
+  // Profile)" tag shown wherever a name is rendered - cached so a Wall/
+  // Dialog with many items from the same author only checks once. Fails
+  // open (treated as still existing) on a lookup error, matching this
+  // file's other "never let a permission hiccup break rendering" calls.
+  var profileExistsCache = {};
+  function profileExists(uid) {
+    if (!uid) return Promise.resolve(true);
+    if (!(uid in profileExistsCache)) {
+      profileExistsCache[uid] = AgoraDB.collection("profiles").doc(uid).get()
+        .then(function (doc) { return doc.exists; })
+        .catch(function () { return true; });
+    }
+    return profileExistsCache[uid];
+  }
+
+  // Appends " (Deleted Profile)" to nameEl's own text once the check
+  // resolves, if authorUid's profile is gone - async, since the name is
+  // always rendered immediately and this only ever adds a suffix on top.
+  function tagIfDeletedProfile(nameEl, authorUid) {
+    profileExists(authorUid).then(function (exists) {
+      if (!exists) nameEl.textContent = nameEl.textContent + " (Deleted Profile)";
+    });
+  }
+
   // View counts (Chris, 2026-08-13) - a simple, undeduped increment on
   // every render, same spirit as the homepage hit counter (see CLAUDE.md):
   // this is a directional "how much is this getting looked at" number,
@@ -319,9 +347,13 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true) +
-        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
+      var authorSpan = document.createElement("span");
+      authorSpan.textContent = data.authorName || "Member";
+      meta.appendChild(authorSpan);
+      meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
+        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
       item.appendChild(meta);
+      tagIfDeletedProfile(authorSpan, data.authorUid);
 
       var body = document.createElement("p");
       body.className = "body-text communique-body";
@@ -479,9 +511,13 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = (data.authorName || "Member") + " · " + formatDate(data.createdAt, true) +
-        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
+      var authorSpan = document.createElement("span");
+      authorSpan.textContent = data.authorName || "Member";
+      meta.appendChild(authorSpan);
+      meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
+        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
       post.appendChild(meta);
+      tagIfDeletedProfile(authorSpan, data.authorUid);
 
       var body = document.createElement("p");
       body.className = "body-text communique-body";
@@ -543,9 +579,14 @@
     // fellow-member distinction correctly. Fetched the same way for
     // whichever profile's Wall is being viewed, so the same conversation
     // naturally appears on both participants' Walls.
+    function otherParticipantUid(doc) {
+      var data = doc.data();
+      return (data.participants || []).filter(function (p) { return p !== profileUid; })[0];
+    }
+
     function otherParticipantName(doc) {
       var data = doc.data();
-      var otherUid = (data.participants || []).filter(function (p) { return p !== profileUid; })[0];
+      var otherUid = otherParticipantUid(doc);
       return (data.participantNames && data.participantNames[otherUid]) || "Member";
     }
 
@@ -557,9 +598,13 @@
 
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
-      meta.textContent = "Dialog with " + otherParticipantName(doc) + " · " +
-        formatDate(data.lastMessageAt || data.createdAt, true);
+      meta.appendChild(document.createTextNode("Dialog with "));
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = otherParticipantName(doc);
+      meta.appendChild(nameSpan);
+      meta.appendChild(document.createTextNode(" · " + formatDate(data.lastMessageAt || data.createdAt, true)));
       card.appendChild(meta);
+      tagIfDeletedProfile(nameSpan, otherParticipantUid(doc));
 
       var body = document.createElement("p");
       body.className = "body-text communique-body";
@@ -741,6 +786,8 @@
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
+    profileExists: profileExists,
+    tagIfDeletedProfile: tagIfDeletedProfile,
     recordView: recordView,
     sanitizeBody: sanitizeBody,
     attachInlineEdit: attachInlineEdit,

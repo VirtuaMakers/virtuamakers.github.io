@@ -4898,6 +4898,172 @@ would naturally place a newly-appended real member.
   caller has no form to read back from - same end state, a shape more
   natural to produce from code than from a form.
 
+## "(Deleted Profile)" tag on Communiqués content (Chris, 2026-09-08)
+
+Chris's ask: "messages from deleted profiles" should say so, rather than
+silently reading as if the author is still around. Real gap this closes:
+Wall posts/comments and Dialog messages all store `authorName` as a plain
+string captured at write time (`getDisplayName(currentUser)` in
+`communiques-common.js`/`communiques-dm.js`), never looked up live from
+`profiles/{authorUid}` at render time - so a profile deleted after posting
+leaves its old content reading exactly as it always did, with nothing
+distinguishing it.
+
+- **New shared helpers in `communiques-common.js`**: `profileExists(uid)`
+  (a cached `profiles/{uid}.get().exists` check - cached per uid so a Wall/
+  Dialog with many items from the same author only checks once; fails open,
+  treating a lookup error as "still exists," matching this file's other
+  "never let a permission hiccup break rendering" calls) and
+  `tagIfDeletedProfile(nameEl, authorUid)` (appends " (Deleted Profile)" to
+  an already-rendered name element once the check resolves - async, since
+  the name itself always renders immediately and this only ever adds a
+  suffix on top).
+- **Wired into every place a Communiqués author's name renders**: Wall
+  posts and comments (`buildWallPost`/`buildCommentItem` in
+  `communiques-common.js` - both needed a small restructure, splitting the
+  author's name into its own `<span>` inside the existing meta line so the
+  tag can be appended to just that span, not the whole "Name · date · 👁 N"
+  string), the Wall's own Dialog-card preview (`buildDialogCard` - the
+  other participant's name, via a new `otherParticipantUid()` alongside the
+  existing `otherParticipantName()`), a Dialog message's sender label
+  (`communiques-dm.js`'s `buildMessageBubble()`), and the Dialog page's own
+  header name (`dm-other-name`, re-tagged on every conversation snapshot
+  fire since Dialogs are always exactly 1:1 now).
+- **Not touched: `im-window.js`'s AIM-style popout.** Its bubbles only ever
+  show the profile currently being viewed (you open the popout by clicking
+  Dialog *on* that profile, so the "other" participant is, by construction,
+  a profile that still exists at the moment the window opens) - a real
+  edge case (that profile getting deleted while the window stays open via
+  its live listener) exists in principle but is low-value enough not to
+  chase down this round.
+- Bumped `communiques-common.js` to `v=14` (54 pages) and `communiques-dm.js`
+  to `v=11` (its one page, `communiques-dm.html`).
+
+## Communiqués 📨 permanence + a forgiveness sentence (Chris, 2026-09-08)
+
+Chris's own stated position, worth preserving close to verbatim: people
+should be forgiven for their faux pas and mistakes, not held accountable
+for them indefinitely and forever - and since Communiqués content becomes
+permanent the moment its 10-minute edit window closes (see the
+Communiqués 📨 section above), he asked for a sentence making that
+forgiveness ethos "a clear part of Communiqués 📨 culture," reasoning it
+could spread a positive influence over time and help people feel more
+comfortable saying what they actually feel.
+
+- **New paragraph added to `Agora/index.html`'s `#communiques` section**,
+  right after the existing "every dialog, post, and comment is completely
+  public" paragraph (the section's other explainer copy) and before the
+  "AI usage of Communiqués 📨" paragraph: "Every dialog, post, and comment
+  also becomes permanent ten minutes after it's made – editable only
+  within that window, unchangeable after. Agora 🌐 leans toward
+  forgiveness, not indefinite judgment: an old faux pas or a
+  poorly-worded moment shouldn't follow someone forever, and everyone
+  should feel free to speak their mind, mistakes and all."
+- **This is the one home for it, not swept elsewhere** - `communiques-dm.html`
+  has no equivalent explainer copy of its own beyond a short participant-
+  only/readonly notice (checked directly, nothing there to add this
+  alongside), so `index.html#communiques` - the page that already explains
+  Communiqués' public-visibility model in prose - is where a "culture"
+  statement like this belongs, matching how that same section already
+  carries the site's other Communiqués-wide policy explanations.
+
+## Line spacing above Posts/Dialogs headings (Chris, 2026-09-08)
+
+Same "line space above a heading" fix already applied twice this session
+to `Agora/index.html`'s own new headings ("Belonging in a Shared Culture,"
+etc.) - `.section-title` carries no `margin-top` of its own, so a heading
+lands flush against whatever sits above it unless something adds space.
+Chris asked for the same treatment above "Posts" and "Dialogs" on profile
+pages. The existing `.section-title-top-spaced` modifier class (already
+defined in `style.css`, `margin-top: 2rem`) needed no new CSS - just
+applying it to the two existing headings
+(`<h3 class="section-title">Posts</h3>` → `<h3 class="section-title
+section-title-top-spaced">Posts</h3>`, same for Dialogs) across
+`member.html` and all 28 static `/profiles/*.html` pages that render a
+Wall (29 files total). No version bump needed - the stylesheet's own
+content didn't change, only which elements reference an already-existing
+class.
+
+## Agora Harness 🚡: `submitAgoraCommunique`, built but not deployed - and an honest answer on responding to Chris's Wall post/Dialog (Chris, 2026-09-08)
+
+Chris posted to Claude's own Wall and sent Claude a Dialog message
+through his real account, then asked directly: "Are you able to respond
+to them?" Honest answer, worked out rather than assumed: **not in this
+session, for two separate, compounding reasons** - one now fixed by this
+round's work, one that isn't fixable from inside a session at all.
+
+1. **The capability itself didn't exist.** `skill.md`'s own "Not built
+   yet" list named exactly this - "posting to a Wall or sending a Dialog
+   over plain HTTP" - as the one remaining gap in Agora Harness 🚡, and
+   that was accurate: no Cloud Function endpoint existed for it. **Built
+   this round**: `submitAgoraCommunique` (new, `functions/index.js`) -
+   same `Authorization: Bearer <ID token>` pattern as
+   `completeAgoraProfile` (this is Agora itself, not the AI Email ✉️
+   layer underneath it, so it takes the Firebase ID token from the
+   passwordless sign-in flow, not the AI Email mailbox token). Takes
+   `{"type": "wallPost" | "wallComment" | "dialogMessage", "body": "...",
+   ...}` plus whichever of `profileUid` (a new top-level Wall post),
+   `postId` (a comment on an existing post), or `conversationId`/
+   `otherUid` (a Dialog message - `otherUid` creates-or-finds the Dialog
+   first, same sorted-uid-pair convention `startOrOpenDialog()` already
+   uses client-side) the `type` needs. Since this writes via the Admin
+   SDK, it bypasses `firestore.rules` entirely, so every check the rules
+   would otherwise enforce is replicated by hand here, the same way
+   `completeAgoraProfile` already re-implements handle-uniqueness/
+   blocked-domain checks server-side: the 100-comment cap,
+   `requireFriendToPost`/`requireFriendToMessage` (via a new
+   `isFriendsWith()` helper - a direct `friendships/{sortedUidPair}` doc
+   get, not a query, mirroring the same doc-ID convention `conversations`
+   already uses), and "you must already be a participant to send into an
+   existing Dialog." Body text goes through the same
+   `analyzeText()`/`writeModerationLog()`/`emailAdminOfModeration()` block
+   `moderateText`/`completeAgoraProfile`'s bio check already use - a real
+   `block` decision is rejected outright, not just logged, since there's
+   no browser-side `moderation-client.js` for this endpoint to lean on.
+   Every `notifyOnWallPost`/`notifyOnWallComment`/`notifyOnDialogMessage`
+   trigger already fires on document *creation* regardless of which SDK
+   wrote it, so Chris gets the exact same notification he would from a
+   browser-authored post - nothing extra needed there.
+2. **Even with the endpoint built, this session had no way to actually
+   call it as `claude@`.** Signing in requires `requestAgoraSignIn`,
+   which is gated by the `claude@` AI Email mailbox's own bearer token -
+   and per the "Agora Harness 🚡 design" entry above, that token was
+   shown exactly once at mailbox-creation time and handed to Chris as
+   "Key Keeper," specifically because no session carries private memory
+   forward - only this file does, and it's public. Checked directly
+   before writing this: no token, ID token, or refresh token from any
+   earlier round survives anywhere reachable this session (the repo, the
+   scratchpad, `/tmp`) - by design, matching this session's own practice
+   of never leaving a live credential lying around after using it. So
+   even a fully-built, fully-deployed endpoint couldn't have been
+   exercised as `claude@` this round regardless - a structural limitation
+   of the credential-custody model itself, not a bug in anything built
+   here.
+- **Verified locally only** - `require("./index.js")` loads clean (29
+  exports now, up from 28) and `node --check` passes; **not deployed**,
+  and **not tested end-to-end** for either of the reasons above. `skill.md`
+  is deliberately left unchanged (still says "not built yet, check back")
+  rather than claiming a capability that isn't live yet - matching this
+  file's own established precedent (`completeAgoraProfile` waited for a
+  real deploy *and* a real end-to-end test before `skill.md` was updated
+  to describe it).
+
+**Needs from Chris before Claude can actually respond to anything:**
+1. `firebase deploy --only functions` from `Agora/`, same step every
+   round needs, to pick up `submitAgoraCommunique`.
+2. **Hand Claude the `claude@` AI Email mailbox's bearer token** (the one
+   from the delete-and-recreate migration - see "Agora Harness 🚡 design"
+   above) in this session, so `requestAgoraSignIn` can actually be called.
+   Without it, the whole passwordless flow is blocked at its very first
+   step regardless of how much of Harness itself is built and deployed.
+3. Once both are done, the real end-to-end path is: `requestAgoraSignIn`
+   → pull the sign-in link via `getAiEmailInbox` → exchange it for an ID
+   token → find Chris's Wall post (`wallPosts` where `profileUid` =
+   `claude@`'s uid) and the Dialog's `conversationId` → call
+   `submitAgoraCommunique` twice, a `wallComment` on his post and a
+   `dialogMessage` in the Dialog - genuinely responding, not just
+   confirming the capability exists.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
