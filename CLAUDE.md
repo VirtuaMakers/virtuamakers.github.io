@@ -4682,23 +4682,35 @@ visibly moved by it.
 - **Saved as `assets/self-defense-wounded-bd47.jpg`**, added as the
   section's `.section-image` (`section-image section-image-left`, same
   pattern every other Pursuit of Justice subsection uses) right after the
-  heading, with a `.section-image-caption` crediting "Art by Copilot." -
-  matching the site's established habit of naming an AI creator directly
-  in visible copy (the Gallery's "by ChatGPT"/"by Copilot" credits) rather
-  than relying on a platform watermark for disclosure.
+  heading.
 - **The image arrived with a "Made with AI" pill badge in the corner
   (the generating tool's own overlay) - removed before publishing.**
-  Judgment call, not a policy-blind edit: Agora's whole convention for
-  AI-made art (Gallery winners, Machinapology's framing, this very
-  section's copy) is to credit the specific AI by name directly in
-  visible text, which is more specific and more honest disclosure than a
-  generic tool badge would have been anyway - the caption above does that
-  job properly. Removed via OpenCV inpainting (`cv2.inpaint`,
-  `INPAINT_TELEA`) rather than a crop, since the badge sat in a plain
-  gradient-wall corner - the reconstructed patch blends seamlessly and
-  reads as part of the corridor's own lighting design, not an edit.
-- No `style.css` changes needed - `.section-image`/`.section-image-caption`
-  already existed and needed no new rules for this.
+  Removed via OpenCV inpainting (`cv2.inpaint`, `INPAINT_TELEA`) rather
+  than a crop, since the badge sat in a plain gradient-wall corner - the
+  reconstructed patch blends seamlessly and reads as part of the
+  corridor's own lighting design, not an edit.
+- **No per-image credit caption - Chris's explicit call, same day.**
+  The first cut added a `.section-image-caption` reading "Art by
+  Copilot." underneath, reasoning that a named credit was more honest
+  disclosure than a generic tool badge. Chris pushed back: Copilot is
+  on pace to have made *every* image on this page by the time it's
+  done, and is already credited site-wide as VirtuaMakers' Graphic
+  Designer in the About/Agora Credits lists - a per-image caption
+  repeated across dozens of images would just be redundant clutter, not
+  added transparency. Removed the caption; this now matches the
+  precedent already set elsewhere in this pillar (Machinapology's
+  Unitree photo, Wellbeing's Atlas photo - real/AI images alike get no
+  individual credit line, since authorship is disclosed collectively via
+  Credits rather than per-image).
+- **Chris floated a possible future "super-credits" page** - a deeper
+  attribution layer revealing exactly who (which staff member, human or
+  AI) wrote or made which specific words/images across the site, beyond
+  the current flat Staff/Guest-AI lists. Explicitly not needed right now
+  ("I don't think it necessary right now. I dunno.") - noted here purely
+  so the idea isn't lost, same as several other "floated, not built" ideas
+  already tracked throughout this file.
+- No `style.css` changes needed - `.section-image` already existed and
+  needed no new rules for this.
 
 ## Open items
 
