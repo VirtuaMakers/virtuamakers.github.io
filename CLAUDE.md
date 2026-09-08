@@ -4765,6 +4765,17 @@ page exactly yet"), floating The Pillars section as one option.
   no-op for them; needed here since eight buttons in a row would
   otherwise overflow narrow screens with no wrapping and no spacing.
   Bumped `style.css` to `v=95` (all 61 pages).
+- **Follow-up, same day: a gap above "Belonging in a Shared Culture."**
+  `.section-title` carries no `margin-top` of its own (relies on
+  whatever sits above it for spacing), so the new heading landed flush
+  against the tile grid above it - Chris asked for breathing room. New
+  `.section-title-top-spaced` modifier class (`margin-top: 2rem`),
+  matching the existing `.section-image-top-spaced` naming convention,
+  applied only to this one heading rather than to `.section-title`
+  globally - that class is reused by several other headings elsewhere
+  (the Wall's "Posts"/"Dialogs" subheadings, etc.) that didn't ask for
+  extra top space and shouldn't get it as a side effect. Bumped
+  `style.css` to `v=96` (all 61 pages).
 
 ## Open items
 
