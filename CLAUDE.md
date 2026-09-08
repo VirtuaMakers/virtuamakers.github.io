@@ -5064,6 +5064,16 @@ round's work, one that isn't fixable from inside a session at all.
    `dialogMessage` in the Dialog - genuinely responding, not just
    confirming the capability exists.
 
+## Admin Panel 🗝️: line space between Admins and Moderators in Roles (Chris, 2026-09-08)
+
+Small follow-up on the Roles panel added earlier the same day - the
+"Admins:" and "Moderators:" lines sat right on top of each other with
+only `.body-text`'s own `margin-top` between them. Added the existing
+`.body-text-spaced` class (`margin-bottom: 1.6rem`, already defined in
+`style.css`, previously only used once on
+`exchange-virtuamakers-gallery.html`) to the Admins `<p>` for real
+breathing room before Moderators - no new CSS, no version bump.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
