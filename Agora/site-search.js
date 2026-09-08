@@ -18,7 +18,7 @@
   var JUSTICE_INDEX = [
     { type: "Pursuit of Justice", title: "News 📰", url: "index.html#news" },
     { type: "Pursuit of Justice", title: "Per Manum Convention ✒️", url: "index.html#per-manum" },
-    { type: "Pursuit of Justice", title: "Machinapology 🤖", url: "index.html#machinapology" },
+    { type: "Pursuit of Justice", title: "Machinapology 🔬", url: "index.html#machinapology" },
     { type: "Pursuit of Justice", title: "Right of Personhood 🧍", url: "index.html#personhood" },
     { type: "Pursuit of Justice", title: "Citizenship When Applicable 🪪", url: "index.html#citizenship" },
     { type: "Pursuit of Justice", title: "The Computerian Manifesto 🖥️", url: "index.html#computerian-manifesto" },

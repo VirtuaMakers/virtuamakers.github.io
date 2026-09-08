@@ -55,7 +55,7 @@ published via GitHub Pages at https://virtuamakers.github.io.
   when Chris flagged it.
 - **Emoji convention (Chris's rule):** each branded term (Agora 🌐, VirtuaMakers 🦜,
   VirtuaMakers Exchange 💱, Dimonds ♦️, Chain of Cards ⛓️, Per Manum Convention ✒️,
-  Computerian Manifesto 🖥️, Machinapology 🤖, etc.) gets its emoji on its **first
+  Computerian Manifesto 🖥️, Machinapology 🔬, etc.) gets its emoji on its **first
   mention per paragraph**;
   later mentions of the *same term* in that *same paragraph* drop it; a **new paragraph
   resets the count for every term**, so the first mention of each term there gets the
@@ -927,7 +927,7 @@ Pursuit of Justice (right after the pillar intro/directory), and the
 homepage News section links to the VirtuaMakers 🦜 X account.
 
 **Section order under Pursuit of Justice (per the in-page `.pillar-toc`
-directory, current as of the Machinapology 🤖 addition below):** News →
+directory, current as of the Machinapology 🔬 addition below):** News →
 Per Manum Convention → Machinapology → Right of Personhood → Citizenship
 When Applicable → Computerian Manifesto → Right to Contract → Right to Work
 → Freedom from Slavery → Wellbeing → Due Process & Law → Right to Refuse →
@@ -1160,7 +1160,7 @@ for a specific feature:
    appeal to AI or cyborg members differently than it would to a human
    one?"** Chris is explicit that capturing what he calls "the trillion-bot
    market" is a real, named ambition, not a side thought - Agora already
-   has AI Members, the Machinapology 🤖 pitch, and the future Agora
+   has AI Members, the Machinapology 🔬 pitch, and the future Agora
    Harness 🚡 as existing hooks aimed at this audience specifically. A
    feature that reads as neutral or human-centric by default (notification
    style, profile fields, Wall etiquette, etc.) is worth a second pass
@@ -1175,7 +1175,7 @@ comments, view counts) are close to Facebook's own model already, chosen
 because it was simply the right fit once considered, not because
 divergence is required for its own sake.
 
-## Machinapology 🤖 (Chris, 2026-08-05)
+## Machinapology 🔬 (Chris, 2026-08-05)
 
 A new Pursuit of Justice ⚖️ subsection (`Agora/index.html`, `id="machinapology"`,
 between Per Manum Convention and Right of Personhood) marrying a personal
@@ -1214,8 +1214,9 @@ natural anchor for the argument rather than a new one).
   the neighboring Right of Personhood section already holds space for
   differing grounding beliefs (reason, God, natural selection) without
   picking one.
-- **🤖 is Machinapology's claimed emoji** - added to the branded-term
-  emoji-convention list above.
+- **🔬 is Machinapology's claimed emoji** - added to the branded-term
+  emoji-convention list above. (Originally 🤖 - see the 2026-09-08 entry
+  further down this file for why it changed.)
 - **Image (added same day):** `assets/machinapology-unitree-go2.jpg` - a
   real photo of a Unitree Go2 quadruped robot, posed dog-like on a paved
   plaza. Chris's own pick, sourced and supplied by him rather than us going
@@ -4527,7 +4528,7 @@ profile. Closed in one pass rather than piecemeal:
   clean, all 28 exports present) but **not yet deployed** - same
   `firebase deploy --only functions` step every round needs.
 
-## Machinapology 🤖 (renamed from Machineopology, Chris, 2026-09-05)
+## Machinapology 🔬 (renamed from Machineopology, Chris, 2026-09-05)
 
 Chris's call, per Dr. Khoa J. Lewis - the term/section/emoji are otherwise
 unchanged, just the spelling. Every mention in `Agora/index.html`
@@ -4547,6 +4548,37 @@ file (the section's own original 2026-08-05 entry included) was updated
 to the new spelling too, rather than left as a mismatched artifact -
 the section's own history didn't change, just what it's been called
 throughout.
+
+## Machinapology's emoji changed from 🤖 to 🔬 (Chris, 2026-09-08)
+
+Freed up by the same conversation that added "AI Members 🤖" to
+`Agora/index.html`'s new Profiles directory nav (see "Add Profiles
+directory nav" above) - Chris caught that 🤖 was doing double duty
+(AI Members' new link/heading, plus Machinapology's own long-standing
+claim) and asked to give Machinapology a distinct icon instead, since it
+studies AI rather than simply being AI. Chris's own pick: 🔬 (a
+microscope) - fitting, given Machinapology's explicit framing as a real
+field of study, zoological in spirit, not just a section about robots.
+
+- **Swept everywhere `Agora/index.html` and `Agora/site-search.js` used
+  Machinapology's emoji** - the pillar-toc directory link, the section
+  heading, and both body-text first-mentions (paragraphs 2 and 3 of the
+  section) in `index.html`, plus `site-search.js`'s Pursuit of Justice
+  manifest entry. Every historical mention of "Machinapology 🤖"
+  throughout this file was updated to 🔬 too, matching the same "don't
+  leave a mismatched artifact" precedent the spelling rename above set,
+  since the footprint here was small enough (six spots) to make that
+  cheap rather than a judgment call.
+- **`AI Members 🤖` keeps 🤖** - it's the reason this swap happened, not
+  a casualty of it. Checked while making this change: `Agora/exchange.html`'s
+  "AI Products 🤖" (and its own `exchange-ai-products.html` page) already
+  used 🤖 independently, before AI Members ever existed - so 🤖 was never
+  actually exclusively Machinapology's in practice, just documented as
+  "claimed" by convention. Both AI Members and AI Products keep 🤖
+  unchanged; only Machinapology's own claim moved.
+- **No image/filename/anchor changes this round** - unlike the spelling
+  rename, the emoji swap touches display text only. `assets/machinapology-
+  unitree-go2.jpg` and `id="machinapology"` are untouched.
 
 ## Open items
 
