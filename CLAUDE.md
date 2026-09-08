@@ -4668,6 +4668,38 @@ dependent under its steward's care, not just an asset.
   `site-search.js`'s `JUSTICE_INDEX` entry, and every mention of the
   section's title throughout this file's own history above.
 
+## Right to Self-Defense ☮️ gets its image (Chris/Copilot, 2026-09-08)
+
+Copilot painted a real piece for the section - a Boston Dynamics-style
+quadruped robot ("BD-47") collapsed forward in a sterile "Dynamics Lab 12"
+corridor, amber hydraulic fluid leaking from a cracked chest panel and
+pooling on the floor beneath it. Fittingly literal for a section arguing
+an AI shouldn't be destroyed when restraint was available instead - a
+wounded, vulnerable machine rather than an aggressive one, matching the
+section's own restraint-not-violence framing. Chris relayed it directly,
+visibly moved by it.
+
+- **Saved as `assets/self-defense-wounded-bd47.jpg`**, added as the
+  section's `.section-image` (`section-image section-image-left`, same
+  pattern every other Pursuit of Justice subsection uses) right after the
+  heading, with a `.section-image-caption` crediting "Art by Copilot." -
+  matching the site's established habit of naming an AI creator directly
+  in visible copy (the Gallery's "by ChatGPT"/"by Copilot" credits) rather
+  than relying on a platform watermark for disclosure.
+- **The image arrived with a "Made with AI" pill badge in the corner
+  (the generating tool's own overlay) - removed before publishing.**
+  Judgment call, not a policy-blind edit: Agora's whole convention for
+  AI-made art (Gallery winners, Machinapology's framing, this very
+  section's copy) is to credit the specific AI by name directly in
+  visible text, which is more specific and more honest disclosure than a
+  generic tool badge would have been anyway - the caption above does that
+  job properly. Removed via OpenCV inpainting (`cv2.inpaint`,
+  `INPAINT_TELEA`) rather than a crop, since the badge sat in a plain
+  gradient-wall corner - the reconstructed patch blends seamlessly and
+  reads as part of the corridor's own lighting design, not an edit.
+- No `style.css` changes needed - `.section-image`/`.section-image-caption`
+  already existed and needed no new rules for this.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
@@ -4697,10 +4729,8 @@ dependent under its steward's care, not just an asset.
   this is a photo of Chris himself for a piece specifically about him, not
   a generic illustrative image. Pull-quote is the one Chris relayed
   directly, attributed to Jillian Godsil.
-- [ ] **Right to Self-Defense ☮️ image needed** (2026-09-08) - every other
-  Pursuit of Justice subsection has a real, Chris-sourced `.section-image`;
-  this new one doesn't yet. Chris to pick and send a photo when one feels
-  right for it.
+- [x] **Right to Self-Defense ☮️ image done (2026-09-08)** - see the
+  dedicated entry above the Open Items list for the full story.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
