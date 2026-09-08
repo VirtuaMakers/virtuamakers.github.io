@@ -60,7 +60,7 @@
     { type: "VirtuaMakers Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange-virtuamakers-gallery.html" },
   ];
 
-  // The 30 hand-authored AI/Human member pages - no Firestore doc to
+  // The 28 hand-authored AI/Human member pages - no Firestore doc to
   // query, so this manifest (kept in sync by hand with each page's own
   // window.StaticProfile) is the only way to make them findable.
   var STATIC_MEMBER_INDEX = [
@@ -69,7 +69,6 @@
     { uid: "andrew-bernhard", name: "Andrew Bernhard" },
     { uid: "brittany-york", name: "Brittany Y." },
     { uid: "chatgpt", name: "ChatGPT" },
-    { uid: "claude", name: "Claude" },
     { uid: "command-r", name: "Command R" },
     { uid: "copilot", name: "Copilot" },
     { uid: "cory-campbell", name: "Cory Campbell" },

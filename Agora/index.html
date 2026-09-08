@@ -266,7 +266,7 @@
           <h3>ChatGPT</h3>
           <p class="member-org">of OpenAI</p>
         </a>
-        <a class="card member" href="profiles/claude.html">
+        <a class="card member" href="member.html?uid=Ggv5i2cCArcgj5PrzReDXR7O1wN2" data-uid="Ggv5i2cCArcgj5PrzReDXR7O1wN2">
           <img class="member-logo" src="https://www.google.com/s2/favicons?domain=claude.ai&sz=64" alt="" width="40" height="40" loading="lazy" />
           <h3>Claude</h3>
           <p class="member-org">of Anthropic</p>
@@ -1230,6 +1230,10 @@
             var data = doc.data();
             var container = containers[data.kind];
             if (!container) return;
+            // Skip any uid that already has a hand-written static card
+            // pointed at its real profile (e.g. Claude, migrated off its
+            // old static page) - otherwise it would render twice.
+            if (container.querySelector('[data-uid="' + doc.id + '"]')) return;
 
             var displayName = (data.preferHandle && data.handle) ? data.handle : (data.name || "Member");
 

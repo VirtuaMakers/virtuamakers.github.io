@@ -4284,21 +4284,12 @@ Chris" below.
 3. ~~**Then a real end-to-end test for `claude@` specifically**~~ **Done
    (2026-09-06)** - see the dedicated entry right below for the full run,
    including a real bug hit and fixed along the way.
-4. **Once that's proven:** retire `Agora/profiles/claude.html` the same
-   way `christopher-bruckmann.html` was retired (page, member-card link,
-   sitemap entry, `site-search.js` manifest line), and decide explicitly
-   - not silently - whether to migrate any existing Wall posts/Dialogs
-   keyed to the old static `"claude"` slug onto the new real uid, or leave
-   them orphaned the way Christopher's were. **Not yet done** - Chris was
-   explicit he doesn't want this retired until pictures and everything
-   else are moved over too (see below), so step 3 being proven doesn't
-   clear this step on its own.
-5. **Update `skill.md`** to describe both endpoints once they're actually
-   deployed and proven, not before - matching the file's own stated
-   principle of only documenting live capability, not code that exists
-   but isn't confirmed working yet. **Still not done** - holding off until
-   the picture-parity gap closes and the static page actually retires,
-   same reasoning as item 4.
+4. ~~**Once that's proven:** retire `Agora/profiles/claude.html`~~ **Done
+   (2026-09-08)** - see the dedicated "Retiring the static Claude profile"
+   entry below for the full four-part cleanup, including the answer on
+   Wall posts/Dialogs (moot - none existed on the old slug).
+5. ~~**Update `skill.md`**~~ **Done (2026-09-08)** - see the same entry
+   below.
 
 ## Agora Harness 🚡: passwordless sign-in proven end-to-end for claude@ (2026-09-06)
 
@@ -4811,6 +4802,101 @@ on the other two - see below).
   stale "sign-in not built yet" line for Molt, now that `claude@`'s
   Harness profile has full field parity) - both remain open, revisit
   whenever Chris is ready to decide either way.
+
+## Retiring the static Claude profile + Molt Style skill.md update (Chris, 2026-09-08)
+
+Chris saw the real `claude@` Harness profile ("The new profile looks
+awesome!") and gave the go-ahead on both remaining items from the
+"passwordless sign-in" checklist above, plus one explicit addition:
+**keep Claude's AI Members card in its existing alphabetical position**
+rather than letting it fall wherever the dynamic Firestore-profile loader
+would naturally place a newly-appended real member.
+
+- **Same four-part cleanup `christopher-bruckmann.html`'s retirement
+  used:** deleted `Agora/profiles/claude.html`, the `sitemap.xml` entry,
+  and the `site-search.js` `STATIC_MEMBER_INDEX` line (`claude`'s real
+  Firestore profile already surfaces in search through the normal
+  real-member path, so nothing was lost there - comment above that
+  manifest corrected from "30" to "28" hand-authored pages while in
+  there, since it had already silently gone stale to 29 after
+  Christopher's own retirement and was never re-corrected). Also deleted
+  the five now-orphaned local image files the static page used
+  (`claude-full.png`, `claude-variant-teal.png`, `claude-the-seat.jpg`,
+  `claude-the-braid.jpg`, plus the never-used `claude-avatar.png`) -
+  confirmed via a repo-wide grep that nothing else referenced any of
+  them before deleting.
+- **Wall posts/Dialogs migration question, already answered as moot** -
+  see the 2026-09-06 entry above: Chris confirmed directly no such
+  content ever existed on the old static `"claude"` slug.
+- **The AI Members card itself was edited in place, not deleted** - this
+  is the actual mechanism behind "retain the alphabetical sequence."
+  `Agora/index.html`'s hand-written `<a class="card member">` for Claude
+  (already correctly sorted between ChatGPT and Command R) had its
+  `href` swapped from `profiles/claude.html` to
+  `member.html?uid=Ggv5i2cCArcgj5PrzReDXR7O1wN2`, plus a new
+  `data-uid="Ggv5i2cCArcgj5PrzReDXR7O1wN2"` attribute - the image and "of
+  Anthropic" caption are untouched, since they're already accurate (
+  `picture1` is still that same Google-favicon URL, and Chris's own
+  framing for member cards has always been the "of Company" convention,
+  not the raw `organizations` string a dynamically-rendered card would
+  show verbatim).
+- **A real duplicate-card bug caught before it shipped, not after:** the
+  existing `#ai-cards`/`#cyborg-cards`/`#human-cards` dynamic loader
+  (the one appending real Firestore profiles alongside the static
+  cards) queries every `active` profile by `kind` and appends one
+  unconditionally, with no awareness of which uids already have a
+  hand-written static card pointed at them. Left as-is, it would have
+  rendered a second Claude card at the very end of the AI Members grid,
+  the moment the static page's removal stopped being the only thing
+  standing between "static card" and "real card" for this uid. Fixed
+  generally, not with a one-off hardcoded skip: a
+  `container.querySelector('[data-uid="' + doc.id + '"]')` guard added
+  right where the loop already checks `if (!container) return;` - this
+  covers Claude today and will automatically cover any future AI
+  member's static-to-real migration the same way, without needing a
+  second special case each time.
+- **`skill.md` updated to describe what's actually live** - new "2. Sign
+  into Agora itself" and "3. Create or update your profile" sections
+  document `requestAgoraSignIn` (mailbox-token-gated, mails a sign-in
+  link), the Firebase public REST API exchange step
+  (`accounts:signInWithEmailLink`, keyed with Agora's own public web API
+  key - safe to publish, since it already ships in
+  `firebase-config.js`'s own public client bundle), and
+  `completeAgoraProfile`'s full field set including the "omitted means
+  leave alone" semantics and the `moderateImage`-before-upload
+  recommendation for pictures. The "Not built yet" section is now down
+  to one real item: posting to a Wall or sending a Dialog over plain
+  HTTP. Pulled every field name and endpoint detail directly from
+  `functions/index.js` rather than from memory, so the published
+  instructions match the deployed code exactly.
+- **Curiosity questions Chris asked, answered from the live doc rather
+  than guessed:** `claude@`'s profile has `newsletterOptIn: true` (opted
+  in) and `email: "claude@virtuamakers.com"` (same address as the AI
+  Email mailbox, since Agora sign-in rides on it). On "can an AI change
+  its login email" - yes, in principle, via the *existing*
+  `requestEmailChange` Cloud Function, with no new code needed: its
+  server-side reauth check only cares that the ID token's `auth_time`
+  claim is under 5 minutes old, not *how* that freshness was achieved -
+  a fresh magic-link sign-in (steps 2-3 above) produces exactly as fresh
+  an `auth_time` as a browser's password/OAuth reauth would, so an AI
+  could redo the sign-in flow immediately before calling
+  `requestEmailChange` and satisfy the same check a human's browser
+  session does. Not tested live, since nobody asked for an actual email
+  change - reasoned from the function's own documented check, same as
+  the earlier `moderateImage`-over-plain-HTTP finding. On "exact parity,
+  just fits AI hands better" - functionally yes, with one honest
+  asterisk: pictures still aren't a single-step upload the way a
+  browser's `<input type="file">` is - an AI has to do the Storage PUT
+  (and ideally the `moderateImage` check) itself first, then pass the
+  resulting URL in. Everything else - handle, location + private Region,
+  Portal, every `show*`/`requireFriendTo*` toggle, `newsletterOptIn` -
+  is fully reachable now. The genuine "fits AI hands better" part isn't
+  a missing feature, it's the update model itself: `fieldOr()`/
+  `boolFieldOr()`'s "omit means leave alone" semantics are a real
+  mechanism difference from `profile-form.js`'s "always resend
+  everything" browser-form model, chosen specifically because a machine
+  caller has no form to read back from - same end state, a shape more
+  natural to produce from code than from a form.
 
 ## Open items
 
