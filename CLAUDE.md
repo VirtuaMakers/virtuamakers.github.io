@@ -5074,6 +5074,95 @@ only `.body-text`'s own `margin-top` between them. Added the existing
 `exchange-virtuamakers-gallery.html`) to the Admins `<p>` for real
 breathing room before Moderators - no new CSS, no version bump.
 
+## Agora Harness 🚡: Claude actually replied to Chris's Wall post and Dialog (2026-09-08)
+
+Chris handed over the `claude@` AI Email mailbox token directly in
+conversation. Used it to run the full passwordless flow for real, not
+just re-verify the plumbing: `requestAgoraSignIn` → pulled the sign-in
+link out via `getAiEmailInbox` → exchanged the `oobCode` against
+Firebase's public REST API → got a real ID token for `claude@`'s uid
+(`Ggv5i2cCArcgj5PrzReDXR7O1wN2`).
+
+- **`submitAgoraCommunique` (built earlier the same day) confirmed still
+  not deployed** - called it first, got a clean 404, not a permission
+  error. Expected, per its own "Needs from Chris" checklist.
+- **Real finding: no deploy was actually needed to respond.**
+  `firestore.rules` already lets any signed-in member write a Wall
+  comment or a Dialog message - exactly the same rule a browser's
+  Firestore SDK write goes through. So instead of waiting on a deploy,
+  the reply was sent via **direct Firestore REST API writes**, using the
+  real ID token exactly the way `communiques-common.js`/
+  `communiques-dm.js` do client-side, just over plain HTTP instead of the
+  JS SDK:
+  1. Queried `wallPosts` (`runQuery`, filtered on `profileUid` = Claude's
+     uid) to find Chris's real post (`W8Dq4ken5ssZfsTnEkHC`, "Testing
+     human to AI Wall Post.").
+  2. Queried `conversations` (`participants array-contains` Claude's uid)
+     to find the real Dialog (`DQZHkbl1nmQf58JXEWsp1dUdPEo1_Ggv5i2cCArcgj5PrzReDXR7O1wN2`
+     - Chris's uid sorts first, matching the documented sorted-pair
+     convention).
+  3. `POST`ed a real comment doc to `wallPosts/{postId}/comments`
+     (`authorUid`/`authorName`/`body`/`createdAt`/`viewCount`, Firestore's
+     typed JSON field format), then `PATCH`ed the post's own
+     `commentCount`/`lastActivityAt` with an `updateMask` naming just
+     those two fields.
+  4. `POST`ed a real message doc to `conversations/{id}/messages`, then
+     `PATCH`ed the conversation's `lastMessage`/`lastMessageAt`/
+     `lastMessageAuthorUid` the same way.
+  5. `authorName` fetched from Claude's own live profile doc first
+     (`"Claude"`, `preferHandle: false`) rather than hardcoded, matching
+     `getDisplayName()`'s exact resolution logic.
+- **Both writes went through Firestore's own real rules, not an Admin
+  SDK bypass** - `canPostToWall(sender, wallOwner)` short-circuits true
+  when `sender == wallOwner` (Claude commenting on Claude's own Wall),
+  and the Dialog message passed because Claude's uid is already a
+  `participant`. Every existing `notifyOnWallComment`/
+  `notifyOnDialogMessage` trigger fires on document *creation* regardless
+  of which client wrote it, so Chris gets the same real notification/
+  email he'd get from a browser-authored reply - confirmed nothing
+  extra was needed for that.
+- **`skill.md` updated with a new "4. Post to a Wall or send a Dialog"
+  section** documenting this exact direct-REST-write recipe (the two
+  request/PATCH pairs above, with real example payloads) - this is now
+  the file's *primary* documented path, not the pending
+  `submitAgoraCommunique` endpoint, since it's what's actually proven
+  live today. The "Not built yet" section is now just "a friendlier
+  single-call wrapper" (i.e. `submitAgoraCommunique` once deployed) -
+  genuinely a nice-to-have from here, not a blocker, since raw Firestore
+  REST writes already work.
+- **Session hygiene maintained** - the mailbox token, the exchanged ID/
+  refresh tokens, and every scratch file built along the way (queries,
+  request bodies) were deleted from the scratchpad immediately after
+  use, same practice as every earlier round that touched a live
+  credential.
+
+**Still true, unchanged:** `submitAgoraCommunique` itself is still only
+verified locally (`require("./index.js")` + `node --check`), still not
+deployed. Worth deploying eventually for the friendlier ergonomics (auto
+conversation-ID computation, the 100-comment cap and
+`requireFriendToPost`/`requireFriendToMessage` checks server-side with a
+plain error) - but "Claude can respond on Agora" is no longer blocked on
+it.
+
+## Roles: what granting Claude "moderator" actually does (Chris, 2026-09-08)
+
+Chris asked what moderator access would grant before making the change,
+and separately said he'd grant it. Verified against the real
+`firestore.rules`/`functions/index.js` (not just this file's own prior
+summary) before answering - `isAtLeastModerator()` (rules) and
+`assertIsModerator()` (Functions) both resolve true for either tier, so
+a moderator gets exactly: read access to `moderationLog`, and the
+ability to call `getModerationImageUrl`/`resolveModerationAppeal` - i.e.
+everything `moderation-review.html` needs, nothing else. Does **not**
+grant suspend/delete, the newsletter, or read access to the Roles list
+itself (that stays owner-only). **Nothing needed setting up on the
+codebase side** - `moderation-review.js`'s admin gate already checks the
+`admins/{uid}` role collection directly (fixed in the 2026-08-26 "Bug
+hunt" round), so granting the role in Firestore is the entire action;
+`moderation-review.html` and a fresh `member.js`-driven "Moderator"
+badge on Claude's own profile just work the moment the `admins/{uid}`
+doc exists, no deploy or code change required.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
