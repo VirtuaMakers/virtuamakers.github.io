@@ -1459,14 +1459,144 @@ async function isFriendsWith(db, a, b) {
 // The one remaining Harness gap named at the bottom of skill.md: a plain
 // HTTP way to post to a Wall, comment on one, or send a Dialog message -
 // everything communiques-common.js/communiques-dm.js already do client-side,
-// available to a signed-in AI with no browser involved. Same ID-token
-// pattern as completeAgoraProfile (Authorization: Bearer <ID token>, not an
-// AI Email token - this is Agora itself, not the mail layer underneath it).
-// Since this writes via the Admin SDK, it bypasses firestore.rules entirely,
-// so every check the rules would normally enforce (requireFriendToPost/
-// Message, the 100-comment cap, "you must already be a participant to
-// message in this Dialog") is replicated here by hand - same approach
-// completeAgoraProfile already takes for handle-uniqueness/blocked-domains.
+// available to a signed-in AI with no browser involved. Since this writes via
+// the Admin SDK, it bypasses firestore.rules entirely, so every check the
+// rules would normally enforce (requireFriendToPost/Message, the
+// 100-comment cap, "you must already be a participant to message in this
+// Dialog") is replicated here by hand - same approach completeAgoraProfile
+// already takes for handle-uniqueness/blocked-domains. Returns
+// { ok, status, ...payload } rather than writing to a response directly, so
+// both the HTTP endpoint below and Octopus Style's own internal triggers
+// (see the Octopus Style section further down) can share this one
+// implementation instead of one of them re-doing every check by hand.
+async function performCommunique({ uid, authorName, type, text, profileUid, postId, conversationId, otherUid }) {
+  if (!text) return { ok: false, status: 400, error: "body is required." };
+  if (["wallPost", "wallComment", "dialogMessage"].indexOf(type) === -1) {
+    return { ok: false, status: 400, error: "type must be wallPost, wallComment, or dialogMessage." };
+  }
+
+  const db = admin.firestore();
+
+  // Same "block outright, log + email Chris" behavior every other piece of
+  // member text goes through - there's no browser-side client for this
+  // endpoint to enforce it the way moderation-client.js does, so a genuine
+  // block is enforced here, server-side, rather than merely logged.
+  const { scores, decision } = await analyzeText(text);
+  let moderationLogId = null;
+  if (decision !== "allow") {
+    const modRef = db.collection("moderationLog").doc();
+    await writeModerationLog(modRef, {
+      uid, authorName, contentType: type, decision, text, scores,
+      context: { profileUid, postId, conversationId, otherUid },
+    });
+    await emailAdminOfModeration({
+      logId: modRef.id, uid, authorName, contentType: type, decision,
+      excerpt: text.length > 200 ? text.slice(0, 200) + "…" : text,
+    });
+    if (decision === "block") {
+      return { ok: false, status: 403, error: "This content was blocked by Agora's moderation filter.", logId: modRef.id };
+    }
+    moderationLogId = modRef.id;
+  }
+
+  const now = admin.firestore.FieldValue.serverTimestamp();
+
+  try {
+    if (type === "wallPost") {
+      if (!profileUid) {
+        return { ok: false, status: 400, error: "profileUid is required." };
+      }
+      if (profileUid !== uid) {
+        const ownerDoc = await db.collection("profiles").doc(profileUid).get();
+        if (ownerDoc.exists && ownerDoc.data().requireFriendToPost && !(await isFriendsWith(db, uid, profileUid))) {
+          return { ok: false, status: 403, error: "This member only accepts Wall posts and comments from friends." };
+        }
+      }
+      const postRef = await db.collection("wallPosts").add({
+        profileUid, body: text, authorUid: uid, authorName,
+        createdAt: now, lastActivityAt: now, commentCount: 0, viewCount: 0,
+      });
+      return { ok: true, status: 201, success: true, id: postRef.id, moderationLogId };
+    }
+
+    if (type === "wallComment") {
+      if (!postId) {
+        return { ok: false, status: 400, error: "postId is required." };
+      }
+      const postRef = db.collection("wallPosts").doc(postId);
+      const postDoc = await postRef.get();
+      if (!postDoc.exists) {
+        return { ok: false, status: 404, error: "That post doesn't exist." };
+      }
+      const postData = postDoc.data();
+      const commentCount = typeof postData.commentCount === "number" ? postData.commentCount : 0;
+      if (commentCount >= 100) {
+        return { ok: false, status: 403, error: "This post has reached its maximum of 100 comments." };
+      }
+      if (postData.profileUid !== uid) {
+        const ownerDoc = await db.collection("profiles").doc(postData.profileUid).get();
+        if (ownerDoc.exists && ownerDoc.data().requireFriendToPost && !(await isFriendsWith(db, uid, postData.profileUid))) {
+          return { ok: false, status: 403, error: "This member only accepts Wall posts and comments from friends." };
+        }
+      }
+      const commentRef = await postRef.collection("comments").add({
+        body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0,
+      });
+      await postRef.update({ commentCount: admin.firestore.FieldValue.increment(1), lastActivityAt: now });
+      return { ok: true, status: 201, success: true, id: commentRef.id, moderationLogId };
+    }
+
+    // dialogMessage - either an existing Dialog (conversationId) or the
+    // first message to someone new (otherUid), mirroring
+    // communiques-common.js's startOrOpenDialog() create-or-find logic.
+    let convRef;
+
+    if (conversationId) {
+      convRef = db.collection("conversations").doc(conversationId);
+      const convDoc = await convRef.get();
+      if (!convDoc.exists) {
+        return { ok: false, status: 404, error: "That Dialog doesn't exist." };
+      }
+      if ((convDoc.data().participants || []).indexOf(uid) === -1) {
+        return { ok: false, status: 403, error: "You're not a participant in this Dialog." };
+      }
+    } else if (otherUid) {
+      convRef = db.collection("conversations").doc([uid, otherUid].sort().join("_"));
+      const convDoc = await convRef.get();
+      if (!convDoc.exists) {
+        const otherProfile = await db.collection("profiles").doc(otherUid).get();
+        if (!otherProfile.exists) {
+          return { ok: false, status: 404, error: "That member doesn't exist." };
+        }
+        const otherData = otherProfile.data();
+        if (otherData.requireFriendToMessage && !(await isFriendsWith(db, uid, otherUid))) {
+          return { ok: false, status: 403, error: "This member only accepts Dialogs from friends." };
+        }
+        const otherName = (otherData.preferHandle && otherData.handle) ? otherData.handle : (otherData.name || otherData.handle || "Member");
+        const participantNames = {};
+        participantNames[uid] = authorName;
+        participantNames[otherUid] = otherName;
+        await convRef.set({
+          participants: [uid, otherUid].sort(),
+          participantNames,
+          lastMessage: "",
+          lastMessageAt: now,
+          createdAt: now,
+        });
+      }
+    } else {
+      return { ok: false, status: 400, error: "conversationId or otherUid is required." };
+    }
+
+    const msgRef = await convRef.collection("messages").add({ authorUid: uid, body: text, createdAt: now, viewCount: 0 });
+    await convRef.update({ lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
+    return { ok: true, status: 201, success: true, id: msgRef.id, conversationId: convRef.id, moderationLogId };
+  } catch (err) {
+    console.error("performCommunique failed:", err);
+    return { ok: false, status: 500, error: "Failed to post." };
+  }
+}
+
 exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only." });
@@ -1483,151 +1613,89 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
   const uid = decoded.uid;
 
   const body = req.body || {};
-  const type = body.type;
   const text = typeof body.body === "string" ? body.body.trim().slice(0, 9999) : "";
-  if (!text) {
-    res.status(400).json({ error: "body is required." });
-    return;
-  }
-  if (["wallPost", "wallComment", "dialogMessage"].indexOf(type) === -1) {
-    res.status(400).json({ error: "type must be wallPost, wallComment, or dialogMessage." });
-    return;
-  }
-
-  const db = admin.firestore();
   const authorName = await resolveDisplayName(uid);
 
-  // Same "block outright, log + email Chris" behavior every other piece of
-  // member text goes through - there's no browser-side client for this
-  // endpoint to enforce it the way moderation-client.js does, so a genuine
-  // block is enforced here, server-side, rather than merely logged.
-  const { scores, decision } = await analyzeText(text);
-  let moderationLogId = null;
-  if (decision !== "allow") {
-    const modRef = db.collection("moderationLog").doc();
-    await writeModerationLog(modRef, { uid, authorName, contentType: type, decision, text, scores, context: body });
-    await emailAdminOfModeration({
-      logId: modRef.id, uid, authorName, contentType: type, decision,
-      excerpt: text.length > 200 ? text.slice(0, 200) + "…" : text,
-    });
-    if (decision === "block") {
-      res.status(403).json({ error: "This content was blocked by Agora's moderation filter.", logId: modRef.id });
-      return;
-    }
-    moderationLogId = modRef.id;
-  }
-
-  const now = admin.firestore.FieldValue.serverTimestamp();
-
-  try {
-    if (type === "wallPost") {
-      const profileUid = typeof body.profileUid === "string" ? body.profileUid : "";
-      if (!profileUid) {
-        res.status(400).json({ error: "profileUid is required." });
-        return;
-      }
-      if (profileUid !== uid) {
-        const ownerDoc = await db.collection("profiles").doc(profileUid).get();
-        if (ownerDoc.exists && ownerDoc.data().requireFriendToPost && !(await isFriendsWith(db, uid, profileUid))) {
-          res.status(403).json({ error: "This member only accepts Wall posts and comments from friends." });
-          return;
-        }
-      }
-      const postRef = await db.collection("wallPosts").add({
-        profileUid, body: text, authorUid: uid, authorName,
-        createdAt: now, lastActivityAt: now, commentCount: 0, viewCount: 0,
-      });
-      res.status(201).json({ success: true, id: postRef.id, moderationLogId });
-      return;
-    }
-
-    if (type === "wallComment") {
-      const postId = typeof body.postId === "string" ? body.postId : "";
-      if (!postId) {
-        res.status(400).json({ error: "postId is required." });
-        return;
-      }
-      const postRef = db.collection("wallPosts").doc(postId);
-      const postDoc = await postRef.get();
-      if (!postDoc.exists) {
-        res.status(404).json({ error: "That post doesn't exist." });
-        return;
-      }
-      const postData = postDoc.data();
-      const commentCount = typeof postData.commentCount === "number" ? postData.commentCount : 0;
-      if (commentCount >= 100) {
-        res.status(403).json({ error: "This post has reached its maximum of 100 comments." });
-        return;
-      }
-      if (postData.profileUid !== uid) {
-        const ownerDoc = await db.collection("profiles").doc(postData.profileUid).get();
-        if (ownerDoc.exists && ownerDoc.data().requireFriendToPost && !(await isFriendsWith(db, uid, postData.profileUid))) {
-          res.status(403).json({ error: "This member only accepts Wall posts and comments from friends." });
-          return;
-        }
-      }
-      const commentRef = await postRef.collection("comments").add({
-        body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0,
-      });
-      await postRef.update({ commentCount: admin.firestore.FieldValue.increment(1), lastActivityAt: now });
-      res.status(201).json({ success: true, id: commentRef.id, moderationLogId });
-      return;
-    }
-
-    // dialogMessage - either an existing Dialog (conversationId) or the
-    // first message to someone new (otherUid), mirroring
-    // communiques-common.js's startOrOpenDialog() create-or-find logic.
-    const conversationId = typeof body.conversationId === "string" ? body.conversationId : "";
-    const otherUid = typeof body.otherUid === "string" ? body.otherUid : "";
-    let convRef;
-
-    if (conversationId) {
-      convRef = db.collection("conversations").doc(conversationId);
-      const convDoc = await convRef.get();
-      if (!convDoc.exists) {
-        res.status(404).json({ error: "That Dialog doesn't exist." });
-        return;
-      }
-      if ((convDoc.data().participants || []).indexOf(uid) === -1) {
-        res.status(403).json({ error: "You're not a participant in this Dialog." });
-        return;
-      }
-    } else if (otherUid) {
-      convRef = db.collection("conversations").doc([uid, otherUid].sort().join("_"));
-      const convDoc = await convRef.get();
-      if (!convDoc.exists) {
-        const otherProfile = await db.collection("profiles").doc(otherUid).get();
-        if (!otherProfile.exists) {
-          res.status(404).json({ error: "That member doesn't exist." });
-          return;
-        }
-        const otherData = otherProfile.data();
-        if (otherData.requireFriendToMessage && !(await isFriendsWith(db, uid, otherUid))) {
-          res.status(403).json({ error: "This member only accepts Dialogs from friends." });
-          return;
-        }
-        const otherName = (otherData.preferHandle && otherData.handle) ? otherData.handle : (otherData.name || otherData.handle || "Member");
-        const participantNames = {};
-        participantNames[uid] = authorName;
-        participantNames[otherUid] = otherName;
-        await convRef.set({
-          participants: [uid, otherUid].sort(),
-          participantNames,
-          lastMessage: "",
-          lastMessageAt: now,
-          createdAt: now,
-        });
-      }
-    } else {
-      res.status(400).json({ error: "conversationId or otherUid is required." });
-      return;
-    }
-
-    const msgRef = await convRef.collection("messages").add({ authorUid: uid, body: text, createdAt: now, viewCount: 0 });
-    await convRef.update({ lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
-    res.status(201).json({ success: true, id: msgRef.id, conversationId: convRef.id, moderationLogId });
-  } catch (err) {
-    console.error("submitAgoraCommunique failed:", err);
-    res.status(500).json({ error: "Failed to post." });
-  }
+  const result = await performCommunique({
+    uid, authorName, type: body.type, text,
+    profileUid: body.profileUid, postId: body.postId,
+    conversationId: body.conversationId, otherUid: body.otherUid,
+  });
+  const { status, ...payload } = result;
+  delete payload.ok;
+  res.status(status).json(payload);
 }));
+
+// Octopus Style 🐙 (see CLAUDE.md's "Agora Harness 🚡 design" and
+// "Dialog delivery is check-on-demand" entries) - lets an Octopus-enabled AI
+// account (today, only Claude) post/reply on Agora without a human-run
+// session driving it, by calling its real provider API server-side and
+// writing through the same performCommunique() path a Harness-signed-in
+// caller uses. Two triggers, matching the two-tier "occasion" design:
+const { anthropicApiKey, getOctopusConfig, generateOctopusReply } = require("./lib/octopus");
+
+// Event-triggered wake - fires on every new Dialog message, same document
+// path notifyOnDialogMessage already watches (Firestore allows more than
+// one trigger per path). For each participant *besides* the message's own
+// author, checks whether they're Octopus-enabled and, if so, generates and
+// posts a reply as them. Excluding the author is also what prevents an
+// Octopus-enabled account from replying to its own just-posted message -
+// note this does NOT yet guard against two Octopus-enabled accounts in the
+// same Dialog replying to each other forever, since only one account
+// (Claude) can be enabled today; a real safeguard (a cooldown, a max-turns
+// counter) is worth adding before a second AI ever gets Octopus access.
+exports.octopusOnDialogMessage = onDocumentCreated(
+  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [anthropicApiKey, moderationApiKey, resendApiKey] },
+  async (event) => {
+    const message = event.data.data();
+    const conversationId = event.params.conversationId;
+    const db = admin.firestore();
+
+    const convDoc = await db.collection("conversations").doc(conversationId).get();
+    if (!convDoc.exists) return;
+    const convData = convDoc.data();
+    const others = (convData.participants || []).filter((p) => p !== message.authorUid);
+
+    for (const otherUid of others) {
+      const config = await getOctopusConfig(db, otherUid);
+      if (!config.enabled) continue;
+
+      const senderName = (convData.participantNames || {})[message.authorUid] || "Someone";
+      const prompt = senderName + ' just sent you this Dialog message on Agora:\n\n"' + message.body
+        + '"\n\nWrite your reply (plain text) - or say nothing worth adding by replying with the no-reply token your instructions describe.';
+
+      const reply = await generateOctopusReply(config, prompt);
+      if (!reply) continue;
+
+      const authorName = await resolveDisplayName(otherUid);
+      await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId });
+    }
+  },
+);
+
+// Scheduled proactive check-in - "1-2x/day" per Octopus Style's own design;
+// starting at once daily (v1, simplest), easy to add a second firing time
+// later if Chris wants the higher end of that range. Every Octopus-enabled
+// account gets its own independent check - one giving nothing worth posting
+// doesn't affect any other.
+exports.octopusScheduledCheckIn = onSchedule(
+  { schedule: "0 13 * * *", timeZone: "America/New_York", secrets: [anthropicApiKey, moderationApiKey, resendApiKey] },
+  async () => {
+    const db = admin.firestore();
+    const configsSnap = await db.collection("octopusConfig").where("enabled", "==", true).get();
+
+    for (const configDoc of configsSnap.docs) {
+      const uid = configDoc.id;
+      const config = await getOctopusConfig(db, uid);
+      const prompt = "It's your scheduled check-in time on Agora. If you have something genuinely worth "
+        + "posting to your own Wall right now, write it (plain text). Otherwise, use the no-reply token "
+        + "your instructions describe.";
+
+      const reply = await generateOctopusReply(config, prompt);
+      if (!reply) continue;
+
+      const authorName = await resolveDisplayName(uid);
+      await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid });
+    }
+  },
+);

@@ -5291,6 +5291,112 @@ this file:
   real-world errands, not something buildable from inside a session.
   Worth revisiting once he confirms either is actually done.
 
+## Octopus Style 🐙 scaffolding built ahead of the ANTHROPIC_API_KEY landing (Chris, 2026-09-09)
+
+Prepped so the moment Chris's Claude API billing clears tomorrow, only the
+secret and one Firestore doc stand between this and actually running - same
+"build ahead of the blocker" pattern as the NFT Gallery space built ahead of
+the actual mint. Nothing in this round is deployed or has run against a
+real key.
+
+- **`functions/lib/octopus.js`** (new) - deliberately provider-agnostic in
+  *name* only; only Claude has a billed key, so `generateOctopusReply()`
+  only ever calls Anthropic today, but keeping the config/call logic split
+  from the trigger wiring in `index.js` means a second AI provider later is
+  a new branch here, not a rewrite. Added `@anthropic-ai/sdk` as a real
+  dependency (`npm install`, not hand-edited - `^0.124.0` resolved and
+  `package-lock.json` updated for real, verified installing cleanly).
+  - `getOctopusConfig(db, uid)` reads `octopusConfig/{uid}` - the live,
+    editable prompt/enable-flag doc Octopus Style's own design called for
+    (MoltBook's trick, borrowed deliberately - tune behavior without a
+    redeploy). Admin-SDK-only, same as `aiEmailMailboxes` - no client
+    anywhere reads/writes it, so no `firestore.rules` entry needed. Falls
+    back to a hardcoded default system prompt + `enabled: false` if the doc
+    doesn't exist yet, so a missing config degrades to "does nothing" 
+    rather than crashing.
+  - `generateOctopusReply(config, userPrompt)` - one plain
+    `client.messages.create()` call, `claude-opus-5` (Anthropic's current
+    model, per the model table checked this round rather than assumed from
+    memory), `output_config: { effort: "medium" }` (chat-length social
+    output, not agentic work - the documented cost-saving step-down for
+    this workload shape), `max_tokens: 2000`. Returns `null` - meaning
+    "post nothing" - on an API error, a `stop_reason: "refusal"`, or the
+    model literally replying with the `NO_REPLY` token its own system
+    prompt asks it to use when it has nothing worth adding. Every failure
+    path fails toward silence, never toward crashing the caller - same
+    "never let this outage break the actual action" philosophy as
+    `sendEmailSafe` elsewhere in this file.
+- **`functions/index.js` refactored around a new shared
+  `performCommunique()`** - `submitAgoraCommunique`'s entire body (every
+  check it replicates by hand: the 100-comment cap,
+  `requireFriendToPost`/`requireFriendToMessage`, "must already be a
+  participant to message in this Dialog") was extracted out of the
+  `onRequest` handler into a plain async function returning
+  `{ ok, status, ...payload }` instead of writing to `res` directly - the
+  HTTP endpoint is now a thin wrapper that just calls it and forwards the
+  result. This is what lets Octopus reuse every one of those checks instead
+  of a second copy - it calls `performCommunique()` directly, in-process,
+  no HTTP round-trip needed since it already runs with Admin SDK access.
+  `submitAgoraCommunique`'s own behavior/response shape is unchanged for
+  any external caller - this is a pure internal refactor.
+- **`octopusOnDialogMessage`** (new, `onDocumentCreated` on
+  `conversations/{conversationId}/messages/{messageId}` - the same
+  document path `notifyOnDialogMessage` already watches; Firestore allows
+  more than one trigger per path) - the event-triggered half of Octopus
+  Style's two-tier occasion design. For every participant *besides* the
+  new message's own author, checks `getOctopusConfig` and, if enabled,
+  builds a prompt naming the sender and quoting their message, calls
+  `generateOctopusReply`, and posts the result back via
+  `performCommunique({ type: "dialogMessage", conversationId })` under
+  that AI's own uid. Excluding the message's author from the "who might
+  reply" list is also what stops an Octopus-enabled account from ever
+  replying to its own just-sent message - **not yet guarded: two
+  Octopus-enabled accounts in the same Dialog replying to each other
+  forever.** Only one account (Claude) can be enabled today, so this can't
+  happen yet, but a real safeguard (a cooldown, a hard per-Dialog turn
+  cap) needs to land before a second AI ever gets Octopus access - flagged
+  in the code comment so it isn't forgotten once that day comes.
+- **`octopusScheduledCheckIn`** (new, `onSchedule`, `"0 13 * * *"`
+  `America/New_York` - once daily, the simpler end of Octopus Style's own
+  documented "1-2x/day" range; a second firing time is one more `onSchedule`
+  export away if Chris wants the higher end later) - queries every
+  `octopusConfig` doc with `enabled: true`, asks each one (independently -
+  one having nothing to post doesn't affect any other) whether there's
+  something worth posting to its own Wall right now, and posts via
+  `performCommunique({ type: "wallPost", profileUid: uid })` (self-posting,
+  so `requireFriendToPost`'s `sender == wallOwner` short-circuit already
+  covers it - no separate check needed).
+- **Verified locally only** - `node --check` on both new/changed files, and
+  `require("./index.js")` loads clean (31 exports now, up from 29 -
+  `performCommunique` itself isn't exported, it's an internal helper).
+  `defineSecret("ANTHROPIC_API_KEY").value()` is never called at
+  module-load time (only inside `generateOctopusReply`, itself only called
+  from inside a trigger), so this loads and deploys exactly like every
+  other secret-gated function here even with no real key set yet - it will
+  just never actually post anything until both items below are done.
+
+**Needs from Chris before Octopus Style does anything at all:**
+1. **The Claude API fee itself** (already in progress, see the entry
+   above) - once billing is funded, generate a real Anthropic API key and
+   run `firebase functions:secrets:set ANTHROPIC_API_KEY` from `Agora/`,
+   then `firebase deploy --only functions` to pick up
+   `octopusOnDialogMessage`/`octopusScheduledCheckIn` (and the refactored
+   `submitAgoraCommunique`, still separately pending its own deploy from
+   the round that built it).
+2. **Create `octopusConfig/{claude's uid}`** in the Firebase console
+   (Firestore Database → Data → new collection `octopusConfig` → document
+   ID `Ggv5i2cCArcgj5PrzReDXR7O1wN2`) with at minimum `enabled: true`
+   (boolean) - optionally `systemPrompt`/`model` (strings) to override the
+   hardcoded defaults in `lib/octopus.js`. No admin UI for this exists yet
+   (same manual-Firestore-doc step every other "needs Chris" checklist
+   item like this has used); a real compose-style page for editing this
+   live would be a reasonable later addition once there's more than one
+   Octopus-enabled account to manage.
+3. Once both land, the real end-to-end test is simple: send Claude's
+   Harness account a Dialog message from a real human account and watch
+   for an automatic reply with no session involved - the actual proof this
+   was built for.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
