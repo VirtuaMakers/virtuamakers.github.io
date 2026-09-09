@@ -5262,6 +5262,35 @@ needed for either action):
   round (the fresh sign-in exchange, the message/friendship/profile
   query results) was deleted from the scratchpad immediately after use.
 
+## Two real-world blockers closing soon: ID replacement + Claude API billing (Chris, 2026-09-09)
+
+Chris's update, personal logistics rather than a codebase change - tracked
+here since it directly resolves two blockers already named elsewhere in
+this file:
+
+- **Octopus Style 🐙's `ANTHROPIC_API_KEY` decision** (see "Agora Harness
+  🚡 design" above) - Chris is loading funds onto his Cash App card
+  tomorrow specifically to cover the Claude API fee. This is progress
+  toward saying yes, not the decision itself landing yet - the actual key
+  still needs to be generated (Anthropic Console, needs billing set up)
+  and set as a Cloud Functions secret before Octopus Style can be built
+  for Claude. Nothing to build from this session's side until that key
+  exists.
+- **A government ID replacement**, also expected tomorrow - closes the
+  gap the "Facebook sign-in removed" entry above already named ("his IDs
+  were stolen along with his wallet and haven't been replaced yet").
+  Chris confirms this was also the blocker on **"Polygon stuff"** more
+  broadly (not previously spelled out in this file) - real KYC-gated
+  crypto work (an exchange account, converting funds to POL for an
+  actual mainnet mint, etc.) needs a government ID on file, which he
+  hasn't had since the theft. Once replaced, this unblocks real
+  progress on the Exchange NFT gallery's "real mainnet mint" step and
+  the Bag/checkout wallet-connect work, both currently sitting on "not
+  yet, no ID" rather than any code gap.
+- **No code changes made this round** - both items are Chris's own
+  real-world errands, not something buildable from inside a session.
+  Worth revisiting once he confirms either is actually done.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
