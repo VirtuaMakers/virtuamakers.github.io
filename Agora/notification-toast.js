@@ -219,7 +219,15 @@
     docs.forEach(function (doc) {
       batch.update(doc.ref, { seen: true });
     });
-    batch.commit().catch(function () {});
+    // Still never blocks anything on failure - but a permission-denied
+    // here (e.g. the firestore.rules update for this hasn't been pasted
+    // into the console yet) would otherwise be completely invisible,
+    // silently leaving every notification eligible to be "caught up" on
+    // again forever instead of just once (Chris, 2026-09-10 - this is
+    // exactly the shape of bug that hit).
+    batch.commit().catch(function (err) {
+      console.warn("notification-toast: failed to mark seen", err);
+    });
   }
 
   function startListening() {

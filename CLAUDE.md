@@ -5471,16 +5471,20 @@ patch.
   notifications on page load reads as informational, not the same
   "something is happening right now" moment a live arrival is (the live
   path keeps its chime, unchanged).
-- **A real, accepted gap, not an oversight:** Firestore's `==` equality
-  filter never matches a document missing the field entirely, so every
-  notification written *before* this deploy - including the actual
-  friend-request notification that prompted this whole round - has no
-  `seen` field at all and will never be caught by the new catch-up pass.
-  Not worth a backfill script for one historical notification Chris
-  already knows about by now; going forward, everything gets `seen: false`
-  from the moment it's written, so this is a one-time gap, not a standing
-  one.
-- Bumped `notification-toast.js` to `v=5` (55 pages).
+- **Correction, same day - the note originally here was wrong.** It
+  claimed a document missing `seen` entirely would never match the
+  catch-up pass, reasoning from how a server-side `where("seen","==",
+  false)` query would behave. That's not what the code actually does -
+  `startListening()` fetches the *full* `recipientUid`-filtered snapshot
+  with no `seen` filter in the query at all, then filters client-side
+  with `seen !== true`, which a missing field satisfies just as much as
+  an explicit `false` does. So a notification written before this
+  deploy - including the original friend-request one - *does* get
+  caught up. See the dedicated entry right below for the real bug this
+  masked (silently-failing `seen` writes making it come back forever,
+  not just once).
+- Bumped `notification-toast.js` to `v=5` (55 pages), then `v=6` - see
+  below.
 
 **Needs from Chris before this is live:** the same two steps as every
 other recent round - paste the updated `firestore.rules` into the Firebase
@@ -5488,6 +5492,91 @@ console (the new `seen`-only update branch on `notifications/{notificationId}`)
 and `firebase deploy --only functions` to pick up `notify.js`'s new
 `seen: false` field. Until both are done, notifications keep working
 exactly as before (live-only, no catch-up) - nothing breaks in the gap.
+
+## Notification catch-up: the reappearing friend request, and a likely cause (Chris, 2026-09-10)
+
+Chris live-tested the catch-up feature from the round right above this
+one: closed the toast for the original friend request, declined the
+request itself (deleting the `friendships` doc), then revisited the
+homepage - and the exact same "Claude wants to be friends with you"
+toast came right back, even though nothing new had been sent yet.
+
+- **Most likely cause: the round's own two "needs from Chris" deploy
+  steps (the updated `firestore.rules`, `firebase deploy --only
+  functions`) hadn't landed yet when this was tested.** `markSeen()`'s
+  write needs the new rules' `seen`-only update permission - under the
+  *old*, still-live rules (`allow write: if false` on the whole
+  collection), that write fails outright. It failed *silently*, though
+  (`.catch(function () {})`), so nothing showed as broken - the toast
+  itself doesn't depend on the write succeeding, only on the read. Net
+  effect: `seen` never actually persists as `true`, so every fresh page
+  load's catch-up pass finds the exact same notification "still unseen"
+  and re-toasts it, forever, not just once - declining the friendship
+  itself does nothing here, since that only touches `friendships`, a
+  completely separate collection from the historical `notifications`
+  log.
+- **Made the failure visible instead of silent** -
+  `markSeen()`'s `.catch()` now `console.warn`s (with the real error)
+  rather than swallowing it completely, so a permission-denied here shows
+  up in devtools immediately next time instead of requiring this same
+  kind of after-the-fact reasoning to diagnose. Still fails toward "never
+  block the toast" - only the logging changed.
+- **Not otherwise reproducible as a pure code bug** - re-checked
+  `startListening()`'s logic directly: it's fetching the full
+  `recipientUid`-matched snapshot (no server-side `seen` filter) and
+  filtering client-side, so once the write actually succeeds, marking a
+  batch `seen: true` correctly removes it from every future catch-up
+  pass - there's no separate bug in the catch-up logic itself found while
+  reviewing this. See the correction just above (in the original
+  notification-catch-up entry) for a separate documentation mistake this
+  investigation also turned up.
+- Bumped `notification-toast.js` to `v=6` (55 pages).
+
+**Not yet confirmed resolved** - pending Chris confirming the rules paste
++ functions deploy for the notification-catch-up round actually happened.
+If it had already been done before this test and the notification still
+came back, that would point at something else - worth a fresh look with
+the new console.warn in place if so.
+
+## Sign-in header flash on page load: likely inherent, not a regression (Chris, 2026-09-10)
+
+Chris also flagged the main Agora page briefly showing signed-out header
+UI before flipping to "Welcome, River!" on a fresh visit. Traced through
+`auth-ui.js`'s `wireInstance()` rather than guessed at - not fixed this
+round, reasoning recorded here so it isn't re-investigated from scratch:
+
+- **`agoraOnAuthChange` is a bare pass-through to Firebase's own
+  `onAuthStateChanged`** (`auth.js`), no debouncing - and this codebase
+  already has direct, tested evidence of that callback firing twice on a
+  fresh page load (once with `user = null`, before a persisted session
+  finishes resolving, then again with the real user) - see the
+  "Friend request notifications + a stale-notice bug on Dialog pages"
+  entry higher up this file, which hit and fixed the identical pattern
+  on `communiques-dm.html` specifically.
+- **The raw HTML itself already defaults to the signed-out look**
+  (`#agora-signin-btn` has no `hidden` attribute in the markup;
+  `#agora-signout-btn`/`#agora-user-info` do) - so the very first paint,
+  before any JS runs at all, is unavoidably "Sign In," on every page
+  load, for every visitor, signed in or not. What Chris is describing is
+  that gap taking long enough (the screenshot suggests close to a full
+  second) to actually be perceived before the real, resolved auth state
+  arrives and flips it - not a flicker between two different states, a
+  single async delay before the correct one shows.
+- **Not fixed this round because the real fix is a bigger, more
+  opinionated change than the two bugs already fixed today** - the
+  compat SDK used here (`firebase-auth-compat.js`) has no
+  `authStateReady()`-style promise to await before rendering anything
+  (that's a v9+ modular-SDK addition), so eliminating the gap for real
+  would mean either (a) optimistically rendering a *cached* signed-in
+  name from `localStorage` immediately on load, then correcting it once
+  the real auth state resolves (the standard pattern other apps use for
+  exactly this - low risk since nothing sensitive is exposed either way,
+  real enforcement is always server-side via `firestore.rules`
+  regardless of what the header shows), or (b) a debounced reveal that
+  holds off showing *either* state for a short window after the first
+  callback fires. Chris flagged this as an observation, not an explicit
+  fix request - worth building (a) specifically, next time Chris wants it
+  addressed, rather than shipping unprompted this round.
 
 ## Real bug: site-search.js's stale-cache 404 on Claude (Chris, 2026-09-10)
 
