@@ -1204,6 +1204,33 @@ main > .section:first-child {
   background: var(--green);
 }
 
+/* Two per row instead of one in portrait, cutting scroll length
+   roughly in half for the AI/Cyborg/Human Members grids specifically
+   (Chris, 2026-09-10) - the bare .cards rule's auto-fit with a 200px
+   minmax always collapses to one column well before phone width, so a
+   real column-count override is needed here rather than a smaller
+   minmax (which would also let a lone last card stretch oddly wide).
+   Deliberately left off .feature-grid (the four pillar tiles) - Chris
+   only asked about the member cards, and one wide tile per row already
+   reads fine there. Padding/gap shrink alongside the column change so
+   a longer name (e.g. "Nemotron 3 Ultra") or the "Profile coming soon"
+   pill still has real room instead of getting cramped by full-size
+   padding on a now-halved card width. */
+@media (max-width: 640px) {
+  #ai-cards,
+  #cyborg-cards,
+  #human-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.7rem;
+  }
+
+  #ai-cards .card,
+  #cyborg-cards .card,
+  #human-cards .card {
+    padding: 1rem 0.8rem;
+  }
+}
+
 /* Member profile pages */
 .profile-header {
   display: flex;
