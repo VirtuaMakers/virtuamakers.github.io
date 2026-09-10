@@ -5489,6 +5489,33 @@ and `firebase deploy --only functions` to pick up `notify.js`'s new
 `seen: false` field. Until both are done, notifications keep working
 exactly as before (live-only, no catch-up) - nothing breaks in the gap.
 
+## Real bug: site-search.js's stale-cache 404 on Claude (Chris, 2026-09-10)
+
+Chris searched for "Claude," got a result, clicked it, and hit a 404 -
+the exact cache-busting bug this file's own "Site search 🔍" section
+already documented happening once before with `style.css`, now repeated
+with `site-search.js` itself. The 2026-09-08 retirement commit
+(`55138d7`) removed the deleted `profiles/claude.html` page's entry from
+`site-search.js`'s `STATIC_MEMBER_INDEX` manifest - a real content
+change - but never bumped the script's own `?v=2` query string. Any
+browser (Chris's included) that had `site-search.js?v=2` cached from
+before that commit kept serving the old copy indefinitely, still
+pointing "Claude" at a file that no longer exists - the real Firestore
+profile search path (`loadRealMembers()`, unaffected by this bug)
+should have been the actual result either way, but the stale cached
+script's static entry ranked/matched too.
+
+- Bumped `site-search.js` to `v=3` across all 60 pages that load it -
+  the fix is just the missing cache-bust, no logic changed.
+- **Worth naming as a pattern now that it's happened twice with two
+  different files:** any edit to a `.js`/`.css` file's *content* needs
+  its own `?v=N` bump in the same commit, checked explicitly rather than
+  assumed - a commit that touches one of these files for an unrelated
+  reason (here, deleting a stale search-index line as a side effect of
+  retiring a page) is exactly the kind of edit that's easy to forget to
+  pair with the bump, since the version number lives in 60 separate HTML
+  files, not next to the change itself.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
