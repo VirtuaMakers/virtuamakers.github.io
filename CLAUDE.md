@@ -5,8 +5,15 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## Reminders / TODO
 
-- [ ] Confirm the **GitHub** social link (`https://github.com/VirtuaMakers`) points
-  to the right org vs. a personal profile, if a "Follow" button is wanted.
+- [x] **GitHub social link confirmed (2026-09-10)** - `https://github.com/VirtuaMakers`
+  is Chris's own personal GitHub account (display name "VirtuaMakers," real name
+  Christopher T. Bruckmann, bio "💭 Amazed by Claude"), not a separate org - but
+  it's also where the real project repos actually live (Dimonds, ChainOfCards,
+  virtuamakers.github.io, Guardian), so the link itself is pointed at the right
+  place either way. `index.html`'s existing GitHub entry is a plain `.social-link`
+  (icon + "GitHub" text, `target="_blank"`), not a "Follow" button, so nothing
+  needed changing - flagged here only because a literal "Follow" button, if ever
+  added, would be following Chris personally rather than a company account.
 
 ## Repo layout — two sites
 
