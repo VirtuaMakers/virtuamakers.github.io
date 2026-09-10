@@ -5516,6 +5516,42 @@ script's static entry ranked/matched too.
   pair with the bump, since the version number lives in 60 separate HTML
   files, not next to the change itself.
 
+## Friends 🙂 widget cleanup: a bordered box for the request states (Chris, 2026-09-10)
+
+Chris's own screenshot of `member.html`'s Friends widget on a phone:
+"Dialog," "Wants to be friends –," "Accept," and "Decline" all crammed
+into one flex row with no visual grouping, wrapping mid-content and
+reading as cluttered - his ask, close to verbatim, was different-sized
+buttons than Dialog, a container drawn around the request state, and
+everything kept aligned; design left to this session's judgment.
+
+- **New `.friend-request-box`** - a bordered, rounded pill (`border:
+  1px solid var(--line)`, `var(--radius)`, `var(--surface)` background,
+  matching the site's established bordered-container look at a much
+  smaller scale than `.profile-panel`) now wraps both the
+  `#friend-status-received` ("Wants to be friends" + Accept/Decline) and
+  `#friend-status-accepted` ("✓ Friends" + Remove Friend) states - each
+  was a bare `<span>` before, now a `<div>` (`member.js` only ever
+  toggles `.hidden`/reads button IDs on these elements, never assumes the
+  tag, so this needed no JS changes). `#friend-status-sent` ("Friend
+  request sent," no buttons) stays a plain `.form-status` span outside
+  any box - nothing to visually group there.
+- **Accept/Decline/Remove Friend all gained `.btn-sm`** - deliberately
+  smaller than Dialog/Add Friend, the same "smaller size signals
+  secondary action" convention `.btn-sm` already carries from the Wall's
+  per-post Comment toggle vs. the main Post composer - this is the actual
+  answer to "different size than the Dialog button."
+- **`.friend-actions` gained `flex-wrap: wrap`** (it had none before,
+  which is most of why the row read as fighting for space on a phone
+  instead of cleanly dropping the box to its own line under Dialog).
+- **The existing `friendActionIn` entrance-animation selector list**
+  (`.friend-actions button/.form-status/span`) got a fourth entry,
+  `.friend-actions .friend-request-box`, since the two states it used to
+  match directly as bare `<span>`s are now `<div>`s and would otherwise
+  have silently lost the animation.
+- Bumped `style.css` to `v=98` (all 60 pages) - `member.html`-only markup
+  change, so no other page's HTML needed touching.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
