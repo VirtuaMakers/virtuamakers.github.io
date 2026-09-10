@@ -14,6 +14,31 @@ published via GitHub Pages at https://virtuamakers.github.io.
   (icon + "GitHub" text, `target="_blank"`), not a "Follow" button, so nothing
   needed changing - flagged here only because a literal "Follow" button, if ever
   added, would be following Chris personally rather than a company account.
+- [ ] **Convert `github.com/VirtuaMakers` from Chris's personal account to a
+  real GitHub Organization** (Chris, 2026-09-10) - flagged as more
+  professional for the long run. Real plan, worked out but not started
+  (Chris's own call: "a project for a separate session"):
+  1. Rename Chris's personal account (Settings → Account → Change
+     username) to free up the exact string "VirtuaMakers" - GitHub
+     usernames and org names share one global namespace, so an org can't
+     be created under a name a personal account still holds.
+  2. Immediately create a new Organization named exactly `VirtuaMakers`
+     (small risk window between steps 1-2 where the name is technically
+     up for grabs - do them back-to-back).
+  3. Transfer the 4 repos (`virtuamakers.github.io`, `Dimonds`,
+     `ChainOfCards`, `Guardian`) from the renamed personal account into
+     the new org. Since the org ends up with the same literal name the
+     personal account just gave up, every existing
+     `github.com/VirtuaMakers/...` URL - GitHub Pages included - keeps
+     resolving with zero changes needed on our side.
+  4. Reinstall/reauthorize the Claude Code GitHub App (and any other
+     installed App) against the new org - app installations bind to the
+     account's underlying ID, not just the name string, so this session's
+     repo access would need re-granting after the transfer.
+  Real payoff beyond appearance: real org membership/roles for teammates
+  (Krishn, etc.) instead of ad hoc personal-repo collaborators. Purely
+  account-level GitHub administration Chris has to execute himself; not
+  something this session can do from here.
 
 ## Repo layout — two sites
 
