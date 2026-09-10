@@ -65,7 +65,18 @@ service cloud.firestore {
     match /notifications/{notificationId} {
       allow read: if request.auth != null
         && request.auth.uid == resource.data.recipientUid;
-      allow write: if false;
+
+      // A recipient can mark their own notification `seen` (and only
+      // that field) - what lets notification-toast.js catch someone up
+      // on what they missed the next time they sign in or revisit,
+      // without re-showing the same notification forever (Chris,
+      // 2026-09-10). Creating/deleting a notification is still
+      // Admin-SDK-only, same as before - this doesn't touch that.
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.recipientUid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen']);
+
+      allow create, delete: if false;
     }
 
     // Homepage hit counter - a single document anyone (including

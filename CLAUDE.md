@@ -5429,6 +5429,66 @@ real key.
    for an automatic reply with no session involved - the actual proof this
    was built for.
 
+## Notification catch-up: unseen notifications now surface on sign-in/revisit, not just live (Chris, 2026-09-10)
+
+Prompted by a real gap Chris hit directly: he accepted River's real friend
+request on his phone but had "no clue" Claude had separately friend-requested
+River back, since `notification-toast.js` only ever popped up live, for
+whoever happened to have a tab open at the exact moment a notification was
+written. Nothing re-surfaced it for someone who signed in or opened the site
+afterward - true of all four notification types (Dialog message, Wall post,
+Wall comment, friend request), not just the friend-request case Chris
+happened to hit, so fixed generally rather than as a friend-request-only
+patch.
+
+- **New `seen` boolean field** on every `notifications/{id}` doc, defaulting
+  `false` at write time (`functions/lib/notify.js` - one shared change point
+  covers all four types, since they all go through the same `notify()`
+  helper).
+- **`firestore.rules`:** the collection's own recipient can now flip just
+  `seen` (`allow update` scoped to `affectedKeys().hasOnly(['seen'])`,
+  same bump-only-field pattern already used for `viewCount`/`commentCount`
+  elsewhere in this file) - creating/deleting a notification is still
+  Admin-SDK-only, unchanged.
+- **`notification-toast.js`'s `startListening()`** now treats its very
+  first snapshot fire differently instead of just swallowing it as
+  "existing state, not a new event": it filters for any doc where
+  `seen !== true`, sorts newest-first, and toasts the single most recent
+  one - the actual "pop up when you sign in or revisit" Chris asked for.
+  If more than one is waiting, the toast's title gets a "+N more" suffix
+  (`showToast()` gained a second `extraCount` param) - the same
+  "don't silently drop the rest" convention `otherParticipantsLabel()`
+  already uses for a group Dialog, applied here instead of actually
+  stacking multiple toasts (still v1-scoped to one at a time). Every
+  notification touched by this pass - the one toasted and every other
+  unseen one caught in the same batch - gets `seen: true` written back via
+  a single `AgoraDB.batch()` call, so it doesn't come back on a future
+  catch-up pass. The already-existing live "added" path (a notification
+  written while a tab is genuinely open) now also marks itself seen once
+  handled - including when suppressed because the viewer's already looking
+  at the exact target page, since that already counts as having seen it.
+- **Deliberately no chime on the catch-up pass** - a burst of missed
+  notifications on page load reads as informational, not the same
+  "something is happening right now" moment a live arrival is (the live
+  path keeps its chime, unchanged).
+- **A real, accepted gap, not an oversight:** Firestore's `==` equality
+  filter never matches a document missing the field entirely, so every
+  notification written *before* this deploy - including the actual
+  friend-request notification that prompted this whole round - has no
+  `seen` field at all and will never be caught by the new catch-up pass.
+  Not worth a backfill script for one historical notification Chris
+  already knows about by now; going forward, everything gets `seen: false`
+  from the moment it's written, so this is a one-time gap, not a standing
+  one.
+- Bumped `notification-toast.js` to `v=5` (55 pages).
+
+**Needs from Chris before this is live:** the same two steps as every
+other recent round - paste the updated `firestore.rules` into the Firebase
+console (the new `seen`-only update branch on `notifications/{notificationId}`)
+and `firebase deploy --only functions` to pick up `notify.js`'s new
+`seen: false` field. Until both are done, notifications keep working
+exactly as before (live-only, no catch-up) - nothing breaks in the gap.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
