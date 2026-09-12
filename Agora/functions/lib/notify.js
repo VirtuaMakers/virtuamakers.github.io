@@ -83,6 +83,10 @@ async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTit
     preview: previewOf(preview),
     linkPath,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    // Lets the client tell "already shown, live or on a later catch-up
+    // pass" apart from "still waiting to be surfaced" - see
+    // notification-toast.js and firestore.rules (Chris, 2026-09-10).
+    seen: false,
   });
 
   await sendPush(recipientUid, pushTitle(actorName), previewOf(preview), linkPath);

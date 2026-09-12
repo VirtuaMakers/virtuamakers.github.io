@@ -17,6 +17,13 @@
 //
 // This is still a v1 scoped down from the eventual vision (multiple
 // draggable windows, a buddy list) - one toast at a time, most-recent-wins.
+//
+// Also catches you up on anything you missed while away (Chris,
+// 2026-09-10) - a notification only ever popped up live before, for
+// whoever happened to have a tab open at the exact moment it was
+// written; nothing surfaced it again for someone who signed in or
+// revisited later. See the `seen` field (firestore.rules,
+// functions/lib/notify.js) and startListening()'s catch-up pass below.
 
 (function () {
   if (typeof CommuniquesCommon === "undefined") return;
@@ -100,7 +107,7 @@
     });
   }
 
-  function showToast(data) {
+  function showToast(data, extraCount) {
     removeToast();
 
     var preview = (data.preview || "").replace(/<[^>]*>/g, "").slice(0, 140);
@@ -118,7 +125,12 @@
 
     var title = document.createElement("span");
     title.className = "notification-toast-title";
-    title.textContent = data.actorName || "Someone";
+    // "+N more" on a catch-up pass with several unseen notifications
+    // waiting - same "don't silently drop the rest" convention
+    // otherParticipantsLabel() uses elsewhere for a group Dialog,
+    // applied here instead of actually stacking toasts (still v1-scoped
+    // to one at a time).
+    title.textContent = (data.actorName || "Someone") + (extraCount ? " +" + extraCount + " more" : "");
     header.appendChild(title);
 
     var closeBtn = document.createElement("button");
@@ -197,22 +209,69 @@
     });
   }
 
+  // Marks a batch of notification docs `seen` so they're not re-surfaced
+  // by a future catch-up pass (see below) - best-effort, matching every
+  // other non-essential write in this file (a permission hiccup here
+  // should never break the toast itself).
+  function markSeen(docs) {
+    if (!docs.length) return;
+    var batch = AgoraDB.batch();
+    docs.forEach(function (doc) {
+      batch.update(doc.ref, { seen: true });
+    });
+    // Still never blocks anything on failure - but a permission-denied
+    // here (e.g. the firestore.rules update for this hasn't been pasted
+    // into the console yet) would otherwise be completely invisible,
+    // silently leaving every notification eligible to be "caught up" on
+    // again forever instead of just once (Chris, 2026-09-10 - this is
+    // exactly the shape of bug that hit).
+    batch.commit().catch(function (err) {
+      console.warn("notification-toast: failed to mark seen", err);
+    });
+  }
+
   function startListening() {
     var caughtUp = false;
 
     unsubscribe = AgoraDB.collection("notifications")
       .where("recipientUid", "==", currentUser.uid)
       .onSnapshot(function (snap) {
+        if (!caughtUp) {
+          caughtUp = true;
+
+          // Catch-up pass (Chris, 2026-09-10) - the actual "pop up
+          // whenever someone signs in or revisits" ask: anything already
+          // sitting unseen from before this page ever loaded, not just a
+          // genuinely new change from here on (the "added" case below).
+          // No chime here on purpose - a burst of notifications you
+          // missed while away reads as informational on load, not the
+          // same "something just happened" moment a live arrival is.
+          var unseen = snap.docs.filter(function (doc) {
+            return doc.data().seen !== true;
+          });
+          unseen.sort(function (a, b) {
+            var at = a.data().createdAt, bt = b.data().createdAt;
+            return (bt ? bt.toMillis() : 0) - (at ? at.toMillis() : 0);
+          });
+          if (unseen.length) showToast(unseen[0].data(), unseen.length - 1);
+          markSeen(unseen);
+          return;
+        }
+
+        var newlyAdded = [];
         snap.docChanges().forEach(function (change) {
           if (change.type !== "added") return;
-          if (!caughtUp) return; // initial snapshot - existing state, not a new event
+          newlyAdded.push(change.doc);
           var data = change.doc.data();
           if (isViewingLinkPath(data.linkPath)) return;
 
           playChime(data.type);
-          showToast(data);
+          showToast(data, 0);
         });
-        caughtUp = true;
+        // Marked seen even when suppressed above (already viewing that
+        // exact target) - being on the matching page already counts as
+        // having seen it, so it shouldn't come back on a later catch-up.
+        markSeen(newlyAdded);
       });
   }
 

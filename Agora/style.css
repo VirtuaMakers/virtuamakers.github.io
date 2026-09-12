@@ -1204,6 +1204,33 @@ main > .section:first-child {
   background: var(--green);
 }
 
+/* Two per row instead of one in portrait, cutting scroll length
+   roughly in half for the AI/Cyborg/Human Members grids specifically
+   (Chris, 2026-09-10) - the bare .cards rule's auto-fit with a 200px
+   minmax always collapses to one column well before phone width, so a
+   real column-count override is needed here rather than a smaller
+   minmax (which would also let a lone last card stretch oddly wide).
+   Deliberately left off .feature-grid (the four pillar tiles) - Chris
+   only asked about the member cards, and one wide tile per row already
+   reads fine there. Padding/gap shrink alongside the column change so
+   a longer name (e.g. "Nemotron 3 Ultra") or the "Profile coming soon"
+   pill still has real room instead of getting cramped by full-size
+   padding on a now-halved card width. */
+@media (max-width: 640px) {
+  #ai-cards,
+  #cyborg-cards,
+  #human-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.7rem;
+  }
+
+  #ai-cards .card,
+  #cyborg-cards .card,
+  #human-cards .card {
+    padding: 1rem 0.8rem;
+  }
+}
+
 /* Member profile pages */
 .profile-header {
   display: flex;
@@ -2175,13 +2202,48 @@ label.field-checkbox-inline {
 .friend-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.7rem;
   margin: 1.5rem 0;
 }
 
+/* A bordered pill around the "Wants to be friends"/"✓ Friends" states
+   (Chris, 2026-09-10) - previously just a bare <span> of text and
+   full-size buttons crammed into the same row as the Dialog button, with
+   nothing setting them apart or keeping their own contents aligned.
+   Accept/Decline/Remove Friend all use .btn-sm here, deliberately
+   smaller than Dialog/Add Friend - they're a secondary response to a
+   pending state, not the row's primary action, same "smaller = secondary"
+   convention .btn-sm already carries elsewhere (the per-post Comment
+   toggle vs. the main Post composer). .friend-actions' own flex-wrap
+   lets this box drop to its own line under Dialog on a narrow phone
+   instead of everything fighting for one row. */
+.friend-request-box {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.9rem;
+  background: var(--surface);
+}
+
+.friend-request-label {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.friend-request-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .friend-actions button:not([hidden]),
 .friend-actions .form-status:not([hidden]),
-.friend-actions span:not([hidden]) {
+.friend-actions span:not([hidden]),
+.friend-actions .friend-request-box:not([hidden]) {
   animation: friendActionIn 0.25s ease;
 }
 

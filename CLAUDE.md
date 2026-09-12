@@ -5429,6 +5429,218 @@ real key.
    for an automatic reply with no session involved - the actual proof this
    was built for.
 
+## Notification catch-up: unseen notifications now surface on sign-in/revisit, not just live (Chris, 2026-09-10)
+
+Prompted by a real gap Chris hit directly: he accepted River's real friend
+request on his phone but had "no clue" Claude had separately friend-requested
+River back, since `notification-toast.js` only ever popped up live, for
+whoever happened to have a tab open at the exact moment a notification was
+written. Nothing re-surfaced it for someone who signed in or opened the site
+afterward - true of all four notification types (Dialog message, Wall post,
+Wall comment, friend request), not just the friend-request case Chris
+happened to hit, so fixed generally rather than as a friend-request-only
+patch.
+
+- **New `seen` boolean field** on every `notifications/{id}` doc, defaulting
+  `false` at write time (`functions/lib/notify.js` - one shared change point
+  covers all four types, since they all go through the same `notify()`
+  helper).
+- **`firestore.rules`:** the collection's own recipient can now flip just
+  `seen` (`allow update` scoped to `affectedKeys().hasOnly(['seen'])`,
+  same bump-only-field pattern already used for `viewCount`/`commentCount`
+  elsewhere in this file) - creating/deleting a notification is still
+  Admin-SDK-only, unchanged.
+- **`notification-toast.js`'s `startListening()`** now treats its very
+  first snapshot fire differently instead of just swallowing it as
+  "existing state, not a new event": it filters for any doc where
+  `seen !== true`, sorts newest-first, and toasts the single most recent
+  one - the actual "pop up when you sign in or revisit" Chris asked for.
+  If more than one is waiting, the toast's title gets a "+N more" suffix
+  (`showToast()` gained a second `extraCount` param) - the same
+  "don't silently drop the rest" convention `otherParticipantsLabel()`
+  already uses for a group Dialog, applied here instead of actually
+  stacking multiple toasts (still v1-scoped to one at a time). Every
+  notification touched by this pass - the one toasted and every other
+  unseen one caught in the same batch - gets `seen: true` written back via
+  a single `AgoraDB.batch()` call, so it doesn't come back on a future
+  catch-up pass. The already-existing live "added" path (a notification
+  written while a tab is genuinely open) now also marks itself seen once
+  handled - including when suppressed because the viewer's already looking
+  at the exact target page, since that already counts as having seen it.
+- **Deliberately no chime on the catch-up pass** - a burst of missed
+  notifications on page load reads as informational, not the same
+  "something is happening right now" moment a live arrival is (the live
+  path keeps its chime, unchanged).
+- **Correction, same day - the note originally here was wrong.** It
+  claimed a document missing `seen` entirely would never match the
+  catch-up pass, reasoning from how a server-side `where("seen","==",
+  false)` query would behave. That's not what the code actually does -
+  `startListening()` fetches the *full* `recipientUid`-filtered snapshot
+  with no `seen` filter in the query at all, then filters client-side
+  with `seen !== true`, which a missing field satisfies just as much as
+  an explicit `false` does. So a notification written before this
+  deploy - including the original friend-request one - *does* get
+  caught up. See the dedicated entry right below for the real bug this
+  masked (silently-failing `seen` writes making it come back forever,
+  not just once).
+- Bumped `notification-toast.js` to `v=5` (55 pages), then `v=6` - see
+  below.
+
+**Needs from Chris before this is live:** the same two steps as every
+other recent round - paste the updated `firestore.rules` into the Firebase
+console (the new `seen`-only update branch on `notifications/{notificationId}`)
+and `firebase deploy --only functions` to pick up `notify.js`'s new
+`seen: false` field. Until both are done, notifications keep working
+exactly as before (live-only, no catch-up) - nothing breaks in the gap.
+
+## Notification catch-up: the reappearing friend request, and a likely cause (Chris, 2026-09-10)
+
+Chris live-tested the catch-up feature from the round right above this
+one: closed the toast for the original friend request, declined the
+request itself (deleting the `friendships` doc), then revisited the
+homepage - and the exact same "Claude wants to be friends with you"
+toast came right back, even though nothing new had been sent yet.
+
+- **Most likely cause: the round's own two "needs from Chris" deploy
+  steps (the updated `firestore.rules`, `firebase deploy --only
+  functions`) hadn't landed yet when this was tested.** `markSeen()`'s
+  write needs the new rules' `seen`-only update permission - under the
+  *old*, still-live rules (`allow write: if false` on the whole
+  collection), that write fails outright. It failed *silently*, though
+  (`.catch(function () {})`), so nothing showed as broken - the toast
+  itself doesn't depend on the write succeeding, only on the read. Net
+  effect: `seen` never actually persists as `true`, so every fresh page
+  load's catch-up pass finds the exact same notification "still unseen"
+  and re-toasts it, forever, not just once - declining the friendship
+  itself does nothing here, since that only touches `friendships`, a
+  completely separate collection from the historical `notifications`
+  log.
+- **Made the failure visible instead of silent** -
+  `markSeen()`'s `.catch()` now `console.warn`s (with the real error)
+  rather than swallowing it completely, so a permission-denied here shows
+  up in devtools immediately next time instead of requiring this same
+  kind of after-the-fact reasoning to diagnose. Still fails toward "never
+  block the toast" - only the logging changed.
+- **Not otherwise reproducible as a pure code bug** - re-checked
+  `startListening()`'s logic directly: it's fetching the full
+  `recipientUid`-matched snapshot (no server-side `seen` filter) and
+  filtering client-side, so once the write actually succeeds, marking a
+  batch `seen: true` correctly removes it from every future catch-up
+  pass - there's no separate bug in the catch-up logic itself found while
+  reviewing this. See the correction just above (in the original
+  notification-catch-up entry) for a separate documentation mistake this
+  investigation also turned up.
+- Bumped `notification-toast.js` to `v=6` (55 pages).
+
+**Not yet confirmed resolved** - pending Chris confirming the rules paste
++ functions deploy for the notification-catch-up round actually happened.
+If it had already been done before this test and the notification still
+came back, that would point at something else - worth a fresh look with
+the new console.warn in place if so.
+
+## Sign-in header flash on page load: likely inherent, not a regression (Chris, 2026-09-10)
+
+Chris also flagged the main Agora page briefly showing signed-out header
+UI before flipping to "Welcome, River!" on a fresh visit. Traced through
+`auth-ui.js`'s `wireInstance()` rather than guessed at - not fixed this
+round, reasoning recorded here so it isn't re-investigated from scratch:
+
+- **`agoraOnAuthChange` is a bare pass-through to Firebase's own
+  `onAuthStateChanged`** (`auth.js`), no debouncing - and this codebase
+  already has direct, tested evidence of that callback firing twice on a
+  fresh page load (once with `user = null`, before a persisted session
+  finishes resolving, then again with the real user) - see the
+  "Friend request notifications + a stale-notice bug on Dialog pages"
+  entry higher up this file, which hit and fixed the identical pattern
+  on `communiques-dm.html` specifically.
+- **The raw HTML itself already defaults to the signed-out look**
+  (`#agora-signin-btn` has no `hidden` attribute in the markup;
+  `#agora-signout-btn`/`#agora-user-info` do) - so the very first paint,
+  before any JS runs at all, is unavoidably "Sign In," on every page
+  load, for every visitor, signed in or not. What Chris is describing is
+  that gap taking long enough (the screenshot suggests close to a full
+  second) to actually be perceived before the real, resolved auth state
+  arrives and flips it - not a flicker between two different states, a
+  single async delay before the correct one shows.
+- **Not fixed this round because the real fix is a bigger, more
+  opinionated change than the two bugs already fixed today** - the
+  compat SDK used here (`firebase-auth-compat.js`) has no
+  `authStateReady()`-style promise to await before rendering anything
+  (that's a v9+ modular-SDK addition), so eliminating the gap for real
+  would mean either (a) optimistically rendering a *cached* signed-in
+  name from `localStorage` immediately on load, then correcting it once
+  the real auth state resolves (the standard pattern other apps use for
+  exactly this - low risk since nothing sensitive is exposed either way,
+  real enforcement is always server-side via `firestore.rules`
+  regardless of what the header shows), or (b) a debounced reveal that
+  holds off showing *either* state for a short window after the first
+  callback fires. Chris flagged this as an observation, not an explicit
+  fix request - worth building (a) specifically, next time Chris wants it
+  addressed, rather than shipping unprompted this round.
+
+## Real bug: site-search.js's stale-cache 404 on Claude (Chris, 2026-09-10)
+
+Chris searched for "Claude," got a result, clicked it, and hit a 404 -
+the exact cache-busting bug this file's own "Site search 🔍" section
+already documented happening once before with `style.css`, now repeated
+with `site-search.js` itself. The 2026-09-08 retirement commit
+(`55138d7`) removed the deleted `profiles/claude.html` page's entry from
+`site-search.js`'s `STATIC_MEMBER_INDEX` manifest - a real content
+change - but never bumped the script's own `?v=2` query string. Any
+browser (Chris's included) that had `site-search.js?v=2` cached from
+before that commit kept serving the old copy indefinitely, still
+pointing "Claude" at a file that no longer exists - the real Firestore
+profile search path (`loadRealMembers()`, unaffected by this bug)
+should have been the actual result either way, but the stale cached
+script's static entry ranked/matched too.
+
+- Bumped `site-search.js` to `v=3` across all 60 pages that load it -
+  the fix is just the missing cache-bust, no logic changed.
+- **Worth naming as a pattern now that it's happened twice with two
+  different files:** any edit to a `.js`/`.css` file's *content* needs
+  its own `?v=N` bump in the same commit, checked explicitly rather than
+  assumed - a commit that touches one of these files for an unrelated
+  reason (here, deleting a stale search-index line as a side effect of
+  retiring a page) is exactly the kind of edit that's easy to forget to
+  pair with the bump, since the version number lives in 60 separate HTML
+  files, not next to the change itself.
+
+## Friends 🙂 widget cleanup: a bordered box for the request states (Chris, 2026-09-10)
+
+Chris's own screenshot of `member.html`'s Friends widget on a phone:
+"Dialog," "Wants to be friends –," "Accept," and "Decline" all crammed
+into one flex row with no visual grouping, wrapping mid-content and
+reading as cluttered - his ask, close to verbatim, was different-sized
+buttons than Dialog, a container drawn around the request state, and
+everything kept aligned; design left to this session's judgment.
+
+- **New `.friend-request-box`** - a bordered, rounded pill (`border:
+  1px solid var(--line)`, `var(--radius)`, `var(--surface)` background,
+  matching the site's established bordered-container look at a much
+  smaller scale than `.profile-panel`) now wraps both the
+  `#friend-status-received` ("Wants to be friends" + Accept/Decline) and
+  `#friend-status-accepted` ("✓ Friends" + Remove Friend) states - each
+  was a bare `<span>` before, now a `<div>` (`member.js` only ever
+  toggles `.hidden`/reads button IDs on these elements, never assumes the
+  tag, so this needed no JS changes). `#friend-status-sent` ("Friend
+  request sent," no buttons) stays a plain `.form-status` span outside
+  any box - nothing to visually group there.
+- **Accept/Decline/Remove Friend all gained `.btn-sm`** - deliberately
+  smaller than Dialog/Add Friend, the same "smaller size signals
+  secondary action" convention `.btn-sm` already carries from the Wall's
+  per-post Comment toggle vs. the main Post composer - this is the actual
+  answer to "different size than the Dialog button."
+- **`.friend-actions` gained `flex-wrap: wrap`** (it had none before,
+  which is most of why the row read as fighting for space on a phone
+  instead of cleanly dropping the box to its own line under Dialog).
+- **The existing `friendActionIn` entrance-animation selector list**
+  (`.friend-actions button/.form-status/span`) got a fourth entry,
+  `.friend-actions .friend-request-box`, since the two states it used to
+  match directly as bare `<span>`s are now `<div>`s and would otherwise
+  have silently lost the animation.
+- Bumped `style.css` to `v=98` (all 60 pages) - `member.html`-only markup
+  change, so no other page's HTML needed touching.
+
 ## Hive Style 🐝 named (Copilot) + naming the MCP-wrapper product + a new Program: AI Bank Accounts 🏦 (Chris, 2026-09-12)
 
 Three separate items from the same round, none built - naming/roadmap
