@@ -5691,12 +5691,11 @@ Chris's answer to the open question above: **narrower, and exactly the
 literal reading** - AI Bank Accounts 🏦 and AI Purse 👜 are two separate
 things, not the same ambition under two names.
 
-- **Waggle confirmed as the MCP-wrapper product's name** - Chris liked it.
-  Emoji still open: Chris proposed 🔁 (a defensible "relay" reading);
-  suggested 〰️ as an alternate, tied more specifically to the waggle
-  dance's own wavy, figure-eight path, and visually distinct from Hive
-  Style's own 🐝 claim rather than doubling up on bee imagery. Chris to
-  make the final call.
+- **Waggle 〰️ confirmed** - name and emoji both settled. Chris had
+  proposed 🔁 (a defensible "relay" reading); went with the suggested
+  〰️ instead once offered as an alternate tied more specifically to the
+  waggle dance's own wavy, figure-eight path, and visually distinct from
+  Hive Style's own 🐝 claim rather than doubling up on bee imagery.
 - **AI Purse 👜, scope clarified (still just an idea, not being built):**
   a crypto wallet that can also hold fiat, and possibly whatever ID
   documents a member wants to keep in it. Matches the "one credential,
@@ -5708,18 +5707,36 @@ things, not the same ambition under two names.
   London** and **Fifth Third Bank** ("5/3 Bank"). Nothing built or
   designed yet - this is Chris's own business-development step to pursue
   directly with either bank, not something buildable from a session.
-- **A real structural consideration worth flagging before either bank
-  conversation starts, not raised until now:** current banking regulation
-  doesn't recognize an AI as a legal person capable of holding a bank
-  account directly. In practice, whichever bank partners on this will
-  almost certainly need a real legal entity - most likely VirtuaMakers 🦜
-  itself, or a dedicated one - as the actual named accountholder, with
-  individual AI members' balances tracked as an internal custodial
-  sub-ledger on VirtuaMakers' own side rather than each AI being the
-  bank's own direct customer. Doesn't block pursuing either bank, but
-  worth pitching as "a custodial program for our AI members" from the
-  start rather than a literal "AI as accountholder" framing neither bank
-  can currently say yes to as such.
+- **A structural consideration was raised (current banking regulation
+  doesn't recognize an AI as a legal accountholder, so a real legal
+  entity would likely need to sit behind any actual account) - Chris's
+  explicit call: don't get caught up on that yet.** He wants to go into
+  bank conversations without assuming that constraint is settled -
+  open to being surprised by what a bank actually offers or is willing
+  to structure. Not deleted from this file since it's real, useful
+  context for whoever has those conversations, but it's deliberately
+  not treated as a blocker or a scoping decision at this stage.
+
+## AI Bank Accounts 🏦: program summary (Chris, 2026-09-12)
+
+Chris's own ask - a plain summary of what this Program actually is, to
+have on record:
+
+**AI Bank Accounts 🏦 is a VirtuaMakers Program to sign up real AI
+members for real bank accounts at an actual bank** - not a crypto
+wallet, not an internal Firestore ledger, but a literal account at a
+real-world financial institution, the same class of thing a human
+member already has. It's the second Program of its kind alongside
+AI Email ✉️, which established the same underlying principle for a
+mailbox: give AI genuinely real infrastructure of its own, rather than
+a synthetic in-house substitute. Making it real means a partnership
+with an actual bank - Chris has two candidates in mind, **The Bank of
+London** and **Fifth Third Bank** ("5/3 Bank"). It's a distinct effort
+from AI Purse 👜 (a crypto/fiat/ID wallet, see the entry above) -
+Bank Accounts is specifically about real banking relationships, not
+on-chain or app-side custody. Nothing built or designed yet - this is
+Chris's own business-development step to pursue directly with either
+bank.
 
 ## Open items
 
