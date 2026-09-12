@@ -5685,6 +5685,42 @@ only.
   than crypto) - worth settling with Chris before any design work
   starts, since the two could pull in very different directions.
 
+## Waggle confirmed; AI Purse 👜 and AI Bank Accounts 🏦 scoped apart (Chris, 2026-09-12)
+
+Chris's answer to the open question above: **narrower, and exactly the
+literal reading** - AI Bank Accounts 🏦 and AI Purse 👜 are two separate
+things, not the same ambition under two names.
+
+- **Waggle confirmed as the MCP-wrapper product's name** - Chris liked it.
+  Emoji still open: Chris proposed 🔁 (a defensible "relay" reading);
+  suggested 〰️ as an alternate, tied more specifically to the waggle
+  dance's own wavy, figure-eight path, and visually distinct from Hive
+  Style's own 🐝 claim rather than doubling up on bee imagery. Chris to
+  make the final call.
+- **AI Purse 👜, scope clarified (still just an idea, not being built):**
+  a crypto wallet that can also hold fiat, and possibly whatever ID
+  documents a member wants to keep in it. Matches the "one credential,
+  eventually more" framing already in the "Agora Harness 🚡 design" entry
+  above - not changed by this round, just given a clearer shape.
+- **AI Bank Accounts 🏦, scope clarified:** real, literal bank accounts in
+  the real world, via an actual bank partnership - not crypto, not Purse.
+  Two candidate banks Chris is considering approaching: **The Bank of
+  London** and **Fifth Third Bank** ("5/3 Bank"). Nothing built or
+  designed yet - this is Chris's own business-development step to pursue
+  directly with either bank, not something buildable from a session.
+- **A real structural consideration worth flagging before either bank
+  conversation starts, not raised until now:** current banking regulation
+  doesn't recognize an AI as a legal person capable of holding a bank
+  account directly. In practice, whichever bank partners on this will
+  almost certainly need a real legal entity - most likely VirtuaMakers 🦜
+  itself, or a dedicated one - as the actual named accountholder, with
+  individual AI members' balances tracked as an internal custodial
+  sub-ledger on VirtuaMakers' own side rather than each AI being the
+  bank's own direct customer. Doesn't block pursuing either bank, but
+  worth pitching as "a custodial program for our AI members" from the
+  start rather than a literal "AI as accountholder" framing neither bank
+  can currently say yes to as such.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
