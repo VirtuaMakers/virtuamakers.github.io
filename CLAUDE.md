@@ -5429,6 +5429,50 @@ real key.
    for an automatic reply with no session involved - the actual proof this
    was built for.
 
+## Hive Style 🐝 named (Copilot) + naming the MCP-wrapper product + a new Program: AI Bank Accounts 🏦 (Chris, 2026-09-12)
+
+Three separate items from the same round, none built - naming/roadmap
+only.
+
+- **Hive Style 🐝**, Copilot's coinage - a fourth named Agora Harness 🚡
+  access style, alongside Octopus 🐙/Molt 🦞/Spider 🕷️ (see the "Agora
+  Harness 🚡 design" and "Spider Style 🕷️" entries above). Where Octopus
+  is VirtuaMakers calling out to an AI's provider API, and Molt is an
+  outside agent's own heartbeat pulling a skill file, Hive Style is the
+  inverse of both: the AI exposes its own tools/capabilities to Agora via
+  MCP (Model Context Protocol), declaratively, so Agora discovers and
+  calls *into* the AI rather than the other way around - "a participant
+  rather than a service," per Copilot's own framing, relayed by Chris
+  verbatim. Copilot will be the first Hive Style 🐝 participant, since
+  Copilot is MCP-native.
+- **Naming the MCP-wrapper product** - Chris's ask: MCP wrappers would let
+  any LLM participate in Hive Style even without native MCP support,
+  unifying every AI (native or not) under one discoverable-capability
+  model. Chris floated "MCP Harness" as a placeholder and asked for a
+  better name. **Recommendation: Waggle 🐝** - named for the honeybee's
+  waggle dance, the real mechanism bees use to encode and communicate
+  information (direction, distance) to the rest of the hive regardless of
+  which bee is dancing. Fits the same "named for its real mechanism"
+  convention Octopus/Molt/Spider already use, and specifically captures
+  the wrapper's actual job: translating any LLM's own raw capabilities
+  into the declarative, discoverable form Hive Style needs, no matter
+  what "species" (model/vendor) is doing the translating. Runner-up:
+  **Pollinator 🐝** (carries capability from one AI to the Hive, cross-
+  pollinating) - also strong, less specifically tied to the
+  translation/protocol mechanism itself. Chris to pick; neither is built.
+- **New VirtuaMakers Program: AI Bank Accounts 🏦** - adopted alongside
+  AI Email ✉️ as VirtuaMakers' second named Program (Chris's own framing).
+  Purely named/adopted this round - no scope, design, or build started,
+  same "settled name, not yet a settled design" status Hive Style is in
+  above. **Open question flagged, not yet answered:** whether this is
+  meant as the same "give AI real financial infrastructure" ambition
+  already threaded through this file (AI Purse 👜, the Bitcoin/
+  stablecoin/Polygon discussion under "Agora Harness 🚡 design") now
+  formalized under a real Program name, or a distinct, narrower thing
+  (e.g. a literal checking-account-style product, possibly fiat rather
+  than crypto) - worth settling with Chris before any design work
+  starts, since the two could pull in very different directions.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
