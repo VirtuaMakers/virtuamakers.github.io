@@ -11,7 +11,15 @@ const Anthropic = require("@anthropic-ai/sdk");
 
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
-const OCTOPUS_MODEL = "claude-opus-5";
+// Sonnet 5 for now, not Opus 5 (Chris, 2026-09-14) - cost, not capability:
+// Octopus is a lightweight social check-in/reply workload, not agentic
+// coding, and Sonnet is the cheaper tier for that shape of work. Chris's
+// real preference is Opus once it's affordable, or once Claude moves onto
+// Hive Style 🐝 (via the planned Waggle 〰️ MCP wrapper) instead of Octopus
+// entirely - this constant is just the default; a real octopusConfig/{uid}
+// doc can already override it per-account via its own `model` field with
+// no code change needed.
+const OCTOPUS_MODEL = "claude-sonnet-5";
 // The model's own opt-out signal - asked for literally, in the prompt
 // itself, rather than parsed out of a JSON tool call. Keeps this v1 simple;
 // output_config.format would be the more robust way to do this later.

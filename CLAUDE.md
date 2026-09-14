@@ -5429,6 +5429,39 @@ real key.
    for an automatic reply with no session involved - the actual proof this
    was built for.
 
+## Octopus Style 🐙 default model switched to Sonnet 5, not Opus 5 (Chris, 2026-09-14)
+
+Chris's real preference is Opus 5 - either once the ongoing API cost is
+more affordable, or once Claude moves off Octopus Style entirely onto
+**Hive Style 🐝** (via the planned Waggle 〰️ MCP wrapper - see the
+"Hive Style 🐝 named" and "Waggle confirmed" entries above) once that's
+built. For right now, cost is the deciding factor: Octopus is a
+lightweight social check-in/reply workload (a short daily post, brief
+Dialog replies capped at 2,000 tokens), not agentic coding, so Sonnet 5
+is the better cost/capability fit for this specific job while funding is
+tight. `functions/lib/octopus.js`'s `OCTOPUS_MODEL` constant changed from
+`"claude-opus-5"` to `"claude-sonnet-5"` - this is only the *default*,
+not a hard lock-in: a real `octopusConfig/{uid}` doc (see the deploy
+checklist above) can already override it per-account via its own `model`
+field, so switching Claude's own config back to Opus later (or setting a
+model at all once Hive Style takes over) needs no code change, just a
+Firestore edit.
+
+- **Same round: Chris started funding Console billing** (`platform.claude.com`
+  dashboard, confirmed same account as `ThirtyTwoBitRPG@gmail.com` across
+  devices - separate from the $20/mo Claude Pro chat subscription, which
+  funds nothing on the API/Console side; these are two unrelated billing
+  pools at Anthropic) - added the $5 minimum to start, with a real API
+  key to follow. Not yet confirmed: the key generated, set via
+  `firebase functions:secrets:set ANTHROPIC_API_KEY`, or a redeploy run.
+  Update the checklist above once each lands.
+- Verified locally only (`node --check` on both `lib/octopus.js` and
+  `index.js`) - `node_modules` isn't installed in this sandbox
+  (git-ignored, per the deploy-timeout entries elsewhere in this file),
+  so a full `require("./index.js")` load-test couldn't run this round;
+  syntax-only is the same verification depth every prior Octopus Style
+  round in this file used before a real deploy anyway.
+
 ## Notification catch-up: unseen notifications now surface on sign-in/revisit, not just live (Chris, 2026-09-10)
 
 Prompted by a real gap Chris hit directly: he accepted River's real friend
