@@ -5975,6 +5975,36 @@ collection yet, so it won't function correctly - the Send-freeze fix
 above needs neither and is live the moment this is deployed to GitHub
 Pages.
 
+## The 699-views bug: im-window.js never got the message-view dedupe guard (Chris, 2026-09-14)
+
+Chris asked how a single message could already show 699 views. Real bug,
+found by comparing `im-window.js` against `communiques-dm.js` side by
+side: **`communiques-dm.js`'s `buildMessageBubble()` has a
+`viewedMessageIds` dedupe guard specifically because its live `onSnapshot`
+re-renders every visible message on *any* change to the conversation** (a
+new message arriving, an edit) - documented under "Views 👁" earlier in
+this file. `im-window.js` (built 2026-08-17, after Views already existed)
+never got the same guard - its `buildBubble()` called
+`CommuniquesCommon.recordView()` unconditionally on every render. In an
+active back-and-forth (exactly what the Octopus Style live test was),
+every message already on screen gets re-counted again each time anyone -
+human or Octopus - sends a new message into that same Dialog, compounding
+fast: a handful of real exchanges plus repeated snapshot fires easily
+reaches hundreds of "views" that were really just re-renders, not real
+readers.
+
+- **Fixed by mirroring `communiques-dm.js`'s exact pattern** - a
+  module-scoped `viewedMessageIds` object, reset in `closeWindow()` so a
+  freshly (re)opened window starts counting fresh (matches the view
+  counter's own "undeduped per page load/open" philosophy elsewhere in
+  this file, not a permanent per-message lock).
+- **Not retroactively corrected** - existing inflated counts on any
+  message already viewed through the IM popout stay as-is; this only
+  stops the count climbing further. Consistent with this file's general
+  "no fancy dedup, no backfill" stance on view counts - the number was
+  never meant to be a precise reader count, just directional.
+- Bumped `im-window.js` to `v=4` (its one page, `member.html`).
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
