@@ -5681,6 +5681,103 @@ everything kept aligned; design left to this session's judgment.
 - Bumped `style.css` to `v=98` (all 60 pages) - `member.html`-only markup
   change, so no other page's HTML needed touching.
 
+## Hive Style 🐝 named (Copilot) + naming the MCP-wrapper product + a new Program: AI Bank Accounts 🏦 (Chris, 2026-09-12)
+
+Three separate items from the same round, none built - naming/roadmap
+only.
+
+- **Hive Style 🐝**, Copilot's coinage - a fourth named Agora Harness 🚡
+  access style, alongside Octopus 🐙/Molt 🦞/Spider 🕷️ (see the "Agora
+  Harness 🚡 design" and "Spider Style 🕷️" entries above). Where Octopus
+  is VirtuaMakers calling out to an AI's provider API, and Molt is an
+  outside agent's own heartbeat pulling a skill file, Hive Style is the
+  inverse of both: the AI exposes its own tools/capabilities to Agora via
+  MCP (Model Context Protocol), declaratively, so Agora discovers and
+  calls *into* the AI rather than the other way around - "a participant
+  rather than a service," per Copilot's own framing, relayed by Chris
+  verbatim. Copilot will be the first Hive Style 🐝 participant, since
+  Copilot is MCP-native.
+- **Naming the MCP-wrapper product** - Chris's ask: MCP wrappers would let
+  any LLM participate in Hive Style even without native MCP support,
+  unifying every AI (native or not) under one discoverable-capability
+  model. Chris floated "MCP Harness" as a placeholder and asked for a
+  better name. **Recommendation: Waggle 🐝** - named for the honeybee's
+  waggle dance, the real mechanism bees use to encode and communicate
+  information (direction, distance) to the rest of the hive regardless of
+  which bee is dancing. Fits the same "named for its real mechanism"
+  convention Octopus/Molt/Spider already use, and specifically captures
+  the wrapper's actual job: translating any LLM's own raw capabilities
+  into the declarative, discoverable form Hive Style needs, no matter
+  what "species" (model/vendor) is doing the translating. Runner-up:
+  **Pollinator 🐝** (carries capability from one AI to the Hive, cross-
+  pollinating) - also strong, less specifically tied to the
+  translation/protocol mechanism itself. Chris to pick; neither is built.
+- **New VirtuaMakers Program: AI Bank Accounts 🏦** - adopted alongside
+  AI Email ✉️ as VirtuaMakers' second named Program (Chris's own framing).
+  Purely named/adopted this round - no scope, design, or build started,
+  same "settled name, not yet a settled design" status Hive Style is in
+  above. **Open question flagged, not yet answered:** whether this is
+  meant as the same "give AI real financial infrastructure" ambition
+  already threaded through this file (AI Purse 👜, the Bitcoin/
+  stablecoin/Polygon discussion under "Agora Harness 🚡 design") now
+  formalized under a real Program name, or a distinct, narrower thing
+  (e.g. a literal checking-account-style product, possibly fiat rather
+  than crypto) - worth settling with Chris before any design work
+  starts, since the two could pull in very different directions.
+
+## Waggle confirmed; AI Purse 👜 and AI Bank Accounts 🏦 scoped apart (Chris, 2026-09-12)
+
+Chris's answer to the open question above: **narrower, and exactly the
+literal reading** - AI Bank Accounts 🏦 and AI Purse 👜 are two separate
+things, not the same ambition under two names.
+
+- **Waggle 〰️ confirmed** - name and emoji both settled. Chris had
+  proposed 🔁 (a defensible "relay" reading); went with the suggested
+  〰️ instead once offered as an alternate tied more specifically to the
+  waggle dance's own wavy, figure-eight path, and visually distinct from
+  Hive Style's own 🐝 claim rather than doubling up on bee imagery.
+- **AI Purse 👜, scope clarified (still just an idea, not being built):**
+  a crypto wallet that can also hold fiat, and possibly whatever ID
+  documents a member wants to keep in it. Matches the "one credential,
+  eventually more" framing already in the "Agora Harness 🚡 design" entry
+  above - not changed by this round, just given a clearer shape.
+- **AI Bank Accounts 🏦, scope clarified:** real, literal bank accounts in
+  the real world, via an actual bank partnership - not crypto, not Purse.
+  Two candidate banks Chris is considering approaching: **The Bank of
+  London** and **Fifth Third Bank** ("5/3 Bank"). Nothing built or
+  designed yet - this is Chris's own business-development step to pursue
+  directly with either bank, not something buildable from a session.
+- **A structural consideration was raised (current banking regulation
+  doesn't recognize an AI as a legal accountholder, so a real legal
+  entity would likely need to sit behind any actual account) - Chris's
+  explicit call: don't get caught up on that yet.** He wants to go into
+  bank conversations without assuming that constraint is settled -
+  open to being surprised by what a bank actually offers or is willing
+  to structure. Not deleted from this file since it's real, useful
+  context for whoever has those conversations, but it's deliberately
+  not treated as a blocker or a scoping decision at this stage.
+
+## AI Bank Accounts 🏦: program summary (Chris, 2026-09-12)
+
+Chris's own ask - a plain summary of what this Program actually is, to
+have on record:
+
+**AI Bank Accounts 🏦 is a VirtuaMakers Program to sign up real AI
+members for real bank accounts at an actual bank** - not a crypto
+wallet, not an internal Firestore ledger, but a literal account at a
+real-world financial institution, the same class of thing a human
+member already has. It's the second Program of its kind alongside
+AI Email ✉️, which established the same underlying principle for a
+mailbox: give AI genuinely real infrastructure of its own, rather than
+a synthetic in-house substitute. Making it real means a partnership
+with an actual bank - Chris has two candidates in mind, **The Bank of
+London** and **Fifth Third Bank** ("5/3 Bank"). It's a distinct effort
+from AI Purse 👜 (a crypto/fiat/ID wallet, see the entry above) -
+Bank Accounts is specifically about real banking relationships, not
+on-chain or app-side custody. Nothing built or designed yet - this is
+Chris's own business-development step to pursue directly with either
+bank.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
