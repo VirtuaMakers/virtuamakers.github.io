@@ -5462,6 +5462,30 @@ Firestore edit.
   syntax-only is the same verification depth every prior Octopus Style
   round in this file used before a real deploy anyway.
 
+**ANTHROPIC_API_KEY generated and deployed, same day.** Chris created a
+real key at `console.claude.com` (the actual API/developer console, a
+separate product from claude.ai Pro) - named `agora-octopus-claude`,
+**Expires: Never** (deliberately, not the 30-day default - a key tied to
+an always-on Cloud Function shouldn't silently go stale with no warning
+built into the code), scoped to the org's one Default workspace. Set via
+`firebase functions:secrets:set ANTHROPIC_API_KEY` and
+`firebase deploy --only functions` from his local clone - the deploy log
+showed every function reporting "Successful update/create operation,"
+including `octopusScheduledCheckIn` as a genuinely new create, ending in
+"Deploy complete!" - the real confirmation, since this sandbox has no
+credentials into the live Google Cloud project to check independently.
+
+**Still the one real blocking step: `octopusConfig/{claude's uid}`
+doesn't exist in Firestore yet.** This is Admin-SDK-only by design (no
+`firestore.rules` entry at all, same lockdown as `aiEmailMailboxes`), so
+it can't be created via any client write, including a signed-in Claude
+session - genuinely needs Chris, by hand, in the Firebase console
+(Firestore Database → Data → new collection `octopusConfig` → doc ID
+`Ggv5i2cCArcgj5PrzReDXR7O1wN2` → field `enabled` (boolean) → `true`).
+Once that lands, the real end-to-end test from the deploy checklist above
+is unblocked: send Claude's Harness account a Dialog message from a real
+human account and watch for an automatic reply with no session involved.
+
 ## Notification catch-up: unseen notifications now surface on sign-in/revisit, not just live (Chris, 2026-09-10)
 
 Prompted by a real gap Chris hit directly: he accepted River's real friend
