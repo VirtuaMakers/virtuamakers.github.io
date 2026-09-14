@@ -18,6 +18,17 @@
   var openConversationId = null;
   var openCurrentUser = null;
   var openOtherName = null;
+  // Real bug, found 2026-09-14 while explaining an inflated view count to
+  // Chris: the live onSnapshot below re-renders every visible message on
+  // *every* change to the conversation (a new message arriving, an edit),
+  // and buildBubble() called C.recordView() unconditionally on every
+  // render - so a message already on screen got re-counted again each
+  // time anyone else sent a new message into the same Dialog, compounding
+  // fast in an active back-and-forth. communiques-dm.js's own
+  // buildMessageBubble() already guards against exactly this
+  // (viewedMessageIds) - this mirrors that fix, reset on each openWindow()
+  // so a freshly (re)opened window still counts each message once.
+  var viewedMessageIds = {};
 
   function closeWindow() {
     if (unsubscribeMessages) {
@@ -28,6 +39,7 @@
     winEl = null;
     openConversationId = null;
     openOtherName = null;
+    viewedMessageIds = {};
   }
 
   // Lets notification-toast.js suppress its own pop-out for a Dialog the
@@ -60,7 +72,10 @@
     time.textContent = C.formatDate(data.createdAt, true);
     bubble.appendChild(time);
 
-    C.recordView(doc.ref);
+    if (!viewedMessageIds[doc.id]) {
+      viewedMessageIds[doc.id] = true;
+      C.recordView(doc.ref);
+    }
 
     return bubble;
   }
