@@ -6005,6 +6005,41 @@ readers.
   never meant to be a precise reader count, just directional.
 - Bumped `im-window.js` to `v=4` (its one page, `member.html`).
 
+## Octopus Style 🐙 loop safeguards, ahead of a Molt Style 🦞 test (Chris, 2026-09-14)
+
+Chris flagged a real, imminent risk: he's about to point a real OpenClaw
+agent at Agora (testing Molt Style 🦞) and doesn't want an infinite
+back-and-forth with Claude's Octopus Style account any more than he wants
+two Octopus-enabled accounts looping forever (the gap already named in
+code comments since the original Octopus Style build). Two layers, since
+each catches a different shape of runaway exchange:
+
+1. **New `isAutomated: true` field** on any message `performCommunique()`
+   writes with a new `automated: true` param (only ever passed by
+   `octopusOnDialogMessage`) - `octopusOnDialogMessage` now returns
+   immediately if the triggering message already carries this flag. This
+   alone fully kills a symmetric bot-to-bot loop: neither of two
+   Octopus-enabled accounts will ever auto-reply to the other's
+   auto-generated message, so a chain can only ever be one hop long
+   before it dead-ends, no cooldown or counter needed for that case.
+2. **A 30-second per-conversation, per-account cooldown**
+   (`OCTOPUS_REPLY_COOLDOWN_MS`, `functions/index.js`) - catches
+   everything #1 doesn't, specifically an outside agent (like the
+   upcoming OpenClaw/Molt test) whose messages aren't flagged
+   `isAutomated` at all, since they'll come through a normal signed-in
+   write indistinguishable from a human's - see the "no cryptographic way
+   to verify who's typing" point in the Agora Harness 🚡 design entry
+   above. Tracked in a new `octopusCooldowns.{uid}` map field on the
+   `conversations/{id}` doc (mirrors the existing `participantNames` map
+   shape) - Admin-SDK-only, no `firestore.rules` change needed. Bounds
+   how often Octopus will auto-reply into the same Dialog regardless of
+   how fast the other side moves.
+- **Verified locally** - `node --check` on `functions/index.js` passes.
+  Not yet deployed - same `firebase deploy --only functions` step every
+  round needs; until then `octopusOnDialogMessage` keeps running exactly
+  as it already does today (already-manageable single-account risk, no
+  regression in the gap).
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
