@@ -148,10 +148,15 @@ service cloud.firestore {
       match /messages/{messageId} {
         allow read: if request.auth != null;
 
+        // canSendInConversation() re-checks the block relationship on
+        // every message, not just at Dialog creation (Chris, 2026-09-14) -
+        // a block made mid-conversation should stop new messages
+        // immediately, the same way canPostToWall()/canCreateComment()
+        // already re-check on every Wall write, not just the first one.
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
-          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants
-          && validBody(request.resource.data.body);
+          && validBody(request.resource.data.body)
+          && canSendInConversation(request.auth.uid, conversationId);
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
@@ -244,7 +249,8 @@ service cloud.firestore {
         && request.resource.data.participants.size() == 2
         && request.auth.uid in request.resource.data.participants
         && request.resource.data.requestedBy == request.auth.uid
-        && request.resource.data.status == 'pending';
+        && request.resource.data.status == 'pending'
+        && !isBlocked(request.resource.data.participants[0], request.resource.data.participants[1]);
 
       // Only the *other* participant can accept a pending request - the
       // requester can't accept their own request to skip the other
@@ -261,6 +267,49 @@ service cloud.firestore {
       // pending request, declining one, or unfriending later.
       allow delete: if request.auth != null
         && request.auth.uid in resource.data.participants;
+    }
+
+    // Blocking (Chris, 2026-09-14) - a real per-person block, the gap
+    // flagged once Octopus Style's own live test made "so long as you can
+    // block someone, they should be able to dialog whoever" a real
+    // question rather than a hypothetical. Deliberately directional, not a
+    // sorted pair like friendships/conversations - a block is one person's
+    // own decision about another, not a mutual state either side agreed
+    // to, so A blocking B and B blocking A are two independent possible
+    // docs, not one shared one. Doc ID is "{blockerUid}_{blockedUid}"
+    // (unsorted, unlike friendships/conversations) so the two uids can be
+    // read directly off the path via split('_') - this avoids needing the
+    // friendships collection's own !exists()-before-resource.data gotcha
+    // entirely, since the read rule never needs to look at resource.data
+    // at all, only the path itself.
+    //
+    // Deliberately asymmetric visibility: only the blocker can ever read
+    // their own block record - the blocked person is never told they've
+    // been blocked, matching how blocking works on every mainstream social
+    // platform (Facebook, X, etc.) and Chris's own "you can block someone"
+    // framing, which was about a real tool existing, not about announcing
+    // it. isBlocked() below (used by canMessage()/canPostToWall()/
+    // canSendInConversation()) checks both directions via get()/exists(),
+    // which always succeeds server-side regardless of the caller's own
+    // read permissions - the same mechanic isFriendsWith() already relies
+    // on - so a block still silently prevents contact both ways even
+    // though only the blocker can see the record that's doing it.
+    match /blocks/{blockId} {
+      allow read: if request.auth != null
+        && request.auth.uid == blockId.split('_')[0];
+
+      allow create: if request.auth != null
+        && blockId.split('_')[0] == request.auth.uid
+        && blockId.split('_')[1] == request.resource.data.blockedUid
+        && request.resource.data.blockerUid == request.auth.uid
+        && request.resource.data.blockedUid is string
+        && request.resource.data.blockedUid != request.auth.uid;
+
+      // Unblocking - only the blocker can remove their own block.
+      allow delete: if request.auth != null
+        && blockId.split('_')[0] == request.auth.uid;
+
+      allow update: if false;
     }
 
     // Newsletter 📬 - a single draft doc (subject + plain-text body) that
@@ -360,6 +409,15 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/friendships/$(friendshipId)).data.status == 'accepted';
     }
 
+    // Blocking is checked in both directions - either party having blocked
+    // the other stops all contact between them, not just the direction the
+    // block was made in (matches canMessage()/canPostToWall() both being
+    // asked "can these two interact," not "did the sender get blocked").
+    function isBlocked(a, b) {
+      return exists(/databases/$(database)/documents/blocks/$(a + '_' + b))
+        || exists(/databases/$(database)/documents/blocks/$(b + '_' + a));
+    }
+
     // Whether `uid` has opted into requiring an accepted friendship before
     // anyone can message them (Chris, 2026-08-06 - messaging is open by
     // default; this is the opt-in exception, set from create-profile.html).
@@ -374,7 +432,16 @@ service cloud.firestore {
     // unless the target requires friendship, in which case the sender must
     // already be friends with them.
     function canMessage(sender, target) {
-      return !requiresFriendship(target) || isFriendsWith(sender, target);
+      return !isBlocked(sender, target)
+        && (!requiresFriendship(target) || isFriendsWith(sender, target));
+    }
+
+    // Re-checked on every message, not just when a Dialog is first
+    // created - see the messages/{messageId} create rule above.
+    function canSendInConversation(sender, conversationId) {
+      let conv = get(/databases/$(database)/documents/conversations/$(conversationId)).data;
+      return sender in conv.participants
+        && !isBlocked(conv.participants[0], conv.participants[1]);
     }
 
     // Same opt-in shape as requiresFriendship() above, but for posting on
@@ -395,8 +462,8 @@ service cloud.firestore {
     // ever exist.
     function canPostToWall(sender, wallOwner) {
       return sender == wallOwner
-        || !requiresFriendshipToPost(wallOwner)
-        || isFriendsWith(sender, wallOwner);
+        || (!isBlocked(sender, wallOwner)
+          && (!requiresFriendshipToPost(wallOwner) || isFriendsWith(sender, wallOwner)));
     }
 
     // A comment lands on the same Wall a top-level post would, so it's

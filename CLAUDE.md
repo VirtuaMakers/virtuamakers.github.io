@@ -5872,6 +5872,109 @@ on-chain or app-side custody. Nothing built or designed yet - this is
 Chris's own business-development step to pursue directly with either
 bank.
 
+## Blocking 🚫, and a real Send-freeze bug fixed in both Dialog composers (Chris, 2026-09-14)
+
+Chris's live Octopus Style test (see the entry above) surfaced two things
+at once: a real, reproduced bug in the IM popout's Send button, and a
+direct ask - "so long as you can block someone, they should be able to
+dialog whoever (for now, maybe)... can you build out the blocking
+feature?" Both fixed the same round.
+
+- **The Send-freeze bug, root-caused, not just patched around.** Chris's
+  repro was precise: clicking Send visibly disabled the button ("the
+  colors blinked"), then nothing else ever happened - no error, no post,
+  the typed message stuck in the compose box until he navigated away.
+  Root cause: `im-window.js`'s (and, found by inspection,
+  `communiques-dm.js`'s identical) submit handler called
+  `AgoraModeration.checkText(...).then(function (result) {...})` with
+  **no `.catch()` anywhere on that outer chain** - if anything inside that
+  callback ever threw synchronously, or the promise it returned never
+  settled, the button stayed disabled forever with nothing to tell the
+  user or recover. This is the same failure shape as `profile-form.js`'s
+  own "Saving…" could hang forever" bug fixed back on 2026-08-15 - so the
+  fix is the same pattern: a new shared `CommuniquesCommon.withTimeout()`
+  helper (`communiques-common.js`, mirroring `profile-form.js`'s own
+  `withTimeout()`) races the whole send chain against a 20-second
+  deadline and rejects with a friendly "Sending is taking longer than
+  expected… check your connection and try again." message. Both
+  `im-window.js` and `communiques-dm.js` were flattened into a single
+  promise chain wrapped in `C.withTimeout(...)`, with one top-level
+  `.catch()` that always re-enables the Send button and always shows an
+  error - the button can never again get stuck disabled with no
+  explanation and no way to retry.
+- **New `blocks/{blockerUid}_{blockedUid}` collection** - directional
+  (unlike friendships'/conversations' sorted pair, since a block is one
+  person's own decision, not something both sides agree to), doc ID
+  literally `"{blockerUid}_{blockedUid}"` so the two uids can be read off
+  the path itself via `split('_')` in `firestore.rules` - this sidesteps
+  the friendships collection's own `!exists()`-before-`resource.data`
+  gotcha entirely, since the read rule never needs `resource.data` at all.
+  **Deliberately private to the blocker** - only the blocker can ever read
+  their own block doc; the blocked person is never told, matching how
+  blocking works on every mainstream platform (Facebook, X, etc.).
+  `isBlocked(a, b)` (rules) checks both directions via `exists()`, which
+  always succeeds server-side regardless of the caller's own read
+  permission - same mechanic `isFriendsWith()` already relies on - so a
+  block silently prevents contact both ways even though only the blocker
+  can see the record doing it.
+- **Wired into every real choke point, not just Dialog creation:**
+  `canMessage()` and `canPostToWall()` both gained an `!isBlocked(...)`
+  check; a new `canSendInConversation()` re-checks the block on **every**
+  message sent into an already-existing Dialog (not just at creation) -
+  a block made mid-conversation now stops new messages immediately, the
+  same way `canPostToWall()`/`canCreateComment()` already re-check
+  `requireFriendToPost` on every Wall write, not just the first one. The
+  `friendships` `create` rule also gained the check, so a block prevents
+  a new friend request too.
+- **Also replicated server-side in `functions/index.js`'s
+  `performCommunique()`** - since that Admin-SDK path bypasses
+  `firestore.rules` entirely (used by both the pending
+  `submitAgoraCommunique` endpoint and, critically, Octopus Style's own
+  `octopusOnDialogMessage`/`octopusScheduledCheckIn` triggers), a new
+  `isBlocked(db, a, b)` helper mirrors the rules-side one exactly. This is
+  the one thing standing between a block and an Octopus-enabled AI account
+  still generating and posting a reply into a blocked relationship - now
+  closed at the same single choke point every other `performCommunique()`
+  check already goes through.
+- **Client-side UI on `member.html`** - a small "Block"/"🚫 Blocked +
+  Unblock" pair added to the existing `.friend-actions` container (same
+  `.friend-request-box`/`.btn-sm` styling as the Accept/Decline/Remove
+  Friend states, no new CSS needed). Blocking someone automatically
+  deletes any existing friendship between you (best-effort, since staying
+  "friends" with someone you just blocked is a contradiction) and hides
+  Add Friend/Message/Wall-composer access to them, mirroring
+  `updateMessageButtonVisibility()`'s existing "never offer an action the
+  rules would reject" philosophy. Confirms via `window.confirm()` first
+  and states plainly, in the confirm text itself, that the blocked member
+  is never told.
+- **A permission-denied on a Wall post, Dialog message, or friend request
+  now reads the same whether the real cause is "requires friendship" or
+  "you're blocked"** - deliberate, not an oversight: Firestore's own error
+  gives no way to distinguish the two, and blocking is designed to be
+  invisible to the blocked person, so a message that gave away "you're
+  specifically blocked" would leak exactly what blocking exists to hide.
+  New shared `CommuniquesCommon.friendlyPermissionError(err,
+  fallbackMessage)` generalizes the existing (previously Wall-only,
+  never-exported) `friendlyWallError()` and is now also used by
+  `im-window.js`/`communiques-dm.js` (Dialogs) and `member.js`'s
+  `runFriendAction()` (friend requests).
+- Bumped `communiques-common.js` to `v=15` (54 pages), `im-window.js` to
+  `v=3` (its one page), `communiques-dm.js` to `v=12` (its one page), and
+  `member.js` to `v=30` (its one page) - no `style.css` changes, so no
+  version bump there.
+
+**Needs from Chris before any of this is actually live:** paste the
+updated `firestore.rules` into the Firebase console (the new
+`blocks/{blockId}` match block, `isBlocked()`, `canSendInConversation()`,
+and the `!isBlocked(...)` additions to `canMessage()`/`canPostToWall()`/
+the friendships `create` rule) and `firebase deploy --only functions` to
+pick up `performCommunique()`'s own `isBlocked()` check - same two manual
+steps every recent round has needed. Until both land, the client-side
+Block/Unblock UI writes/reads against rules that don't have the `blocks`
+collection yet, so it won't function correctly - the Send-freeze fix
+above needs neither and is live the moment this is deployed to GitHub
+Pages.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

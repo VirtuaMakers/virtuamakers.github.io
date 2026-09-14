@@ -359,6 +359,7 @@
     if (profileData) refreshControls();
     loadProfile();
     watchFriendship();
+    watchBlock();
     loadFriendsList();
   });
 
@@ -469,6 +470,10 @@
       messageBtn.hidden = true;
       return;
     }
+    if (viewerHasBlocked) {
+      messageBtn.hidden = true;
+      return;
+    }
     var isFriend = !document.getElementById("friend-status-accepted").hidden;
     messageBtn.hidden = !!profileData.requireFriendToMessage && !isFriend;
   }
@@ -487,6 +492,11 @@
     if (currentUser.uid === uid) {
       wallPostForm.hidden = false;
       wallPostRestrictedNotice.hidden = true;
+      return;
+    }
+    if (viewerHasBlocked) {
+      wallPostForm.hidden = true;
+      wallPostRestrictedNotice.hidden = false;
       return;
     }
     var isFriend = !document.getElementById("friend-status-accepted").hidden;
@@ -544,6 +554,8 @@
   // friends list when you're viewing your own profile - never someone
   // else's friends list from their page.
 
+  var viewerHasBlocked = false;
+
   var friendActions = document.getElementById("friend-actions");
   var friendAddBtn = document.getElementById("friend-add-btn");
   var friendStatusSent = document.getElementById("friend-status-sent");
@@ -566,7 +578,7 @@
     friendActionsError.hidden = true;
     button.disabled = true;
     promise.catch(function (err) {
-      friendActionsError.textContent = err.message;
+      friendActionsError.textContent = C.friendlyPermissionError(err, "This member isn't accepting friend requests from you right now.");
       friendActionsError.hidden = false;
     }).then(function () {
       button.disabled = false;
@@ -586,6 +598,13 @@
     friendStatusSent.hidden = true;
     friendStatusReceived.hidden = true;
     friendStatusAccepted.hidden = true;
+
+    // A blocked profile shows only the 🚫 Blocked/Unblock state above -
+    // an Add Friend button sitting right next to it would read as
+    // contradictory (and would just fail against the rules anyway, since
+    // renderBlockStatus() already deletes any friendship the moment a
+    // block is made).
+    if (viewerHasBlocked) return;
 
     if (!doc || !doc.exists) {
       friendAddBtn.hidden = false;
@@ -654,6 +673,78 @@
   friendRemoveBtn.addEventListener("click", function () {
     if (!window.confirm("Remove this friend?")) return;
     runFriendAction(friendRemoveBtn, friendshipRef().delete());
+  });
+
+  // --- Blocking 🚫 -------------------------------------------------------
+  // Real, per-person block (Chris, 2026-09-14, prompted directly by the
+  // Octopus Style 🐙 live test: "so long as you can block someone, they
+  // should be able to dialog whoever"). Directional (doc ID
+  // "{blockerUid}_{blockedUid}", unlike friendships'/conversations' sorted
+  // pair) and private to the blocker per firestore.rules - the blocked
+  // person is never told, same convention as every mainstream platform's
+  // own block feature. Enforced server-side in canMessage()/
+  // canPostToWall()/canSendInConversation()/the friendships create rule;
+  // this UI is just the client-side mirror, same "never offer an action
+  // the rules would reject" philosophy as updateMessageButtonVisibility()
+  // above.
+  var blockBtn = document.getElementById("block-btn");
+  var blockStatus = document.getElementById("block-status");
+  var unblockBtn = document.getElementById("unblock-btn");
+  var unsubscribeBlock = null;
+
+  function blockRef() {
+    return AgoraDB.collection("blocks").doc(currentUser.uid + "_" + uid);
+  }
+
+  function renderBlockStatus(doc) {
+    viewerHasBlocked = !!(doc && doc.exists);
+    blockBtn.hidden = viewerHasBlocked;
+    blockStatus.hidden = !viewerHasBlocked;
+    if (viewerHasBlocked) {
+      // Blocking someone you're still friends with (or have a pending
+      // request with) is a contradiction - sever it the moment a block is
+      // confirmed, same reasoning as canPostToWall()'s own
+      // sender == wallOwner short-circuit existing for a different
+      // contradiction. Best-effort: the friendships listener already
+      // re-renders correctly whether this succeeds, fails, or the doc
+      // never existed in the first place.
+      friendshipRef().delete().catch(function () {});
+    }
+    updateMessageButtonVisibility();
+    updateWallComposerVisibility();
+  }
+
+  function watchBlock() {
+    if (unsubscribeBlock) {
+      unsubscribeBlock();
+      unsubscribeBlock = null;
+    }
+    if (!currentUser || !uid || currentUser.uid === uid) {
+      viewerHasBlocked = false;
+      blockBtn.hidden = true;
+      blockStatus.hidden = true;
+      return;
+    }
+    unsubscribeBlock = blockRef().onSnapshot(renderBlockStatus);
+  }
+
+  blockBtn.addEventListener("click", function () {
+    if (!currentUser || !uid) return;
+    var otherName = (profileData && profileData.preferHandle && profileData.handle)
+      ? profileData.handle : ((profileData && profileData.name) || "this member");
+    if (!window.confirm("Block " + otherName + "? They won't be able to message you, post on your Wall, or "
+      + "send you a friend request. You can unblock them anytime, and they're never told they've been blocked.")) {
+      return;
+    }
+    runFriendAction(blockBtn, blockRef().set({
+      blockerUid: currentUser.uid,
+      blockedUid: uid,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }));
+  });
+
+  unblockBtn.addEventListener("click", function () {
+    runFriendAction(unblockBtn, blockRef().delete());
   });
 
   function renderFriendsList(docs) {

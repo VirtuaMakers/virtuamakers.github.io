@@ -201,17 +201,17 @@
     composeStatus.hidden = false;
 
     var conversationRef = activeConversationRef;
-    AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationRef.id }).then(function (result) {
+    var blocked = false;
+    var sendChain = AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationRef.id }).then(function (result) {
       if (result.decision === "block") {
-        composeSubmit.disabled = false;
-        composeStatus.hidden = true;
+        blocked = true;
         AgoraModeration.showBlocked(composeError, result.logId);
         return;
       }
 
       var now = firebase.firestore.FieldValue.serverTimestamp();
       jumpToLastOnNextRender = true;
-      conversationRef.collection("messages").add({
+      return conversationRef.collection("messages").add({
         authorUid: currentUser.uid,
         body: body,
         createdAt: now,
@@ -224,15 +224,27 @@
         });
       }).then(function () {
         document.getElementById("dm-compose-body").value = "";
-        composeSubmit.disabled = false;
-        composeStatus.hidden = true;
-      }).catch(function (err) {
-        composeSubmit.disabled = false;
-        composeStatus.hidden = true;
-        composeError.textContent = err.message;
-        composeError.hidden = false;
       });
     });
+
+    // A stuck promise chain shouldn't leave the button disabled forever
+    // with no error and no way to retry - see communiques-common.js's
+    // withTimeout() for the real bug this fixes (2026-09-14).
+    C.withTimeout(sendChain, 20000, "Sending is taking longer than expected… check your connection and try again.")
+      .then(function () {
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+      })
+      .catch(function (err) {
+        composeSubmit.disabled = false;
+        composeStatus.hidden = true;
+        if (!blocked) {
+          composeError.textContent = err
+            ? C.friendlyPermissionError(err, "This member isn't accepting Dialogs from you right now.")
+            : "Something went wrong sending this message.";
+          composeError.hidden = false;
+        }
+      });
   });
 
   agoraOnAuthChange(function (user) {

@@ -161,6 +161,28 @@
     return Date.now() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
   }
 
+  // Same "a stuck promise chain shouldn't hang the UI forever with no
+  // error and no way out" fix as profile-form.js's own withTimeout()
+  // (Chris, 2026-08-15) - races a promise against a deadline and rejects
+  // with a friendly message if it never settles. Real bug this backs, 2026-
+  // 09-14: a Dialog send's compose button could get stuck disabled forever
+  // (colors "blink" on disable, then nothing) with the message still sat
+  // in the box - the send chain had no top-level .catch() at all, so a
+  // synchronous throw partway through (or a promise that never settles)
+  // silently died with no recovery. Used by both communiques-dm.js's full
+  // compose form and im-window.js's popout, which had the identical gap.
+  function withTimeout(promise, ms, message) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () {
+        reject(new Error(message));
+      }, ms);
+      promise.then(
+        function (value) { clearTimeout(timer); resolve(value); },
+        function (err) { clearTimeout(timer); reject(err); }
+      );
+    });
+  }
+
   // Communiqués content outlives its own author (Chris, 2026-09-08) - a
   // Wall post/comment or Dialog message stores authorName as a plain
   // string at write time, so it never reflects a profile deleted since.
@@ -324,11 +346,22 @@
     // "permission-denied" is translated into the same plain-language
     // explanation member.js's own composer-hidden notice already uses,
     // instead of leaking Firestore's own error text (Chris, 2026-08-20).
-    function friendlyWallError(err) {
-      if (err && err.code === "permission-denied") {
-        return "This member only accepts Wall posts and comments from friends.";
-      }
+    // Generalized once Blocking (Chris, 2026-09-14) meant a permission-
+    // denied on any of these writes could now also mean "you've been
+    // blocked," not just "this member requires friendship first" - shown
+    // with the same wording rather than distinguished, since Firestore's
+    // own error gives no way to tell them apart, and blocking is meant to
+    // be invisible to the blocked person (see firestore.rules' own
+    // blocks/{blockId} comment) - a message that gave away "you're
+    // blocked" specifically would leak exactly what blocking exists to
+    // hide.
+    function friendlyPermissionError(err, fallbackMessage) {
+      if (err && err.code === "permission-denied") return fallbackMessage;
       return err.message;
+    }
+
+    function friendlyWallError(err) {
+      return friendlyPermissionError(err, "This member isn't accepting Wall posts or comments from you right now.");
     }
 
     // communiques-common.js is loaded from both member.html (Agora root)
@@ -786,6 +819,9 @@
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
+    withTimeout: withTimeout,
+    friendlyPermissionError: friendlyPermissionError,
+    friendlyWallError: friendlyWallError,
     profileExists: profileExists,
     tagIfDeletedProfile: tagIfDeletedProfile,
     recordView: recordView,

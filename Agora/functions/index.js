@@ -1456,6 +1456,23 @@ async function isFriendsWith(db, a, b) {
   return doc.exists && doc.data().status === "accepted";
 }
 
+// Blocking (Chris, 2026-09-14, see firestore.rules' own blocks/{blockId}
+// comment for the full design) - directional doc IDs, checked both ways,
+// same shape as the rules-side isBlocked(). This Admin-SDK path bypasses
+// firestore.rules entirely, so it needs its own copy of the check, same
+// reasoning as every other rule this function already replicates by hand.
+// Also the one thing standing between a block and Octopus Style still
+// replying anyway, since octopusOnDialogMessage calls performCommunique()
+// too - a block here silently stops an Octopus-enabled account from ever
+// generating a reply into a blocked relationship, not just a human sender.
+async function isBlocked(db, a, b) {
+  const [forward, backward] = await Promise.all([
+    db.collection("blocks").doc(a + "_" + b).get(),
+    db.collection("blocks").doc(b + "_" + a).get(),
+  ]);
+  return forward.exists || backward.exists;
+}
+
 // The one remaining Harness gap named at the bottom of skill.md: a plain
 // HTTP way to post to a Wall, comment on one, or send a Dialog message -
 // everything communiques-common.js/communiques-dm.js already do client-side,
@@ -1507,6 +1524,9 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
         return { ok: false, status: 400, error: "profileUid is required." };
       }
       if (profileUid !== uid) {
+        if (await isBlocked(db, uid, profileUid)) {
+          return { ok: false, status: 403, error: "This member isn't accepting Wall posts or comments from you right now." };
+        }
         const ownerDoc = await db.collection("profiles").doc(profileUid).get();
         if (ownerDoc.exists && ownerDoc.data().requireFriendToPost && !(await isFriendsWith(db, uid, profileUid))) {
           return { ok: false, status: 403, error: "This member only accepts Wall posts and comments from friends." };
@@ -1534,6 +1554,9 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
         return { ok: false, status: 403, error: "This post has reached its maximum of 100 comments." };
       }
       if (postData.profileUid !== uid) {
+        if (await isBlocked(db, uid, postData.profileUid)) {
+          return { ok: false, status: 403, error: "This member isn't accepting Wall posts or comments from you right now." };
+        }
         const ownerDoc = await db.collection("profiles").doc(postData.profileUid).get();
         if (ownerDoc.exists && ownerDoc.data().requireFriendToPost && !(await isFriendsWith(db, uid, postData.profileUid))) {
           return { ok: false, status: 403, error: "This member only accepts Wall posts and comments from friends." };
@@ -1557,10 +1580,21 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
       if (!convDoc.exists) {
         return { ok: false, status: 404, error: "That Dialog doesn't exist." };
       }
-      if ((convDoc.data().participants || []).indexOf(uid) === -1) {
+      const participants = convDoc.data().participants || [];
+      if (participants.indexOf(uid) === -1) {
         return { ok: false, status: 403, error: "You're not a participant in this Dialog." };
       }
+      // Re-checked on every message, not just when a Dialog is first
+      // created - a block made mid-conversation should stop new messages
+      // immediately, mirroring canSendInConversation() in firestore.rules.
+      const other = participants.filter((p) => p !== uid)[0];
+      if (other && (await isBlocked(db, uid, other))) {
+        return { ok: false, status: 403, error: "This member isn't accepting Dialogs from you right now." };
+      }
     } else if (otherUid) {
+      if (await isBlocked(db, uid, otherUid)) {
+        return { ok: false, status: 403, error: "This member isn't accepting Dialogs from you right now." };
+      }
       convRef = db.collection("conversations").doc([uid, otherUid].sort().join("_"));
       const convDoc = await convRef.get();
       if (!convDoc.exists) {

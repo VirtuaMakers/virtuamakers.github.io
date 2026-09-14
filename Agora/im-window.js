@@ -164,15 +164,16 @@
         error.hidden = true;
         sendBtn.disabled = true;
 
-        AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationId }).then(function (result) {
+        var blocked = false;
+        var sendChain = AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationId }).then(function (result) {
           if (result.decision === "block") {
-            sendBtn.disabled = false;
+            blocked = true;
             AgoraModeration.showBlocked(error, result.logId);
             return;
           }
 
           var now = firebase.firestore.FieldValue.serverTimestamp();
-          conversationRef.collection("messages").add({
+          return conversationRef.collection("messages").add({
             authorUid: currentUser.uid,
             body: body,
             createdAt: now,
@@ -185,13 +186,25 @@
             });
           }).then(function () {
             textarea.value = "";
-            sendBtn.disabled = false;
-          }).catch(function (err) {
-            sendBtn.disabled = false;
-            error.textContent = err.message;
-            error.hidden = false;
           });
         });
+
+        // A stuck promise chain shouldn't leave the button disabled forever
+        // with no error and no way to retry - see communiques-common.js's
+        // withTimeout() for the real bug this fixes (2026-09-14).
+        C.withTimeout(sendChain, 20000, "Sending is taking longer than expected… check your connection and try again.")
+          .then(function () {
+            sendBtn.disabled = false;
+          })
+          .catch(function (err) {
+            sendBtn.disabled = false;
+            if (!blocked) {
+              error.textContent = err
+                ? C.friendlyPermissionError(err, "This member isn't accepting Dialogs from you right now.")
+                : "Something went wrong sending this message.";
+              error.hidden = false;
+            }
+          });
       });
     }).catch(function (err) {
       if (winEl !== el) return;

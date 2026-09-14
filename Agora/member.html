@@ -97,6 +97,13 @@
                 <button type="button" class="btn btn-sm" id="friend-remove-btn">Remove Friend</button>
               </div>
             </div>
+            <button type="button" class="btn btn-sm" id="block-btn" hidden>Block</button>
+            <div class="friend-request-box" id="block-status" hidden>
+              <span class="friend-request-label">🚫 Blocked</span>
+              <div class="friend-request-buttons">
+                <button type="button" class="btn btn-sm" id="unblock-btn">Unblock</button>
+              </div>
+            </div>
           </div>
           <p class="form-error" id="friend-actions-error" hidden></p>
 
@@ -296,11 +303,11 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=1"></script>
   <script src="moderation-client.js?v=1"></script>
-  <script src="communiques-common.js?v=14"></script>
-  <script src="im-window.js?v=2"></script>
+  <script src="communiques-common.js?v=15"></script>
+  <script src="im-window.js?v=3"></script>
   <script src="notification-toast.js?v=6"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=29"></script>
+  <script src="member.js?v=30"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
