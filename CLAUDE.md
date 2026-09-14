@@ -5578,6 +5578,46 @@ round, reasoning recorded here so it isn't re-investigated from scratch:
   fix request - worth building (a) specifically, next time Chris wants it
   addressed, rather than shipping unprompted this round.
 
+## Sign-in header flash: fixed with optimistic localStorage caching (Chris, 2026-09-10)
+
+Chris asked directly to build option (a) from the entry above. Done in
+`auth-ui.js`, same file, no new script:
+
+- **New `agoraCachedUser` `localStorage` key** (`{uid, name}`), written by
+  a new `writeCachedUser()` call inside `wireInstance()`'s existing
+  `reveal(name)` function - the same moment the real, Firestore-resolved
+  name is confirmed and shown, so the cache always holds a genuinely
+  correct value, never a guess of its own.
+- **`wireInstance()` now paints from that cache immediately**, right
+  after its element lookups and before `agoraOnAuthChange` is even wired
+  up - `readCachedUser()` runs synchronously, and since `auth-ui.js`
+  loads as a plain (non-deferred) `<script>` near the bottom of `<body>`,
+  this runs before first paint for a returning visitor, so the raw HTML's
+  default "Sign In" state should never actually become visible for them.
+  The real auth callback still runs a moment later regardless and either
+  confirms this (re-writing the same/updated name) or corrects it (a
+  genuine sign-out, a different account, or first-ever visit with no
+  cache at all, which falls through to the exact same behavior as
+  before this fix).
+- **`clearCachedUser()` added to the `!user` branch** of the real
+  `agoraOnAuthChange` callback, so a genuine resolved sign-out (including
+  "signed out on another device, this one just hasn't heard yet") wipes
+  the cache rather than leaving a stale guess for the next page load.
+- **Deliberately low-risk, not a new access surface** - this is a display
+  cache only. A `uid`/display name pair is already public elsewhere on
+  the site (`member.html?uid=`) even to a signed-out visitor, and every
+  real permission check stays entirely server-side via `firestore.rules`
+  regardless of what the header optimistically shows before the real
+  state resolves - the exact same reasoning the original entry above
+  already flagged this option as carrying.
+- **Option (b) (a debounced reveal) wasn't built** - (a) fully closes the
+  gap on its own for the common case (a returning, previously-signed-in
+  visitor, which is the actual complaint), so there was no reason to add
+  the extra complexity/delay a debounce would introduce for everyone,
+  including a first-time or freshly-signed-out visitor who has no cache
+  to benefit from it anyway.
+- Bumped `auth-ui.js` to `v=20` (all 60 pages that load it).
+
 ## Real bug: site-search.js's stale-cache 404 on Claude (Chris, 2026-09-10)
 
 Chris searched for "Claude," got a result, clicked it, and hit a 404 -

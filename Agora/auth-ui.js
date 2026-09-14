@@ -198,6 +198,47 @@
     return base + "?uid=" + encodeURIComponent(uid);
   }
 
+  // Optimistic sign-in cache (Chris, 2026-09-10 - "showed me as signed out
+  // for a second before changing to the signed in look"). Firebase's own
+  // onAuthStateChanged is documented to fire once with null before a
+  // persisted session resolves, then again with the real user - and the
+  // raw HTML itself defaults to the signed-out look (#agora-signin-btn
+  // carries no `hidden` by default), so a returning visitor briefly sees
+  // "Sign In" flash before the real state lands. This script runs as a
+  // plain synchronous <script> before first paint, so painting a cached
+  // {uid, name} immediately - then letting the real auth check correct or
+  // confirm it a moment later - closes that gap for anyone who's signed in
+  // before on this device. Low-risk: this is only ever a display cache,
+  // never an access grant - every real permission check stays
+  // server-side via firestore.rules regardless of what the header shows,
+  // and a uid/display name is already public elsewhere on the site
+  // (member.html?uid=) even for a signed-out visitor.
+  var CACHED_USER_KEY = "agoraCachedUser";
+
+  function readCachedUser() {
+    try {
+      var raw = localStorage.getItem(CACHED_USER_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !parsed.uid || !parsed.name) return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function writeCachedUser(uid, name) {
+    try {
+      localStorage.setItem(CACHED_USER_KEY, JSON.stringify({ uid: uid, name: name }));
+    } catch (e) {}
+  }
+
+  function clearCachedUser() {
+    try {
+      localStorage.removeItem(CACHED_USER_KEY);
+    } catch (e) {}
+  }
+
   function wireInstance(signInId, signOutId, userInfoId, userNameId, profileLinkId) {
     var signInBtn = document.getElementById(signInId);
     var signOutBtn = document.getElementById(signOutId);
@@ -215,6 +256,28 @@
     // otherwise always carries.
     if (nameLink && profileLink) nameLink.classList.add("auth-email-static");
 
+    // Paint the cached signed-in look immediately, before Firebase's own
+    // auth-state callback below ever fires - see the CACHED_USER_KEY note
+    // above. The real callback runs a moment later regardless and either
+    // confirms this (writing the same/updated name back) or corrects it
+    // (a genuine sign-out, or a different account) - this is purely a
+    // first-paint guess, never the source of truth.
+    var cached = readCachedUser();
+    if (cached) {
+      signInBtn.hidden = true;
+      if (signOutBtn) signOutBtn.hidden = false;
+      if (profileLink) {
+        profileLink.href = memberUrl(cached.uid);
+        profileLink.hidden = false;
+      }
+      if (nameLink) {
+        nameLink.textContent = cached.name;
+        if (userInfo) userInfo.hidden = false;
+      } else if (userInfo) {
+        userInfo.hidden = false;
+      }
+    }
+
     signInBtn.addEventListener("click", openModal);
     if (signOutBtn) {
       signOutBtn.addEventListener("click", function () {
@@ -224,6 +287,11 @@
 
     agoraOnAuthChange(function (user) {
       if (!user) {
+        // A genuine resolved sign-out (including "signed out elsewhere,
+        // this device just hasn't heard yet") - clear the optimistic
+        // cache so a future page load doesn't keep guessing this account
+        // is still signed in.
+        clearCachedUser();
         signInBtn.hidden = false;
         if (signOutBtn) signOutBtn.hidden = true;
         if (userInfo) userInfo.hidden = true;
@@ -261,6 +329,10 @@
       function reveal(name) {
         nameLink.textContent = name;
         if (userInfo) userInfo.hidden = false;
+        // Confirmed, real name - persist it so the next page load's
+        // optimistic paint (above) has something accurate to show
+        // immediately instead of a stale or missing guess.
+        writeCachedUser(user.uid, name);
       }
 
       if (typeof AgoraDB === "undefined") {
