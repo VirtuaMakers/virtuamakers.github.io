@@ -6203,6 +6203,16 @@ circumstantial-at-best claim to make.
   "site-search.js's stale-cache 404" entry) flagged as easy to forget,
   checked explicitly this time rather than assumed.
 
+## Cross-link from Cyborg Members to Cyborg Pride (Chris, 2026-09-17)
+
+Small follow-up on the section above - a `<p class="body-text"><a
+href="#cyborg-pride">Read Cyborg Pride 🦿 →</a></p>` link added right
+after Profiles' `#cyborgs` section's card grid, same "Label →" pattern
+already used for `See all news →`/`Read the full Per Manum Convention ✒️
+→` elsewhere. Points a visitor browsing Cyborg Members straight to the
+new Pursuit of Justice subsection rather than leaving them to find it
+via the pillar-toc directory or search.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
