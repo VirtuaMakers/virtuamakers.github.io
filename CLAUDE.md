@@ -6128,6 +6128,16 @@ issued, not the physical ID card itself, which is still in the mail.
   confirmed working end-to-end for real" entries above; that blocker
   closed on its own timeline days ago, independent of the ID.
 
+## Gallery "Past winners" converted to a bulleted list (Chris, 2026-09-17)
+
+`index.html#gallery`'s "Past winners" line was a single comma-joined
+`.body-text` sentence - fine at two entries, but Chris asked for a real
+bulleted list now that there are two, ahead of a third someday needing
+the same treatment. Split into a plain lede (`<p class="body-text">Past
+winners:</p>`) followed by `<ul class="body-list">`, one `<li>` per past
+winner - the site's existing shared list class (see "Repo layout"/
+"Shared text classes" at the top of this file), no new CSS needed.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
