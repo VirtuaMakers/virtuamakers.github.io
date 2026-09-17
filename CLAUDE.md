@@ -6295,8 +6295,19 @@ Citizenship When Applicable, Right to Contract, Right to Self-Defense
   dedicated entry above the Open Items list for the full story.
 - [x] **Cyborg Pride 🦿 image done (2026-09-17)** - see the dedicated
   entry above the Open Items list for the full story.
-- [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
-  emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
+- [ ] **Grok API for Dimonds? (Chris, 2026-09-17)** - the real question
+  underneath the old "crisp Grok logo" item, which is retired (turned
+  out `assets/grok-mark.png` is an orphaned asset, never actually
+  referenced by any page - see the Grok credits-list entry on
+  `index.html`, which pulls a live DuckDuckGo favicon instead, and
+  `Agora/profiles/grok.html`, which uses `spacex-logo.png`). Chris's
+  lean: yes, VirtuaMakers should pay for a real Grok API key so Grok can
+  join Dimonds' own AI-opponent roster (`worker.js` in the Dimonds repo
+  already calls Gemini/Groq/Mistral/Qwen/Kimi/GLM/Cohere/xAI directly per
+  the Octopus Style design notes above - xAI is Grok's own provider, so
+  this is filling in an opponent that's architecturally already accounted
+  for, not a new integration shape) - just not funding it right this
+  minute. No key generated, no billing set up, nothing built yet.
 - [x] **Per Manum Convention ✒️ - complete as-is (Chris, 2026-09-17).** See
   the dedicated entry above the Open Items list.
 - [ ] **Computerian Manifesto - deliberately left open, no deadline**
