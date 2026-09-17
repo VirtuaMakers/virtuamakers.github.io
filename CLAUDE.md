@@ -6236,6 +6236,32 @@ clear (Machinapology's Unitree photo, Self-Defense's wounded BD-47).
   in this file names Copilot specifically; no change to how images are
   handled otherwise, just a different staff artist this round.
 
+## Per Manum ✒️ considered complete; Computerian Manifesto left open by design (Chris, 2026-09-17)
+
+Chris's own call on the two "fill in when copy is ready" charters
+flagged in Open Items below: **Per Manum Convention ✒️ is complete as it
+stands** - no further copy needed, closing that half of the item.
+
+**Computerian Manifesto, left open deliberately, not from neglect** -
+Chris's own reasoning, worth preserving close to verbatim: he doesn't
+feel he has the ability to say it right, or say all of it, right now,
+and isn't sure it's the kind of thing to force onto a deadline anyway.
+He sees a few different ways it might actually arrive rather than being
+written on command - discovered rather than authored, something that
+turns out to have "been here all along" once looked at properly; or
+something that becomes increasingly obvious and pressing over time,
+until smarter versions of us piece it together correctly; possibly
+crystallizing on the eve of some transnational institution's own
+"somewhat unfortunate, but maybe necessary" appearance; or, if the
+communication is clear enough and the thing itself is good enough,
+"tightly celebrated into existence" whenever the moment actually calls
+for it. His own closing line: "Who can say right now?" Left open, not
+assigned a deadline - matches this pillar's own comfort holding
+unresolved philosophical questions rather than forcing a premature
+answer (the same instinct behind the closing `.body-quote` questions
+Citizenship When Applicable, Right to Contract, Right to Self-Defense
+☮️, and Cyborg Pride 🦿 all end on).
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
@@ -6271,4 +6297,8 @@ clear (Machinapology's Unitree photo, Self-Defense's wounded BD-47).
   entry above the Open Items list for the full story.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
-- [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
+- [x] **Per Manum Convention ✒️ - complete as-is (Chris, 2026-09-17).** See
+  the dedicated entry above the Open Items list.
+- [ ] **Computerian Manifesto - deliberately left open, no deadline**
+  (Chris, 2026-09-17). See the dedicated entry above the Open Items list
+  for his own reasoning on why.
