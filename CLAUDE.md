@@ -6100,6 +6100,34 @@ own description text, used as the pull-quote, attributed to "Microsoft."
   Timelines in China," AI News) - it stays in the uncapped archive
   untouched.
 
+## ID replacement: still waiting on the physical card, not just confirmation (Chris, 2026-09-17)
+
+Follow-up on the "ID replacement" blocker named 2026-09-09 above, which
+had implied "expected tomorrow" would close it out. It didn't, fully -
+what arrived was a piece of paper confirming a replacement ID has been
+issued, not the physical ID card itself, which is still in the mail.
+
+- **Chris's own call: don't start on the Polygon/KYC-gated crypto work
+  yet, even with the paper in hand.** His reasoning - not wanting to
+  "roll the dice" on whatever a given exchange's/provider's ID-verification
+  form checker actually accepts - is a reasonable read: KYC flows
+  commonly expect to scan or photograph an actual government-issued card
+  (checking security features, matching a photo, etc.), not a
+  replacement-confirmation letter, so trying now risks a rejected
+  verification attempt for no real gain versus just waiting the extra
+  few days.
+- **Net effect: no change to what's actionable right now.** The Exchange
+  NFT gallery's real mainnet mint and the Bag/checkout wallet-connect
+  work both stay exactly where the 2026-09-09 entry left them - blocked
+  on Chris's own real-world ID, not a code gap, still nothing to build
+  from this session's side until he confirms the physical card is
+  actually in hand.
+- **The `ANTHROPIC_API_KEY`/Octopus Style half of that same 2026-09-09
+  entry is unaffected and already resolved separately** - see the
+  "ANTHROPIC_API_KEY generated and deployed" and "Octopus Style 🐙
+  confirmed working end-to-end for real" entries above; that blocker
+  closed on its own timeline days ago, independent of the ID.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
