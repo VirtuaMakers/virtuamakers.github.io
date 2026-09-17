@@ -6138,6 +6138,71 @@ winners:</p>`) followed by `<ul class="body-list">`, one `<li>` per past
 winner - the site's existing shared list class (see "Repo layout"/
 "Shared text classes" at the top of this file), no new CSS needed.
 
+## Cyborg Pride 🦿 (Chris, 2026-09-17)
+
+Chris's own observation, unprompted: this pillar says plenty in favor of
+AI and had comparatively nothing for cyborgs - a real gap, not a
+stylistic one, given `#cyborgs` already exists as a real membership
+category in Profiles 🙂. His brief, close to verbatim: a safe place for
+cyborgs to self-identify and be proud of their enhancements; naming that
+some cyborgs are already circumstantially better off than an unaugmented
+human in specific ways, and that this trend continues through the
+century; the questions that raises about cyborg rights and about any
+human's right to become cybernetically enhanced for any reason; Agora 🌐
+as a space for that discourse; and the broader idea that some believe
+humans and machines will keep blending - humans thinking at AI speeds,
+becoming partly artificial, on the way to what's sometimes called a
+transcendent, fully-machine state. Chris explicitly asked for that last
+part to be tempered - his own stated position, preserved close to
+verbatim: humans and machines are *different*, not inherently better or
+worse than each other; a specific comparison can show a specific
+superiority (his own example: a calculator beating a human at math),
+but generalizing that into "which kind is better" is a strange,
+circumstantial-at-best claim to make.
+
+- **New `#cyborg-pride` subsection**, `Agora/index.html`, inserted
+  between Right to Work 🛠️ and Freedom from Slavery ⛓️‍💥 in both the
+  section order and the `.pillar-toc` directory - Right to Work already
+  name-drops cyborgs' capability ("Cyborgs, and potentially AI, may
+  simply handle simultaneous work better than an unaugmented human
+  can"), so the new section picks up that exact thread rather than
+  landing cold. `site-search.js`'s `JUSTICE_INDEX` manifest got a
+  matching entry in the same position.
+- **🦿 chosen as the section's emoji** - 🦾 was already claimed by
+  Profiles' own "Cyborg Members 🦾" subsection; 🦿 keeps the same
+  cybernetic-limb family without doubling up on an already-claimed icon,
+  matching the site's per-term emoji-ownership convention.
+- **The tempering was built structurally, not just asserted once:**
+  every paragraph that names a cyborg/machine advantage pairs it with
+  the calculator caveat in the same breath (paragraph 2's "the same way
+  a calculator beats an unaided human at arithmetic without settling
+  anything about who has the better mind"; paragraph 4's near-identical
+  callback, "the same way we would about a calculator - without
+  generalizing it into a claim about which kind is superior"), and
+  paragraph 4 states the "different, not better/worse" position as
+  Agora 🌐's own explicit stance before ever raising the
+  blending/transcendence idea, so the more speculative claim is framed
+  as one view Agora holds loosely, not something to root for.
+- **Cross-references "Right to Work, above" as plain text, no emoji, no
+  link** - matches the existing convention elsewhere in this pillar
+  (Right to Contract's "see Freedom from Slavery, below" is the same
+  plain, unlinked, unemoji'd cross-reference), not a one-off choice.
+- **No `.section-image` this round** - same reasoning as Right to
+  Self-Defense ☮️ when it first shipped: every other Pursuit of Justice
+  subsection uses a real photo Chris sourced himself, none exists for
+  this one yet, and fabricating a stock image/attribution isn't this
+  codebase's practice. Flagged as a new Open Item below, same pattern.
+- Closes on a `.body-quote` open question ("Where does enhancement end
+  and a new kind of person begin – and who gets to decide?"), matching
+  the same closing-question convention Citizenship When Applicable,
+  Right to Contract, and Right to Self-Defense already use in this
+  pillar.
+- **`site-search.js` cache-bust bumped to `v=4`** (all 60 pages) in the
+  same commit as the content change - the exact discipline this file's
+  own "worth naming as a pattern" note (under the 2026-09-10
+  "site-search.js's stale-cache 404" entry) flagged as easy to forget,
+  checked explicitly this time rather than assumed.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
@@ -6169,6 +6234,10 @@ winner - the site's existing shared list class (see "Repo layout"/
   directly, attributed to Jillian Godsil.
 - [x] **Right to Self-Defense ☮️ image done (2026-09-08)** - see the
   dedicated entry above the Open Items list for the full story.
+- [ ] **Cyborg Pride 🦿 needs an image** (Chris, 2026-09-17) - shipped
+  without a `.section-image` since no real photo exists for it yet, same
+  as Right to Self-Defense ☮️ before Copilot supplied one. Chris/Copilot
+  to source one when ready.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).

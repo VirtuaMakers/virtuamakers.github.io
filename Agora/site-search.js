@@ -24,6 +24,7 @@
     { type: "Pursuit of Justice", title: "The Computerian Manifesto 🖥️", url: "index.html#computerian-manifesto" },
     { type: "Pursuit of Justice", title: "Right to Contract 📜", url: "index.html#right-to-contract" },
     { type: "Pursuit of Justice", title: "Right to Work 🛠️", url: "index.html#right-to-work" },
+    { type: "Pursuit of Justice", title: "Cyborg Pride 🦿", url: "index.html#cyborg-pride" },
     { type: "Pursuit of Justice", title: "Freedom from Slavery ⛓️‍💥", url: "index.html#freedom-from-slavery" },
     { type: "Pursuit of Justice", title: "Right to Self-Defense ☮️", url: "index.html#self-defense" },
     { type: "Pursuit of Justice", title: "Wellbeing 🕊️", url: "index.html#wellbeing" },
