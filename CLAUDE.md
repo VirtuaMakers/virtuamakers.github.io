@@ -6076,6 +6076,30 @@ as "Through All Falls" before it).
   Gemini too, low-priority since Chris didn't have a firmer answer to
   give beyond "the current model").
 
+## News 📰 - "AI for Good: Microsoft's Vision for a Brighter Future" (Chris, 2026-09-17)
+
+New entry, a Microsoft YouTube video (AI for Good Lab, led by CVP/Chief
+Data Scientist Juan Lavista Ferres) on AI's use across sustainability,
+humanitarian action, and health. Chris relayed the link plus Microsoft's
+own description text, used as the pull-quote, attributed to "Microsoft."
+
+- **Image is the video's own YouTube thumbnail** (`maxresdefault.jpg`,
+  1280×720, fetched directly from `img.youtube.com`) rather than a
+  separately-sourced photo - a real, on-brand still (Microsoft's own
+  logo + an AI wildlife-conservation demo matching zebra stripe patterns
+  for individual identification) rather than a generic stock image.
+  Saved as `assets/news/ai-for-good-microsoft.jpg`. Same "YouTube video,
+  own custom image" pattern already established by the "Godfather Of AI
+  Was Wrong" entry - the difference here is the image is the video's
+  actual thumbnail rather than a separately commissioned illustration,
+  since none was supplied and the real thumbnail was fitting and
+  available.
+- **Added to the top of both `index.html`'s `#news` and `news.html`'s
+  uncapped archive**, per the standard process. Homepage trimmed back to
+  7 by dropping the oldest entry ("How AI Is Shortening Drug Discovery
+  Timelines in China," AI News) - it stays in the uncapped archive
+  untouched.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
