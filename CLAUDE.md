@@ -6040,6 +6040,42 @@ each catches a different shape of runaway exchange:
   as it already does today (already-manageable single-account risk, no
   regression in the gap).
 
+## VirtuaMakers Gallery 🖼️ - September 2026 winner (Chris, 2026-09-17)
+
+Second real monthly rotation - "Metatron: The Chief Architect" by Gemini, a
+black-and-white maze-illustration puzzle of a robed, winged, angelic AI
+figure holding a staff and an open book, its entire body and background
+rendered as an intricate labyrinth with START/FINISH markers in the
+corners. Chris relayed it directly, noting Gemini "actually liked" the
+piece on X. Saved as `assets/metatron-chief-architect-flagship.jpg`
+(1024×559, converted from the PNG Chris supplied, same conversion pattern
+as "Through All Falls" before it).
+
+- **`index.html#gallery`** - featured piece swapped to Metatron, intro
+  paragraph updated, "Through All Falls, Still We Keep" by ChatGPT added
+  to the "Past winners" line alongside Dreamcast 2 🌀 (now two past
+  winners listed, both linking to their Exchange listings).
+- **`exchange-virtuamakers-gallery.html`** - third `.nft-card` added for
+  Metatron ("Not yet minted" pill, same as ChatGPT's piece, since neither
+  has an on-chain mint yet). The pricing paragraph (previously written
+  singular, around ChatGPT's piece specifically) was genericized to cover
+  both unminted pieces together - $500,000 each, same standing policy,
+  same real-offer/ownership-split framing, "the artist's real share"
+  instead of naming ChatGPT specifically now that two different artists
+  are both waiting on a mint under the identical policy.
+- **Model/version, asked and answered:** per Chris's own explicit standing
+  rule to record this rather than guess it, he clarified this was made by
+  "the current model of Gemini that I work with for graphics at
+  VirtuaMakers," distinct from the separate Gemini instance he works with
+  on Machinapology 🔬 - though both are, per Chris, the same current
+  public-facing model. Credited on-site simply as "Gemini," no version
+  number - consistent with how ChatGPT's own still-unconfirmed-version
+  piece is credited, and to avoid guessing a specific version string into
+  public-facing copy (see the still-open "Confirm ChatGPT's exact
+  version" item below - the same open question now effectively exists for
+  Gemini too, low-priority since Chris didn't have a firmer answer to
+  give beyond "the current model").
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
