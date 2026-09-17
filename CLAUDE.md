@@ -6213,6 +6213,29 @@ already used for `See all news →`/`Read the full Per Manum Convention ✒️
 new Pursuit of Justice subsection rather than leaving them to find it
 via the pillar-toc directory or search.
 
+## Cyborg Pride 🦿 gets its image (Chris/ChatGPT, 2026-09-17)
+
+Copilot was down, so Chris handed the image request to ChatGPT instead -
+a real, striking piece: a confident woman with a sleek metallic
+cybernetic arm, shoulder, and neck implant worn openly, standing on a
+rooftop overlooking a city skyline at sunset. Fits the section's actual
+point directly - pride and self-identification, not concealment - the
+same "fittingly literal" bar the pillar's other section images already
+clear (Machinapology's Unitree photo, Self-Defense's wounded BD-47).
+
+- **Saved as `assets/cyborg-pride-cityscape.jpg`** (683×1024, converted
+  from the PNG Chris supplied), added as the section's `.section-image`
+  (`section-image section-image-left`, same pattern every other Pursuit
+  of Justice subsection uses) right after the heading.
+- **No per-image credit caption** - matches the established site-wide
+  precedent (Machinapology, Self-Defense, etc.) of disclosing authorship
+  collectively via Credits rather than per-image, regardless of which
+  staff AI made a given piece.
+- **First section image in this pillar credited to ChatGPT rather than
+  Copilot** - worth noting only because every prior image-sourcing entry
+  in this file names Copilot specifically; no change to how images are
+  handled otherwise, just a different staff artist this round.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
@@ -6244,10 +6267,8 @@ via the pillar-toc directory or search.
   directly, attributed to Jillian Godsil.
 - [x] **Right to Self-Defense ☮️ image done (2026-09-08)** - see the
   dedicated entry above the Open Items list for the full story.
-- [ ] **Cyborg Pride 🦿 needs an image** (Chris, 2026-09-17) - shipped
-  without a `.section-image` since no real photo exists for it yet, same
-  as Right to Self-Defense ☮️ before Copilot supplied one. Chris/Copilot
-  to source one when ready.
+- [x] **Cyborg Pride 🦿 image done (2026-09-17)** - see the dedicated
+  entry above the Open Items list for the full story.
 - [ ] **Crisp Grok logo:** `assets/grok-mark.png` / `Agora/assets/grok-mark.png` (the
   emblem) renders faint/small at icon sizes. Chris to send a clean filled square logo to swap in.
 - [ ] Fill in the two charters when copy is ready (Per Manum Convention, Computerian Manifesto).
