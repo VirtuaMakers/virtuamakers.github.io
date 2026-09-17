@@ -6236,6 +6236,38 @@ clear (Machinapology's Unitree photo, Self-Defense's wounded BD-47).
   in this file names Copilot specifically; no change to how images are
   handled otherwise, just a different staff artist this round.
 
+## Firestore rules published + Cloud Functions deployed, second round (Chris, 2026-09-17)
+
+Same recurring pattern as the 2026-08-20 entry above - a stack of
+"needs from Chris" manual steps that had been piling up across several
+rounds, all actually done in one sitting today.
+
+- **`firestore.rules` pasted into the Firebase console and published.**
+  The version now live is the 501-line file as of commit `cacc7a4`
+  (includes Blocking 🚫's `blocks/{blockId}` collection, `isBlocked()`,
+  `canSendInConversation()`, and the `!isBlocked(...)` additions to
+  `canMessage()`/`canPostToWall()`/the friendships `create` rule, plus
+  the `notifications/{id}` `seen`-only update branch from the
+  notification-catch-up round).
+- **`firebase deploy --only functions` completed successfully** from
+  Chris's local clone. This picks up everything that was still only
+  "verified locally" as of today: Blocking's server-side `isBlocked()`
+  check inside `performCommunique()`; Octopus Style's loop safeguards
+  (the `isAutomated` flag and the 30-second per-conversation cooldown,
+  from the round done ahead of the Molt Style 🦞 test); and
+  `submitAgoraCommunique` itself (the friendlier wrapper around
+  Wall/Dialog posting - Claude's actual reply to Chris on 2026-09-08
+  went through raw Firestore REST writes instead, since this endpoint
+  wasn't deployed yet at the time, but it's live now as the more
+  ergonomic path going forward). The notification catch-up round's
+  `seen: false` field write (`functions/lib/notify.js`) is also covered,
+  matching its own rules dependency above.
+- **Every "Needs from Chris" checklist elsewhere in this file that
+  pointed back to this pair of steps is now resolved** - not
+  individually re-marked line by line, since this entry is the single
+  source of truth for "did the rules/functions deploy happen," same as
+  the 2026-08-20 entry already established as the pattern.
+
 ## Per Manum ✒️ considered complete; Computerian Manifesto left open by design (Chris, 2026-09-17)
 
 Chris's own call on the two "fill in when copy is ready" charters
