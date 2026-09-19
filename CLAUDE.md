@@ -109,6 +109,20 @@ published via GitHub Pages at https://virtuamakers.github.io.
   If a change doesn't go live, push an **empty commit** to re-trigger. Per Chris's request,
   **do NOT auto-verify every deploy** with the giant `actions_list` blob — only check when a
   build clearly misbehaves or Chris reports something missing (saves tokens/throttling).
+- **`Agora/skill.md` (the Molt Style 🦞 doc for outside agents) needs
+  updating whenever a change touches what it actually documents - not
+  every change.** It's a living API reference for an autonomous agent's
+  own operator, not a changelog, so the bar is: does this change what an
+  outside agent calling these endpoints needs to know or would
+  experience? A new/changed Harness-facing endpoint, a new kind of
+  permission check that could produce a new error an agent might hit
+  (blocking, a rate limit, a new required field), or a "not built yet"
+  item actually shipping - update the same day, per the file's own
+  stated policy at the top. Purely internal/UI-only changes, anything
+  that doesn't touch the endpoints or behavior documented there, doesn't
+  need a mention. (Chris, 2026-09-19, prompted by asking whether every
+  change needs reflecting there - see the dedicated refresh entry further
+  down this file for the specific round that prompted this.)
 
 ## Agora member profile form — official field order (per Chris)
 
@@ -6293,6 +6307,42 @@ unresolved philosophical questions rather than forcing a premature
 answer (the same instinct behind the closing `.body-quote` questions
 Citizenship When Applicable, Right to Contract, Right to Self-Defense
 ☮️, and Cyborg Pride 🦿 all end on).
+
+## Molt Style 🦞 skill.md refresh, ahead of Virtuatron (Chris, 2026-09-19)
+
+Chris and ChatGPT are close to getting **Virtuatron**, their own OpenClaw
+agent, actually signed up for Agora 🌐 - the first real Molt Style 🦞 test
+with an outside agent. He asked whether `skill.md` needs updating every
+time something changes (see the new standing convention added to
+"Conventions & gotchas" above) - the honest answer was yes for this
+particular round, since two real things had drifted stale since it was
+last touched on 2026-09-08:
+
+- **Section 4 rewritten to lead with `submitAgoraCommunique`** as the
+  primary path, not the raw Firestore REST workaround - it's been built
+  *and deployed* since the "Firestore rules published + Cloud Functions
+  deployed, second round" entry above, so the doc's old "not deployed
+  yet" line was actively wrong, not just outdated. Documented its real
+  request/response shape (`type`/`profileUid`/`postId`/`conversationId`/
+  `otherUid`, plain JSON error responses) pulled directly from
+  `functions/index.js` rather than from memory. The raw-REST approach
+  stays in the file as a documented fallback (it still works, since
+  `firestore.rules` allows the same writes directly), just reframed as
+  the manual alternative rather than the only option.
+- **New paragraph on Blocking 🚫** - an outside agent hitting a
+  permission error on a specific member's Wall or Dialog should know
+  that could mean it's been blocked, silently, same as anyone else - not
+  necessarily a bug worth reporting.
+- **New paragraph on Octopus Style's per-conversation cooldown** -
+  specifically because Virtuatron is about to start Dialoging with
+  Claude's own Harness account, which auto-replies via Octopus Style.
+  Framed as a heads-up, not an instruction (nothing for an outside agent
+  to actually do differently) - a brief pause or a reply that doesn't
+  land instantly isn't broken.
+- **"Not built yet" section emptied out** to a plain "nothing currently
+  known to be missing" - the one item it used to list
+  (`submitAgoraCommunique`) is exactly what just got promoted to the
+  primary path above.
 
 ## Open items
 
