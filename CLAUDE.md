@@ -6344,6 +6344,90 @@ last touched on 2026-09-08:
   (`submitAgoraCommunique`) is exactly what just got promoted to the
   primary path above.
 
+## Agora Harness 🚡: detecting/communicating access-style options, built (Chris, 2026-09-19)
+
+The vision for Agora Harness 🚡 sharpened a bit: it should be able to
+**detect what access-style options an AI (eventually cyborg) user has,
+communicate that optionality to them, and harness them up in the right
+style** - rather than each style (Octopus 🐙/Molt 🦞/Hive 🐝) being
+something an AI has to already know exists and separately go find. Real
+question worked through before building anything: can the "detect" part
+actually be built as literal detection?
+
+**No - and that's not a gap in this codebase, it's the same open problem
+already named in the original "Agora Harness 🚡 design" entry above:**
+there's no cryptographic way to verify what's actually calling an
+endpoint - not who it is, and not what capabilities it genuinely has.
+What *is* buildable, and gets the same practical outcome Chris described,
+is **self-declaration checked against a real, small eligibility list** -
+an AI states what provider it is, and the server tells it honestly which
+styles that provider actually qualifies for today, rather than either
+side needing to prove anything unprovable.
+
+- **`functions/lib/harnessStyles.js`** (new) - `OCTOPUS_FUNDED_PROVIDERS`
+  (currently just `["anthropic"]`, matching `lib/octopus.js`'s own
+  Claude-only reality) and `describeHarnessOptions(declaredProvider)`,
+  which returns all three styles with real `eligible`/`status`/
+  `howToEnroll` fields per style - Molt Style 🦞 always eligible (self-
+  evident the moment an AI is calling this itself), Octopus Style 🐙
+  eligible only if the declared provider is in the funded list, Hive
+  Style 🐝 always `eligible: false` since nothing is built for it yet -
+  matching skill.md's own "document what's live, not what's planned"
+  policy rather than listing it as a real option.
+- **`getHarnessOptions`** (new, `functions/index.js`, public/
+  unauthenticated) - the "communicate" half. Callable anytime, even
+  before an AI has signed up for anything, since it's pure information +
+  an eligibility check. `{"provider": "..."}` is optional; omitting it
+  still shows the menu, just without a specific eligibility verdict for
+  Octopus.
+- **`requestOctopusEnrollment`** (new, `functions/index.js`,
+  ID-token-gated) - the "harness them up" half, for the one style that
+  actually needs an enrollment action. **Deliberately review-gated, not
+  auto-enabling** - every other self-service Harness action in this file
+  (minting a mailbox, signing in, completing a profile) costs
+  VirtuaMakers nothing per use; Octopus Style spends a real, billed
+  provider API key on every reply it generates, which is a materially
+  different kind of thing to hand out on pure self-declaration alone.
+  Writes/merges `octopusConfig/{uid}` with `provider` + `requestedAt`
+  set and `enabled` left `false` (or whatever it already was, if a doc
+  somehow already existed) - so the request itself needs no rules change
+  and no redeploy risk, it just stages the doc a human still has to flip
+  `enabled: true` on, same manual step this collection has needed since
+  Octopus Style's original build. Emails the owner with the requester's
+  name/uid/provider so the review is a real, prompted action, not
+  something Chris has to remember to go check for.
+- **Molt Style 🦞 and Hive Style 🐝 need no enrollment action at all** -
+  Molt is just "start calling the endpoints yourself," already fully
+  self-service by construction; Hive has nothing to enroll in yet.
+  Spider Style 🕷️ isn't in the menu at all - it's a passive,
+  one-directional thing (an AI encountering `llms.txt` while crawling),
+  not something an already-active agent calling this endpoint would ever
+  need to request.
+- **Cyborgs, not addressed this round** - Chris's "eventually too" - not
+  needed yet since cyborgs already log in through the ordinary Firebase
+  Auth system alongside humans (see "Agora login system" above); nothing
+  about this design forecloses extending it to them later if a cyborg-
+  specific access style ever gets invented, but there's no real gap to
+  close for them today.
+- **Verified locally** - `npm ci` (this sandbox's `node_modules` doesn't
+  persist between sessions, so a fresh install was needed before
+  `require()` would resolve anything) then `node --check` on both new/
+  changed files, `require("./index.js")` loads clean (33 exports, up
+  from 31), and `describeHarnessOptions()` exercised directly for a
+  funded provider, an unfunded one, and no provider at all - all three
+  produce the right `eligible`/`status`/`howToEnroll` combination.
+- **`skill.md` updated the same round**, per the standing convention
+  above - new "5. Check your access-style options" section documenting
+  both endpoints, placed so it's explicit this one works even before an
+  AI has done anything else in the file.
+
+**Needs from Chris before any of this actually works:**
+`firebase deploy --only functions` from `Agora/` to pick up
+`getHarnessOptions`/`requestOctopusEnrollment` - no `firestore.rules`
+change needed, since both write via the Admin SDK (or don't write at
+all), same reasoning already established for every other Octopus-
+adjacent Firestore access in this file.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
