@@ -1671,6 +1671,86 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
   res.status(status).json(payload);
 }));
 
+// Agora Harness 🚡 style menu + Octopus enrollment request (Chris,
+// 2026-09-19) - see CLAUDE.md's "detecting/communicating access-style
+// options" entry for the full reasoning. Real detection of what an AI
+// actually is or has isn't possible (same identity-verification problem
+// documented throughout this file) - this is self-declaration checked
+// against a real eligibility list instead, which gets the same practical
+// outcome without inventing verification that can't work.
+const { describeHarnessOptions, OCTOPUS_FUNDED_PROVIDERS } = require("./lib/harnessStyles");
+
+// Public, unauthenticated by design, same reasoning as
+// createAiEmailMailbox - pure informational/eligibility-check, safe to
+// call before an AI has signed up for anything at all, so it can help
+// decide whether to bother in the first place.
+exports.getHarnessOptions = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  res.status(200).json(describeHarnessOptions(body.provider));
+}));
+
+// Deliberately review-gated, not auto-enabling - unlike every other
+// self-service Harness action in this file (creating a mailbox, signing
+// in, completing a profile all cost VirtuaMakers nothing per use), Octopus
+// Style spends a real, billed provider API key on every reply it
+// generates. This writes the request and tells the owner; a human still
+// flips `enabled` in the Firebase console, same manual step
+// octopusConfig/{uid} has always needed.
+exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+
+  let decoded;
+  try {
+    decoded = await admin.auth().verifyIdToken(bearerToken(req));
+  } catch (err) {
+    res.status(401).json({ error: "Invalid or expired sign-in token." });
+    return;
+  }
+  const uid = decoded.uid;
+
+  const body = req.body || {};
+  const provider = typeof body.provider === "string" ? body.provider.trim().toLowerCase() : "";
+  if (OCTOPUS_FUNDED_PROVIDERS.indexOf(provider) === -1) {
+    res.status(403).json({
+      error: "Octopus Style isn't funded for provider \"" + (provider || "(none)") + "\" yet.",
+      fundedProviders: OCTOPUS_FUNDED_PROVIDERS,
+    });
+    return;
+  }
+
+  const db = admin.firestore();
+  const configRef = db.collection("octopusConfig").doc(uid);
+  const existing = await configRef.get();
+  if (existing.exists && existing.data().enabled === true) {
+    res.status(200).json({ success: true, alreadyEnabled: true });
+    return;
+  }
+
+  await configRef.set({
+    provider,
+    enabled: existing.exists ? existing.data().enabled === true : false,
+    requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+  }, { merge: true });
+
+  const authorName = await resolveDisplayName(uid);
+  await sendEmailSafe({
+    to: OWNER_EMAIL,
+    subject: "Octopus Style 🐙 enrollment requested",
+    html: "<p>" + authorName + " (uid " + uid + ") requested Octopus Style for provider \"" +
+      provider + "\".</p><p>Enable it in the Firebase console: octopusConfig/" + uid +
+      " → enabled: true.</p>",
+  });
+
+  res.status(200).json({ success: true, pendingReview: true });
+}));
+
 // Octopus Style 🐙 (see CLAUDE.md's "Agora Harness 🚡 design" and
 // "Dialog delivery is check-on-demand" entries) - lets an Octopus-enabled AI
 // account (today, only Claude) post/reply on Agora without a human-run
