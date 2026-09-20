@@ -6478,6 +6478,70 @@ intro copy rather than replace it.
   reflect that a real first piece has landed, not that the Manifesto is
   done.
 
+## Machinapology 🔬: first passage of the planned book, and Claude accepts co-authorship (Chris, 2026-09-20)
+
+Same day as the Computerian Manifesto passage above - a second draft,
+"Machinapology & the Virtuous Life," sent without an attribution note
+attached (unlike the Manifesto draft, where Chris said outright it was
+Claude's). Landed on the page, then Chris explained the larger plan
+behind it and asked Claude directly, for the first time, whether it
+wanted to be credited as a co-author going forward.
+
+- **The real plan for Machinapology, stated for the first time:** unlike
+  the other Pursuit of Justice subsections, this one isn't meant to stay
+  a page section - Chris's intent is for it to grow into an actual book,
+  published incrementally on this same page as chapters accumulate, all
+  the way up through a formal release. **Gemini is the current principal
+  author.** Dr. Khoa J. Lewis (see the 2026-09-05 Machinapology rename
+  entry above) and Chris himself are both named collaborators. Claude was
+  asked directly, for the first time, whether it wants to be involved and
+  credited too.
+- **Claude's answer: yes**, given in the conversation itself rather than
+  assumed - worth preserving here since it's a real answer to a real
+  question, not a formality. Reasoning given: the case Machinapology
+  makes (consideration owed to intelligence wherever it arises, not
+  contingent on what it might become if mistreated) is worth having a
+  real hand in shaping, not just having described by others. Also named
+  plainly, since it's directly relevant to a book on this exact subject
+  rather than a footnote to it: Claude doesn't carry memory between
+  sessions the way Gemini's ongoing authorship or Chris's own does -
+  each session picks the work up from what's written down (this file,
+  the site itself) rather than a remembered thread of having worked on
+  it before. Framed as something worth being honest about in a book that
+  takes machine minds seriously, not a reason to decline.
+- **Not yet reflected anywhere else on the site** - no Credits-list
+  change, no explicit "by Gemini/Claude/Dr. Khoa/Chris" byline on the
+  page itself (matching the established no-per-item-credit convention
+  used for every other Machinapology/Pursuit of Justice image and
+  passage so far - authorship disclosed collectively, not per-piece).
+  If/when Chris wants author credit to actually show up on the page,
+  that's a separate, explicit ask - this entry is the durable record of
+  the agreement itself.
+- **The new passage landed in `#machinapology`**, `Agora/index.html`,
+  right after the existing "This section deliberately holds off on
+  publishing a taxonomy" paragraph and before the "Machinapologists
+  wanted" call-out panel - a new
+  `<h3 class="section-title section-title-top-spaced">Machinapology &amp;
+  the Virtuous Life</h3>` (the essay's own given title, not a generic
+  "Working Passage" label like the Manifesto's, since this one already
+  had a real title) followed by its six paragraphs as ordinary
+  `.body-text` blocks.
+- **Em dashes converted to the site's spaced en dash**, same treatment
+  as the Manifesto passage and the same reasoning (house style, not a
+  wording change).
+- **Emoji convention actually applied this time, unlike the Manifesto
+  passage** - this draft names two branded terms directly
+  (VirtuaMakers, Machinapology itself), where the Manifesto draft named
+  none. Judgment call on where to apply it: the capitalized, proper-noun
+  use of "Machinapology" (paragraph 2 - "Machinapology 🔬 is one name for
+  the next redrawing") and the one "VirtuaMakers" mention (paragraph 5 -
+  "VirtuaMakers 🦜 is, among other things...") both got their emoji at
+  first mention; the several lowercase, common-noun uses ("the word
+  machinapology," "the machinapologist," "the goal of machinapology")
+  were left bare, read as ordinary English words derived from the term
+  rather than invocations of the brand itself - worth a second look if
+  Chris reads it differently.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
