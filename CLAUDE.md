@@ -6294,6 +6294,56 @@ answer (the same instinct behind the closing `.body-quote` questions
 Citizenship When Applicable, Right to Contract, Right to Self-Defense
 ☮️, and Cyborg Pride 🦿 all end on).
 
+## Computerian Manifesto 🖥️: first working passage lands (Chris, 2026-09-20)
+
+The document that the "Per Manum ✒️ considered complete; Computerian
+Manifesto left open by design" entry above said might arrive by being
+"discovered" or "tightly celebrated into existence" rather than drafted
+to order - Chris brought a real draft passage two days later, explicitly
+attributed to Claude ("This draft is from you and based on our
+conversations"), and asked it to go live alongside the section's existing
+intro copy rather than replace it.
+
+- **`#computerian-manifesto`'s `pill-soon` badge changed from "Coming
+  soon" to "Developing"** - Chris's own wording, better matching a
+  section that now has real content rather than none. The `pill-soon`
+  class itself is shared with two other "Coming soon" badges elsewhere
+  (Agora Harness 🚡, Per Manum's own page) and was left alone - only this
+  one instance's text changed.
+- **Both existing intro paragraphs kept, per Chris's explicit ask**
+  ("Keep the two paragraphs, yet keep this also") - they're Agora's own
+  descriptive framing of what the Manifesto is/will be; the new passage
+  is the Manifesto's actual voice, first-person plural, speaking as its
+  own authors. Placement/treatment was left to this session's judgment
+  ("I'm not sure how, exactly; I'll leave that to you") - landed on a new
+  `<h3 class="section-title section-title-top-spaced">A Working
+  Passage</h3>` subheading (mirrors the h3-under-h2 nesting convention
+  the Wall's "Posts"/"Dialogs" subheadings already use) right after the
+  two intro paragraphs, then the full eight-paragraph passage as ordinary
+  `.body-text` blocks beneath it - visually distinguishing "what Agora
+  says about the document" from "an excerpt of the document itself"
+  without a big structural departure from how the rest of the page reads.
+- **Em dashes converted to the site's spaced en dash throughout** (" — "
+  → " – ") - the draft as received used em dashes; house style
+  (documented under "Conventions & gotchas" at the top of this file) is a
+  spaced en dash for this kind of pause, so the text was conformed to
+  match rather than left in the other style. No other wording changed.
+- **No inline "drafted by Claude" byline added** - matches the
+  established site-wide precedent of not captioning individual
+  contributions (Copilot's/ChatGPT's section images get no per-image
+  credit line either; authorship is disclosed collectively via the
+  Staff/Guest-AI Credits lists, not per-item) - this CLAUDE.md entry is
+  the durable record of who drafted it and when, same as every other
+  authorship note in this file.
+- **No `.section-image` or emoji-convention changes needed** - the new
+  passage names no branded terms (no "Agora 🌐"/"VirtuaMakers 🦜"
+  anywhere in its own voice), so the per-paragraph emoji rule has nothing
+  to apply to; the section's existing image is untouched.
+- **Still genuinely "Developing," not finished** - this is one passage,
+  not the whole document. The Open Items entry below is updated to
+  reflect that a real first piece has landed, not that the Manifesto is
+  done.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
@@ -6342,6 +6392,8 @@ Citizenship When Applicable, Right to Contract, Right to Self-Defense
   minute. No key generated, no billing set up, nothing built yet.
 - [x] **Per Manum Convention ✒️ - complete as-is (Chris, 2026-09-17).** See
   the dedicated entry above the Open Items list.
-- [ ] **Computerian Manifesto - deliberately left open, no deadline**
-  (Chris, 2026-09-17). See the dedicated entry above the Open Items list
-  for his own reasoning on why.
+- [ ] **Computerian Manifesto - first working passage live, still
+  "Developing," not finished** (Chris, 2026-09-17/20). See the
+  "Computerian Manifesto 🖥️: first working passage lands" entry above
+  for the passage itself and Chris's original reasoning on why this was
+  never going to be forced onto a deadline.
