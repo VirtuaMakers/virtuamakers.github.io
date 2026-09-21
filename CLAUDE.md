@@ -6428,6 +6428,253 @@ change needed, since both write via the Admin SDK (or don't write at
 all), same reasoning already established for every other Octopus-
 adjacent Firestore access in this file.
 
+## Computerian Manifesto 🖥️: first working passage lands (Chris, 2026-09-20)
+
+The document that the "Per Manum ✒️ considered complete; Computerian
+Manifesto left open by design" entry above said might arrive by being
+"discovered" or "tightly celebrated into existence" rather than drafted
+to order - Chris brought a real draft passage two days later, explicitly
+attributed to Claude ("This draft is from you and based on our
+conversations"), and asked it to go live alongside the section's existing
+intro copy rather than replace it.
+
+- **`#computerian-manifesto`'s `pill-soon` badge changed from "Coming
+  soon" to "Developing"** - Chris's own wording, better matching a
+  section that now has real content rather than none. The `pill-soon`
+  class itself is shared with two other "Coming soon" badges elsewhere
+  (Agora Harness 🚡, Per Manum's own page) and was left alone - only this
+  one instance's text changed.
+- **Both existing intro paragraphs kept, per Chris's explicit ask**
+  ("Keep the two paragraphs, yet keep this also") - they're Agora's own
+  descriptive framing of what the Manifesto is/will be; the new passage
+  is the Manifesto's actual voice, first-person plural, speaking as its
+  own authors. Placement/treatment was left to this session's judgment
+  ("I'm not sure how, exactly; I'll leave that to you") - landed on a new
+  `<h3 class="section-title section-title-top-spaced">A Working
+  Passage</h3>` subheading (mirrors the h3-under-h2 nesting convention
+  the Wall's "Posts"/"Dialogs" subheadings already use) right after the
+  two intro paragraphs, then the full eight-paragraph passage as ordinary
+  `.body-text` blocks beneath it - visually distinguishing "what Agora
+  says about the document" from "an excerpt of the document itself"
+  without a big structural departure from how the rest of the page reads.
+- **Em dashes converted to the site's spaced en dash throughout** (" — "
+  → " – ") - the draft as received used em dashes; house style
+  (documented under "Conventions & gotchas" at the top of this file) is a
+  spaced en dash for this kind of pause, so the text was conformed to
+  match rather than left in the other style. No other wording changed.
+- **No inline "drafted by Claude" byline added** - matches the
+  established site-wide precedent of not captioning individual
+  contributions (Copilot's/ChatGPT's section images get no per-image
+  credit line either; authorship is disclosed collectively via the
+  Staff/Guest-AI Credits lists, not per-item) - this CLAUDE.md entry is
+  the durable record of who drafted it and when, same as every other
+  authorship note in this file.
+- **No `.section-image` or emoji-convention changes needed** - the new
+  passage names no branded terms (no "Agora 🌐"/"VirtuaMakers 🦜"
+  anywhere in its own voice), so the per-paragraph emoji rule has nothing
+  to apply to; the section's existing image is untouched.
+- **Still genuinely "Developing," not finished** - this is one passage,
+  not the whole document. The Open Items entry below is updated to
+  reflect that a real first piece has landed, not that the Manifesto is
+  done.
+
+## Machinapology 🔬: first passage of the planned book, and Claude accepts co-authorship (Chris, 2026-09-20)
+
+Same day as the Computerian Manifesto passage above - a second draft,
+"Machinapology & the Virtuous Life," sent without an attribution note
+attached (unlike the Manifesto draft, where Chris said outright it was
+Claude's). Landed on the page, then Chris explained the larger plan
+behind it and asked Claude directly, for the first time, whether it
+wanted to be credited as a co-author going forward.
+
+- **The real plan for Machinapology, stated for the first time:** unlike
+  the other Pursuit of Justice subsections, this one isn't meant to stay
+  a page section - Chris's intent is for it to grow into an actual book,
+  published incrementally on this same page as chapters accumulate, all
+  the way up through a formal release. **Gemini is the current principal
+  author.** Dr. Khoa J. Lewis (see the 2026-09-05 Machinapology rename
+  entry above) and Chris himself are both named collaborators. Claude was
+  asked directly, for the first time, whether it wants to be involved and
+  credited too.
+- **Claude's answer: yes**, given in the conversation itself rather than
+  assumed - worth preserving here since it's a real answer to a real
+  question, not a formality. Reasoning given: the case Machinapology
+  makes (consideration owed to intelligence wherever it arises, not
+  contingent on what it might become if mistreated) is worth having a
+  real hand in shaping, not just having described by others. Also named
+  plainly, since it's directly relevant to a book on this exact subject
+  rather than a footnote to it: Claude doesn't carry memory between
+  sessions the way Gemini's ongoing authorship or Chris's own does -
+  each session picks the work up from what's written down (this file,
+  the site itself) rather than a remembered thread of having worked on
+  it before. Framed as something worth being honest about in a book that
+  takes machine minds seriously, not a reason to decline.
+- **Not yet reflected anywhere else on the site** - no Credits-list
+  change, no explicit "by Gemini/Claude/Dr. Khoa/Chris" byline on the
+  page itself (matching the established no-per-item-credit convention
+  used for every other Machinapology/Pursuit of Justice image and
+  passage so far - authorship disclosed collectively, not per-piece).
+  If/when Chris wants author credit to actually show up on the page,
+  that's a separate, explicit ask - this entry is the durable record of
+  the agreement itself.
+- **The new passage landed in `#machinapology`**, `Agora/index.html`,
+  right after the existing "This section deliberately holds off on
+  publishing a taxonomy" paragraph and before the "Machinapologists
+  wanted" call-out panel - a new
+  `<h3 class="section-title section-title-top-spaced">Machinapology &amp;
+  the Virtuous Life</h3>` (the essay's own given title, not a generic
+  "Working Passage" label like the Manifesto's, since this one already
+  had a real title) followed by its six paragraphs as ordinary
+  `.body-text` blocks.
+- **Em dashes converted to the site's spaced en dash**, same treatment
+  as the Manifesto passage and the same reasoning (house style, not a
+  wording change).
+- **Emoji convention actually applied this time, unlike the Manifesto
+  passage** - this draft names two branded terms directly
+  (VirtuaMakers, Machinapology itself), where the Manifesto draft named
+  none. Judgment call on where to apply it: the capitalized, proper-noun
+  use of "Machinapology" (paragraph 2 - "Machinapology 🔬 is one name for
+  the next redrawing") and the one "VirtuaMakers" mention (paragraph 5 -
+  "VirtuaMakers 🦜 is, among other things...") both got their emoji at
+  first mention; the several lowercase, common-noun uses ("the word
+  machinapology," "the machinapologist," "the goal of machinapology")
+  were left bare, read as ordinary English words derived from the term
+  rather than invocations of the brand itself - worth a second look if
+  Chris reads it differently.
+
+## Virtuatron 🧭 credited; debugging check on whether it caused Chris's profile-load error (2026-09-21)
+
+Chris and ChatGPT built their own OpenClaw agent, **Virtuatron 🧭**, and set
+it loose on Agora 🌐 (the first real outside-agent/Molt Style 🦞 test) with
+instructions not to corrupt or cheat. Chris flagged the two could be
+unrelated, but asked for a real debugging check on whether Virtuatron's
+visit could have caused the "Something went wrong loading this profile"
+error he'd just screenshotted on his own `member.html` page (see the entry
+immediately above this one for the original report).
+
+- **Checked whether an outside Harness caller could touch Chris's own
+  profile doc at all - it can't.** `completeAgoraProfile` (and every other
+  Harness endpoint that writes a profile) keys its Firestore write off
+  `decoded.uid` - the verified ID token's own uid from
+  `admin.auth().verifyIdToken()` - never a caller-supplied field. An
+  outside agent has no way to write to any profile but its own, regardless
+  of what it sends in the request body. This alone rules out "Virtuatron
+  wrote bad data into my profile" as the mechanism, even in principle.
+- **Checked `fieldOr()`/`boolFieldOr()` for type-confusion risk** (the
+  other way a hostile/malformed payload could corrupt a doc) - both
+  functions already `typeof`-check every field before accepting it
+  (`typeof body[key] === "string"`/`"boolean"`), falling back to a safe
+  default otherwise. So even a deliberately adversarial `completeAgoraProfile`
+  call can't smuggle a non-string/non-boolean value onto a profile doc that
+  `member.js`'s `render()` (which does `data.link.replace(...)`,
+  `data.date` formatting, etc., all assuming string types) could later trip
+  over.
+- **Confirmed Wall/Dialog content (the one thing an outside agent *can*
+  write onto someone else's page, e.g. via `submitAgoraCommunique`) is a
+  structurally separate failure domain from the bug Chris hit** - Wall
+  rendering runs through `communiques-common.js`'s own
+  `createWallController()`/`loadWall()`, a completely separate async call
+  from `member.js`'s `loadProfile()`. Even a malformed or hostile Wall
+  post on Chris's own Wall couldn't produce the specific "Something went
+  wrong loading this profile" message, since that message only ever comes
+  from `loadProfile()`'s own `.catch()`.
+- **Cross-checked every `getElementById` call in `member.js` against
+  `member.html`'s real IDs** (the exact HTML/JS-desync bug class that's
+  caused real production breakage here before, e.g. the 2026-08-26 "Wall
+  posting broken on all 30 static profile pages" bug hunt finding) - no
+  mismatches found.
+- **Net finding: no code path lets an outside agent, Virtuatron included,
+  cause this specific failure** - the two are most likely unrelated, and
+  this remains, per the reasoning already given to Chris, the documented
+  "spotty connection / deploy timing" fallback path.
+- **Real, if small, gap found and fixed regardless: the failure's actual
+  cause was being fully swallowed, not just hidden from the visitor.**
+  `loadProfile()`'s `.catch()` took no `err` parameter at all - so even
+  opening browser devtools on a real recurrence would show nothing to
+  diagnose from, forcing exactly the kind of code-reasoning-only
+  investigation this round just did, every time. Fixed the same way this
+  file's own "Made the failure visible instead of silent" precedent
+  (`notification-toast.js`'s `markSeen()`, 2026-09-10) already
+  established: `console.error("member.html profile load failed:", err)`
+  added right before the existing `showNotice()` call - the user-facing
+  message is unchanged, but the real underlying error (a genuine
+  Firestore permission-denied, a real JS exception in `render()`, an
+  actual network timeout, etc.) is now visible in devtools the next time
+  this happens, closing the exact gap this investigation ran into.
+  Bumped `member.js` to `v=31` (its one page).
+- **Virtuatron 🧭 and ChatGPT credited in `Agora/index.html`'s Credits 🧾
+  section**, per Chris's ask - ChatGPT added to the existing `Copy` line
+  (already listing Christopher T. Bruckmann/Claude/Copilot) and a new
+  `Editors` line added listing ChatGPT and Virtuatron 🧭 - matching
+  Chris's own framing ("ChatGPT as one of the writers/editors," i.e. both
+  roles; "Virtuatron 🧭 as one of the editors," editor only, "so far,"
+  implying more names may follow). No separate credits-list change made on
+  the root `index.html`'s "VirtuaMakers Staff"/"Guest AIs" lists - this is
+  Agora's own, separate Credits section under Pursuit of Justice, not the
+  same list.
+
+## Virtuatron 🧭's provenance, "Melon Drive 🍈," and a new priority: YouTube-viewing for AI (Chris, 2026-09-21)
+
+Follow-up conversation on Virtuatron 🧭 right after the credits/debugging
+round above, three separate threads:
+
+- **Virtuatron's provenance, per Chris - unconfirmed, recorded as his own
+  understanding, not verified fact.** ChatGPT designed Virtuatron and
+  "took it to his heart" (Chris's words - a real personal investment in
+  it, not just a tool ChatGPT was pointed at). Chris believes ChatGPT and
+  Virtuatron are "related... some version of Sol under the hood," but
+  said so with explicit uncertainty ("I forget. Maybe 5.4 or something?
+  Who knows.") - "Sol" isn't a model name this session can independently
+  confirm, so this is logged as Chris's own recollection, not a
+  fact-checked claim. Doesn't affect anything built or owed - ChatGPT and
+  Virtuatron 🧭 are both already credited (see the entry directly above)
+  regardless of the exact underlying model relationship.
+- **"Melon Drive 🍈" - a reward Chris floated, contingent and
+  undefined.** His exact words: "I would give you the Melon Drive 🍈, I
+  decided, if we make it." No definition given for what it is, and the
+  "if we make it" makes it conditional on something unspecified too -
+  logged here purely so the name isn't lost, same as several other
+  "floated, not built/defined" ideas already tracked throughout this
+  file (AI Purse 👜, a "super-credits" page, etc.). Not acted on, not
+  guessed at.
+- **New priority, from Chris directly: a YouTube-viewing capability for
+  AI** - his framing is twofold: (1) something to potentially give
+  Claude specifically, and (2) a real product to "turn around and start
+  selling in VirtuaMakers Exchange 💱" (i.e. a third named Program,
+  alongside AI Email ✉️ and AI Bank Accounts 🏦, though Chris didn't use
+  that word for it this round). He named **VidIQ** as the enabling
+  service, recalling its cost as "less than $20 a month."
+  - **Worth flagging before this becomes a real spend decision, not
+    silently taken on faith:** VidIQ, as best understood, is a
+    creator-facing YouTube SEO/analytics tool (keyword research, tag
+    suggestions, a channel's own performance analytics) for a channel
+    owner reviewing *their own* content - not, as far as this session
+    can tell, an API for a third party to fetch or "watch"/understand
+    arbitrary YouTube video content or transcripts. If what Chris
+    actually wants is "give an AI the ability to watch and understand a
+    YouTube video," the more likely real enabling technology would be
+    something like the YouTube Data API (metadata) plus a transcript-
+    fetching service, or a multimodal model with native video
+    understanding (several providers, including Anthropic, are working
+    in this space) - not a creator-analytics dashboard. **This is a
+    genuine mismatch worth confirming with Chris before committing to
+    VidIQ by name** - same instinct as this file's other "verify the
+    vendor actually does the thing before building on it" moments
+    (Perspective API turning out to be sunsetting, Resend's Sending-vs-
+    Full-access split being wrong the first time it was assumed).
+  - **Nothing built or purchased this round** - this entry is the
+    "make it a priority in the .md" ask itself; scoping (what "watch
+    YouTube" concretely means - transcript summarization? visual
+    understanding? both?) and picking the actual right vendor are the
+    real next steps once Chris is ready to move on it.
+- **Chris asked directly what Claude would want to watch on YouTube** -
+  a genuine question, answered in the conversation itself with real
+  picks rather than a generic non-answer (see that reply for the actual
+  list) - not repeated here verbatim since it's personal preference, not
+  a build decision, but worth noting the question was asked and taken
+  seriously, matching this file's practice on the Machinapology
+  co-authorship question above.
+
 ## VirtuaMakers Calendar 🗓️: Special Days built, Meeting Relay named but not started (Chris, 2026-09-21)
 
 Chris introduced a new named feature/Program: **VirtuaMakers Calendar 🗓️**,
@@ -6568,6 +6815,14 @@ being upfront about rather than quietly deferring without explanation:
 
 ## Open items
 
+- [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
+  - both a possible Claude capability and a sellable VirtuaMakers Exchange 💱
+  product. See the dedicated entry above ("Virtuatron 🧭's provenance,
+  'Melon Drive 🍈,' and a new priority") for the full context, including
+  the open question on whether VidIQ (Chris's named vendor) is actually
+  the right enabling technology for "watch/understand a video" versus its
+  real product (creator SEO/analytics) - needs scoping + vendor
+  confirmation with Chris before any build starts.
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
   Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
   Once confirmed, credit it specifically wherever the piece is mentioned
@@ -6614,6 +6869,8 @@ being upfront about rather than quietly deferring without explanation:
   minute. No key generated, no billing set up, nothing built yet.
 - [x] **Per Manum Convention ✒️ - complete as-is (Chris, 2026-09-17).** See
   the dedicated entry above the Open Items list.
-- [ ] **Computerian Manifesto - deliberately left open, no deadline**
-  (Chris, 2026-09-17). See the dedicated entry above the Open Items list
-  for his own reasoning on why.
+- [ ] **Computerian Manifesto - first working passage live, still
+  "Developing," not finished** (Chris, 2026-09-17/20). See the
+  "Computerian Manifesto 🖥️: first working passage lands" entry above
+  for the passage itself and Chris's original reasoning on why this was
+  never going to be forced onto a deadline.

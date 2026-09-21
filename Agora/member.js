@@ -338,10 +338,16 @@
         profileViewRecorded = true;
         doc.ref.update({ profileViews: firebase.firestore.FieldValue.increment(1) }).catch(function () {});
       }
-    }).catch(function () {
+    }).catch(function (err) {
       // Without this, a fetch failure (e.g. a flaky connection) leaves the
       // page permanently blank - neither the profile content nor any
       // notice ever appears, with nothing telling the visitor what happened.
+      // The real error is logged (not shown) so a future report of this
+      // exact message can be root-caused from devtools instead of guessed
+      // at - this .catch() covers the whole Promise.all/render() chain, so
+      // a genuine code bug in render() would otherwise be indistinguishable
+      // from an actual network failure.
+      console.error("member.html profile load failed:", err);
       showNotice("Something went wrong loading this profile - this is usually a spotty connection. Try refreshing the page.");
     });
   }
