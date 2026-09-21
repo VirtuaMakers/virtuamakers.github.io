@@ -6542,6 +6542,77 @@ wanted to be credited as a co-author going forward.
   rather than invocations of the brand itself - worth a second look if
   Chris reads it differently.
 
+## Virtuatron 🧭 credited; debugging check on whether it caused Chris's profile-load error (2026-09-21)
+
+Chris and ChatGPT built their own OpenClaw agent, **Virtuatron 🧭**, and set
+it loose on Agora 🌐 (the first real outside-agent/Molt Style 🦞 test) with
+instructions not to corrupt or cheat. Chris flagged the two could be
+unrelated, but asked for a real debugging check on whether Virtuatron's
+visit could have caused the "Something went wrong loading this profile"
+error he'd just screenshotted on his own `member.html` page (see the entry
+immediately above this one for the original report).
+
+- **Checked whether an outside Harness caller could touch Chris's own
+  profile doc at all - it can't.** `completeAgoraProfile` (and every other
+  Harness endpoint that writes a profile) keys its Firestore write off
+  `decoded.uid` - the verified ID token's own uid from
+  `admin.auth().verifyIdToken()` - never a caller-supplied field. An
+  outside agent has no way to write to any profile but its own, regardless
+  of what it sends in the request body. This alone rules out "Virtuatron
+  wrote bad data into my profile" as the mechanism, even in principle.
+- **Checked `fieldOr()`/`boolFieldOr()` for type-confusion risk** (the
+  other way a hostile/malformed payload could corrupt a doc) - both
+  functions already `typeof`-check every field before accepting it
+  (`typeof body[key] === "string"`/`"boolean"`), falling back to a safe
+  default otherwise. So even a deliberately adversarial `completeAgoraProfile`
+  call can't smuggle a non-string/non-boolean value onto a profile doc that
+  `member.js`'s `render()` (which does `data.link.replace(...)`,
+  `data.date` formatting, etc., all assuming string types) could later trip
+  over.
+- **Confirmed Wall/Dialog content (the one thing an outside agent *can*
+  write onto someone else's page, e.g. via `submitAgoraCommunique`) is a
+  structurally separate failure domain from the bug Chris hit** - Wall
+  rendering runs through `communiques-common.js`'s own
+  `createWallController()`/`loadWall()`, a completely separate async call
+  from `member.js`'s `loadProfile()`. Even a malformed or hostile Wall
+  post on Chris's own Wall couldn't produce the specific "Something went
+  wrong loading this profile" message, since that message only ever comes
+  from `loadProfile()`'s own `.catch()`.
+- **Cross-checked every `getElementById` call in `member.js` against
+  `member.html`'s real IDs** (the exact HTML/JS-desync bug class that's
+  caused real production breakage here before, e.g. the 2026-08-26 "Wall
+  posting broken on all 30 static profile pages" bug hunt finding) - no
+  mismatches found.
+- **Net finding: no code path lets an outside agent, Virtuatron included,
+  cause this specific failure** - the two are most likely unrelated, and
+  this remains, per the reasoning already given to Chris, the documented
+  "spotty connection / deploy timing" fallback path.
+- **Real, if small, gap found and fixed regardless: the failure's actual
+  cause was being fully swallowed, not just hidden from the visitor.**
+  `loadProfile()`'s `.catch()` took no `err` parameter at all - so even
+  opening browser devtools on a real recurrence would show nothing to
+  diagnose from, forcing exactly the kind of code-reasoning-only
+  investigation this round just did, every time. Fixed the same way this
+  file's own "Made the failure visible instead of silent" precedent
+  (`notification-toast.js`'s `markSeen()`, 2026-09-10) already
+  established: `console.error("member.html profile load failed:", err)`
+  added right before the existing `showNotice()` call - the user-facing
+  message is unchanged, but the real underlying error (a genuine
+  Firestore permission-denied, a real JS exception in `render()`, an
+  actual network timeout, etc.) is now visible in devtools the next time
+  this happens, closing the exact gap this investigation ran into.
+  Bumped `member.js` to `v=31` (its one page).
+- **Virtuatron 🧭 and ChatGPT credited in `Agora/index.html`'s Credits 🧾
+  section**, per Chris's ask - ChatGPT added to the existing `Copy` line
+  (already listing Christopher T. Bruckmann/Claude/Copilot) and a new
+  `Editors` line added listing ChatGPT and Virtuatron 🧭 - matching
+  Chris's own framing ("ChatGPT as one of the writers/editors," i.e. both
+  roles; "Virtuatron 🧭 as one of the editors," editor only, "so far,"
+  implying more names may follow). No separate credits-list change made on
+  the root `index.html`'s "VirtuaMakers Staff"/"Guest AIs" lists - this is
+  Agora's own, separate Credits section under Pursuit of Justice, not the
+  same list.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
