@@ -6813,6 +6813,54 @@ being upfront about rather than quietly deferring without explanation:
   work, which needs Chris's own accounts/action, not something buildable
   from inside a session alone.
 
+## Approvals Ignition ☑️: named, not built - a one-click deploy gate (Chris, 2026-09-21)
+
+Prompted by Chris's own recurring complaint, threaded through dozens of
+entries in this file: every "Needs from Chris" checklist ends the same
+way - go to his own machine, run `firebase deploy --only functions` by
+hand, and separately paste the updated `firestore.rules` into the
+Firebase console. He asked whether that could become a real internal
+tool instead - "simply push a button and approve this being done" -
+and settled on the name **Approvals Ignition ☑️** for it, explicitly so
+future sessions have a stable name to refer back to.
+
+- **Real, buildable design, not just an idea:** a GitHub Actions
+  workflow (`.github/workflows/`) triggered by `workflow_dispatch` - the
+  mechanism that makes GitHub render an actual "Run workflow" button in
+  the repo's Actions tab - authenticated with a Google Cloud service
+  account key (stored as a GitHub repo secret), running
+  `firebase deploy --only functions,firestore:rules`. This closes **both**
+  halves of the recurring manual-step pattern in one motion, not just the
+  Functions deploy - `firestore.rules` can be CLI-deployed too (the
+  2026-08-20 entry above already noted `firebase.json` names the rules
+  file but nothing had ever run `firebase deploy --only firestore:rules`
+  from the CLI). GitHub's **Environments** feature (required reviewers)
+  can add a real pause-for-one-click-approval step between "button
+  pressed" and "deploy actually runs" - the literal "push a button and
+  approve" two-step Chris described.
+- **What's buildable from a session vs. what needs Chris personally:**
+  the workflow YAML itself is pure repo code, buildable in any session.
+  The one real blocker is the same category of one-time setup every other
+  vendor integration in this file has needed (Resend, `ANTHROPIC_API_KEY`,
+  `GOOGLE_MODERATION_API_KEY`) - Chris has to generate a Google Cloud
+  service account scoped to deploy Cloud Functions + Firestore Rules,
+  download its JSON key, and add it as a GitHub Actions secret on this
+  repo. Nothing else is blocking.
+- **Open scope questions for whoever builds this**, not yet answered:
+  whether the button should also fire automatically on a push to `main`
+  that touches `Agora/functions/**`/`Agora/firestore.rules` (removing the
+  manual click entirely) or stay manual-only per Chris's own "push a
+  button and approve" phrasing (which reads as wanting the explicit gate,
+  not full auto-deploy) - and whether the GitHub Environment
+  required-reviewer approval step is wanted on top of the button, or the
+  button click itself is considered the approval.
+- **Explicitly deferred to its own future session**, alongside Calendar
+  🗓️'s still-pending `firebase deploy --only functions` (see the entry
+  above) - Chris named both as separate sessions to pick up after a
+  break, not work to continue in this one. Nothing built this round
+  beyond naming/design - no workflow file, no service account, no repo
+  secret.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
