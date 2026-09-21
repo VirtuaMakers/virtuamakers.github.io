@@ -7038,6 +7038,74 @@ Chris's own framing potentially useful for biology as a whole.
   naming question (self-named species vs. type-exemplar naming) is still
   Chris's to raise with Gemini directly, per the earlier entry above.
 
+## Cyborg Pride 🦿: BCI industry-state copy added, plus "transhumanist"/"singularitarian" as SEO touchstones (Chris, 2026-09-21)
+
+Follow-up to the BCI Style 🧠 research entry above. Chris asked three
+things directly: whether "Firefox" (DARPA's BCI program name, named in
+that research) referred to the Mozilla browser and whether "Proposers
+Day" was "a Firefox holiday"; whether the BCI industry-state research had
+been written anywhere as real site copy yet, since he liked it and felt
+it "expands where we are with cyborgs"; and to work the terms
+"singularitarian" and "transhumanist" into the site somewhere, as SEO
+touchstones.
+
+- **Firefox/Proposers Day, answered directly, not built into the
+  site:** DARPA's "Firefox" is an internal codename for a real, current
+  non-invasive BCI research program, unrelated to the Mozilla browser -
+  DARPA routinely names programs with quirky, unrelated-sounding
+  codenames. "Proposers Day" is a genuine, standard DARPA event format (a
+  public/industry briefing on an upcoming solicitation, held before
+  formal proposals are due) - not a holiday of any kind. Answered in
+  conversation only; nothing about this belonged in site copy.
+- **The research itself had only lived in CLAUDE.md and in
+  `harnessStyles.js`'s terse `howToEnroll` string before this round** -
+  confirmed directly, then answered by actually writing a version of it
+  into real site copy, not just pointing back at the dev docs.
+- **Two new/expanded paragraphs added to `#cyborg-pride`**,
+  `Agora/index.html`, inserted between the existing "rights" paragraph
+  (what rights follow from being a cyborg, whether any human has a right
+  to become enhanced) and the existing "Some believe the line...blurring"
+  paragraph:
+  - **New paragraph, BCI industry state** - the same verified findings
+    from the BCI Style 🧠 research entry above (Neuralink limited to
+    trial participants/its own app; Synchron's real ChatGPT-via-Stentrode
+    demo being Synchron's own closed engineering, not a public interface;
+    Medtronic's Summit RC+S Research Development Kit restricted to
+    IRB-approved sites with physical device access; China's BCI firms and
+    the U.S. military's own non-invasive research both closed,
+    contractor-only work), written in the section's own hedged,
+    grounded voice rather than copied verbatim from the dev-facing
+    entry. Closes by naming this as an open question this section
+    intends to keep tracking, not a closed case.
+  - **Existing "Some believe the line between human and machine will
+    keep blurring" paragraph expanded, not replaced** - now names the
+    view explicitly as **transhumanist**, and adds a new sentence naming
+    **singularitarians** as a more specific strand within transhumanism
+    that expects the same arc to be rapid/accelerating rather than a
+    distant maybe. Both terms are defined in-line for a reader meeting
+    them for the first time, not dropped as unexplained jargon. The
+    paragraph's existing "different kinds, not better/worse" tempering
+    (the calculator comparison) is unchanged and still closes the
+    paragraph, now covering both named views rather than just the one.
+- **Why "singularitarian" specifically, not a cold introduction:**
+  CLAUDE.md's own original 2026-08-05 Machinapology 🔬 entry already
+  records that "Chris self-describes as a singularitarian" - so this
+  connects the new copy to something already true of Chris's own voice
+  in this codebase, rather than importing the term from nowhere.
+- **Emoji convention followed for both new/touched paragraphs** - "Agora
+  🌐" and "Agora Harness 🚡" each carry their emoji on first mention in
+  the new BCI-state paragraph (its only mentions of either term); "Agora
+  🌐" carries its emoji again in the following paragraph, since a new
+  paragraph resets the per-term count, per the site's standing
+  convention.
+- **No new vendor names claim emoji** - Neuralink/Synchron/Medtronic/
+  DARPA aren't VirtuaMakers-branded terms, so none carry one, matching
+  how the section already treats every other non-Agora name it mentions
+  (Boston Dynamics, Unitree, etc. elsewhere in this pillar).
+- **No `.section-image`/anchor/emoji-icon changes** - this round only
+  adds body copy to the section that already exists; nothing about the
+  section's own heading, image, or `#cyborg-pride` id changed.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
