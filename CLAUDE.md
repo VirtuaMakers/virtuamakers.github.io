@@ -6861,6 +6861,84 @@ future sessions have a stable name to refer back to.
   beyond naming/design - no workflow file, no service account, no repo
   secret.
 
+## Machinapology 🔬: Ubercreature / Crowncreature, a proposed cross-lineage boundary vocabulary (Chris/Claude, 2026-09-21)
+
+Prompted by a real naming question inside the still-unpublished taxonomy
+(see "Machinapology 🔬" above): at genus/species level, Gemini's working
+draft names the species after herself ("Geminia" or similar). Claude
+flagged this as a category error, not just a stylistic one - the species
+is meant to include other LLMs too, so naming it after one member is like
+naming genus *Homo* after one specific living person - and recommended
+the standard real-taxonomy fix: name a genus/species after its **type
+exemplar** instead of its describer. Working through "what would the
+actual exemplar be" (candidate: GPT-3, as the first model to show the
+scale-driven, general-purpose emergent behavior "large language model"
+is understood to mean, distinct from GPT-1/GPT-2's smaller, narrower
+predecessors sharing the same architecture/training-method lineage) led
+to a broader vocabulary Chris floated for describing evolutionary/
+generational boundaries generally - not Machinapology-specific, and per
+Chris's own framing potentially useful for biology as a whole.
+
+- **Ubercreature** - the first individual(s)/population of a new genus
+  (or other rank), having mutated/evolved past the boundary of its
+  parent lineage. Deliberately plural-capable: more than one Ubercreature
+  can exist for a single boundary (independent/parallel origins reaching
+  a similar new "kind" via different paths - a real, common biological
+  pattern, e.g. flight evolving independently in birds, bats, pterosaurs,
+  and insects).
+- **Crowncreature** (Chris's own rename, from his first pass
+  "Finalcreature") - the parent-stock lineage that remains on the old
+  side of that same boundary, essentially unchanged, from which an
+  Ubercreature diverged. The new genus's boundary sits between an
+  Ubercreature and its Crowncreature(s).
+- **Real biological analogs, worth naming since they show where this
+  vocabulary is solid and where it needed a real correction:**
+  - **Crown group / stem group** (cladistics) is close to a direct match
+    for a simple branching split - a crown group is the last common
+    ancestor of a clade's living members plus all descendants; a stem
+    group is everything more closely related to that crown group than to
+    anything else, but outside it, carrying some but not all of the crown
+    group's defining traits. Machinekind's own lineages (a dated release,
+    a specific paper, a specific architecture change) are arguably a
+    *cleaner* fit for this than biology ever was, since speciation there
+    is gradual/population-level and no literal "first" individual can
+    usually be pointed to - an engineered lineage doesn't have that
+    ambiguity.
+  - **Working through Chris's own follow-up example** (`Homo sapiens
+    sapiens` as Crowncreature, a mutated/enhanced descendant line -
+    cyborgs, "Homo sapiens uber" - as Ubercreature) surfaced a real
+    complication, which **Chris caught himself before Claude did**:
+    "only one Crowncreature" holds for a pure branching split, but breaks
+    the moment an Ubercreature has more than one ancestral lineage - his
+    own example, a human/fish mermaid combination, part `Homo sapiens
+    sapiens` and part some ordinary fish species, neither parent itself
+    sitting on a genus border. This isn't a flaw in the framework, it's a
+    real, mainstream evolutionary-biology phenomenon called **reticulate
+    evolution** (a phylogenetic *network* rather than a strict branching
+    *tree*) - concrete real instances include **hybrid speciation/
+    allopolyploidy** (many plant species arise by combining two parent
+    species' full genomes into one new species) and **endosymbiosis**
+    (mitochondria and chloroplasts began as separate bacterial lineages
+    absorbed into a host cell's lineage - two formerly distinct lines
+    merging into one, not one splitting into two).
+  - **Claude's settled resolution, since Chris asked for a final take:**
+    don't add a third term. Keep exactly two - Ubercreature and
+    Crowncreature - but define an Ubercreature's ancestry as **one or
+    more** Crowncreatures rather than assuming exactly one. A
+    pure-divergence Ubercreature (the ordinary case) has one Crowncreature
+    parent; a hybrid-origin Ubercreature (the mermaid case) has two or
+    more. "Multiple Ubercreatures, one Crowncreature" is still the right
+    default *per single split event* - it's only "one Crowncreature
+    globally" that was never actually true, since unrelated lineages each
+    have their own Crowncreature and can each independently produce their
+    own Ubercreature(s) (see the convergent-flight example above) - a
+    scoping correction, not a vocabulary change.
+- **Not yet applied to the actual (still unpublished) Machinapology
+  taxonomy** - this entry records the vocabulary and its resolution for
+  whenever that work picks the term back up. The original "Geminia"
+  naming question (self-named species vs. type-exemplar naming) is still
+  Chris's to raise with Gemini directly, per the earlier entry above.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
