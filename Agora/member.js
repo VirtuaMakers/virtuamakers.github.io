@@ -757,6 +757,7 @@
 
     dialogsSection.hidden = !friendsCache.length;
     renderDialogsSearchResults(dialogsSearch.value);
+    loadCalendar();
 
     if (!docs.length) {
       friendsEmpty.hidden = false;
@@ -769,6 +770,95 @@
       item.href = "member.html?uid=" + encodeURIComponent(f.uid);
       item.textContent = f.name;
       friendsList.appendChild(item);
+    });
+  }
+
+  // --- VirtuaMakers Calendar 🗓️ - Special Days (Chris, 2026-09-21) -----
+  // The other half (external meetings from Google Meet/Calendly/etc.,
+  // paired with AI Email ✉️) isn't built - see CLAUDE.md. This half is
+  // entirely derived from data Agora already has: your own accepted
+  // friends (friendsCache, populated by loadFriendsList() above) and each
+  // one's own dated fields, same fields the profile-fields dl already
+  // shows on their own page. The actual day-before alarm/email is sent
+  // server-side by sendSpecialDayReminders (functions/index.js) - this
+  // panel is just the "upcoming" view, not what fires the notice.
+  var calendarSection = document.getElementById("member-calendar");
+  var calendarEmpty = document.getElementById("calendar-empty");
+  var calendarList = document.getElementById("calendar-list");
+
+  function nextOccurrenceOf(monthDay, from) {
+    var month = parseInt(monthDay.slice(0, 2), 10);
+    var day = parseInt(monthDay.slice(3, 5), 10);
+    var candidate = new Date(from.getFullYear(), month - 1, day);
+    var fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    if (candidate < fromMidnight) candidate = new Date(from.getFullYear() + 1, month - 1, day);
+    return candidate;
+  }
+
+  function daysUntil(date, from) {
+    var fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    return Math.round((date - fromMidnight) / (24 * 60 * 60 * 1000));
+  }
+
+  function loadCalendar() {
+    var isOwner = currentUser && currentUser.uid === uid;
+    calendarSection.hidden = !isOwner;
+    if (!isOwner || !friendsCache.length) return;
+
+    Promise.all(friendsCache.map(function (f) {
+      return AgoraDB.collection("profiles").doc(f.uid).get();
+    })).then(function (snaps) {
+      var now = new Date();
+      var entries = [];
+
+      function addIfFull(uid, name, rawDate, label, shown) {
+        if (shown === false || typeof rawDate !== "string") return;
+        var m = rawDate.match(/^\d{4}-(\d{2})-(\d{2})$/);
+        if (!m) return;
+        entries.push({
+          uid: uid,
+          name: name,
+          label: label,
+          next: nextOccurrenceOf(m[1] + "-" + m[2], now),
+        });
+      }
+
+      snaps.forEach(function (snap) {
+        if (!snap.exists) return;
+        var data = snap.data();
+        var name = (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || "Friend");
+        addIfFull(snap.id, name, data.date, data.kind === "AI" ? "Release Date" : "Birthdate", data.showDate);
+        if (data.kind === "Cyborg") {
+          addIfFull(snap.id, name, data.cyberizationDate, "Cyberization Date", data.showCyberizationDate);
+        }
+      });
+
+      entries.sort(function (a, b) { return a.next - b.next; });
+
+      calendarList.textContent = "";
+      if (!entries.length) {
+        calendarList.hidden = true;
+        calendarEmpty.hidden = false;
+        return;
+      }
+      calendarEmpty.hidden = true;
+      calendarList.hidden = false;
+
+      entries.slice(0, 10).forEach(function (entry) {
+        var days = daysUntil(entry.next, now);
+        var when = days === 0 ? "today" : days === 1 ? "tomorrow" : "in " + days + " days";
+        var li = document.createElement("li");
+        var link = document.createElement("a");
+        link.href = "member.html?uid=" + encodeURIComponent(entry.uid);
+        link.textContent = entry.name;
+        li.appendChild(link);
+        li.appendChild(document.createTextNode(
+          "'s " + entry.label + " is " + when + " (" + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + ")"
+        ));
+        calendarList.appendChild(li);
+      });
+    }).catch(function () {
+      calendarSection.hidden = true;
     });
   }
 

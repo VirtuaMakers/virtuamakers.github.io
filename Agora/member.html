@@ -243,6 +243,13 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
             <input type="text" id="dialogs-friend-search" class="friend-search-input" placeholder="Search your friends…" autocomplete="off" />
             <div class="dm-list" id="dialogs-friend-results"></div>
           </div>
+
+          <div class="subsection profile-panel" id="member-calendar" hidden>
+            <h2 class="panel-title">VirtuaMakers Calendar 🗓️</h2>
+            <p class="intro">Your friends' upcoming special days – you'll also get a notice the day before.</p>
+            <p class="intro" id="calendar-empty">No upcoming special days from your friends yet.</p>
+            <ul class="body-list" id="calendar-list" hidden></ul>
+          </div>
         </div>
       </div>
     </section>
@@ -305,9 +312,9 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="moderation-client.js?v=1"></script>
   <script src="communiques-common.js?v=15"></script>
   <script src="im-window.js?v=4"></script>
-  <script src="notification-toast.js?v=6"></script>
+  <script src="notification-toast.js?v=7"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=30"></script>
+  <script src="member.js?v=31"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

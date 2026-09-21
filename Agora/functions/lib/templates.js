@@ -86,6 +86,19 @@ function withHarnessSignInLink(html, link) {
   return html.split("{{SIGNIN_LINK}}").join(link);
 }
 
+// {{FRIEND_NAME}} (appears twice), {{DAY_LABEL}}, {{PROFILE_URL}} in
+// special-day-email.html - VirtuaMakers Calendar 🗓️'s day-before alarm for
+// a friend's special day (Chris, 2026-09-21). friendName is HTML-escaped
+// since it's a member-supplied display name/handle, same reasoning as
+// withEmailChangeNotice's newEmail; dayLabel/profileUrl are both
+// server-generated, not user input.
+function withSpecialDayContent(html, friendName, dayLabel, profileUrl) {
+  return html
+    .split("{{FRIEND_NAME}}").join(escapeHtml(friendName))
+    .split("{{DAY_LABEL}}").join(dayLabel)
+    .split("{{PROFILE_URL}}").join(profileUrl);
+}
+
 module.exports = {
   loadTemplate,
   withReason,
@@ -94,4 +107,5 @@ module.exports = {
   withEmailChangeVerifyLink,
   withEmailChangeNotice,
   withHarnessSignInLink,
+  withSpecialDayContent,
 };

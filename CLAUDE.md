@@ -6428,6 +6428,144 @@ change needed, since both write via the Admin SDK (or don't write at
 all), same reasoning already established for every other Octopus-
 adjacent Firestore access in this file.
 
+## VirtuaMakers Calendar 🗓️: Special Days built, Meeting Relay named but not started (Chris, 2026-09-21)
+
+Chris introduced a new named feature/Program: **VirtuaMakers Calendar 🗓️**,
+available on every real Agora 🌐 profile (not the 30 static profile pages -
+same reasoning as Friends/Dialogs/Admin Panel: those are all owner-only
+Firestore-backed features with nothing to key off on a slug with no login
+behind it). Two genuinely separate halves, confirmed directly with Chris
+after his first message left the shape ambiguous:
+
+1. **Special Days** - a friend's own dated field (Release Date/Birthdate/
+   Cyberization Date) shown on the Calendar, with "some kind of unique
+   notice" the day before it happens. **Built and verified locally this
+   round**, not yet deployed.
+2. **Meeting Relay** - meetings from Google Meet, Calendly, or other
+   sources, relayed into the Calendar - "automatically paired with AI
+   Email ✉️, but technically a different program." **Not started** - see
+   below for why this is a materially bigger build than anything named
+   "Calendar" so far.
+
+### Special Days - built
+
+- **`functions/lib/calendar.js`** (new) - `specialDaysFor(profileData)`
+  extracts a profile's own special days from its existing `date`/
+  `cyberizationDate` fields, but **only at full `YYYY-MM-DD` granularity**
+  - a bare year or year-month (both valid, already-supported storage
+    shapes per the "official field order" convention at the top of this
+  file) has no specific day to alert on, so those are silently excluded
+  rather than guessed at. Respects `showDate`/`showCyberizationDate`
+  exactly like `member.js`'s own render() does - a member who's hidden
+  their date doesn't get a Calendar entry either, even for their own
+  friends, since there's no Calendar-specific privacy field to introduce
+  and reusing the existing visibility toggle is the simplest correct
+  answer. `tomorrowMonthDay(now)` computes tomorrow's `MM-DD` in
+  `America/New_York`, matching every other scheduled function in this
+  file (Octopus Style's cron, the monthly newsletter, etc.).
+- **`exports.sendSpecialDayReminders`** (new, `functions/index.js`,
+  `onSchedule("0 8 * * *", America/New_York)`) - Chris's own explicit ask,
+  close to verbatim: **"the alarm for your friend's special day should
+  come on the day before,"** not on the day itself. Fetches every profile
+  (a plain fetch-all - same "fine at Agora's current size" tradeoff
+  already made for `loadMessagableMembers()`/`octopusConfig`'s own full
+  scan elsewhere in this file, since Firestore has no "does this string
+  end in -MM-DD" query), filters for whoever's special day falls tomorrow,
+  then for each of *their* accepted friends: writes a real
+  `notifications/{id}` doc (new `type: "friend_special_day"`, reusing the
+  existing `notify()` helper - so it toasts/pushes exactly like Dialog
+  messages, Wall posts, Wall comments, and friend requests already do) and
+  sends a dedicated branded email. **The email is the literal answer to
+  "send some kind of unique notice"** - a distinct, purpose-built template
+  rather than folding this into an existing notice type, matching how
+  Comment-cap got its own milestone email rather than reusing another
+  type's.
+- **New email template `Agora/emails/special-day-email.html`** (+
+  `functions/templates/` copy, same hand-sync split every template here
+  needs) - "🗓️ [Friend]'s [Release Date/Birthdate/Cyberization Date] Is
+  Tomorrow," a link to their profile. `withSpecialDayContent()` (new,
+  `functions/lib/templates.js`) substitutes `{{FRIEND_NAME}}` (HTML-
+  escaped, appears twice)/`{{DAY_LABEL}}`/`{{PROFILE_URL}}`, same
+  split/join pattern every other template helper here uses.
+- **New "VirtuaMakers Calendar 🗓️" panel on `member.html`** - a
+  `.profile-panel` sitting right after the Dialogs subsection (owner-only,
+  same `hidden`-unless-isOwner gating Friends/Dialogs already use), listing
+  up to the next 10 upcoming special days across the viewer's own accepted
+  friends, soonest first, each linking to that friend's profile. Reuses
+  `friendsCache` (already populated by `loadFriendsList()` for Dialogs'
+  own search) rather than a second friendships query - fetches each
+  friend's profile doc in parallel (`Promise.all`), computes each
+  qualifying date's next real-calendar occurrence client-side
+  (`nextOccurrenceOf()`, rolling into next year if this year's date has
+  already passed), and renders "today"/"tomorrow"/"in N days" phrasing.
+  Shows a plain empty-state line ("No upcoming special days from your
+  friends yet.") rather than hiding the whole panel when the owner has no
+  friends or no friend has a full-granularity date yet - unlike Dialogs,
+  which hides itself entirely with zero friends, Calendar's own emptiness
+  is itself useful information (a member wondering "is this built?"
+  should see a real, if empty, panel, not nothing).
+- **`notification-toast.js`** gained a `friend_special_day` entry in
+  `CHIME_FILES` (reuses the Dialog chime, same "ship a reasonable default,
+  give it a dedicated sound later if it earns one" precedent
+  `friend_request` already set) - no other change needed, since the
+  toast's own rendering (title/preview/click-through) is already fully
+  generic across every notification type. Bumped to `v=7` (all 55 pages).
+  Bumped `member.js` to `v=31` (its one page).
+- **Verified locally** - `node --check` on every touched file, a full
+  `require("./index.js")` load (34 exports, up from 33,
+  `sendSpecialDayReminders` present), and `specialDaysFor()`/
+  `tomorrowMonthDay()` exercised directly against real AI/Cyborg/partial-
+  date/hidden-date inputs, all producing the correct filtered result.
+
+**Needs from Chris before Special Days actually works:** `firebase deploy
+--only functions` from `Agora/` to pick up `sendSpecialDayReminders` - no
+`firestore.rules` change needed (the function only reads `profiles`/
+`friendships`, both already world-readable-by-signed-in-member or
+Admin-SDK-bypassed, and only writes via `notify()`'s existing Admin SDK
+path). Until deployed, the Calendar panel itself already works today (it's
+pure client-side Firestore reads against existing data) - only the actual
+day-before notice is gated on the deploy.
+
+### Meeting Relay - not started, why it's a different kind of build
+
+Chris's own framing - "meetings from Google Meet or Calendly or Other...
+automatically paired with AI Email ✉️, but technically a different
+program" - names something categorically bigger than Special Days, worth
+being upfront about rather than quietly deferring without explanation:
+
+- **This would be Agora's first real third-party OAuth integration.**
+  Every external service this codebase talks to today either needs no
+  third-party auth at all (OpenStreetMap Nominatim, Google's Perspective/
+  Vision/Language APIs via a single restricted API key) or is a service
+  VirtuaMakers itself owns end-to-end (Resend, Firebase). Pulling real
+  meetings out of a member's own Google Calendar or Calendly account
+  needs that member to grant Agora access via each provider's own OAuth
+  consent flow - a real app registration in Google Cloud Console (a
+  consent screen, scopes, a verification review for anything beyond a
+  tiny user cap) and, separately, in Calendly's own developer platform -
+  meaningfully more setup than any integration built so far, closer in
+  shape to the still-undone Stripe/PayPal payment-processor step already
+  flagged elsewhere in this file than to anything already shipped.
+- **"Paired with AI Email ✉️, but a different program"** most likely means
+  meeting invites/links arrive at a member's `@virtuamakers.com` AI Email
+  address (an AI without OAuth credentials of its own could plausibly
+  receive a `.ics` invite or a Google Meet link by email and have that
+  parsed into a Calendar entry, without needing a real OAuth grant at all)
+  as one path, alongside a fuller live-sync path via direct OAuth to
+  Google Calendar/Calendly for members who set that up - but this is this
+  session's own reading of a short, single-sentence description, not
+  something Chris has confirmed in this much detail yet.
+- **Not started - no code, no design doc beyond this entry.** Real
+  decisions needed from Chris before any of it can begin: which
+  provider(s) to prioritize (Google Meet/Calendar first, given it's
+  already named alongside Calendly and "Other"?), whether the email-
+  parsing path or the real-OAuth path (or both) is actually wanted, and -
+  same as every other third-party integration this file has flagged
+  before starting (Resend's domain verification, the still-pending
+  payment processor) - the actual developer-console app registration
+  work, which needs Chris's own accounts/action, not something buildable
+  from inside a session alone.
+
 ## Open items
 
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We

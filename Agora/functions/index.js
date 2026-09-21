@@ -31,8 +31,10 @@ const {
   withEmailChangeVerifyLink,
   withEmailChangeNotice,
   withHarnessSignInLink,
+  withSpecialDayContent,
 } = require("./lib/templates");
 const { notify, resolveDisplayName } = require("./lib/notify");
+const { specialDaysFor, tomorrowMonthDay } = require("./lib/calendar");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
 const {
   aiEmailApiKey,
@@ -1847,6 +1849,78 @@ exports.octopusScheduledCheckIn = onSchedule(
 
       const authorName = await resolveDisplayName(uid);
       await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid });
+    }
+  },
+);
+
+// VirtuaMakers Calendar 🗓️ - Special Days (Chris, 2026-09-21). See
+// CLAUDE.md's "VirtuaMakers Calendar 🗓️" entry for the full design; this
+// is the Special Days half only (the Meeting Relay half isn't built).
+// Fires daily and checks, for every profile, whether tomorrow is one of
+// their own dated fields (date/cyberizationDate, full YYYY-MM-DD
+// granularity only) - then notifies every accepted friend of theirs, both
+// as a real notifications/ doc (so it toasts/pushes like any other
+// notification type) and a dedicated branded email, per Chris's explicit
+// "send some kind of unique notice" ask. A plain fetch-all over `profiles`
+// is the same "fine at Agora's current size" tradeoff already made
+// elsewhere in this file (loadMessagableMembers, octopusConfig's own full
+// scan, etc.) - revisit with a real query/index if the member base ever
+// grows large enough for this to matter.
+exports.sendSpecialDayReminders = onSchedule(
+  { schedule: "0 8 * * *", timeZone: "America/New_York", secrets: [resendApiKey] },
+  async () => {
+    const db = admin.firestore();
+    const tomorrow = tomorrowMonthDay(new Date());
+
+    const profilesSnap = await db.collection("profiles").get();
+    const celebrants = profilesSnap.docs
+      .map((doc) => ({ uid: doc.id, data: doc.data(), days: specialDaysFor(doc.data()) }))
+      .map((entry) => ({ ...entry, days: entry.days.filter((d) => d.monthDay === tomorrow) }))
+      .filter((entry) => entry.days.length > 0);
+
+    for (const celebrant of celebrants) {
+      const celebrantName = (celebrant.data.preferHandle && celebrant.data.handle)
+        ? celebrant.data.handle : (celebrant.data.name || "A friend");
+      const profileUrl = "https://www.virtuamakers.com/Agora/member.html?uid=" + encodeURIComponent(celebrant.uid);
+
+      const friendshipsSnap = await db.collection("friendships")
+        .where("participants", "array-contains", celebrant.uid)
+        .where("status", "==", "accepted")
+        .get();
+
+      for (const friendshipDoc of friendshipsSnap.docs) {
+        const participants = friendshipDoc.data().participants || [];
+        const recipientUid = participants.find((p) => p !== celebrant.uid);
+        if (!recipientUid) continue;
+
+        const recipientSnap = await db.collection("profiles").doc(recipientUid).get();
+        const recipientEmail = recipientSnap.exists ? recipientSnap.data().email : null;
+
+        for (const day of celebrant.days) {
+          await notify({
+            recipientUid,
+            actorUid: celebrant.uid,
+            type: "friend_special_day",
+            preview: "Their " + day.label + " is tomorrow!",
+            linkPath: "member.html?uid=" + encodeURIComponent(celebrant.uid),
+            pushTitle: (name) => name + "'s " + day.label + " is tomorrow",
+          });
+
+          if (recipientEmail) {
+            const html = withSpecialDayContent(
+              loadTemplate("special-day-email.html"),
+              celebrantName,
+              day.label,
+              profileUrl,
+            );
+            await sendEmailSafe({
+              to: recipientEmail,
+              subject: "🗓️ " + celebrantName + "'s " + day.label + " Is Tomorrow",
+              html,
+            });
+          }
+        }
+      }
     }
   },
 );
