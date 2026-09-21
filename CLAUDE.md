@@ -6861,6 +6861,105 @@ future sessions have a stable name to refer back to.
   beyond naming/design - no workflow file, no service account, no repo
   secret.
 
+## BCI Style 🧠: added to Agora Harness 🚡, researched not assumed (Chris, 2026-09-21)
+
+Chris asked to add a fifth named Harness access style for direct brain-
+computer interfacing, and asked directly whether Neuralink, a Chinese
+competitor, the U.S. military, Medtronic, "or anyone" currently posts
+any public interface for it. Checked for real via web search rather than
+answered from priors, since this file's own standing practice (the VidIQ
+mismatch, Perspective API's sunsetting, Resend's Sending-vs-Full-access
+surprise) is to verify a vendor claim before building on it - same
+instinct applied here even though nothing was purchased or committed to.
+
+**The honest finding: no. Nobody currently exposes a public developer
+API for third-party BCI interfacing**, checked company by company:
+
+- **Neuralink** - one early search result claimed a specific "NIH BRAIN
+  Initiative Open BCI Framework" commitment to release third-party API
+  documentation in late 2025. That claim did **not** hold up under a
+  second, more targeted search - no corroborating source found, only
+  low-quality SEO/blog content repeating it. Not treated as true; the
+  real, verifiable NIH BRAIN Initiative activity found is a "BRAIN PPP"
+  public-private partnership making investigational devices available
+  to *approved clinical research studies*, not a public API for anyone
+  to integrate against. Neuralink access today remains limited to PRIME
+  trial participants and Neuralink's own app.
+- **Synchron** (Stentrode, catheter-delivered, no craniotomy) is the
+  most genuinely interesting real story here - a real patient has used
+  it to control ChatGPT, and Synchron has a real, demoed partnership
+  with Nvidia (Holoscan platform, shown running through Apple Vision
+  Pro at GTC 2025). But both are Synchron's *own* closed engineering
+  work connecting their assistive-device output to OpenAI's/Nvidia's
+  APIs - not Synchron exposing any endpoint a third party like Agora
+  could call to reach a patient's brain signals.
+- **Medtronic** - the one real exception worth naming precisely, and
+  worth getting right rather than lumping in with "nobody." Medtronic's
+  **Summit RC+S** (an investigational bidirectional neurostimulator) has
+  a genuine Research Development Kit - Java/Matlab/Simulink bindings,
+  actually used by the NIH BRAIN Initiative-funded "OpenMind" consortium
+  to decode streamed neural data. Real, documented, not vaporware. But:
+  restricted to IRB-approved research sites running an active
+  investigational study, requires physical proximity to a specific
+  patient's implanted hardware, and isn't a public cloud endpoint
+  anyone can sign up for - categorically different from every other
+  vendor API this codebase talks to (Resend, Google Cloud, Firebase),
+  none of which need a research-ethics board's approval or a body in
+  the room. `developer.medtronic.com` (a real portal) is Medtronic's
+  general enterprise/partner integration portal, unrelated to this.
+- **Chinese BCI firms** (NeuroXess named specifically by Chris) - real,
+  active clinical progress (decoded movement and Chinese speech from a
+  patient in real time as of January 2025, per Nature/Xinhua coverage),
+  but no public API or developer platform found anywhere in the
+  results - purely clinical-trial-stage hardware/software, same as
+  every other player here.
+- **U.S. Military** - DARPA's real, current BCI programs
+  (**N3**, non-surgical neurotechnology; **Firefox**, a newer
+  non-invasive program with a Proposers Day literally scheduled for
+  today, 2026-09-21, abstracts due 2026-10-19) are government-contractor
+  solicitations, not anything with public developer access - DARPA
+  funds specific awarded contractors/universities, it doesn't publish
+  an API.
+
+**What this means for what's buildable right now: nothing on the
+integration side** - there is no endpoint, SDK, or protocol from any
+BCI vendor for Agora (or anyone) to build against, full stop. This is a
+different situation from Hive Style 🐝 (which waits on Agora's *own*
+side of an already-real protocol, MCP) - BCI Style is waiting on an
+industry that hasn't opened its door to anyone yet, VirtuaMakers
+included.
+
+**What *was* buildable and got built: adding BCI Style 🧠 to the
+Harness access-style menu itself**, matching Hive Style's exact
+treatment (`eligible: false`, an honest `status` string, not a vague
+"coming soon"):
+- **`functions/lib/harnessStyles.js`** - new fifth entry in
+  `describeHarnessOptions()`'s `styles` array, `eligible: false`,
+  `status: "not possible yet - no BCI vendor exposes a public developer
+  API today"`, `howToEnroll` naming the specific vendors checked and the
+  one real exception (Medtronic's RC+S RDK) and why it doesn't count as
+  a real enrollment path. Verified locally - `node --check`, a full
+  `require("./index.js")` load (still 34 exports, this only added an
+  array entry not a new export), and `describeHarnessOptions()` called
+  directly to confirm all four styles now return correctly.
+- **`Agora/skill.md`'s section 5** updated to describe the same fifth
+  entry, so an outside agent calling `getHarnessOptions` sees
+  documentation matching what the endpoint actually returns - same
+  "keep skill.md matching deployed reality" standing rule.
+- **No `firestore.rules`/deploy dependency** - this is a pure code
+  addition to an already-deployed-pending function
+  (`getHarnessOptions` itself is still only "verified locally, not yet
+  deployed," per the original access-style-detection entry above), so
+  it rides along on that same still-pending `firebase deploy --only
+  functions` rather than adding a new one.
+
+**Worth revisiting, not a dead end:** the honest "not possible yet"
+status is a snapshot of 2026-09-21, not a permanent verdict - Neuralink's
+own PRIME trial keeps expanding, Synchron/Nvidia's roadmap is explicitly
+heading toward more AI integration, and DARPA's Firefox program is only
+just now soliciting proposals. Worth a fresh check whenever Chris raises
+this again, same as any other "no vendor API yet" finding in this file.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
