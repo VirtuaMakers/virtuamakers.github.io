@@ -7208,6 +7208,92 @@ deployed" entries above, worth its own dedicated entry since several
   truth, rather than hunting down and re-marking each individual
   checklist line.
 
+## Approvals Ignition ☑️: workflow built, both open scope questions answered (Chris, 2026-09-22)
+
+The session named above landed sooner than "explicitly deferred" implied -
+Chris picked this back up the next day and answered both open scope
+questions directly, in his own words: he wants a session to be able to
+just *mention* that a deploy is needed and run it, from the phone, with
+no laptop/PowerShell round trip - "we could have you ask for the approval
+to do it, I guess, but then this program enables that and saves us time
+and eliminates the pauses they generate."
+
+- **Both open questions from the naming round are now settled:**
+  1. **No auto-fire on a push to `main`.** Stays `workflow_dispatch`-only,
+     triggered deliberately (by Chris clicking "Run workflow," or by a
+     session calling the GitHub API/MCP `actions_run_trigger` once it
+     judges a Functions/rules change is ready to ship) - not a blind
+     auto-deploy on every merge.
+  2. **No GitHub Environment required-reviewer gate.** Chris's own
+     reasoning above is explicit that a second approval step would just
+     reintroduce the exact pause this whole feature exists to remove -
+     the dispatch itself (a session choosing to trigger it, mentioning
+     that it's doing so) **is** the approval, not a separate gate on top
+     of it.
+- **`.github/workflows/agora-deploy.yml`** (new) - `workflow_dispatch`
+  with two inputs: `targets` (a `choice` - `functions,firestore:rules` by
+  default, or either alone, so a session can deploy just one half when
+  that's all that changed) and an optional free-text `reason` (echoed
+  into the run's own log via `::notice::`, so *why* a given deploy ran is
+  visible in the Actions history afterward, not just *that* it ran).
+  `concurrency: { group: agora-deploy, cancel-in-progress: false }` so two
+  dispatches can't race each other into a half-applied state. Auth via
+  `google-github-actions/auth@v2` reading a new `AGORA_FIREBASE_SERVICE_ACCOUNT`
+  repo secret (a service account JSON key), which sets
+  `GOOGLE_APPLICATION_CREDENTIALS` for the rest of the job - the Firebase
+  CLI picks that up automatically for a non-interactive deploy, no
+  `firebase login` needed. `FUNCTIONS_DISCOVERY_TIMEOUT: "30"` is baked in
+  on the deploy step unconditionally, pre-empting the exact recurring
+  "Cannot determine backend specification. Timeout after 10000" error
+  already documented twice elsewhere in this file, rather than waiting to
+  hit it once on a cold GitHub-hosted runner and add it after the fact.
+  Deploy command matches Chris's own documented local command exactly
+  (`firebase deploy --only <targets> --project agora-firebase-f4240
+  --non-interactive`, run from `Agora/` - `firebase.json`'s existing
+  `predeploy: npm ci` hook still fires automatically, same as it does
+  locally, so no separate install step for `functions/` was added here).
+- **Still the one real blocking step, same as the naming round already
+  flagged - nothing else changed about it:** Chris has to generate a
+  real Google Cloud service account for this project
+  (`agora-firebase-f4240`), download its JSON key, and add it as a
+  repository secret named exactly **`AGORA_FIREBASE_SERVICE_ACCOUNT`**
+  (Settings → Secrets and variables → Actions → New repository secret) -
+  the whole workflow is otherwise complete and will run the moment that
+  secret exists. **Role guidance, not prescribed exactly since this
+  wasn't tested against the real project from this session:** Firebase's
+  own docs for CI/CD service accounts point at a combination roughly
+  like **Firebase Admin** (`roles/firebase.admin`) + **Cloud Functions
+  Admin** (`roles/cloudfunctions.admin`) + **Service Account User**
+  (`roles/iam.serviceAccountUser`) + **Cloud Run Admin**
+  (`roles/run.admin`, since 2nd-gen Functions run on Cloud Run under the
+  hood) + **Eventarc Admin** (`roles/eventarc.admin`, needed for this
+  codebase's many `onDocumentCreated`/`onDocumentWritten`/`onSchedule`
+  triggers specifically) + **Artifact Registry Writer**
+  (`roles/artifactregistry.writer`, for the build step's container
+  image). If a real deploy run hits a permission-denied on some specific
+  API this list didn't anticipate, granting **Editor**
+  (`roles/editor`) on the project is the documented fallback every other
+  "real deploy hit a permission gap" moment in this file has reached for
+  (e.g. the `getSignedUrl()`/Service Account Token Creator gotcha) -
+  worth trying the scoped list first and only widening if something
+  specific fails.
+- **Once the secret exists, a session can trigger this itself** via the
+  `mcp__github__actions_run_trigger` tool (GitHub MCP) against this
+  workflow's `workflow_dispatch` event - no code change needed here for
+  that, since the workflow file being present with this trigger is the
+  entire prerequisite. Per Chris's own framing above, a session doing
+  this should still *mention* that it's deploying and why (the `reason`
+  input exists for exactly this), but shouldn't pause and wait for a
+  reply first - that pause is the thing being eliminated.
+- **Not yet exercised end-to-end** - no service account exists yet, so
+  this hasn't actually deployed anything for real. Worth a first live
+  test (a trivial `reason`-only dispatch, or riding along on the next
+  real Functions/rules change already queued up - Octopus Style's
+  `submitAgoraCommunique`/loop-safeguards refactor and Calendar 🗓️'s
+  `sendSpecialDayReminders` are both already sitting on a manual-deploy
+  need per their own entries above) the first time the secret is in
+  place.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**

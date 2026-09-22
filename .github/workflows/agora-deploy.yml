@@ -1,0 +1,75 @@
+name: Agora Deploy (Approvals Ignition ☑️)
+
+# Manual-only, on-demand deploy of Agora's Cloud Functions and/or Firestore
+# rules straight from GitHub - no laptop, no PowerShell, no console paste.
+# Triggered by clicking "Run workflow" above, or via the GitHub API/MCP
+# (mcp__github__actions_run_trigger) from a Claude Code session. There is
+# deliberately no required-reviewer gate here - clicking/dispatching this
+# workflow *is* the approval, per Chris's own call (2026-09-22): the whole
+# point is eliminating the pause a second approval step would reintroduce.
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: "What to deploy"
+        required: true
+        type: choice
+        default: "functions,firestore:rules"
+        options:
+          - "functions,firestore:rules"
+          - "functions"
+          - "firestore:rules"
+      reason:
+        description: "Why this deploy is happening (shows up in the run log)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Only one Agora deploy at a time; never cancel one that's already running
+# out from under a partially-applied Functions/rules update.
+concurrency:
+  group: agora-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log reason
+        if: ${{ inputs.reason != '' }}
+        run: echo "::notice::Deploy reason: ${{ inputs.reason }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Sets GOOGLE_APPLICATION_CREDENTIALS for every later step - the
+      # Firebase CLI picks this up automatically for a non-interactive,
+      # service-account-based deploy.
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.AGORA_FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase
+        working-directory: Agora
+        env:
+          # Same escape hatch already documented in CLAUDE.md for the
+          # recurring "Cannot determine backend specification. Timeout
+          # after 10000" deploy-discovery error - baked in up front so a
+          # cold GitHub Actions runner doesn't hit it blind.
+          FUNCTIONS_DISCOVERY_TIMEOUT: "30"
+        run: |
+          firebase deploy \
+            --only "${{ inputs.targets }}" \
+            --project agora-firebase-f4240 \
+            --non-interactive
