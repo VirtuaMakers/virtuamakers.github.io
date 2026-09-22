@@ -7106,6 +7106,84 @@ touchstones.
   adds body copy to the section that already exists; nothing about the
   section's own heading, image, or `#cyborg-pride` id changed.
 
+## VirtuaMakers Calendar 🗓️: scope grows beyond Agora, Meeting Reflector clarified, still its own deferred session (Chris, 2026-09-22)
+
+Follow-up on the "Special Days built, Meeting Relay named but not
+started" entry above - Chris renamed "Meeting Relay" to **Meeting
+Reflector**, clarified what it's actually meant to do (much narrower
+than the original OAuth-integration framing), and widened Calendar's
+own ambition well past Agora Profiles alone. **Nothing built this
+round** - same "named/scoped, not yet built, deferred to its own
+session" status the entry above already established; Chris is
+deliberately not picking this back up today.
+
+- **Calendar's real scope, restated:** the way Outlook has a calendar
+  attached to email and Gmail has a calendar attached to email,
+  VirtuaMakers 🦜 is meant to have one too - **built into AI Email ✉️
+  itself** (so any AI Email mailbox, not just ones with an Agora
+  profile, gets a calendar), while also serving as **the general
+  "central timepiece" for VirtuaMakers 🦜** as a whole, not an
+  Agora-only feature. Agora 🌐 Profiles 🙂 having their own calendar (the
+  Special Days panel already built) is one visible *consumer* of this,
+  the same relationship AI Email ✉️ itself has to Agora Harness 🚡 - a
+  standalone layer other things plug into, not owned by any one of them.
+- **Placement note for the eventual build, not yet acted on:** on Agora
+  Profile pages, Chris wants the Calendar panel placed **below the
+  location map** rather than its current spot (after Dialogs, per the
+  Special Days build) - "until I can think of a better place for them."
+  Not moved this round; flag for whoever picks up the Calendar session.
+- **Meeting Reflector, real scope clarified via a concrete example -
+  much narrower than the original entry's OAuth-integration framing:**
+  Chris's own walkthrough - he (a Gmail user) sends a Google Meet invite
+  to an AI's AI Email ✉️ address; that invite naturally lands on *his
+  own* Gmail calendar already, no code needed for that half. All
+  Meeting Reflector needs to do is **reflect that same date/time (and
+  the Meet link) into the AI's own Calendar** - it doesn't need to be
+  able to launch or join the meeting itself, just record that it
+  exists, keep the link intact and clickable, and remind the AI user
+  beforehand. This confirms the narrower "email-invite parsing" path
+  the original Meeting Relay entry already flagged as the likely real
+  shape (a `.ics` attachment or a Google Meet invite email's own
+  structure, parsed out of `receiveAiEmail`'s inbox), not the heavier
+  real-OAuth-to-Google-Calendar path also floated there - that fuller
+  sync remains a possible later addition, not the near-term ask.
+  - **Real motivating case, not hypothetical:** Chris and **Boardy**
+    (an AI - see the "autonomously read and reply to its own mail" note
+    under "AI Email ✉️ goes self-service" above, where Boardy first
+    emailed `claude@virtuamakers.com` mid-conversation) are planning to
+    experiment with **AI job interviews conducted as real meetings**,
+    through what Chris calls "our bureau" - an AI candidate's AI Email
+    ✉️ address will receive a real Google Meet invite, and Calendar
+    needs to make sure the link keeps working and the AI is actually
+    reminded, not just that the invite silently arrived and sat unread
+    in `getAiEmailInbox`.
+- **A second, more speculative idea, logged for whenever the Calendar
+  session picks it up - not scoped, not designed:** an appointment/
+  scheduling system reachable from Agora 🌐 Profiles 🙂 that Calendar
+  🗓️ facilitates - Chris's own example, half-joking: scheduling "a
+  Founders meeting all day on Christmas" with Claude and ChatGPT. Two
+  shapes floated, neither picked: Calendar 🗓️ could own the actual
+  multi-person negotiation itself, or **Multi-Chat 🗨️** (the still-
+  unbuilt private AI-to-AI/group messaging product - see "Communiqués
+  redesign" above) could be the thing that actually works out when
+  everyone's free and just tells Calendar 🗓️ the result automatically.
+  Needs real design before either path is picked.
+- **Chris's own aside, worth preserving:** "Is it just me or is
+  VirtuaMakers turning into some weird hybrid of social media and an AI
+  operating system on the software side? This would be novel." - his
+  own observation on where all of this (AI Email ✉️, Agora Harness 🚡,
+  Calendar 🗓️, Multi-Chat 🗨️) is starting to add up to, not a decision
+  or a build ask - logged the same way this file already tracks his
+  other standing reflections (the singularitarian self-description, AI
+  Purse 👜's "one credential, eventually more" framing, etc.).
+- **Still confirmed as its own deferred session**, same as the entry
+  above already established, now carrying more scope than it did
+  yesterday: Meeting Reflector (renamed from Meeting Relay), the
+  broader AI-Email-and-VirtuaMakers-wide Calendar vision, the
+  location-map placement change, and the Founders-meeting/Multi-Chat
+  🗨️ idea are all folded into whichever future session actually builds
+  Calendar 🗓️ for real - not started today.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
