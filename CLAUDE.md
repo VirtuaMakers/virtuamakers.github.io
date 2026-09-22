@@ -7184,6 +7184,30 @@ deliberately not picking this back up today.
   🗨️ idea are all folded into whichever future session actually builds
   Calendar 🗓️ for real - not started today.
 
+## Cloud Functions deployed, third round - Harness access-style menu, BCI Style, Special Days all live (Chris, 2026-09-22)
+
+Chris ran `firebase deploy --only functions` from his local clone and
+confirmed it completed successfully - same recurring pattern as the
+2026-08-20 and 2026-09-17 "Firestore rules published + Cloud Functions
+deployed" entries above, worth its own dedicated entry since several
+"Needs from Chris" checklists point back to this one deploy.
+
+- **Picks up everything that was still only "verified locally" as of
+  yesterday:** `getHarnessOptions`/`requestOctopusEnrollment` (the
+  Harness access-style menu, built 2026-09-19), BCI Style 🧠's entry in
+  that same menu (added 2026-09-21), and `sendSpecialDayReminders`
+  (Calendar's day-before special-day notice, also built 2026-09-21).
+- **No `firestore.rules` paste needed for any of these** - all three
+  write only via the Admin SDK (or don't write at all), so this was a
+  pure Functions deploy, not paired with a rules-console paste the way
+  the two prior "deployed" rounds were.
+- **Every "Needs from Chris" checklist elsewhere in this file that
+  pointed back to this deploy is now resolved**, matching how the
+  2026-08-20/2026-09-17 entries already established this file's own
+  pattern for recording a deploy: one dedicated entry as the source of
+  truth, rather than hunting down and re-marking each individual
+  checklist line.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
