@@ -312,6 +312,73 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // VirtuaMakers Calendar 🗓️ - real, member-created meetings (Chris,
+    // 2026-09-23), the "native scheduling" half of Meeting Relay - see
+    // CLAUDE.md's "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
+    // further" entry. Participant-based like conversations/friendships,
+    // but deliberately NOT member-readable the way Wall/Dialogs are - a
+    // meeting's own participants are its only audience, since a
+    // meeting time/subject is personal scheduling information, not a
+    // public post.
+    //
+    // Known, accepted v1 gap, flagged rather than silently skipped:
+    // unlike conversations/wallPosts, creating an event does not check
+    // isBlocked() against every invited participant - Firestore rules
+    // has no loop construct to check an arbitrary-length array against
+    // exists()/get() lookups, and (since a block is only ever visible
+    // to the blocker) the client couldn't filter this client-side
+    // either. Low-risk in practice: a participant who's blocked the
+    // creator can just remove themselves via the "leave" update rule
+    // below the moment they see the invite, the same recourse Dialogs/
+    // Wall already give a blocked-in-spirit relationship once contact
+    // has already happened once.
+    match /calendarEvents/{eventId} {
+      allow read: if request.auth != null
+        && request.auth.uid in resource.data.participants;
+
+      // participants only requires >= 1 (the creator), not >= 2 - a
+      // meeting with a real-world contact who has no Agora account
+      // (a Boardy-style invite, or just a solo self-reminder) is a
+      // legitimate event with exactly one real Agora participant, not
+      // an error case.
+      allow create: if request.auth != null
+        && request.auth.uid in request.resource.data.participants
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.participants.size() >= 1
+        && request.resource.data.participants.size() <= 12
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.startAt is timestamp
+        && request.resource.data.reminderMinutesBefore is int
+        && request.resource.data.reminderSent == false;
+
+      // Only the creator can edit a meeting's own details before it
+      // happens - deliberately minimal for v1, the same "single clear
+      // authority" shape admins/{uid} already uses, rather than a full
+      // per-participant edit model. `reminderSent` is never in this
+      // field list on purpose - only sendCalendarEventReminders (Admin
+      // SDK, bypasses these rules entirely) ever flips it.
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.createdBy
+        && request.resource.data.participants == resource.data.participants
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['title', 'startAt', 'reminderMinutesBefore', 'meetingUrl', 'linkPath']);
+
+      // Any participant can remove themselves (a decline/leave) without
+      // the creator's involvement - the creator cancels the whole thing
+      // via delete instead, not by leaving their own meeting.
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.participants
+        && request.resource.data.participants.size() == resource.data.participants.size() - 1
+        && resource.data.participants.hasAll(request.resource.data.participants)
+        && !(request.auth.uid in request.resource.data.participants);
+
+      allow delete: if request.auth != null
+        && request.auth.uid == resource.data.createdBy;
+    }
+
     // Newsletter 📬 - a single draft doc (subject + plain-text body) that
     // Chris prepares via newsletter-compose.html, ideally by the 27th of
     // each month, for the sendMonthlyNewsletter Cloud Function to send

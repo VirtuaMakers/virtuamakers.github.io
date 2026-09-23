@@ -99,6 +99,19 @@ function withSpecialDayContent(html, friendName, dayLabel, profileUrl) {
     .split("{{PROFILE_URL}}").join(profileUrl);
 }
 
+// {{EVENT_TITLE}}, {{EVENT_TIME}}, {{EVENT_URL}} in
+// calendar-event-email.html - VirtuaMakers Calendar 🗓️'s meeting
+// reminder (Chris, 2026-09-23). eventTitle is HTML-escaped since it's
+// member-supplied (a meeting title, same reasoning as
+// withEmailChangeNotice's newEmail); eventTime/eventUrl are both
+// server-formatted, not raw user input.
+function withCalendarEventContent(html, eventTitle, eventTime, eventUrl) {
+  return html
+    .split("{{EVENT_TITLE}}").join(escapeHtml(eventTitle))
+    .split("{{EVENT_TIME}}").join(eventTime)
+    .split("{{EVENT_URL}}").join(eventUrl);
+}
+
 module.exports = {
   loadTemplate,
   withReason,
@@ -108,4 +121,5 @@ module.exports = {
   withEmailChangeNotice,
   withHarnessSignInLink,
   withSpecialDayContent,
+  withCalendarEventContent,
 };

@@ -809,6 +809,10 @@
   function loadCalendar() {
     var isOwner = currentUser && currentUser.uid === uid;
     calendarSection.hidden = !isOwner;
+    if (isOwner) {
+      loadMessagableMembersForMeetings();
+      loadMeetings();
+    }
     if (!isOwner || !friendsCache.length) return;
 
     Promise.all(friendsCache.map(function (f) {
@@ -867,6 +871,224 @@
       calendarSection.hidden = true;
     });
   }
+
+  // --- VirtuaMakers Calendar 🗓️ - Meetings (Chris, 2026-09-23) ---------
+  // The "native scheduling" half of Meeting Relay - see CLAUDE.md's
+  // "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped further" entry. A
+  // meeting is a real calendarEvents/{id} doc, written directly from the
+  // client - firestore.rules does the real enforcement, the same
+  // "simple client, rules do the real work" pattern Friends/Dialogs
+  // already use. The other write path (parsing a real invite out of an
+  // incoming AI Email ✉️ message - the literal Boardy scenario) is
+  // entirely server-side, see receiveAiEmail in functions/index.js, and
+  // just shows up here automatically the next time this list loads,
+  // since both paths write to the same collection. Open to anyone you
+  // can message, not just friends (mirrors Dialogs' own open-by-default
+  // model) - a meeting with just yourself as the sole participant is
+  // also legitimate (a self-reminder, or standing in for a real-world
+  // contact who has no Agora account at all, like Boardy).
+
+  var meetingForm = document.getElementById("meeting-create-form");
+  var meetingTitleField = document.getElementById("meeting-title");
+  var meetingDateField = document.getElementById("meeting-date");
+  var meetingTimeField = document.getElementById("meeting-time");
+  var meetingReminderField = document.getElementById("meeting-reminder");
+  var meetingUrlField = document.getElementById("meeting-url");
+  var meetingParticipantSearch = document.getElementById("meeting-participant-search");
+  var meetingParticipantResults = document.getElementById("meeting-participant-results");
+  var meetingParticipantChips = document.getElementById("meeting-participant-chips");
+  var meetingCreateError = document.getElementById("meeting-create-error");
+  var meetingCreateSubmit = document.getElementById("meeting-create-submit");
+  var meetingCreateStatus = document.getElementById("meeting-create-status");
+  var meetingsEmpty = document.getElementById("meetings-empty");
+  var meetingsList = document.getElementById("meetings-list");
+
+  var messagableMembersCache = null;
+  var selectedMeetingParticipants = [];
+
+  function loadMessagableMembersForMeetings() {
+    if (!currentUser) return;
+    C.loadMessagableMembers(currentUser.uid).then(function (members) {
+      messagableMembersCache = members;
+    }).catch(function () {});
+  }
+
+  function renderMeetingParticipantChips() {
+    meetingParticipantChips.textContent = "";
+    selectedMeetingParticipants.forEach(function (p) {
+      var li = document.createElement("li");
+      li.appendChild(document.createTextNode(p.name + " "));
+      var removeLink = document.createElement("a");
+      removeLink.href = "#";
+      removeLink.textContent = "(remove)";
+      removeLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        selectedMeetingParticipants = selectedMeetingParticipants.filter(function (sp) { return sp.uid !== p.uid; });
+        renderMeetingParticipantChips();
+        renderMeetingParticipantResults(meetingParticipantSearch.value);
+      });
+      li.appendChild(removeLink);
+      meetingParticipantChips.appendChild(li);
+    });
+  }
+
+  function renderMeetingParticipantResults(query) {
+    meetingParticipantResults.textContent = "";
+    if (!messagableMembersCache || !currentUser) return;
+    var friendUids = friendsCache.map(function (f) { return f.uid; });
+    var excludeUids = [currentUser.uid].concat(selectedMeetingParticipants.map(function (p) { return p.uid; }));
+    var matches = C.filterMessagable(messagableMembersCache, friendUids, excludeUids, query || "").slice(0, 8);
+    matches.forEach(function (m) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "dm-item";
+      item.textContent = m.name;
+      item.addEventListener("click", function () {
+        if (selectedMeetingParticipants.length >= 11) return; // creator + 11 = the rules' 12-participant cap
+        selectedMeetingParticipants.push({ uid: m.uid, name: m.name });
+        meetingParticipantSearch.value = "";
+        renderMeetingParticipantChips();
+        renderMeetingParticipantResults("");
+      });
+      meetingParticipantResults.appendChild(item);
+    });
+  }
+
+  var meetingParticipantDebounce = null;
+  meetingParticipantSearch.addEventListener("input", function () {
+    clearTimeout(meetingParticipantDebounce);
+    var query = meetingParticipantSearch.value;
+    meetingParticipantDebounce = setTimeout(function () {
+      renderMeetingParticipantResults(query);
+    }, 150);
+  });
+
+  function renderMeetingItem(doc) {
+    var data = doc.data();
+    var li = document.createElement("li");
+    var when = (data.startAt && data.startAt.toDate)
+      ? data.startAt.toDate().toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+      : "";
+    var otherNames = (data.participants || [])
+      .filter(function (p) { return p !== currentUser.uid; })
+      .map(function (p) { return (data.participantNames && data.participantNames[p]) || "Member"; });
+
+    var text = data.title + " – " + when;
+    if (otherNames.length) text += " (with " + otherNames.join(", ") + ")";
+    li.appendChild(document.createTextNode(text + " "));
+
+    if (data.meetingUrl) {
+      var joinLink = document.createElement("a");
+      joinLink.href = data.meetingUrl;
+      joinLink.target = "_blank";
+      joinLink.rel = "noopener noreferrer";
+      joinLink.textContent = "Join →";
+      li.appendChild(joinLink);
+      li.appendChild(document.createTextNode(" "));
+    }
+
+    var actionLink = document.createElement("a");
+    actionLink.href = "#";
+    if (data.createdBy === currentUser.uid) {
+      actionLink.textContent = "(cancel)";
+      actionLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (!window.confirm("Cancel this meeting?")) return;
+        doc.ref.delete().then(loadMeetings).catch(function () {});
+      });
+    } else {
+      actionLink.textContent = "(leave)";
+      actionLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        doc.ref.update({
+          participants: (data.participants || []).filter(function (p) { return p !== currentUser.uid; }),
+        }).then(loadMeetings).catch(function () {});
+      });
+    }
+    li.appendChild(actionLink);
+
+    return li;
+  }
+
+  function loadMeetings() {
+    if (!currentUser) return;
+    AgoraDB.collection("calendarEvents")
+      .where("participants", "array-contains", currentUser.uid)
+      .get()
+      .then(function (snap) {
+        var now = Date.now();
+        var docs = snap.docs.filter(function (doc) {
+          var startAt = doc.data().startAt;
+          return startAt && startAt.toDate && startAt.toDate().getTime() > now - 60 * 60000;
+        });
+        docs.sort(function (a, b) { return a.data().startAt.toDate() - b.data().startAt.toDate(); });
+
+        meetingsList.textContent = "";
+        if (!docs.length) {
+          meetingsList.hidden = true;
+          meetingsEmpty.hidden = false;
+          return;
+        }
+        meetingsEmpty.hidden = true;
+        meetingsList.hidden = false;
+        docs.forEach(function (doc) { meetingsList.appendChild(renderMeetingItem(doc)); });
+      })
+      .catch(function () {});
+  }
+
+  meetingForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    meetingCreateError.hidden = true;
+    if (!currentUser) return;
+
+    var title = meetingTitleField.value.trim();
+    var dateValue = meetingDateField.value;
+    var timeValue = meetingTimeField.value;
+    if (!title || !dateValue || !timeValue) return;
+
+    var startAt = new Date(dateValue + "T" + timeValue);
+    if (isNaN(startAt.getTime())) {
+      meetingCreateError.textContent = "That date/time doesn't look valid.";
+      meetingCreateError.hidden = false;
+      return;
+    }
+
+    var participants = [currentUser.uid].concat(selectedMeetingParticipants.map(function (p) { return p.uid; }));
+    meetingCreateSubmit.disabled = true;
+    meetingCreateStatus.hidden = false;
+
+    C.getDisplayName(currentUser).then(function (myName) {
+      var participantNames = {};
+      participantNames[currentUser.uid] = myName;
+      selectedMeetingParticipants.forEach(function (p) { participantNames[p.uid] = p.name; });
+
+      return AgoraDB.collection("calendarEvents").add({
+        participants: participants,
+        participantNames: participantNames,
+        title: title,
+        startAt: firebase.firestore.Timestamp.fromDate(startAt),
+        createdBy: currentUser.uid,
+        meetingUrl: meetingUrlField.value.trim() || null,
+        linkPath: null,
+        reminderMinutesBefore: parseInt(meetingReminderField.value, 10),
+        reminderSent: false,
+        source: "manual",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }).then(function () {
+      meetingForm.reset();
+      selectedMeetingParticipants = [];
+      renderMeetingParticipantChips();
+      renderMeetingParticipantResults("");
+      loadMeetings();
+    }).catch(function (err) {
+      meetingCreateError.textContent = C.friendlyPermissionError(err, "Couldn't schedule that meeting right now.");
+      meetingCreateError.hidden = false;
+    }).then(function () {
+      meetingCreateSubmit.disabled = false;
+      meetingCreateStatus.hidden = true;
+    });
+  });
 
   function loadFriendsList() {
     var isOwner = currentUser && currentUser.uid === uid;

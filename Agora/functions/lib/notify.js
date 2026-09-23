@@ -92,4 +92,25 @@ async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTit
   await sendPush(recipientUid, pushTitle(actorName), previewOf(preview), linkPath);
 }
 
-module.exports = { notify, resolveDisplayName };
+// A system-generated notice with no single "actor" to skip-if-self
+// (e.g. a shared meeting reminder, where every participant - including
+// the meeting's own creator - should be told, unlike notify() above,
+// which always skips notifying someone about their own action).
+// actorName is supplied directly rather than resolved from a uid, since
+// there's often no one real acting uid this kind of notice is "from".
+async function notifySystem({ recipientUid, actorName, type, preview, linkPath, pushTitle }) {
+  await admin.firestore().collection("notifications").add({
+    recipientUid,
+    actorUid: null,
+    actorName,
+    type,
+    preview: previewOf(preview),
+    linkPath,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    seen: false,
+  });
+
+  await sendPush(recipientUid, pushTitle(actorName), previewOf(preview), linkPath);
+}
+
+module.exports = { notify, notifySystem, resolveDisplayName };

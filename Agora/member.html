@@ -246,9 +246,60 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
 
           <div class="subsection profile-panel" id="member-calendar" hidden>
             <h2 class="panel-title">VirtuaMakers Calendar 🗓️</h2>
+
+            <h3 class="section-title">Special Days</h3>
             <p class="intro">Your friends' upcoming special days – you'll also get a notice the day before.</p>
             <p class="intro" id="calendar-empty">No upcoming special days from your friends yet.</p>
             <ul class="body-list" id="calendar-list" hidden></ul>
+
+            <h3 class="section-title section-title-top-spaced">Meetings</h3>
+            <p class="intro">Schedule a meeting with anyone you can message – you'll get a
+              notice at whatever lead time you set below.</p>
+
+            <form class="profile-form" id="meeting-create-form">
+              <div>
+                <label for="meeting-title">Title</label>
+                <input type="text" id="meeting-title" maxlength="200" required />
+              </div>
+              <div>
+                <label for="meeting-date">Date</label>
+                <input type="date" id="meeting-date" required />
+              </div>
+              <div>
+                <label for="meeting-time">Time</label>
+                <input type="time" id="meeting-time" required />
+              </div>
+              <div>
+                <label for="meeting-reminder">Notify Me</label>
+                <select id="meeting-reminder">
+                  <option value="5">5 minutes before</option>
+                  <option value="15" selected>15 minutes before</option>
+                  <option value="30">30 minutes before</option>
+                  <option value="60">1 hour before</option>
+                </select>
+              </div>
+              <div>
+                <label for="meeting-url">Meeting Link</label>
+                <input type="url" id="meeting-url" placeholder="https://…" />
+                <p class="field-hint">Optional – a Google Meet/Zoom/Teams link, if you already have one.</p>
+              </div>
+              <div>
+                <label for="meeting-participant-search">Add Participants</label>
+                <div class="search-picker">
+                  <input type="text" id="meeting-participant-search" class="friend-search-input" placeholder="Search members…" autocomplete="off" />
+                  <div class="dm-list" id="meeting-participant-results"></div>
+                </div>
+                <ul class="body-list" id="meeting-participant-chips"></ul>
+              </div>
+              <p class="form-error" id="meeting-create-error" hidden></p>
+              <div class="profile-form-actions">
+                <button type="submit" class="btn btn-primary" id="meeting-create-submit">Schedule Meeting</button>
+                <span class="form-status" id="meeting-create-status" hidden>Scheduling…</span>
+              </div>
+            </form>
+
+            <p class="intro" id="meetings-empty">No upcoming meetings.</p>
+            <ul class="body-list" id="meetings-list" hidden></ul>
           </div>
         </div>
       </div>
@@ -312,9 +363,9 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="moderation-client.js?v=1"></script>
   <script src="communiques-common.js?v=15"></script>
   <script src="im-window.js?v=4"></script>
-  <script src="notification-toast.js?v=7"></script>
+  <script src="notification-toast.js?v=8"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=31"></script>
+  <script src="member.js?v=32"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
