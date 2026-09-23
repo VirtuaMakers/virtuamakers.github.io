@@ -6675,6 +6675,43 @@ round above, three separate threads:
   seriously, matching this file's practice on the Machinapology
   co-authorship question above.
 
+## News 📰 - "Nothing artificial about 'Super Intelligence'" (Chris, 2026-09-23)
+
+New entry - Chris relayed a CNBC link, a real photo of Trump speaking to
+reporters, and a pull-quote with a nested attribution (Trump's own words,
+credited within the site's usual "– journalist byline" convention).
+
+- **Headline verified, not guessed** - `WebFetch` on the CNBC URL hit a
+  403 (CNBC blocks it), so the real headline/byline were confirmed via
+  `WebSearch` instead: "CNBC Daily Open: Nothing artificial about 'Super
+  Intelligence,'" byline Leonie Kidd (CNBC's Deputy Head of News/Head of
+  TV News EMEA - confirmed via her CNBC staff profile, not guessed from
+  the URL slug). The recurring "CNBC Daily Open:" newsletter-brand prefix
+  was dropped from the on-site headline, same as this section's existing
+  practice of not repeating the outlet name inside the headline when the
+  `news-source` span already carries it.
+- **Chris's own spelling, "Leonine Kidd," corrected to "Leonie Kidd"** -
+  confirmed as a typo/mishearing against her real, verifiable byline
+  (CNBC staff page, LinkedIn, Muck Rack all agree on "Leonie") rather than
+  assumed correct and published uncorrected.
+- **The pull-quote's nested attribution was kept exactly as Chris typed
+  it, not simplified away** - his own message nested a quote-within-a-quote
+  ("'...' - President Donald Trump" -Leonine Kidd), naming both who said
+  the words (Trump) and who wrote the piece carrying them (Kidd). Every
+  existing News entry attributes its pull-quote to only one name (the
+  organization or the journalist, whichever actually said/wrote those
+  exact words) - this is the first entry where the quoted speaker and the
+  citing journalist are different people, so it reads "– President Donald
+  Trump, quoted by Leonie Kidd" rather than picking just one and dropping
+  the other.
+- **Image is a real supplied photo** (Trump gesturing to reporters,
+  aides behind him - 1480×833), saved as
+  `assets/news/trump-super-intelligence-un.jpg`, added to both
+  `index.html`'s `#news` and `news.html`'s uncapped archive per the
+  standard two-file process. Homepage trimmed back to 7 by dropping the
+  oldest entry ("Meet the Robots Who Are Making the World a Better
+  Place," UN News) - it stays in the uncapped archive untouched.
+
 ## Open items
 
 - [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
