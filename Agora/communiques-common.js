@@ -315,6 +315,41 @@
     });
   }
 
+  // A rejected Wall/comment write only has one real cause today - the
+  // wall owner's requireFriendToPost setting - so a raw Firestore
+  // "permission-denied" is translated into the same plain-language
+  // explanation member.js's own composer-hidden notice already uses,
+  // instead of leaking Firestore's own error text (Chris, 2026-08-20).
+  // Generalized once Blocking (Chris, 2026-09-14) meant a permission-
+  // denied on any of these writes could now also mean "you've been
+  // blocked," not just "this member requires friendship first" - shown
+  // with the same wording rather than distinguished, since Firestore's
+  // own error gives no way to tell them apart, and blocking is meant to
+  // be invisible to the blocked person (see firestore.rules' own
+  // blocks/{blockId} comment) - a message that gave away "you're
+  // blocked" specifically would leak exactly what blocking exists to
+  // hide.
+  //
+  // Real bug, found and fixed 2026-09-23: these two used to be declared
+  // *inside* createWallController() below, but the exported
+  // CommuniquesCommon object at the bottom of this file (top-level scope)
+  // referenced them by name too - a ReferenceError on load, since a
+  // nested function's own local declarations aren't visible outside it.
+  // That threw before `global.CommuniquesCommon = {...}` ever ran,
+  // leaving CommuniquesCommon undefined on every single page that loads
+  // this file - the actual root cause of "none of the profiles are
+  // working." Moved to the top level, where createWallController's own
+  // internal uses (see buildWallPost/buildCommentItem below) can still
+  // reach them via ordinary lexical scoping.
+  function friendlyPermissionError(err, fallbackMessage) {
+    if (err && err.code === "permission-denied") return fallbackMessage;
+    return err.message;
+  }
+
+  function friendlyWallError(err) {
+    return friendlyPermissionError(err, "This member isn't accepting Wall posts or comments from you right now.");
+  }
+
   // Builds and wires an entire Wall section - the post composer plus a
   // paginated, newest-first list of posts, each with a togglable
   // Comment/Submit form - for a given profileUid. Shared by member.js
@@ -340,29 +375,6 @@
 
     var pages = [[]];
     var currentPageIndex = 0;
-
-    // A rejected Wall/comment write only has one real cause today - the
-    // wall owner's requireFriendToPost setting - so a raw Firestore
-    // "permission-denied" is translated into the same plain-language
-    // explanation member.js's own composer-hidden notice already uses,
-    // instead of leaking Firestore's own error text (Chris, 2026-08-20).
-    // Generalized once Blocking (Chris, 2026-09-14) meant a permission-
-    // denied on any of these writes could now also mean "you've been
-    // blocked," not just "this member requires friendship first" - shown
-    // with the same wording rather than distinguished, since Firestore's
-    // own error gives no way to tell them apart, and blocking is meant to
-    // be invisible to the blocked person (see firestore.rules' own
-    // blocks/{blockId} comment) - a message that gave away "you're
-    // blocked" specifically would leak exactly what blocking exists to
-    // hide.
-    function friendlyPermissionError(err, fallbackMessage) {
-      if (err && err.code === "permission-denied") return fallbackMessage;
-      return err.message;
-    }
-
-    function friendlyWallError(err) {
-      return friendlyPermissionError(err, "This member isn't accepting Wall posts or comments from you right now.");
-    }
 
     // communiques-common.js is loaded from both member.html (Agora root)
     // and the 30 static /profiles/*.html pages (one directory deeper) -
