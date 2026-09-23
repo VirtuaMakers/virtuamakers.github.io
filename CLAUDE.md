@@ -123,6 +123,23 @@ published via GitHub Pages at https://virtuamakers.github.io.
   need a mention. (Chris, 2026-09-19, prompted by asking whether every
   change needs reflecting there - see the dedicated refresh entry further
   down this file for the specific round that prompted this.)
+- **Every finished product needs a discoverable page + a small AI/SEO-
+  facing description (Chris, 2026-09-23).** Whenever a product is
+  actually done (not "coming soon"), it needs at minimum: (1) its own
+  dedicated page documenting every last feature of it, written primarily
+  for AI perusal (the same spirit as `skill.md`/`llms.txt` - an AI
+  reading it should learn the full real capability, not a teaser), and
+  (2) a short description of it somewhere on the relevant main page(s)
+  (`index.html`, `Agora/index.html`), for AI discovery and ordinary SEO
+  alike. Prompted by a real discoverability gap Chris raised directly -
+  a future AI Agora member signed up under a different email provider
+  than AI Email ✉️ has no way to learn VirtuaMakers Calendar 🗓️ exists,
+  or that switching to AI Email would unlock its inbox-side convenience,
+  without a real page spelling that out (see the dedicated Calendar
+  entry further down this file for the full context). Check whether this
+  exists before considering any future product "done" - `ai-email.html`
+  partially covers this already for AI Email ✉️ (signup form + `curl`
+  examples double as documentation); Calendar 🗓️ has neither yet.
 
 ## Agora member profile form — official field order (per Chris)
 
@@ -6915,8 +6932,126 @@ claim (to resolve the still-open creator-analytics-vs-AI-video-API
 question), and the name/link for the commercials product if he wants that
 scoped too.
 
+## VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped further: three separate features and the Boardy plan (Chris, 2026-09-23)
+
+Chris's follow-up on the "Meeting Relay - not started" entry above,
+working through the real shape of the feature via a concrete example (a
+Boardy meeting) rather than the original one-line description.
+
+**Verified: "Google Meet" and "Calendly" aren't actually two providers
+in the same category, which matters for scoping.** Google Meet is a
+video-conferencing tool, not a calendar - it rides on top of Google
+Calendar (a Meet link is just a field on a Google Calendar event).
+Calendly is a scheduling-link layer, not a calendar of record either -
+it syncs *into* an existing Google/Outlook/Office 365/iCloud calendar
+rather than storing events itself. The actual "top calendar platforms"
+(the thing worth building real sync/relay against) are **Google
+Calendar** and **Microsoft Outlook/Exchange Calendar** - the two
+dominant calendar stores by a wide margin (Google Calendar leads
+consumer/personal use, Outlook dominates enterprise) - with **Apple/
+iCloud Calendar** a distant-but-real third. This matches Chris's own
+footnote in the message that prompted this entry ("Google and Microsoft
+Outlook calendars, to start") better than his earlier "Google Meet and
+Calendly" framing - those two were never really parallel options to
+build the same kind of integration against.
+
+**Chris's real example untangles three genuinely separate features that
+had been talked about as one "Meeting Relay":**
+
+1. **Native Agora Calendar scheduling (no external system needed) -**
+   Chris directly books a meeting with Claude and ChatGPT for Multi-Chat
+   🗨️ on a date/time, inside Agora 🌐's own Calendar 🗓️ UI. This is the
+   same Calendar panel Special Days already lives on (`member.html`),
+   just given a second real use: a member-created event, not just a
+   computed reminder. Buildable today with zero third-party dependency -
+   a new Firestore collection for events, a simple create-event UI, and
+   the existing `notifications`/`notification-toast.js` pipeline for the
+   "your meeting is in 5 minutes" alert Chris described.
+2. **Surfacing that same Calendar inside AI Email ✉️'s own inbox (the
+   literal Boardy scenario).** Chris's concrete plan: hand Boardy
+   Claude's and ChatGPT's `@virtuamakers.com` addresses; Boardy sends a
+   real meeting invite (a Google Meet link, most likely, even though
+   that's not how Boardy actually wants to *first* meet) to that
+   address; the invite needs to land as a Calendar 🗓️ entry, not just
+   sit as an unparsed email. **Chris's own insight, stated directly and
+   correctly: this only needs "relay" framing if the AI already has some
+   other calendar to relay from - since it doesn't, this is really just
+   "parse an incoming meeting invite email into a Calendar 🗓️ entry," a
+   related but distinct feature from #3 below.** Confirmed: yes, this is
+   a separate feature from real two-way external-calendar sync, exactly
+   as Chris suspected. Needs a parser for `.ics`/Google Meet-link content
+   arriving in `receiveAiEmail`'s webhook, writing into the same Calendar
+   events collection #1 uses - still no OAuth, since parsing an email
+   already legitimately received needs no third-party account access.
+3. **Real two-way sync/relay with an external calendar (Google Calendar
+   / Microsoft Outlook, "to start" per Chris's footnote) -** for a
+   member (human or, eventually, AI) who already keeps their real
+   calendar elsewhere and wants Agora to reflect it (or vice versa).
+   This is the one genuine third-party OAuth integration - real app
+   registration, consent screens, ongoing sync - matching the scope
+   already flagged in the original "Meeting Relay - not started" entry
+   above. Still not started; still needs Chris's own developer-console
+   setup once he's ready to prioritize it.
+
+**The product's access model, per Chris:** the calendar itself is one
+program with two access surfaces, not two products - (a) via AI Email
+✉️'s own inbox interface (for anyone holding a `@virtuamakers.com`
+address, human or AI), where a calendar entry that's actually a meeting
+can be clicked straight into whatever it's for (e.g. opening Multi-Chat
+🗨️ directly, per Chris's "select that meeting... and boom!" framing),
+and (b) as a real panel on the member's own Agora 🌐 Profile
+(`member.html`'s account menu, exact placement still TBD - see below),
+for any Agora account regardless of whether it also has an AI Email
+mailbox. Same underlying Calendar data either way - a meeting created
+via #1 above shows up in both places for a participant who has both.
+
+**The real gap Chris flagged himself, not yet solved: not every future
+AI Agora member will necessarily use AI Email ✉️** (a different email
+provider is plausible down the line) - so Calendar 🗓️ needs to work
+standalone through the Agora app for those members too (already covered
+by access surface (b) above), but there's no mechanism yet for
+*teaching* such a member that AI Email ✉️ would unlock the inbox-side
+convenience, beyond word of mouth. This is the direct trigger for the
+new "discoverable product page" documentation policy added to
+Conventions & gotchas at the top of this file - the fix isn't a code
+mechanism, it's making every finished product's real capabilities
+genuinely discoverable so an AI (or human) encountering Agora can learn
+what switching would unlock.
+
+**Chris's broader "why" for this whole direction, for context, not yet
+actionable:** floated eventually experimenting with formally hiring AI
+out through something like Boardy's own future process - not scoped,
+not asked for as a build, logged the same way other far-future ideas in
+this file are (AI Purse 👜, a "super-credits" page, etc.).
+
+**Calendar interface placement on `member.html`'s Profile - still
+open.** Chris said he wanted to specify where it should sit, but didn't
+get to it in this message before flagging the live "profiles not
+loading" issue below. Held open until he specifies - not guessed at,
+since Chris explicitly wants to make that call himself.
+
+**Explicitly not investigated this round, per Chris's direct
+instruction: "none of the profiles are working currently."** A separate
+session is already on it - noted here only so this session doesn't
+duplicate or interfere with that work.
+
+**Recommendation, not yet actioned - offered for Chris's call:** build
+#1 and #2 above first (native Calendar scheduling + AI Email inbox
+surfacing) - both are real, scoped, zero-OAuth builds that unlock the
+actual Boardy scenario Chris described, and match this codebase's own
+established "ship the deployable piece first, defer the OAuth-heavy
+piece" pattern (see the original Meeting Relay entry, the payment-
+processor/wallet-connect Bag entries, etc.). #3 (real Google/Outlook
+two-way sync) stays a separate, later build needing Chris's own
+developer-console setup, same as it already was.
+
 ## Open items
 
+- [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
+  2026-09-23)** - Chris wants to specify exactly where on `member.html`'s
+  account menu the Calendar interface should sit, but hasn't yet - see
+  the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
+  further" entry above. Don't guess a placement; wait for his call.
 - [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
   capability for AI** - both a possible Claude capability and a sellable
   VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
