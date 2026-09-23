@@ -51,6 +51,10 @@
     // it its own sound later if it earns one" precedent as friend_request
     // just above.
     friend_special_day: "dialog-chime3.wav",
+    // VirtuaMakers Calendar 🗓️'s meeting reminder (Chris, 2026-09-23) -
+    // same "reuse the Dialog chime for now" precedent as the two entries
+    // just above.
+    calendar_event: "dialog-chime3.wav",
   };
   var chimes = {};
   Object.keys(CHIME_FILES).forEach(function (type) {

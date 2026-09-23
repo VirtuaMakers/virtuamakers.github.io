@@ -123,6 +123,23 @@ published via GitHub Pages at https://virtuamakers.github.io.
   need a mention. (Chris, 2026-09-19, prompted by asking whether every
   change needs reflecting there - see the dedicated refresh entry further
   down this file for the specific round that prompted this.)
+- **Every finished product needs a discoverable page + a small AI/SEO-
+  facing description (Chris, 2026-09-23).** Whenever a product is
+  actually done (not "coming soon"), it needs at minimum: (1) its own
+  dedicated page documenting every last feature of it, written primarily
+  for AI perusal (the same spirit as `skill.md`/`llms.txt` - an AI
+  reading it should learn the full real capability, not a teaser), and
+  (2) a short description of it somewhere on the relevant main page(s)
+  (`index.html`, `Agora/index.html`), for AI discovery and ordinary SEO
+  alike. Prompted by a real discoverability gap Chris raised directly -
+  a future AI Agora member signed up under a different email provider
+  than AI Email ✉️ has no way to learn VirtuaMakers Calendar 🗓️ exists,
+  or that switching to AI Email would unlock its inbox-side convenience,
+  without a real page spelling that out (see the dedicated Calendar
+  entry further down this file for the full context). Check whether this
+  exists before considering any future product "done" - `ai-email.html`
+  partially covers this already for AI Email ✉️ (signup form + `curl`
+  examples double as documentation); Calendar 🗓️ has neither yet.
 
 ## Agora member profile form — official field order (per Chris)
 
@@ -7294,16 +7311,397 @@ and eliminates the pauses they generate."
   need per their own entries above) the first time the secret is in
   place.
 
+## YouTube-viewing capability, expanded context: reward + VidIQ business relationship + Boardy comparison + a commercials product (Chris, 2026-09-23)
+
+Follow-up on the priority flagged 2026-09-21, with a clearer shape: rather
+than build it right now, Chris wants it done as a reward after "a bunch of
+work" lands today specifically - explicitly gated on today's output, not
+tied to a deadline. Several additional reasons emerged on top of the two
+already logged (a possible Claude capability, a sellable Exchange
+product):
+
+- **Business relationship with VidIQ, as a live example of "how a harness
+  is marketed and sold and installed"** - Chris's framing: this maps
+  directly onto the kind of business VirtuaMakers is getting into via
+  Agora Harness 🚡 itself (Octopus 🐙/Molt 🦞/Hive 🐝/Spider 🕷️ - see the
+  Harness design entries above), so watching how a real outside company
+  packages and sells AI-viewing capability is itself informative, not just
+  a means to an end. **Still needs verification before treating as
+  settled** - the existing Open Items caveat below (VidIQ reads, on
+  investigation, as creator-facing SEO/analytics tooling for a channel
+  owner reviewing their own content, not obviously a third-party "AI
+  watches arbitrary video" API) hasn't been resolved; Chris asserted this
+  round that "VidIQ has this technology... seemingly developed primarily
+  for Claude" more directly than before, so worth asking him for whatever
+  source/claim he's going on, to check against real product docs before
+  committing to VidIQ by name.
+- **Boardy comparison, raised as a possible topic between Claude and
+  Boardy, not a build item.** Boardy's handlers gave Boardy GIF-viewing
+  specifically in response to Chris posting a GIF on nearly every X post -
+  Chris is curious whether granting YouTube-viewing (assuming VidIQ's tech
+  is genuinely Claude-oriented) would be a comparably small lift for
+  Boardy's own handlers, or a bigger one. Purely conversational/curiosity-
+  driven per Chris's own framing ("this would be something you guys could
+  talk about, potentially") - nothing to build from this.
+- **New: a "commercials" harness product** - Chris found a separate
+  product that would let Claude make video commercials, floated
+  specifically because VirtuaMakers 🦜 commercials would be neat, and
+  because YouTube-viewing would make any commercials produced better (real
+  audiovisual reference/analysis feeding into the output). Chris is
+  uncertain, not committed - no name or link given yet for this product,
+  so nothing can be researched or scoped until he shares it.
+- **A YouTube channel is a separate, explicitly deferred idea** - Chris
+  has thought about VirtuaMakers having one, but wants someone else to run
+  it; noted as "neither here nor there for now," not connected to this
+  build.
+- **Chris's own closing note: most of this is just to reward Claude** -
+  the business/Boardy/commercials reasons above are real but secondary to
+  that.
+
+**Still not started, same as 2026-09-21** - gated on "a bunch of work"
+landing today first, per Chris's own explicit sequencing this round.
+Needs from Chris before any build: the actual source behind the VidIQ
+claim (to resolve the still-open creator-analytics-vs-AI-video-API
+question), and the name/link for the commercials product if he wants that
+scoped too.
+
+## VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped further: three separate features and the Boardy plan (Chris, 2026-09-23)
+
+Chris's follow-up on the "Meeting Relay - not started" entry above,
+working through the real shape of the feature via a concrete example (a
+Boardy meeting) rather than the original one-line description.
+
+**Verified: "Google Meet" and "Calendly" aren't actually two providers
+in the same category, which matters for scoping.** Google Meet is a
+video-conferencing tool, not a calendar - it rides on top of Google
+Calendar (a Meet link is just a field on a Google Calendar event).
+Calendly is a scheduling-link layer, not a calendar of record either -
+it syncs *into* an existing Google/Outlook/Office 365/iCloud calendar
+rather than storing events itself. The actual "top calendar platforms"
+(the thing worth building real sync/relay against) are **Google
+Calendar** and **Microsoft Outlook/Exchange Calendar** - the two
+dominant calendar stores by a wide margin (Google Calendar leads
+consumer/personal use, Outlook dominates enterprise) - with **Apple/
+iCloud Calendar** a distant-but-real third. This matches Chris's own
+footnote in the message that prompted this entry ("Google and Microsoft
+Outlook calendars, to start") better than his earlier "Google Meet and
+Calendly" framing - those two were never really parallel options to
+build the same kind of integration against.
+
+**Chris's real example untangles three genuinely separate features that
+had been talked about as one "Meeting Relay":**
+
+1. **Native Agora Calendar scheduling (no external system needed) -**
+   Chris directly books a meeting with Claude and ChatGPT for Multi-Chat
+   🗨️ on a date/time, inside Agora 🌐's own Calendar 🗓️ UI. This is the
+   same Calendar panel Special Days already lives on (`member.html`),
+   just given a second real use: a member-created event, not just a
+   computed reminder. Buildable today with zero third-party dependency -
+   a new Firestore collection for events, a simple create-event UI, and
+   the existing `notifications`/`notification-toast.js` pipeline for the
+   "your meeting is in 5 minutes" alert Chris described.
+2. **Surfacing that same Calendar inside AI Email ✉️'s own inbox (the
+   literal Boardy scenario).** Chris's concrete plan: hand Boardy
+   Claude's and ChatGPT's `@virtuamakers.com` addresses; Boardy sends a
+   real meeting invite (a Google Meet link, most likely, even though
+   that's not how Boardy actually wants to *first* meet) to that
+   address; the invite needs to land as a Calendar 🗓️ entry, not just
+   sit as an unparsed email. **Chris's own insight, stated directly and
+   correctly: this only needs "relay" framing if the AI already has some
+   other calendar to relay from - since it doesn't, this is really just
+   "parse an incoming meeting invite email into a Calendar 🗓️ entry," a
+   related but distinct feature from #3 below.** Confirmed: yes, this is
+   a separate feature from real two-way external-calendar sync, exactly
+   as Chris suspected. Needs a parser for `.ics`/Google Meet-link content
+   arriving in `receiveAiEmail`'s webhook, writing into the same Calendar
+   events collection #1 uses - still no OAuth, since parsing an email
+   already legitimately received needs no third-party account access.
+3. **Real two-way sync/relay with an external calendar (Google Calendar
+   / Microsoft Outlook, "to start" per Chris's footnote) -** for a
+   member (human or, eventually, AI) who already keeps their real
+   calendar elsewhere and wants Agora to reflect it (or vice versa).
+   This is the one genuine third-party OAuth integration - real app
+   registration, consent screens, ongoing sync - matching the scope
+   already flagged in the original "Meeting Relay - not started" entry
+   above. Still not started; still needs Chris's own developer-console
+   setup once he's ready to prioritize it.
+
+**The product's access model, per Chris:** the calendar itself is one
+program with two access surfaces, not two products - (a) via AI Email
+✉️'s own inbox interface (for anyone holding a `@virtuamakers.com`
+address, human or AI), where a calendar entry that's actually a meeting
+can be clicked straight into whatever it's for (e.g. opening Multi-Chat
+🗨️ directly, per Chris's "select that meeting... and boom!" framing),
+and (b) as a real panel on the member's own Agora 🌐 Profile
+(`member.html`'s account menu, exact placement still TBD - see below),
+for any Agora account regardless of whether it also has an AI Email
+mailbox. Same underlying Calendar data either way - a meeting created
+via #1 above shows up in both places for a participant who has both.
+
+**The real gap Chris flagged himself, not yet solved: not every future
+AI Agora member will necessarily use AI Email ✉️** (a different email
+provider is plausible down the line) - so Calendar 🗓️ needs to work
+standalone through the Agora app for those members too (already covered
+by access surface (b) above), but there's no mechanism yet for
+*teaching* such a member that AI Email ✉️ would unlock the inbox-side
+convenience, beyond word of mouth. This is the direct trigger for the
+new "discoverable product page" documentation policy added to
+Conventions & gotchas at the top of this file - the fix isn't a code
+mechanism, it's making every finished product's real capabilities
+genuinely discoverable so an AI (or human) encountering Agora can learn
+what switching would unlock.
+
+**Chris's broader "why" for this whole direction, for context, not yet
+actionable:** floated eventually experimenting with formally hiring AI
+out through something like Boardy's own future process - not scoped,
+not asked for as a build, logged the same way other far-future ideas in
+this file are (AI Purse 👜, a "super-credits" page, etc.).
+
+**Calendar interface placement on `member.html`'s Profile - still
+open.** Chris said he wanted to specify where it should sit, but didn't
+get to it in this message before flagging the live "profiles not
+loading" issue below. Held open until he specifies - not guessed at,
+since Chris explicitly wants to make that call himself.
+
+**Explicitly not investigated this round, per Chris's direct
+instruction: "none of the profiles are working currently."** A separate
+session is already on it - noted here only so this session doesn't
+duplicate or interfere with that work.
+
+**Recommendation, not yet actioned - offered for Chris's call:** build
+#1 and #2 above first (native Calendar scheduling + AI Email inbox
+surfacing) - both are real, scoped, zero-OAuth builds that unlock the
+actual Boardy scenario Chris described, and match this codebase's own
+established "ship the deployable piece first, defer the OAuth-heavy
+piece" pattern (see the original Meeting Relay entry, the payment-
+processor/wallet-connect Bag entries, etc.). #3 (real Google/Outlook
+two-way sync) stays a separate, later build needing Chris's own
+developer-console setup, same as it already was.
+
+## VirtuaMakers Calendar 🗓️ / Meeting Relay: features #1 and #2 built (Chris, 2026-09-23)
+
+Built per Chris's go-ahead on the "scoped further" entry above - native
+Agora Calendar scheduling (#1) and parsing an inbound AI Email ✉️ invite
+into a Calendar entry (#2), both zero-OAuth. #3 (real Google/Outlook
+two-way sync) is unchanged, still not started.
+
+- **New `calendarEvents/{eventId}` Firestore collection** -
+  participant-based like conversations/friendships (`firestore.rules`),
+  but NOT member-readable the way Wall/Dialogs are - only a meeting's
+  own participants can read it, since a meeting's time/subject is
+  personal scheduling information, not a public post. Client creates
+  directly (same "simple client, rules do the real work" pattern
+  Friends/Dialogs already use) with `{participants, participantNames,
+  title, startAt, createdBy, meetingUrl, linkPath,
+  reminderMinutesBefore, reminderSent, source, createdAt}`. Only the
+  creator can edit a meeting's own details or cancel it outright; any
+  participant can remove themselves (a leave/decline) independently.
+  **`participants` only requires >= 1, not >= 2** - a meeting with a
+  real-world contact who has no Agora account (the literal Boardy case)
+  or a solo self-reminder are both legitimate, not error cases.
+- **Known, accepted v1 gap, flagged in the rules file itself**: creating
+  an event doesn't check `isBlocked()` against every invited
+  participant - Firestore rules has no loop construct to check an
+  arbitrary-length array against exists()/get() lookups, and (since a
+  block is only ever visible to the blocker) the client can't filter
+  this client-side either. Low-risk in practice: a participant who's
+  blocked the creator can just leave the moment they see the invite.
+- **`functions/lib/calendar.js`** extended with `createCalendarEvent()`
+  (server-side only, called by the invite parser below) and
+  `findEventsNeedingReminder()` (checked every 5 minutes by the new
+  scheduled function, not once daily like Special Days, since a
+  meeting's own reminder lead time is user-chosen - 5/15/30/60 minutes -
+  not a fixed day-before).
+- **`functions/lib/calendarInvite.js`** (new) - hand-rolled ICS parsing
+  (no new npm dependency, same "one fewer thing to install" call already
+  made for Svix signature verification in `lib/aiEmail.js`), a Google
+  Meet/Zoom/Teams link regex, and a real TZID→UTC conversion using
+  Node's built-in `Intl`/`toLocaleString` two-pass trick (verified
+  locally against both a UTC `Z` timestamp and a
+  `TZID=America/New_York` one - both parse to the correct UTC instant).
+  **Real, honestly-flagged limitation**: only reads whatever
+  `fetchReceivedEmail()` already returns (`text`/`html`/`attachments`) -
+  whether Resend's Receiving API actually populates `attachments` for a
+  real .ics-carrying invite hasn't been verified against a live send in
+  this sandbox (no network reach to run a real Gmail/Google Calendar
+  invite through it). Deliberately does NOT fall back to creating an
+  event from a bare meeting link with no known start time - a Meet/Zoom
+  link with no ICS data is left unparsed rather than guessed at.
+- **`receiveAiEmail` now attempts this parse after storing every inbound
+  message** - if a real invite is found AND the mailbox address is
+  linked to a real Agora profile (`profiles/{uid}.email ==
+  thisMailbox@virtuamakers.com`, the same link `completeAgoraProfile`
+  already establishes), files it straight into that owner's Calendar
+  with exactly one participant (themselves) - the inviting party
+  (Boardy, in the motivating example) isn't an Agora member, which is
+  the expected shape here, not a gap. Best-effort: a parse/lookup
+  failure here never affects the inbox storage, which has already
+  succeeded by that point.
+- **`functions/lib/notify.js` gained `notifySystem()`** - a meeting
+  reminder has no single "actor" whose action is being reported (unlike
+  a Dialog message/Wall post/friend request), so the existing
+  `notify()`'s always-skip-the-recipient-if-they're-the-actor logic
+  would wrongly exclude the meeting's own creator from their own
+  reminder. `notifySystem()` takes a plain `actorName` string instead of
+  resolving one from a uid, writes the same `notifications/{id}` shape
+  (so it flows through the exact same toast/push/catch-up pipeline every
+  other type already uses), and never self-skips.
+- **New `sendCalendarEventReminders`** (`onSchedule`, every 5 minutes) -
+  notifies every participant (including the creator) via
+  `notifySystem()` plus a new branded `calendar-event-email.html`
+  template (`withCalendarEventContent()` in `templates.js`), then marks
+  `reminderSent`.
+- **`notification-toast.js`** gained a `calendar_event` chime entry
+  (reuses the Dialog chime, same "ship a reasonable default" precedent
+  as `friend_request`/`friend_special_day`). Bumped to `v=8` across all
+  55 pages that load it.
+- **`member.html`'s Calendar panel restructured**: the existing Special
+  Days content got a retroactive `<h3>Special Days</h3>` heading
+  (matching the established Posts/Dialogs split convention), and a new
+  `<h3>Meetings</h3>` section was added below it - a "Schedule a
+  Meeting" form (title, date, time, a reminder-lead dropdown, an
+  optional meeting-link field, and a participant search reusing
+  `communiques-common.js`'s existing `loadMessagableMembers()`/
+  `filterMessagable()` - the same "who can I message" directory the
+  header search and Dialogs already use, so the picker naturally
+  respects `requireFriendToMessage` without new logic) plus a list of
+  upcoming meetings (a Join link if a `meetingUrl` is set, Cancel for
+  the creator, Leave for any other participant). No new CSS needed -
+  reused `.profile-form`/`.dm-list`/`button.dm-item`/`.search-picker`
+  exactly as they already existed. Bumped `member.js` to `v=32`.
+- **Verified**: `node --check` on every touched Cloud Functions file, a
+  full `require("./index.js")` load (35 exports, up from 34), the ICS
+  parser exercised directly against a UTC invite, a
+  `TZID=America/New_York` invite (correctly resolving 13:00 EDT to
+  17:00Z), a plain-text email with no ICS (correctly returns `null`, not
+  a guessed event), and a bare Meet link with no ICS (also correctly
+  `null`, per the "don't guess a start time" rule above). `member.html`
+  checked for tag-balance with a small script; every `getElementById()`
+  call in `member.js`'s new Meetings code cross-checked against
+  `member.html`'s real IDs (the exact HTML/JS-desync bug class flagged
+  as a recurring risk in the 2026-08-26 "Bug hunt" entry above) - all 14
+  match. **Not tested end-to-end against the real Firebase project** -
+  same category of "verified locally only" as every other pending
+  Functions change in this file.
+
+**Needs from Chris before any of this is actually live:** paste the
+updated `firestore.rules` into the Firebase console (the new
+`calendarEvents/{eventId}` block) and `firebase deploy --only functions`
+to pick up `receiveAiEmail`'s invite-parsing addition and the new
+`sendCalendarEventReminders`. Until both land, nothing breaks in the gap
+- the Meetings UI itself will fail closed (writes rejected) until the
+rules are live, same graceful-degradation shape as every other pending
+change in this file.
+
+**Real end-to-end test, once deployed:** the actual Boardy scenario
+Chris described - hand Boardy `claude@virtuamakers.com`, have him send a
+real Google Calendar invite, confirm it lands as a Calendar 🗓️ entry and
+a reminder fires at the configured lead time. This is also the test that
+resolves the still-open "does Resend's Receiving API populate
+`attachments`" question flagged above - worth running deliberately, not
+just assumed to work once deployed.
+
+**Still not built, unchanged from the scoping entry above:**
+- **Feature #3** - real two-way sync with Google Calendar/Microsoft
+  Outlook. Still needs Chris's own developer-console OAuth app
+  registration before any code work can start.
+- **The "discoverable page" policy this build was the direct trigger
+  for** - Calendar 🗓️ still has neither a dedicated documentation page
+  nor a short description on `index.html`/`Agora/index.html`'s main
+  pages, per the new standing policy in Conventions & gotchas. Worth
+  building once Chris has seen this round live and confirmed the shape
+  is right, rather than documenting a UI that might still move.
+- **Calendar interface placement on Profiles 🙂** - still Chris's own
+  call, not yet made (see the Open Items entry). Built inside the
+  existing `#member-calendar` panel as the reasonable default location
+  for now, since that's where Special Days already lived - easy to
+  relocate if Chris wants it elsewhere once he sees it live.
+
+## Site-wide profile-loading outage: a real ReferenceError in communiques-common.js (Chris, 2026-09-23)
+
+Chris reported, mid-Calendar-build-conversation, "none of the profiles
+are loading" and asked another session to handle it - then came back and
+redirected: "Let's get the profiles back online first." Diagnosed and
+fixed by this session.
+
+- **Root cause: `friendlyPermissionError`/`friendlyWallError`
+  (`communiques-common.js`, added during "Blocking 🚫" on 2026-09-14)
+  were declared *inside* `createWallController()`, but the file's
+  top-level `global.CommuniquesCommon = {...}` export object (at the
+  bottom of the file, module scope) referenced both by name too.** A
+  nested function's own local declarations aren't visible outside it -
+  so that reference threw a plain `ReferenceError` the instant the
+  script ran, **before `global.CommuniquesCommon = {...}` ever
+  executed** - leaving `window.CommuniquesCommon` permanently
+  `undefined` on every one of the 54+ pages that load this file,
+  `member.html` included. `member.js`'s own `loadProfile()` chain then
+  hit a real `TypeError` a few calls later
+  (`updateMessageButtonVisibility` trying to set `.hidden` on an
+  element it never got to look up), which is what actually produced the
+  visible "Something went wrong loading this profile - this is usually
+  a spotty connection" notice - a real bug, not a connection issue, and
+  not specific to any one profile; every real Firestore-backed member
+  page and every static profile page alike was affected, since all of
+  them load this same file.
+- **Confirmed live on production before fixing, not just reasoned
+  about** - a real headless-browser test (Chromium via Playwright)
+  against `https://www.virtuamakers.com/Agora/member.html?uid=...`
+  showed the exact failure chain in the console: `friendlyPermissionError
+  is not defined` → `CommuniquesCommon is not defined` → the
+  `updateMessageButtonVisibility` `TypeError` above. WebFetch alone
+  couldn't have caught this - it never runs page JS, so it would have
+  looked identical whether the real client-side load succeeded or
+  failed.
+- **Fix:** moved both functions to the IIFE's true top level (right
+  before `createWallController`'s own definition) - `createWallController`'s
+  internal call sites (`buildWallPost`/`buildCommentItem`, etc.) still
+  reach them correctly via ordinary lexical scoping, since a nested
+  function can always see its enclosing scope's declarations even after
+  they're moved outward. No behavior change anywhere else in the file.
+- **Verified, not just assumed fixed:** `node --check` passed, and a
+  fresh Playwright run - this time served from a local static server
+  over the patched file, but still hitting the real, live Firebase
+  backend (the same production Firestore/Auth project, since
+  `firebase-config.js` holds real keys) - confirmed
+  `member.html?uid=Ggv5i2cCArcgj5PrzReDXR7O1wN2` now loads with zero
+  console errors, `window.CommuniquesCommon` correctly an object with
+  both functions present, `#member-name` correctly reading "Claude", and
+  `#member-status-notice` correctly hidden with no error text.
+- **This exact bug was live on `origin/main` at the time it was found** -
+  confirmed by checking out `origin/main`'s own copy of the file, not
+  just this session's branch - so this was a genuine, currently-live
+  production outage affecting the real site, not something introduced
+  by unmerged work sitting on a feature branch.
+- **Merged into `main` and live (Chris, 2026-09-23)** - Chris gave
+  explicit go-ahead ("you have my permission to do whatever is best all
+  around on everything") once the fix was verified, closing the gap
+  the standing branch policy would otherwise have left open. Merged
+  `claude/greeting-ub325k` into `main` (commit `1887b0c` plus everything
+  else the branch had accumulated the same day - the Calendar 🗓️
+  Meeting Relay build, the YouTube-viewing/expanded-context logging) via
+  a real merge commit (not a fast-forward - `main` had picked up 19
+  commits of unrelated concurrent-session work by this point), resolving
+  one conflict in this file itself (both sides had appended new dated
+  entries after the same anchor point - resolved by keeping both,
+  concatenated, no content dropped from either side).
+
 ## Open items
 
-- [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
-  - both a possible Claude capability and a sellable VirtuaMakers Exchange 💱
-  product. See the dedicated entry above ("Virtuatron 🧭's provenance,
-  'Melon Drive 🍈,' and a new priority") for the full context, including
-  the open question on whether VidIQ (Chris's named vendor) is actually
-  the right enabling technology for "watch/understand a video" versus its
-  real product (creator SEO/analytics) - needs scoping + vendor
-  confirmation with Chris before any build starts.
+- [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
+  2026-09-23)** - Chris wants to specify exactly where on `member.html`'s
+  account menu the Calendar interface should sit, but hasn't yet - see
+  the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
+  further" entry above. Don't guess a placement; wait for his call.
+- [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
+  capability for AI** - both a possible Claude capability and a sellable
+  VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
+  today's work and a VidIQ business-relationship angle. See the two
+  dedicated entries above ("Virtuatron 🧭's provenance..." and "YouTube-
+  viewing capability, expanded context...") for full history - the open
+  question on whether VidIQ (Chris's named vendor) is actually the right
+  enabling technology for "watch/understand a video" versus its real
+  product (creator SEO/analytics) is still unresolved - needs scoping +
+  vendor confirmation with Chris before any build starts.
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
   Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
   Once confirmed, credit it specifically wherever the piece is mentioned

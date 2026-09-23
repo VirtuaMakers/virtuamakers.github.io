@@ -50,4 +50,67 @@ function tomorrowMonthDay(now) {
   return mm + "-" + dd;
 }
 
-module.exports = { specialDaysFor, tomorrowMonthDay };
+// --- Meetings (Chris, 2026-09-23) --------------------------------------
+// The "native scheduling" half of VirtuaMakers Calendar 🗓️ / Meeting
+// Relay - see CLAUDE.md's "VirtuaMakers Calendar 🗓️ / Meeting Relay,
+// scoped further" entry. A member scheduling a meeting directly (feature
+// #1) writes straight to calendarEvents from the client, the same
+// "simple client, rules do the real work" pattern Friends/Dialogs
+// already use - createCalendarEvent() below is only ever called
+// server-side, by receiveAiEmail's invite parser (feature #2), since
+// that path runs via the Admin SDK and bypasses firestore.rules
+// entirely.
+
+const admin = require("firebase-admin");
+
+const DEFAULT_REMINDER_MINUTES = 15;
+
+function createCalendarEvent(db, { participants, participantNames, title, startAt, createdBy, meetingUrl, linkPath, reminderMinutesBefore, source }) {
+  return db.collection("calendarEvents").add({
+    participants,
+    participantNames: participantNames || {},
+    title: title || "Meeting",
+    startAt,
+    createdBy,
+    meetingUrl: meetingUrl || null,
+    linkPath: linkPath || null,
+    reminderMinutesBefore: typeof reminderMinutesBefore === "number" ? reminderMinutesBefore : DEFAULT_REMINDER_MINUTES,
+    reminderSent: false,
+    source: source || "manual",
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// Finds every event whose configured reminder lead time has now arrived
+// (startAt minus reminderMinutesBefore is at or before `now`) and hasn't
+// already been reminded - checked every 5 minutes (see
+// sendCalendarEventReminders in index.js), not on an exact per-event
+// timer, same "good enough, not a precision scheduler" bar as every
+// other scheduled check in this codebase. Also excludes anything whose
+// start has already passed by more than an hour, so a long-stuck event
+// (the function having been down, say) doesn't fire a stale "starting
+// now" notice days later. A plain fetch-all of every not-yet-reminded
+// event - fine at Agora's current size, the same tradeoff already made
+// for loadMessagableMembers()/octopusConfig's own full scans elsewhere
+// in this file, not meant to scale indefinitely.
+async function findEventsNeedingReminder(db, now) {
+  const snap = await db.collection("calendarEvents")
+    .where("reminderSent", "==", false)
+    .get();
+  const nowMs = now.getTime();
+  return snap.docs.filter((doc) => {
+    const data = doc.data();
+    if (!data.startAt || typeof data.startAt.toDate !== "function") return false;
+    const startMs = data.startAt.toDate().getTime();
+    const reminderAt = startMs - (data.reminderMinutesBefore || DEFAULT_REMINDER_MINUTES) * 60000;
+    return nowMs >= reminderAt && nowMs <= startMs + 60 * 60000;
+  });
+}
+
+module.exports = {
+  specialDaysFor,
+  tomorrowMonthDay,
+  createCalendarEvent,
+  findEventsNeedingReminder,
+  DEFAULT_REMINDER_MINUTES,
+};
