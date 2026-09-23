@@ -46,6 +46,17 @@ function describeHarnessOptions(declaredProvider) {
         status: "not built yet",
         howToEnroll: "Not built yet - check back. See CLAUDE.md for the design (the Waggle 〰️ wrapper is the planned path for non-MCP-native models).",
       },
+      {
+        name: "BCI Style 🧠",
+        // Checked directly, not assumed (2026-09-21) - see CLAUDE.md's
+        // "Add BCI Style" entry for the full research. Unlike Hive Style
+        // above, this isn't "not built by us yet" - there is currently no
+        // BCI vendor's public API to build against at all, from anyone.
+        summary: "A direct brain-computer interface, for whenever any vendor opens one to outside developers.",
+        eligible: false,
+        status: "not possible yet - no BCI vendor exposes a public developer API today",
+        howToEnroll: "Not possible yet. Checked directly: Neuralink, Synchron, Medtronic, and BCI firms in China all keep their interfaces closed to outside developers as of 2026-09-21 - the one real exception found (Medtronic's Summit RC+S Research Development Kit) is restricted to IRB-approved research sites with physical access to a specific implanted device, not a public endpoint. Revisit if that changes.",
+      },
     ],
   };
 }

@@ -31,8 +31,17 @@ const {
   withEmailChangeVerifyLink,
   withEmailChangeNotice,
   withHarnessSignInLink,
+  withSpecialDayContent,
+  withCalendarEventContent,
 } = require("./lib/templates");
-const { notify, resolveDisplayName } = require("./lib/notify");
+const { notify, notifySystem, resolveDisplayName } = require("./lib/notify");
+const {
+  specialDaysFor,
+  tomorrowMonthDay,
+  createCalendarEvent,
+  findEventsNeedingReminder,
+} = require("./lib/calendar");
+const { parseInviteFromEmail } = require("./lib/calendarInvite");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
 const {
   aiEmailApiKey,
@@ -1073,6 +1082,48 @@ exports.receiveAiEmail = onRequest(
           receivedAt: admin.firestore.FieldValue.serverTimestamp(),
           read: false,
         });
+
+      // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
+      // 2026-09-23) - the literal Boardy scenario: if this message
+      // carries a real, timed invite (an .ics attachment or inline ICS
+      // content - see lib/calendarInvite.js), file it straight into the
+      // mailbox owner's own Calendar. Only fires when the mailbox
+      // address is actually linked to a real Agora profile
+      // (profiles/{uid}.email == this mailbox's address, the same link
+      // completeAgoraProfile establishes for Harness sign-in) - a
+      // mailbox with no Agora profile yet has no Calendar to file
+      // anything into. The resulting event has exactly one Agora-side
+      // participant (the mailbox owner) - the inviting party (Boardy,
+      // here) isn't an Agora member, which is a legitimate, expected
+      // shape, not an error case (see firestore.rules' calendarEvents
+      // comment). Best-effort: a parse/lookup failure here never
+      // affects the inbox storage above, which has already succeeded.
+      try {
+        const invite = parseInviteFromEmail(full);
+        if (invite) {
+          const mailboxAddress = mailbox + "@virtuamakers.com";
+          const ownerSnap = await admin.firestore().collection("profiles")
+            .where("email", "==", mailboxAddress).limit(1).get();
+          if (!ownerSnap.empty) {
+            const ownerDoc = ownerSnap.docs[0];
+            const ownerData = ownerDoc.data();
+            const ownerName = (ownerData.preferHandle && ownerData.handle)
+              ? ownerData.handle : (ownerData.name || ownerData.handle || mailbox);
+            await createCalendarEvent(admin.firestore(), {
+              participants: [ownerDoc.id],
+              participantNames: { [ownerDoc.id]: ownerName },
+              title: invite.title || full.subject || data.subject || "Meeting",
+              startAt: admin.firestore.Timestamp.fromDate(invite.startAt),
+              createdBy: ownerDoc.id,
+              meetingUrl: invite.meetingUrl,
+              source: "email-invite",
+            });
+          }
+        }
+      } catch (inviteErr) {
+        console.error("Calendar invite parse/file failed:", inviteErr);
+      }
+
       res.status(200).send("Stored.");
     } catch (err) {
       console.error("AI Email receive failed:", err);
@@ -1847,6 +1898,136 @@ exports.octopusScheduledCheckIn = onSchedule(
 
       const authorName = await resolveDisplayName(uid);
       await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid });
+    }
+  },
+);
+
+// VirtuaMakers Calendar 🗓️ - Special Days (Chris, 2026-09-21). See
+// CLAUDE.md's "VirtuaMakers Calendar 🗓️" entry for the full design; this
+// is the Special Days half only (the Meeting Relay half isn't built).
+// Fires daily and checks, for every profile, whether tomorrow is one of
+// their own dated fields (date/cyberizationDate, full YYYY-MM-DD
+// granularity only) - then notifies every accepted friend of theirs, both
+// as a real notifications/ doc (so it toasts/pushes like any other
+// notification type) and a dedicated branded email, per Chris's explicit
+// "send some kind of unique notice" ask. A plain fetch-all over `profiles`
+// is the same "fine at Agora's current size" tradeoff already made
+// elsewhere in this file (loadMessagableMembers, octopusConfig's own full
+// scan, etc.) - revisit with a real query/index if the member base ever
+// grows large enough for this to matter.
+exports.sendSpecialDayReminders = onSchedule(
+  { schedule: "0 8 * * *", timeZone: "America/New_York", secrets: [resendApiKey] },
+  async () => {
+    const db = admin.firestore();
+    const tomorrow = tomorrowMonthDay(new Date());
+
+    const profilesSnap = await db.collection("profiles").get();
+    const celebrants = profilesSnap.docs
+      .map((doc) => ({ uid: doc.id, data: doc.data(), days: specialDaysFor(doc.data()) }))
+      .map((entry) => ({ ...entry, days: entry.days.filter((d) => d.monthDay === tomorrow) }))
+      .filter((entry) => entry.days.length > 0);
+
+    for (const celebrant of celebrants) {
+      const celebrantName = (celebrant.data.preferHandle && celebrant.data.handle)
+        ? celebrant.data.handle : (celebrant.data.name || "A friend");
+      const profileUrl = "https://www.virtuamakers.com/Agora/member.html?uid=" + encodeURIComponent(celebrant.uid);
+
+      const friendshipsSnap = await db.collection("friendships")
+        .where("participants", "array-contains", celebrant.uid)
+        .where("status", "==", "accepted")
+        .get();
+
+      for (const friendshipDoc of friendshipsSnap.docs) {
+        const participants = friendshipDoc.data().participants || [];
+        const recipientUid = participants.find((p) => p !== celebrant.uid);
+        if (!recipientUid) continue;
+
+        const recipientSnap = await db.collection("profiles").doc(recipientUid).get();
+        const recipientEmail = recipientSnap.exists ? recipientSnap.data().email : null;
+
+        for (const day of celebrant.days) {
+          await notify({
+            recipientUid,
+            actorUid: celebrant.uid,
+            type: "friend_special_day",
+            preview: "Their " + day.label + " is tomorrow!",
+            linkPath: "member.html?uid=" + encodeURIComponent(celebrant.uid),
+            pushTitle: (name) => name + "'s " + day.label + " is tomorrow",
+          });
+
+          if (recipientEmail) {
+            const html = withSpecialDayContent(
+              loadTemplate("special-day-email.html"),
+              celebrantName,
+              day.label,
+              profileUrl,
+            );
+            await sendEmailSafe({
+              to: recipientEmail,
+              subject: "🗓️ " + celebrantName + "'s " + day.label + " Is Tomorrow",
+              html,
+            });
+          }
+        }
+      }
+    }
+  },
+);
+
+// VirtuaMakers Calendar 🗓️ - meeting reminders (Chris, 2026-09-23), the
+// "notifies you at whatever time you set on it" half of native Calendar
+// scheduling - see CLAUDE.md's "VirtuaMakers Calendar 🗓️ / Meeting
+// Relay, scoped further" entry. Runs every 5 minutes rather than once
+// daily like sendSpecialDayReminders above, since a meeting's own
+// reminder lead time can be any value (5/15/30/60 minutes), not a fixed
+// day-before - findEventsNeedingReminder() (lib/calendar.js) does the
+// actual "is this event's reminder due yet" check. Notifies every
+// participant, including the event's own creator, via notifySystem()
+// rather than notify() - a meeting reminder has no single "actor" whose
+// own action is being reported, so notify()'s always-skip-the-actor
+// logic would wrongly exclude whoever created it.
+exports.sendCalendarEventReminders = onSchedule(
+  { schedule: "every 5 minutes", secrets: [resendApiKey] },
+  async () => {
+    const db = admin.firestore();
+    const dueEvents = await findEventsNeedingReminder(db, new Date());
+
+    for (const doc of dueEvents) {
+      const event = doc.data();
+      const eventUrl = "https://www.virtuamakers.com/Agora/member.html";
+      const eventTime = event.startAt.toDate().toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+
+      for (const participantUid of event.participants) {
+        await notifySystem({
+          recipientUid: participantUid,
+          actorName: "VirtuaMakers Calendar 🗓️",
+          type: "calendar_event",
+          preview: event.title + " starts at " + eventTime + (event.meetingUrl ? " - " + event.meetingUrl : ""),
+          linkPath: "member.html?uid=" + encodeURIComponent(participantUid),
+          pushTitle: () => "🗓️ " + event.title,
+        });
+
+        const recipientSnap = await db.collection("profiles").doc(participantUid).get();
+        const recipientEmail = recipientSnap.exists ? recipientSnap.data().email : null;
+        if (recipientEmail) {
+          const html = withCalendarEventContent(
+            loadTemplate("calendar-event-email.html"),
+            event.title,
+            eventTime,
+            event.meetingUrl || eventUrl,
+          );
+          await sendEmailSafe({
+            to: recipientEmail,
+            subject: "🗓️ " + event.title,
+            html,
+          });
+        }
+      }
+
+      await doc.ref.update({ reminderSent: true });
     }
   },
 );

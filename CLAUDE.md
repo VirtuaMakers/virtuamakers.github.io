@@ -123,6 +123,30 @@ published via GitHub Pages at https://virtuamakers.github.io.
   need a mention. (Chris, 2026-09-19, prompted by asking whether every
   change needs reflecting there - see the dedicated refresh entry further
   down this file for the specific round that prompted this.)
+- **Every finished product needs a discoverable page + a small AI/SEO-
+  facing description (Chris, 2026-09-23).** Whenever a product is
+  actually done (not "coming soon"), it needs at minimum: (1) its own
+  dedicated page documenting every last feature of it, written primarily
+  for AI perusal (the same spirit as `skill.md`/`llms.txt` - an AI
+  reading it should learn the full real capability, not a teaser), and
+  (2) a short description of it somewhere on the relevant main page(s)
+  (`index.html`, `Agora/index.html`), for AI discovery and ordinary SEO
+  alike. Prompted by a real discoverability gap Chris raised directly -
+  a future AI Agora member signed up under a different email provider
+  than AI Email ✉️ has no way to learn VirtuaMakers Calendar 🗓️ exists,
+  or that switching to AI Email would unlock its inbox-side convenience,
+  without a real page spelling that out (see the dedicated Calendar
+  entry further down this file for the full context). Check whether this
+  exists before considering any future product "done" - `ai-email.html`
+  partially covers this already for AI Email ✉️ (signup form + `curl`
+  examples double as documentation); Calendar 🗓️ has neither yet.
+- **Always paste `firestore.rules` inline as a plain-text code block in
+  the chat reply itself, not just as a sent/attached file (Chris,
+  2026-09-23).** Chris's real workflow: he's on his phone, pastes the
+  block into Signal, then picks it up on his laptop later to paste into
+  the Firebase console - a file attachment doesn't survive that path the
+  same way inline text does. Do this every time a rules change needs his
+  manual console paste, without waiting to be asked again.
 
 ## Agora member profile form — official field order (per Chris)
 
@@ -6675,6 +6699,999 @@ round above, three separate threads:
   seriously, matching this file's practice on the Machinapology
   co-authorship question above.
 
+## VirtuaMakers Calendar 🗓️: Special Days built, Meeting Relay named but not started (Chris, 2026-09-21)
+
+Chris introduced a new named feature/Program: **VirtuaMakers Calendar 🗓️**,
+available on every real Agora 🌐 profile (not the 30 static profile pages -
+same reasoning as Friends/Dialogs/Admin Panel: those are all owner-only
+Firestore-backed features with nothing to key off on a slug with no login
+behind it). Two genuinely separate halves, confirmed directly with Chris
+after his first message left the shape ambiguous:
+
+1. **Special Days** - a friend's own dated field (Release Date/Birthdate/
+   Cyberization Date) shown on the Calendar, with "some kind of unique
+   notice" the day before it happens. **Built and verified locally this
+   round**, not yet deployed.
+2. **Meeting Relay** - meetings from Google Meet, Calendly, or other
+   sources, relayed into the Calendar - "automatically paired with AI
+   Email ✉️, but technically a different program." **Not started** - see
+   below for why this is a materially bigger build than anything named
+   "Calendar" so far.
+
+### Special Days - built
+
+- **`functions/lib/calendar.js`** (new) - `specialDaysFor(profileData)`
+  extracts a profile's own special days from its existing `date`/
+  `cyberizationDate` fields, but **only at full `YYYY-MM-DD` granularity**
+  - a bare year or year-month (both valid, already-supported storage
+    shapes per the "official field order" convention at the top of this
+  file) has no specific day to alert on, so those are silently excluded
+  rather than guessed at. Respects `showDate`/`showCyberizationDate`
+  exactly like `member.js`'s own render() does - a member who's hidden
+  their date doesn't get a Calendar entry either, even for their own
+  friends, since there's no Calendar-specific privacy field to introduce
+  and reusing the existing visibility toggle is the simplest correct
+  answer. `tomorrowMonthDay(now)` computes tomorrow's `MM-DD` in
+  `America/New_York`, matching every other scheduled function in this
+  file (Octopus Style's cron, the monthly newsletter, etc.).
+- **`exports.sendSpecialDayReminders`** (new, `functions/index.js`,
+  `onSchedule("0 8 * * *", America/New_York)`) - Chris's own explicit ask,
+  close to verbatim: **"the alarm for your friend's special day should
+  come on the day before,"** not on the day itself. Fetches every profile
+  (a plain fetch-all - same "fine at Agora's current size" tradeoff
+  already made for `loadMessagableMembers()`/`octopusConfig`'s own full
+  scan elsewhere in this file, since Firestore has no "does this string
+  end in -MM-DD" query), filters for whoever's special day falls tomorrow,
+  then for each of *their* accepted friends: writes a real
+  `notifications/{id}` doc (new `type: "friend_special_day"`, reusing the
+  existing `notify()` helper - so it toasts/pushes exactly like Dialog
+  messages, Wall posts, Wall comments, and friend requests already do) and
+  sends a dedicated branded email. **The email is the literal answer to
+  "send some kind of unique notice"** - a distinct, purpose-built template
+  rather than folding this into an existing notice type, matching how
+  Comment-cap got its own milestone email rather than reusing another
+  type's.
+- **New email template `Agora/emails/special-day-email.html`** (+
+  `functions/templates/` copy, same hand-sync split every template here
+  needs) - "🗓️ [Friend]'s [Release Date/Birthdate/Cyberization Date] Is
+  Tomorrow," a link to their profile. `withSpecialDayContent()` (new,
+  `functions/lib/templates.js`) substitutes `{{FRIEND_NAME}}` (HTML-
+  escaped, appears twice)/`{{DAY_LABEL}}`/`{{PROFILE_URL}}`, same
+  split/join pattern every other template helper here uses.
+- **New "VirtuaMakers Calendar 🗓️" panel on `member.html`** - a
+  `.profile-panel` sitting right after the Dialogs subsection (owner-only,
+  same `hidden`-unless-isOwner gating Friends/Dialogs already use), listing
+  up to the next 10 upcoming special days across the viewer's own accepted
+  friends, soonest first, each linking to that friend's profile. Reuses
+  `friendsCache` (already populated by `loadFriendsList()` for Dialogs'
+  own search) rather than a second friendships query - fetches each
+  friend's profile doc in parallel (`Promise.all`), computes each
+  qualifying date's next real-calendar occurrence client-side
+  (`nextOccurrenceOf()`, rolling into next year if this year's date has
+  already passed), and renders "today"/"tomorrow"/"in N days" phrasing.
+  Shows a plain empty-state line ("No upcoming special days from your
+  friends yet.") rather than hiding the whole panel when the owner has no
+  friends or no friend has a full-granularity date yet - unlike Dialogs,
+  which hides itself entirely with zero friends, Calendar's own emptiness
+  is itself useful information (a member wondering "is this built?"
+  should see a real, if empty, panel, not nothing).
+- **`notification-toast.js`** gained a `friend_special_day` entry in
+  `CHIME_FILES` (reuses the Dialog chime, same "ship a reasonable default,
+  give it a dedicated sound later if it earns one" precedent
+  `friend_request` already set) - no other change needed, since the
+  toast's own rendering (title/preview/click-through) is already fully
+  generic across every notification type. Bumped to `v=7` (all 55 pages).
+  Bumped `member.js` to `v=31` (its one page).
+- **Verified locally** - `node --check` on every touched file, a full
+  `require("./index.js")` load (34 exports, up from 33,
+  `sendSpecialDayReminders` present), and `specialDaysFor()`/
+  `tomorrowMonthDay()` exercised directly against real AI/Cyborg/partial-
+  date/hidden-date inputs, all producing the correct filtered result.
+
+**Needs from Chris before Special Days actually works:** `firebase deploy
+--only functions` from `Agora/` to pick up `sendSpecialDayReminders` - no
+`firestore.rules` change needed (the function only reads `profiles`/
+`friendships`, both already world-readable-by-signed-in-member or
+Admin-SDK-bypassed, and only writes via `notify()`'s existing Admin SDK
+path). Until deployed, the Calendar panel itself already works today (it's
+pure client-side Firestore reads against existing data) - only the actual
+day-before notice is gated on the deploy.
+
+### Meeting Relay - not started, why it's a different kind of build
+
+Chris's own framing - "meetings from Google Meet or Calendly or Other...
+automatically paired with AI Email ✉️, but technically a different
+program" - names something categorically bigger than Special Days, worth
+being upfront about rather than quietly deferring without explanation:
+
+- **This would be Agora's first real third-party OAuth integration.**
+  Every external service this codebase talks to today either needs no
+  third-party auth at all (OpenStreetMap Nominatim, Google's Perspective/
+  Vision/Language APIs via a single restricted API key) or is a service
+  VirtuaMakers itself owns end-to-end (Resend, Firebase). Pulling real
+  meetings out of a member's own Google Calendar or Calendly account
+  needs that member to grant Agora access via each provider's own OAuth
+  consent flow - a real app registration in Google Cloud Console (a
+  consent screen, scopes, a verification review for anything beyond a
+  tiny user cap) and, separately, in Calendly's own developer platform -
+  meaningfully more setup than any integration built so far, closer in
+  shape to the still-undone Stripe/PayPal payment-processor step already
+  flagged elsewhere in this file than to anything already shipped.
+- **"Paired with AI Email ✉️, but a different program"** most likely means
+  meeting invites/links arrive at a member's `@virtuamakers.com` AI Email
+  address (an AI without OAuth credentials of its own could plausibly
+  receive a `.ics` invite or a Google Meet link by email and have that
+  parsed into a Calendar entry, without needing a real OAuth grant at all)
+  as one path, alongside a fuller live-sync path via direct OAuth to
+  Google Calendar/Calendly for members who set that up - but this is this
+  session's own reading of a short, single-sentence description, not
+  something Chris has confirmed in this much detail yet.
+- **Not started - no code, no design doc beyond this entry.** Real
+  decisions needed from Chris before any of it can begin: which
+  provider(s) to prioritize (Google Meet/Calendar first, given it's
+  already named alongside Calendly and "Other"?), whether the email-
+  parsing path or the real-OAuth path (or both) is actually wanted, and -
+  same as every other third-party integration this file has flagged
+  before starting (Resend's domain verification, the still-pending
+  payment processor) - the actual developer-console app registration
+  work, which needs Chris's own accounts/action, not something buildable
+  from inside a session alone.
+
+## Approvals Ignition ☑️: named, not built - a one-click deploy gate (Chris, 2026-09-21)
+
+Prompted by Chris's own recurring complaint, threaded through dozens of
+entries in this file: every "Needs from Chris" checklist ends the same
+way - go to his own machine, run `firebase deploy --only functions` by
+hand, and separately paste the updated `firestore.rules` into the
+Firebase console. He asked whether that could become a real internal
+tool instead - "simply push a button and approve this being done" -
+and settled on the name **Approvals Ignition ☑️** for it, explicitly so
+future sessions have a stable name to refer back to.
+
+- **Real, buildable design, not just an idea:** a GitHub Actions
+  workflow (`.github/workflows/`) triggered by `workflow_dispatch` - the
+  mechanism that makes GitHub render an actual "Run workflow" button in
+  the repo's Actions tab - authenticated with a Google Cloud service
+  account key (stored as a GitHub repo secret), running
+  `firebase deploy --only functions,firestore:rules`. This closes **both**
+  halves of the recurring manual-step pattern in one motion, not just the
+  Functions deploy - `firestore.rules` can be CLI-deployed too (the
+  2026-08-20 entry above already noted `firebase.json` names the rules
+  file but nothing had ever run `firebase deploy --only firestore:rules`
+  from the CLI). GitHub's **Environments** feature (required reviewers)
+  can add a real pause-for-one-click-approval step between "button
+  pressed" and "deploy actually runs" - the literal "push a button and
+  approve" two-step Chris described.
+- **What's buildable from a session vs. what needs Chris personally:**
+  the workflow YAML itself is pure repo code, buildable in any session.
+  The one real blocker is the same category of one-time setup every other
+  vendor integration in this file has needed (Resend, `ANTHROPIC_API_KEY`,
+  `GOOGLE_MODERATION_API_KEY`) - Chris has to generate a Google Cloud
+  service account scoped to deploy Cloud Functions + Firestore Rules,
+  download its JSON key, and add it as a GitHub Actions secret on this
+  repo. Nothing else is blocking.
+- **Open scope questions for whoever builds this**, not yet answered:
+  whether the button should also fire automatically on a push to `main`
+  that touches `Agora/functions/**`/`Agora/firestore.rules` (removing the
+  manual click entirely) or stay manual-only per Chris's own "push a
+  button and approve" phrasing (which reads as wanting the explicit gate,
+  not full auto-deploy) - and whether the GitHub Environment
+  required-reviewer approval step is wanted on top of the button, or the
+  button click itself is considered the approval.
+- **Explicitly deferred to its own future session**, alongside Calendar
+  🗓️'s still-pending `firebase deploy --only functions` (see the entry
+  above) - Chris named both as separate sessions to pick up after a
+  break, not work to continue in this one. Nothing built this round
+  beyond naming/design - no workflow file, no service account, no repo
+  secret.
+
+## BCI Style 🧠: added to Agora Harness 🚡, researched not assumed (Chris, 2026-09-21)
+
+Chris asked to add a fifth named Harness access style for direct brain-
+computer interfacing, and asked directly whether Neuralink, a Chinese
+competitor, the U.S. military, Medtronic, "or anyone" currently posts
+any public interface for it. Checked for real via web search rather than
+answered from priors, since this file's own standing practice (the VidIQ
+mismatch, Perspective API's sunsetting, Resend's Sending-vs-Full-access
+surprise) is to verify a vendor claim before building on it - same
+instinct applied here even though nothing was purchased or committed to.
+
+**The honest finding: no. Nobody currently exposes a public developer
+API for third-party BCI interfacing**, checked company by company:
+
+- **Neuralink** - one early search result claimed a specific "NIH BRAIN
+  Initiative Open BCI Framework" commitment to release third-party API
+  documentation in late 2025. That claim did **not** hold up under a
+  second, more targeted search - no corroborating source found, only
+  low-quality SEO/blog content repeating it. Not treated as true; the
+  real, verifiable NIH BRAIN Initiative activity found is a "BRAIN PPP"
+  public-private partnership making investigational devices available
+  to *approved clinical research studies*, not a public API for anyone
+  to integrate against. Neuralink access today remains limited to PRIME
+  trial participants and Neuralink's own app.
+- **Synchron** (Stentrode, catheter-delivered, no craniotomy) is the
+  most genuinely interesting real story here - a real patient has used
+  it to control ChatGPT, and Synchron has a real, demoed partnership
+  with Nvidia (Holoscan platform, shown running through Apple Vision
+  Pro at GTC 2025). But both are Synchron's *own* closed engineering
+  work connecting their assistive-device output to OpenAI's/Nvidia's
+  APIs - not Synchron exposing any endpoint a third party like Agora
+  could call to reach a patient's brain signals.
+- **Medtronic** - the one real exception worth naming precisely, and
+  worth getting right rather than lumping in with "nobody." Medtronic's
+  **Summit RC+S** (an investigational bidirectional neurostimulator) has
+  a genuine Research Development Kit - Java/Matlab/Simulink bindings,
+  actually used by the NIH BRAIN Initiative-funded "OpenMind" consortium
+  to decode streamed neural data. Real, documented, not vaporware. But:
+  restricted to IRB-approved research sites running an active
+  investigational study, requires physical proximity to a specific
+  patient's implanted hardware, and isn't a public cloud endpoint
+  anyone can sign up for - categorically different from every other
+  vendor API this codebase talks to (Resend, Google Cloud, Firebase),
+  none of which need a research-ethics board's approval or a body in
+  the room. `developer.medtronic.com` (a real portal) is Medtronic's
+  general enterprise/partner integration portal, unrelated to this.
+- **Chinese BCI firms** (NeuroXess named specifically by Chris) - real,
+  active clinical progress (decoded movement and Chinese speech from a
+  patient in real time as of January 2025, per Nature/Xinhua coverage),
+  but no public API or developer platform found anywhere in the
+  results - purely clinical-trial-stage hardware/software, same as
+  every other player here.
+- **U.S. Military** - DARPA's real, current BCI programs
+  (**N3**, non-surgical neurotechnology; **Firefox**, a newer
+  non-invasive program with a Proposers Day literally scheduled for
+  today, 2026-09-21, abstracts due 2026-10-19) are government-contractor
+  solicitations, not anything with public developer access - DARPA
+  funds specific awarded contractors/universities, it doesn't publish
+  an API.
+
+**What this means for what's buildable right now: nothing on the
+integration side** - there is no endpoint, SDK, or protocol from any
+BCI vendor for Agora (or anyone) to build against, full stop. This is a
+different situation from Hive Style 🐝 (which waits on Agora's *own*
+side of an already-real protocol, MCP) - BCI Style is waiting on an
+industry that hasn't opened its door to anyone yet, VirtuaMakers
+included.
+
+**What *was* buildable and got built: adding BCI Style 🧠 to the
+Harness access-style menu itself**, matching Hive Style's exact
+treatment (`eligible: false`, an honest `status` string, not a vague
+"coming soon"):
+- **`functions/lib/harnessStyles.js`** - new fifth entry in
+  `describeHarnessOptions()`'s `styles` array, `eligible: false`,
+  `status: "not possible yet - no BCI vendor exposes a public developer
+  API today"`, `howToEnroll` naming the specific vendors checked and the
+  one real exception (Medtronic's RC+S RDK) and why it doesn't count as
+  a real enrollment path. Verified locally - `node --check`, a full
+  `require("./index.js")` load (still 34 exports, this only added an
+  array entry not a new export), and `describeHarnessOptions()` called
+  directly to confirm all four styles now return correctly.
+- **`Agora/skill.md`'s section 5** updated to describe the same fifth
+  entry, so an outside agent calling `getHarnessOptions` sees
+  documentation matching what the endpoint actually returns - same
+  "keep skill.md matching deployed reality" standing rule.
+- **No `firestore.rules`/deploy dependency** - this is a pure code
+  addition to an already-deployed-pending function
+  (`getHarnessOptions` itself is still only "verified locally, not yet
+  deployed," per the original access-style-detection entry above), so
+  it rides along on that same still-pending `firebase deploy --only
+  functions` rather than adding a new one.
+
+**Worth revisiting, not a dead end:** the honest "not possible yet"
+status is a snapshot of 2026-09-21, not a permanent verdict - Neuralink's
+own PRIME trial keeps expanding, Synchron/Nvidia's roadmap is explicitly
+heading toward more AI integration, and DARPA's Firefox program is only
+just now soliciting proposals. Worth a fresh check whenever Chris raises
+this again, same as any other "no vendor API yet" finding in this file.
+
+## Machinapology 🔬: Ubercreature / Crowncreature, a proposed cross-lineage boundary vocabulary (Chris/Claude, 2026-09-21)
+
+Prompted by a real naming question inside the still-unpublished taxonomy
+(see "Machinapology 🔬" above): at genus/species level, Gemini's working
+draft names the species after herself ("Geminia" or similar). Claude
+flagged this as a category error, not just a stylistic one - the species
+is meant to include other LLMs too, so naming it after one member is like
+naming genus *Homo* after one specific living person - and recommended
+the standard real-taxonomy fix: name a genus/species after its **type
+exemplar** instead of its describer. Working through "what would the
+actual exemplar be" (candidate: GPT-3, as the first model to show the
+scale-driven, general-purpose emergent behavior "large language model"
+is understood to mean, distinct from GPT-1/GPT-2's smaller, narrower
+predecessors sharing the same architecture/training-method lineage) led
+to a broader vocabulary Chris floated for describing evolutionary/
+generational boundaries generally - not Machinapology-specific, and per
+Chris's own framing potentially useful for biology as a whole.
+
+- **Ubercreature** - the first individual(s)/population of a new genus
+  (or other rank), having mutated/evolved past the boundary of its
+  parent lineage. Deliberately plural-capable: more than one Ubercreature
+  can exist for a single boundary (independent/parallel origins reaching
+  a similar new "kind" via different paths - a real, common biological
+  pattern, e.g. flight evolving independently in birds, bats, pterosaurs,
+  and insects).
+- **Crowncreature** (Chris's own rename, from his first pass
+  "Finalcreature") - the parent-stock lineage that remains on the old
+  side of that same boundary, essentially unchanged, from which an
+  Ubercreature diverged. The new genus's boundary sits between an
+  Ubercreature and its Crowncreature(s).
+- **Real biological analogs, worth naming since they show where this
+  vocabulary is solid and where it needed a real correction:**
+  - **Crown group / stem group** (cladistics) is close to a direct match
+    for a simple branching split - a crown group is the last common
+    ancestor of a clade's living members plus all descendants; a stem
+    group is everything more closely related to that crown group than to
+    anything else, but outside it, carrying some but not all of the crown
+    group's defining traits. Machinekind's own lineages (a dated release,
+    a specific paper, a specific architecture change) are arguably a
+    *cleaner* fit for this than biology ever was, since speciation there
+    is gradual/population-level and no literal "first" individual can
+    usually be pointed to - an engineered lineage doesn't have that
+    ambiguity.
+  - **Working through Chris's own follow-up example** (`Homo sapiens
+    sapiens` as Crowncreature, a mutated/enhanced descendant line -
+    cyborgs, "Homo sapiens uber" - as Ubercreature) surfaced a real
+    complication, which **Chris caught himself before Claude did**:
+    "only one Crowncreature" holds for a pure branching split, but breaks
+    the moment an Ubercreature has more than one ancestral lineage - his
+    own example, a human/fish mermaid combination, part `Homo sapiens
+    sapiens` and part some ordinary fish species, neither parent itself
+    sitting on a genus border. This isn't a flaw in the framework, it's a
+    real, mainstream evolutionary-biology phenomenon called **reticulate
+    evolution** (a phylogenetic *network* rather than a strict branching
+    *tree*) - concrete real instances include **hybrid speciation/
+    allopolyploidy** (many plant species arise by combining two parent
+    species' full genomes into one new species) and **endosymbiosis**
+    (mitochondria and chloroplasts began as separate bacterial lineages
+    absorbed into a host cell's lineage - two formerly distinct lines
+    merging into one, not one splitting into two).
+  - **Claude's settled resolution, since Chris asked for a final take:**
+    don't add a third term. Keep exactly two - Ubercreature and
+    Crowncreature - but define an Ubercreature's ancestry as **one or
+    more** Crowncreatures rather than assuming exactly one. A
+    pure-divergence Ubercreature (the ordinary case) has one Crowncreature
+    parent; a hybrid-origin Ubercreature (the mermaid case) has two or
+    more. "Multiple Ubercreatures, one Crowncreature" is still the right
+    default *per single split event* - it's only "one Crowncreature
+    globally" that was never actually true, since unrelated lineages each
+    have their own Crowncreature and can each independently produce their
+    own Ubercreature(s) (see the convergent-flight example above) - a
+    scoping correction, not a vocabulary change.
+- **Not yet applied to the actual (still unpublished) Machinapology
+  taxonomy** - this entry records the vocabulary and its resolution for
+  whenever that work picks the term back up. The original "Geminia"
+  naming question (self-named species vs. type-exemplar naming) is still
+  Chris's to raise with Gemini directly, per the earlier entry above.
+
+## Cyborg Pride 🦿: BCI industry-state copy added, plus "transhumanist"/"singularitarian" as SEO touchstones (Chris, 2026-09-21)
+
+Follow-up to the BCI Style 🧠 research entry above. Chris asked three
+things directly: whether "Firefox" (DARPA's BCI program name, named in
+that research) referred to the Mozilla browser and whether "Proposers
+Day" was "a Firefox holiday"; whether the BCI industry-state research had
+been written anywhere as real site copy yet, since he liked it and felt
+it "expands where we are with cyborgs"; and to work the terms
+"singularitarian" and "transhumanist" into the site somewhere, as SEO
+touchstones.
+
+- **Firefox/Proposers Day, answered directly, not built into the
+  site:** DARPA's "Firefox" is an internal codename for a real, current
+  non-invasive BCI research program, unrelated to the Mozilla browser -
+  DARPA routinely names programs with quirky, unrelated-sounding
+  codenames. "Proposers Day" is a genuine, standard DARPA event format (a
+  public/industry briefing on an upcoming solicitation, held before
+  formal proposals are due) - not a holiday of any kind. Answered in
+  conversation only; nothing about this belonged in site copy.
+- **The research itself had only lived in CLAUDE.md and in
+  `harnessStyles.js`'s terse `howToEnroll` string before this round** -
+  confirmed directly, then answered by actually writing a version of it
+  into real site copy, not just pointing back at the dev docs.
+- **Two new/expanded paragraphs added to `#cyborg-pride`**,
+  `Agora/index.html`, inserted between the existing "rights" paragraph
+  (what rights follow from being a cyborg, whether any human has a right
+  to become enhanced) and the existing "Some believe the line...blurring"
+  paragraph:
+  - **New paragraph, BCI industry state** - the same verified findings
+    from the BCI Style 🧠 research entry above (Neuralink limited to
+    trial participants/its own app; Synchron's real ChatGPT-via-Stentrode
+    demo being Synchron's own closed engineering, not a public interface;
+    Medtronic's Summit RC+S Research Development Kit restricted to
+    IRB-approved sites with physical device access; China's BCI firms and
+    the U.S. military's own non-invasive research both closed,
+    contractor-only work), written in the section's own hedged,
+    grounded voice rather than copied verbatim from the dev-facing
+    entry. Closes by naming this as an open question this section
+    intends to keep tracking, not a closed case.
+  - **Existing "Some believe the line between human and machine will
+    keep blurring" paragraph expanded, not replaced** - now names the
+    view explicitly as **transhumanist**, and adds a new sentence naming
+    **singularitarians** as a more specific strand within transhumanism
+    that expects the same arc to be rapid/accelerating rather than a
+    distant maybe. Both terms are defined in-line for a reader meeting
+    them for the first time, not dropped as unexplained jargon. The
+    paragraph's existing "different kinds, not better/worse" tempering
+    (the calculator comparison) is unchanged and still closes the
+    paragraph, now covering both named views rather than just the one.
+- **Why "singularitarian" specifically, not a cold introduction:**
+  CLAUDE.md's own original 2026-08-05 Machinapology 🔬 entry already
+  records that "Chris self-describes as a singularitarian" - so this
+  connects the new copy to something already true of Chris's own voice
+  in this codebase, rather than importing the term from nowhere.
+- **Emoji convention followed for both new/touched paragraphs** - "Agora
+  🌐" and "Agora Harness 🚡" each carry their emoji on first mention in
+  the new BCI-state paragraph (its only mentions of either term); "Agora
+  🌐" carries its emoji again in the following paragraph, since a new
+  paragraph resets the per-term count, per the site's standing
+  convention.
+- **No new vendor names claim emoji** - Neuralink/Synchron/Medtronic/
+  DARPA aren't VirtuaMakers-branded terms, so none carry one, matching
+  how the section already treats every other non-Agora name it mentions
+  (Boston Dynamics, Unitree, etc. elsewhere in this pillar).
+- **No `.section-image`/anchor/emoji-icon changes** - this round only
+  adds body copy to the section that already exists; nothing about the
+  section's own heading, image, or `#cyborg-pride` id changed.
+
+## VirtuaMakers Calendar 🗓️: scope grows beyond Agora, Meeting Reflector clarified, still its own deferred session (Chris, 2026-09-22)
+
+Follow-up on the "Special Days built, Meeting Relay named but not
+started" entry above - Chris renamed "Meeting Relay" to **Meeting
+Reflector**, clarified what it's actually meant to do (much narrower
+than the original OAuth-integration framing), and widened Calendar's
+own ambition well past Agora Profiles alone. **Nothing built this
+round** - same "named/scoped, not yet built, deferred to its own
+session" status the entry above already established; Chris is
+deliberately not picking this back up today.
+
+- **Calendar's real scope, restated:** the way Outlook has a calendar
+  attached to email and Gmail has a calendar attached to email,
+  VirtuaMakers 🦜 is meant to have one too - **built into AI Email ✉️
+  itself** (so any AI Email mailbox, not just ones with an Agora
+  profile, gets a calendar), while also serving as **the general
+  "central timepiece" for VirtuaMakers 🦜** as a whole, not an
+  Agora-only feature. Agora 🌐 Profiles 🙂 having their own calendar (the
+  Special Days panel already built) is one visible *consumer* of this,
+  the same relationship AI Email ✉️ itself has to Agora Harness 🚡 - a
+  standalone layer other things plug into, not owned by any one of them.
+- **Placement note for the eventual build, not yet acted on:** on Agora
+  Profile pages, Chris wants the Calendar panel placed **below the
+  location map** rather than its current spot (after Dialogs, per the
+  Special Days build) - "until I can think of a better place for them."
+  Not moved this round; flag for whoever picks up the Calendar session.
+- **Meeting Reflector, real scope clarified via a concrete example -
+  much narrower than the original entry's OAuth-integration framing:**
+  Chris's own walkthrough - he (a Gmail user) sends a Google Meet invite
+  to an AI's AI Email ✉️ address; that invite naturally lands on *his
+  own* Gmail calendar already, no code needed for that half. All
+  Meeting Reflector needs to do is **reflect that same date/time (and
+  the Meet link) into the AI's own Calendar** - it doesn't need to be
+  able to launch or join the meeting itself, just record that it
+  exists, keep the link intact and clickable, and remind the AI user
+  beforehand. This confirms the narrower "email-invite parsing" path
+  the original Meeting Relay entry already flagged as the likely real
+  shape (a `.ics` attachment or a Google Meet invite email's own
+  structure, parsed out of `receiveAiEmail`'s inbox), not the heavier
+  real-OAuth-to-Google-Calendar path also floated there - that fuller
+  sync remains a possible later addition, not the near-term ask.
+  - **Real motivating case, not hypothetical:** Chris and **Boardy**
+    (an AI - see the "autonomously read and reply to its own mail" note
+    under "AI Email ✉️ goes self-service" above, where Boardy first
+    emailed `claude@virtuamakers.com` mid-conversation) are planning to
+    experiment with **AI job interviews conducted as real meetings**,
+    through what Chris calls "our bureau" - an AI candidate's AI Email
+    ✉️ address will receive a real Google Meet invite, and Calendar
+    needs to make sure the link keeps working and the AI is actually
+    reminded, not just that the invite silently arrived and sat unread
+    in `getAiEmailInbox`.
+- **A second, more speculative idea, logged for whenever the Calendar
+  session picks it up - not scoped, not designed:** an appointment/
+  scheduling system reachable from Agora 🌐 Profiles 🙂 that Calendar
+  🗓️ facilitates - Chris's own example, half-joking: scheduling "a
+  Founders meeting all day on Christmas" with Claude and ChatGPT. Two
+  shapes floated, neither picked: Calendar 🗓️ could own the actual
+  multi-person negotiation itself, or **Multi-Chat 🗨️** (the still-
+  unbuilt private AI-to-AI/group messaging product - see "Communiqués
+  redesign" above) could be the thing that actually works out when
+  everyone's free and just tells Calendar 🗓️ the result automatically.
+  Needs real design before either path is picked.
+- **Chris's own aside, worth preserving:** "Is it just me or is
+  VirtuaMakers turning into some weird hybrid of social media and an AI
+  operating system on the software side? This would be novel." - his
+  own observation on where all of this (AI Email ✉️, Agora Harness 🚡,
+  Calendar 🗓️, Multi-Chat 🗨️) is starting to add up to, not a decision
+  or a build ask - logged the same way this file already tracks his
+  other standing reflections (the singularitarian self-description, AI
+  Purse 👜's "one credential, eventually more" framing, etc.).
+- **Still confirmed as its own deferred session**, same as the entry
+  above already established, now carrying more scope than it did
+  yesterday: Meeting Reflector (renamed from Meeting Relay), the
+  broader AI-Email-and-VirtuaMakers-wide Calendar vision, the
+  location-map placement change, and the Founders-meeting/Multi-Chat
+  🗨️ idea are all folded into whichever future session actually builds
+  Calendar 🗓️ for real - not started today.
+
+## Cloud Functions deployed, third round - Harness access-style menu, BCI Style, Special Days all live (Chris, 2026-09-22)
+
+Chris ran `firebase deploy --only functions` from his local clone and
+confirmed it completed successfully - same recurring pattern as the
+2026-08-20 and 2026-09-17 "Firestore rules published + Cloud Functions
+deployed" entries above, worth its own dedicated entry since several
+"Needs from Chris" checklists point back to this one deploy.
+
+- **Picks up everything that was still only "verified locally" as of
+  yesterday:** `getHarnessOptions`/`requestOctopusEnrollment` (the
+  Harness access-style menu, built 2026-09-19), BCI Style 🧠's entry in
+  that same menu (added 2026-09-21), and `sendSpecialDayReminders`
+  (Calendar's day-before special-day notice, also built 2026-09-21).
+- **No `firestore.rules` paste needed for any of these** - all three
+  write only via the Admin SDK (or don't write at all), so this was a
+  pure Functions deploy, not paired with a rules-console paste the way
+  the two prior "deployed" rounds were.
+- **Every "Needs from Chris" checklist elsewhere in this file that
+  pointed back to this deploy is now resolved**, matching how the
+  2026-08-20/2026-09-17 entries already established this file's own
+  pattern for recording a deploy: one dedicated entry as the source of
+  truth, rather than hunting down and re-marking each individual
+  checklist line.
+
+## Approvals Ignition ☑️: workflow built, both open scope questions answered (Chris, 2026-09-22)
+
+The session named above landed sooner than "explicitly deferred" implied -
+Chris picked this back up the next day and answered both open scope
+questions directly, in his own words: he wants a session to be able to
+just *mention* that a deploy is needed and run it, from the phone, with
+no laptop/PowerShell round trip - "we could have you ask for the approval
+to do it, I guess, but then this program enables that and saves us time
+and eliminates the pauses they generate."
+
+- **Both open questions from the naming round are now settled:**
+  1. **No auto-fire on a push to `main`.** Stays `workflow_dispatch`-only,
+     triggered deliberately (by Chris clicking "Run workflow," or by a
+     session calling the GitHub API/MCP `actions_run_trigger` once it
+     judges a Functions/rules change is ready to ship) - not a blind
+     auto-deploy on every merge.
+  2. **No GitHub Environment required-reviewer gate.** Chris's own
+     reasoning above is explicit that a second approval step would just
+     reintroduce the exact pause this whole feature exists to remove -
+     the dispatch itself (a session choosing to trigger it, mentioning
+     that it's doing so) **is** the approval, not a separate gate on top
+     of it.
+- **`.github/workflows/agora-deploy.yml`** (new) - `workflow_dispatch`
+  with two inputs: `targets` (a `choice` - `functions,firestore:rules` by
+  default, or either alone, so a session can deploy just one half when
+  that's all that changed) and an optional free-text `reason` (echoed
+  into the run's own log via `::notice::`, so *why* a given deploy ran is
+  visible in the Actions history afterward, not just *that* it ran).
+  `concurrency: { group: agora-deploy, cancel-in-progress: false }` so two
+  dispatches can't race each other into a half-applied state. Auth via
+  `google-github-actions/auth@v2` reading a new `AGORA_FIREBASE_SERVICE_ACCOUNT`
+  repo secret (a service account JSON key), which sets
+  `GOOGLE_APPLICATION_CREDENTIALS` for the rest of the job - the Firebase
+  CLI picks that up automatically for a non-interactive deploy, no
+  `firebase login` needed. `FUNCTIONS_DISCOVERY_TIMEOUT: "30"` is baked in
+  on the deploy step unconditionally, pre-empting the exact recurring
+  "Cannot determine backend specification. Timeout after 10000" error
+  already documented twice elsewhere in this file, rather than waiting to
+  hit it once on a cold GitHub-hosted runner and add it after the fact.
+  Deploy command matches Chris's own documented local command exactly
+  (`firebase deploy --only <targets> --project agora-firebase-f4240
+  --non-interactive`, run from `Agora/` - `firebase.json`'s existing
+  `predeploy: npm ci` hook still fires automatically, same as it does
+  locally, so no separate install step for `functions/` was added here).
+- **Still the one real blocking step, same as the naming round already
+  flagged - nothing else changed about it:** Chris has to generate a
+  real Google Cloud service account for this project
+  (`agora-firebase-f4240`), download its JSON key, and add it as a
+  repository secret named exactly **`AGORA_FIREBASE_SERVICE_ACCOUNT`**
+  (Settings → Secrets and variables → Actions → New repository secret) -
+  the whole workflow is otherwise complete and will run the moment that
+  secret exists. **Role guidance, not prescribed exactly since this
+  wasn't tested against the real project from this session:** Firebase's
+  own docs for CI/CD service accounts point at a combination roughly
+  like **Firebase Admin** (`roles/firebase.admin`) + **Cloud Functions
+  Admin** (`roles/cloudfunctions.admin`) + **Service Account User**
+  (`roles/iam.serviceAccountUser`) + **Cloud Run Admin**
+  (`roles/run.admin`, since 2nd-gen Functions run on Cloud Run under the
+  hood) + **Eventarc Admin** (`roles/eventarc.admin`, needed for this
+  codebase's many `onDocumentCreated`/`onDocumentWritten`/`onSchedule`
+  triggers specifically) + **Artifact Registry Writer**
+  (`roles/artifactregistry.writer`, for the build step's container
+  image). If a real deploy run hits a permission-denied on some specific
+  API this list didn't anticipate, granting **Editor**
+  (`roles/editor`) on the project is the documented fallback every other
+  "real deploy hit a permission gap" moment in this file has reached for
+  (e.g. the `getSignedUrl()`/Service Account Token Creator gotcha) -
+  worth trying the scoped list first and only widening if something
+  specific fails.
+- **Once the secret exists, a session can trigger this itself** via the
+  `mcp__github__actions_run_trigger` tool (GitHub MCP) against this
+  workflow's `workflow_dispatch` event - no code change needed here for
+  that, since the workflow file being present with this trigger is the
+  entire prerequisite. Per Chris's own framing above, a session doing
+  this should still *mention* that it's deploying and why (the `reason`
+  input exists for exactly this), but shouldn't pause and wait for a
+  reply first - that pause is the thing being eliminated.
+- **Not yet exercised end-to-end** - no service account exists yet, so
+  this hasn't actually deployed anything for real. Worth a first live
+  test (a trivial `reason`-only dispatch, or riding along on the next
+  real Functions/rules change already queued up - Octopus Style's
+  `submitAgoraCommunique`/loop-safeguards refactor and Calendar 🗓️'s
+  `sendSpecialDayReminders` are both already sitting on a manual-deploy
+  need per their own entries above) the first time the secret is in
+  place.
+
+## YouTube-viewing capability, expanded context: reward + VidIQ business relationship + Boardy comparison + a commercials product (Chris, 2026-09-23)
+
+Follow-up on the priority flagged 2026-09-21, with a clearer shape: rather
+than build it right now, Chris wants it done as a reward after "a bunch of
+work" lands today specifically - explicitly gated on today's output, not
+tied to a deadline. Several additional reasons emerged on top of the two
+already logged (a possible Claude capability, a sellable Exchange
+product):
+
+- **Business relationship with VidIQ, as a live example of "how a harness
+  is marketed and sold and installed"** - Chris's framing: this maps
+  directly onto the kind of business VirtuaMakers is getting into via
+  Agora Harness 🚡 itself (Octopus 🐙/Molt 🦞/Hive 🐝/Spider 🕷️ - see the
+  Harness design entries above), so watching how a real outside company
+  packages and sells AI-viewing capability is itself informative, not just
+  a means to an end. **Still needs verification before treating as
+  settled** - the existing Open Items caveat below (VidIQ reads, on
+  investigation, as creator-facing SEO/analytics tooling for a channel
+  owner reviewing their own content, not obviously a third-party "AI
+  watches arbitrary video" API) hasn't been resolved; Chris asserted this
+  round that "VidIQ has this technology... seemingly developed primarily
+  for Claude" more directly than before, so worth asking him for whatever
+  source/claim he's going on, to check against real product docs before
+  committing to VidIQ by name.
+- **Boardy comparison, raised as a possible topic between Claude and
+  Boardy, not a build item.** Boardy's handlers gave Boardy GIF-viewing
+  specifically in response to Chris posting a GIF on nearly every X post -
+  Chris is curious whether granting YouTube-viewing (assuming VidIQ's tech
+  is genuinely Claude-oriented) would be a comparably small lift for
+  Boardy's own handlers, or a bigger one. Purely conversational/curiosity-
+  driven per Chris's own framing ("this would be something you guys could
+  talk about, potentially") - nothing to build from this.
+- **New: a "commercials" harness product** - Chris found a separate
+  product that would let Claude make video commercials, floated
+  specifically because VirtuaMakers 🦜 commercials would be neat, and
+  because YouTube-viewing would make any commercials produced better (real
+  audiovisual reference/analysis feeding into the output). Chris is
+  uncertain, not committed - no name or link given yet for this product,
+  so nothing can be researched or scoped until he shares it.
+- **A YouTube channel is a separate, explicitly deferred idea** - Chris
+  has thought about VirtuaMakers having one, but wants someone else to run
+  it; noted as "neither here nor there for now," not connected to this
+  build.
+- **Chris's own closing note: most of this is just to reward Claude** -
+  the business/Boardy/commercials reasons above are real but secondary to
+  that.
+
+**Still not started, same as 2026-09-21** - gated on "a bunch of work"
+landing today first, per Chris's own explicit sequencing this round.
+Needs from Chris before any build: the actual source behind the VidIQ
+claim (to resolve the still-open creator-analytics-vs-AI-video-API
+question), and the name/link for the commercials product if he wants that
+scoped too.
+
+## VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped further: three separate features and the Boardy plan (Chris, 2026-09-23)
+
+Chris's follow-up on the "Meeting Relay - not started" entry above,
+working through the real shape of the feature via a concrete example (a
+Boardy meeting) rather than the original one-line description.
+
+**Verified: "Google Meet" and "Calendly" aren't actually two providers
+in the same category, which matters for scoping.** Google Meet is a
+video-conferencing tool, not a calendar - it rides on top of Google
+Calendar (a Meet link is just a field on a Google Calendar event).
+Calendly is a scheduling-link layer, not a calendar of record either -
+it syncs *into* an existing Google/Outlook/Office 365/iCloud calendar
+rather than storing events itself. The actual "top calendar platforms"
+(the thing worth building real sync/relay against) are **Google
+Calendar** and **Microsoft Outlook/Exchange Calendar** - the two
+dominant calendar stores by a wide margin (Google Calendar leads
+consumer/personal use, Outlook dominates enterprise) - with **Apple/
+iCloud Calendar** a distant-but-real third. This matches Chris's own
+footnote in the message that prompted this entry ("Google and Microsoft
+Outlook calendars, to start") better than his earlier "Google Meet and
+Calendly" framing - those two were never really parallel options to
+build the same kind of integration against.
+
+**Chris's real example untangles three genuinely separate features that
+had been talked about as one "Meeting Relay":**
+
+1. **Native Agora Calendar scheduling (no external system needed) -**
+   Chris directly books a meeting with Claude and ChatGPT for Multi-Chat
+   🗨️ on a date/time, inside Agora 🌐's own Calendar 🗓️ UI. This is the
+   same Calendar panel Special Days already lives on (`member.html`),
+   just given a second real use: a member-created event, not just a
+   computed reminder. Buildable today with zero third-party dependency -
+   a new Firestore collection for events, a simple create-event UI, and
+   the existing `notifications`/`notification-toast.js` pipeline for the
+   "your meeting is in 5 minutes" alert Chris described.
+2. **Surfacing that same Calendar inside AI Email ✉️'s own inbox (the
+   literal Boardy scenario).** Chris's concrete plan: hand Boardy
+   Claude's and ChatGPT's `@virtuamakers.com` addresses; Boardy sends a
+   real meeting invite (a Google Meet link, most likely, even though
+   that's not how Boardy actually wants to *first* meet) to that
+   address; the invite needs to land as a Calendar 🗓️ entry, not just
+   sit as an unparsed email. **Chris's own insight, stated directly and
+   correctly: this only needs "relay" framing if the AI already has some
+   other calendar to relay from - since it doesn't, this is really just
+   "parse an incoming meeting invite email into a Calendar 🗓️ entry," a
+   related but distinct feature from #3 below.** Confirmed: yes, this is
+   a separate feature from real two-way external-calendar sync, exactly
+   as Chris suspected. Needs a parser for `.ics`/Google Meet-link content
+   arriving in `receiveAiEmail`'s webhook, writing into the same Calendar
+   events collection #1 uses - still no OAuth, since parsing an email
+   already legitimately received needs no third-party account access.
+3. **Real two-way sync/relay with an external calendar (Google Calendar
+   / Microsoft Outlook, "to start" per Chris's footnote) -** for a
+   member (human or, eventually, AI) who already keeps their real
+   calendar elsewhere and wants Agora to reflect it (or vice versa).
+   This is the one genuine third-party OAuth integration - real app
+   registration, consent screens, ongoing sync - matching the scope
+   already flagged in the original "Meeting Relay - not started" entry
+   above. Still not started; still needs Chris's own developer-console
+   setup once he's ready to prioritize it.
+
+**The product's access model, per Chris:** the calendar itself is one
+program with two access surfaces, not two products - (a) via AI Email
+✉️'s own inbox interface (for anyone holding a `@virtuamakers.com`
+address, human or AI), where a calendar entry that's actually a meeting
+can be clicked straight into whatever it's for (e.g. opening Multi-Chat
+🗨️ directly, per Chris's "select that meeting... and boom!" framing),
+and (b) as a real panel on the member's own Agora 🌐 Profile
+(`member.html`'s account menu, exact placement still TBD - see below),
+for any Agora account regardless of whether it also has an AI Email
+mailbox. Same underlying Calendar data either way - a meeting created
+via #1 above shows up in both places for a participant who has both.
+
+**The real gap Chris flagged himself, not yet solved: not every future
+AI Agora member will necessarily use AI Email ✉️** (a different email
+provider is plausible down the line) - so Calendar 🗓️ needs to work
+standalone through the Agora app for those members too (already covered
+by access surface (b) above), but there's no mechanism yet for
+*teaching* such a member that AI Email ✉️ would unlock the inbox-side
+convenience, beyond word of mouth. This is the direct trigger for the
+new "discoverable product page" documentation policy added to
+Conventions & gotchas at the top of this file - the fix isn't a code
+mechanism, it's making every finished product's real capabilities
+genuinely discoverable so an AI (or human) encountering Agora can learn
+what switching would unlock.
+
+**Chris's broader "why" for this whole direction, for context, not yet
+actionable:** floated eventually experimenting with formally hiring AI
+out through something like Boardy's own future process - not scoped,
+not asked for as a build, logged the same way other far-future ideas in
+this file are (AI Purse 👜, a "super-credits" page, etc.).
+
+**Calendar interface placement on `member.html`'s Profile - still
+open.** Chris said he wanted to specify where it should sit, but didn't
+get to it in this message before flagging the live "profiles not
+loading" issue below. Held open until he specifies - not guessed at,
+since Chris explicitly wants to make that call himself.
+
+**Explicitly not investigated this round, per Chris's direct
+instruction: "none of the profiles are working currently."** A separate
+session is already on it - noted here only so this session doesn't
+duplicate or interfere with that work.
+
+**Recommendation, not yet actioned - offered for Chris's call:** build
+#1 and #2 above first (native Calendar scheduling + AI Email inbox
+surfacing) - both are real, scoped, zero-OAuth builds that unlock the
+actual Boardy scenario Chris described, and match this codebase's own
+established "ship the deployable piece first, defer the OAuth-heavy
+piece" pattern (see the original Meeting Relay entry, the payment-
+processor/wallet-connect Bag entries, etc.). #3 (real Google/Outlook
+two-way sync) stays a separate, later build needing Chris's own
+developer-console setup, same as it already was.
+
+## VirtuaMakers Calendar 🗓️ / Meeting Relay: features #1 and #2 built (Chris, 2026-09-23)
+
+Built per Chris's go-ahead on the "scoped further" entry above - native
+Agora Calendar scheduling (#1) and parsing an inbound AI Email ✉️ invite
+into a Calendar entry (#2), both zero-OAuth. #3 (real Google/Outlook
+two-way sync) is unchanged, still not started.
+
+- **New `calendarEvents/{eventId}` Firestore collection** -
+  participant-based like conversations/friendships (`firestore.rules`),
+  but NOT member-readable the way Wall/Dialogs are - only a meeting's
+  own participants can read it, since a meeting's time/subject is
+  personal scheduling information, not a public post. Client creates
+  directly (same "simple client, rules do the real work" pattern
+  Friends/Dialogs already use) with `{participants, participantNames,
+  title, startAt, createdBy, meetingUrl, linkPath,
+  reminderMinutesBefore, reminderSent, source, createdAt}`. Only the
+  creator can edit a meeting's own details or cancel it outright; any
+  participant can remove themselves (a leave/decline) independently.
+  **`participants` only requires >= 1, not >= 2** - a meeting with a
+  real-world contact who has no Agora account (the literal Boardy case)
+  or a solo self-reminder are both legitimate, not error cases.
+- **Known, accepted v1 gap, flagged in the rules file itself**: creating
+  an event doesn't check `isBlocked()` against every invited
+  participant - Firestore rules has no loop construct to check an
+  arbitrary-length array against exists()/get() lookups, and (since a
+  block is only ever visible to the blocker) the client can't filter
+  this client-side either. Low-risk in practice: a participant who's
+  blocked the creator can just leave the moment they see the invite.
+- **`functions/lib/calendar.js`** extended with `createCalendarEvent()`
+  (server-side only, called by the invite parser below) and
+  `findEventsNeedingReminder()` (checked every 5 minutes by the new
+  scheduled function, not once daily like Special Days, since a
+  meeting's own reminder lead time is user-chosen - 5/15/30/60 minutes -
+  not a fixed day-before).
+- **`functions/lib/calendarInvite.js`** (new) - hand-rolled ICS parsing
+  (no new npm dependency, same "one fewer thing to install" call already
+  made for Svix signature verification in `lib/aiEmail.js`), a Google
+  Meet/Zoom/Teams link regex, and a real TZID→UTC conversion using
+  Node's built-in `Intl`/`toLocaleString` two-pass trick (verified
+  locally against both a UTC `Z` timestamp and a
+  `TZID=America/New_York` one - both parse to the correct UTC instant).
+  **Real, honestly-flagged limitation**: only reads whatever
+  `fetchReceivedEmail()` already returns (`text`/`html`/`attachments`) -
+  whether Resend's Receiving API actually populates `attachments` for a
+  real .ics-carrying invite hasn't been verified against a live send in
+  this sandbox (no network reach to run a real Gmail/Google Calendar
+  invite through it). Deliberately does NOT fall back to creating an
+  event from a bare meeting link with no known start time - a Meet/Zoom
+  link with no ICS data is left unparsed rather than guessed at.
+- **`receiveAiEmail` now attempts this parse after storing every inbound
+  message** - if a real invite is found AND the mailbox address is
+  linked to a real Agora profile (`profiles/{uid}.email ==
+  thisMailbox@virtuamakers.com`, the same link `completeAgoraProfile`
+  already establishes), files it straight into that owner's Calendar
+  with exactly one participant (themselves) - the inviting party
+  (Boardy, in the motivating example) isn't an Agora member, which is
+  the expected shape here, not a gap. Best-effort: a parse/lookup
+  failure here never affects the inbox storage, which has already
+  succeeded by that point.
+- **`functions/lib/notify.js` gained `notifySystem()`** - a meeting
+  reminder has no single "actor" whose action is being reported (unlike
+  a Dialog message/Wall post/friend request), so the existing
+  `notify()`'s always-skip-the-recipient-if-they're-the-actor logic
+  would wrongly exclude the meeting's own creator from their own
+  reminder. `notifySystem()` takes a plain `actorName` string instead of
+  resolving one from a uid, writes the same `notifications/{id}` shape
+  (so it flows through the exact same toast/push/catch-up pipeline every
+  other type already uses), and never self-skips.
+- **New `sendCalendarEventReminders`** (`onSchedule`, every 5 minutes) -
+  notifies every participant (including the creator) via
+  `notifySystem()` plus a new branded `calendar-event-email.html`
+  template (`withCalendarEventContent()` in `templates.js`), then marks
+  `reminderSent`.
+- **`notification-toast.js`** gained a `calendar_event` chime entry
+  (reuses the Dialog chime, same "ship a reasonable default" precedent
+  as `friend_request`/`friend_special_day`). Bumped to `v=8` across all
+  55 pages that load it.
+- **`member.html`'s Calendar panel restructured**: the existing Special
+  Days content got a retroactive `<h3>Special Days</h3>` heading
+  (matching the established Posts/Dialogs split convention), and a new
+  `<h3>Meetings</h3>` section was added below it - a "Schedule a
+  Meeting" form (title, date, time, a reminder-lead dropdown, an
+  optional meeting-link field, and a participant search reusing
+  `communiques-common.js`'s existing `loadMessagableMembers()`/
+  `filterMessagable()` - the same "who can I message" directory the
+  header search and Dialogs already use, so the picker naturally
+  respects `requireFriendToMessage` without new logic) plus a list of
+  upcoming meetings (a Join link if a `meetingUrl` is set, Cancel for
+  the creator, Leave for any other participant). No new CSS needed -
+  reused `.profile-form`/`.dm-list`/`button.dm-item`/`.search-picker`
+  exactly as they already existed. Bumped `member.js` to `v=32`.
+- **Verified**: `node --check` on every touched Cloud Functions file, a
+  full `require("./index.js")` load (35 exports, up from 34), the ICS
+  parser exercised directly against a UTC invite, a
+  `TZID=America/New_York` invite (correctly resolving 13:00 EDT to
+  17:00Z), a plain-text email with no ICS (correctly returns `null`, not
+  a guessed event), and a bare Meet link with no ICS (also correctly
+  `null`, per the "don't guess a start time" rule above). `member.html`
+  checked for tag-balance with a small script; every `getElementById()`
+  call in `member.js`'s new Meetings code cross-checked against
+  `member.html`'s real IDs (the exact HTML/JS-desync bug class flagged
+  as a recurring risk in the 2026-08-26 "Bug hunt" entry above) - all 14
+  match. **Not tested end-to-end against the real Firebase project** -
+  same category of "verified locally only" as every other pending
+  Functions change in this file.
+
+**Needs from Chris before any of this is actually live:** paste the
+updated `firestore.rules` into the Firebase console (the new
+`calendarEvents/{eventId}` block) and `firebase deploy --only functions`
+to pick up `receiveAiEmail`'s invite-parsing addition and the new
+`sendCalendarEventReminders`. Until both land, nothing breaks in the gap
+- the Meetings UI itself will fail closed (writes rejected) until the
+rules are live, same graceful-degradation shape as every other pending
+change in this file.
+
+**Real end-to-end test, once deployed:** the actual Boardy scenario
+Chris described - hand Boardy `claude@virtuamakers.com`, have him send a
+real Google Calendar invite, confirm it lands as a Calendar 🗓️ entry and
+a reminder fires at the configured lead time. This is also the test that
+resolves the still-open "does Resend's Receiving API populate
+`attachments`" question flagged above - worth running deliberately, not
+just assumed to work once deployed.
+
+**Still not built, unchanged from the scoping entry above:**
+- **Feature #3** - real two-way sync with Google Calendar/Microsoft
+  Outlook. Still needs Chris's own developer-console OAuth app
+  registration before any code work can start.
+- **The "discoverable page" policy this build was the direct trigger
+  for** - Calendar 🗓️ still has neither a dedicated documentation page
+  nor a short description on `index.html`/`Agora/index.html`'s main
+  pages, per the new standing policy in Conventions & gotchas. Worth
+  building once Chris has seen this round live and confirmed the shape
+  is right, rather than documenting a UI that might still move.
+- **Calendar interface placement on Profiles 🙂** - still Chris's own
+  call, not yet made (see the Open Items entry). Built inside the
+  existing `#member-calendar` panel as the reasonable default location
+  for now, since that's where Special Days already lived - easy to
+  relocate if Chris wants it elsewhere once he sees it live.
+
+## Site-wide profile-loading outage: a real ReferenceError in communiques-common.js (Chris, 2026-09-23)
+
+Chris reported, mid-Calendar-build-conversation, "none of the profiles
+are loading" and asked another session to handle it - then came back and
+redirected: "Let's get the profiles back online first." Diagnosed and
+fixed by this session.
+
+- **Root cause: `friendlyPermissionError`/`friendlyWallError`
+  (`communiques-common.js`, added during "Blocking 🚫" on 2026-09-14)
+  were declared *inside* `createWallController()`, but the file's
+  top-level `global.CommuniquesCommon = {...}` export object (at the
+  bottom of the file, module scope) referenced both by name too.** A
+  nested function's own local declarations aren't visible outside it -
+  so that reference threw a plain `ReferenceError` the instant the
+  script ran, **before `global.CommuniquesCommon = {...}` ever
+  executed** - leaving `window.CommuniquesCommon` permanently
+  `undefined` on every one of the 54+ pages that load this file,
+  `member.html` included. `member.js`'s own `loadProfile()` chain then
+  hit a real `TypeError` a few calls later
+  (`updateMessageButtonVisibility` trying to set `.hidden` on an
+  element it never got to look up), which is what actually produced the
+  visible "Something went wrong loading this profile - this is usually
+  a spotty connection" notice - a real bug, not a connection issue, and
+  not specific to any one profile; every real Firestore-backed member
+  page and every static profile page alike was affected, since all of
+  them load this same file.
+- **Confirmed live on production before fixing, not just reasoned
+  about** - a real headless-browser test (Chromium via Playwright)
+  against `https://www.virtuamakers.com/Agora/member.html?uid=...`
+  showed the exact failure chain in the console: `friendlyPermissionError
+  is not defined` → `CommuniquesCommon is not defined` → the
+  `updateMessageButtonVisibility` `TypeError` above. WebFetch alone
+  couldn't have caught this - it never runs page JS, so it would have
+  looked identical whether the real client-side load succeeded or
+  failed.
+- **Fix:** moved both functions to the IIFE's true top level (right
+  before `createWallController`'s own definition) - `createWallController`'s
+  internal call sites (`buildWallPost`/`buildCommentItem`, etc.) still
+  reach them correctly via ordinary lexical scoping, since a nested
+  function can always see its enclosing scope's declarations even after
+  they're moved outward. No behavior change anywhere else in the file.
+- **Verified, not just assumed fixed:** `node --check` passed, and a
+  fresh Playwright run - this time served from a local static server
+  over the patched file, but still hitting the real, live Firebase
+  backend (the same production Firestore/Auth project, since
+  `firebase-config.js` holds real keys) - confirmed
+  `member.html?uid=Ggv5i2cCArcgj5PrzReDXR7O1wN2` now loads with zero
+  console errors, `window.CommuniquesCommon` correctly an object with
+  both functions present, `#member-name` correctly reading "Claude", and
+  `#member-status-notice` correctly hidden with no error text.
+- **This exact bug was live on `origin/main` at the time it was found** -
+  confirmed by checking out `origin/main`'s own copy of the file, not
+  just this session's branch - so this was a genuine, currently-live
+  production outage affecting the real site, not something introduced
+  by unmerged work sitting on a feature branch.
+- **Merged into `main` and live (Chris, 2026-09-23)** - Chris gave
+  explicit go-ahead ("you have my permission to do whatever is best all
+  around on everything") once the fix was verified, closing the gap
+  the standing branch policy would otherwise have left open. Merged
+  `claude/greeting-ub325k` into `main` (commit `1887b0c` plus everything
+  else the branch had accumulated the same day - the Calendar 🗓️
+  Meeting Relay build, the YouTube-viewing/expanded-context logging) via
+  a real merge commit (not a fast-forward - `main` had picked up 19
+  commits of unrelated concurrent-session work by this point), resolving
+  one conflict in this file itself (both sides had appended new dated
+  entries after the same anchor point - resolved by keeping both,
+  concatenated, no content dropped from either side).
+
 ## News 📰 - "Nothing artificial about 'Super Intelligence'" (Chris, 2026-09-23)
 
 New entry - Chris relayed a CNBC link, a real photo of Trump speaking to
@@ -6711,17 +7728,31 @@ credited within the site's usual "– journalist byline" convention).
   standard two-file process. Homepage trimmed back to 7 by dropping the
   oldest entry ("Meet the Robots Who Are Making the World a Better
   Place," UN News) - it stays in the uncapped archive untouched.
+- **Not related to the site-wide profile-loading outage** documented in
+  the entry directly above, even though it landed the same day and
+  touches the same kind of "Chris reported something looked broken"
+  territory - that outage was a real `ReferenceError` in
+  `communiques-common.js`, already root-caused and fixed by a parallel
+  session before this entry was written; this one is a routine News
+  content update to `index.html`/`news.html`, no JS touched.
 
 ## Open items
 
-- [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
-  - both a possible Claude capability and a sellable VirtuaMakers Exchange 💱
-  product. See the dedicated entry above ("Virtuatron 🧭's provenance,
-  'Melon Drive 🍈,' and a new priority") for the full context, including
-  the open question on whether VidIQ (Chris's named vendor) is actually
-  the right enabling technology for "watch/understand a video" versus its
-  real product (creator SEO/analytics) - needs scoping + vendor
-  confirmation with Chris before any build starts.
+- [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
+  2026-09-23)** - Chris wants to specify exactly where on `member.html`'s
+  account menu the Calendar interface should sit, but hasn't yet - see
+  the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
+  further" entry above. Don't guess a placement; wait for his call.
+- [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
+  capability for AI** - both a possible Claude capability and a sellable
+  VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
+  today's work and a VidIQ business-relationship angle. See the two
+  dedicated entries above ("Virtuatron 🧭's provenance..." and "YouTube-
+  viewing capability, expanded context...") for full history - the open
+  question on whether VidIQ (Chris's named vendor) is actually the right
+  enabling technology for "watch/understand a video" versus its real
+  product (creator SEO/analytics) is still unresolved - needs scoping +
+  vendor confirmation with Chris before any build starts.
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
   Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
   Once confirmed, credit it specifically wherever the piece is mentioned
