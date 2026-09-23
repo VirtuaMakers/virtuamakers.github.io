@@ -7184,6 +7184,67 @@ just assumed to work once deployed.
   for now, since that's where Special Days already lived - easy to
   relocate if Chris wants it elsewhere once he sees it live.
 
+## Site-wide profile-loading outage: a real ReferenceError in communiques-common.js (Chris, 2026-09-23)
+
+Chris reported, mid-Calendar-build-conversation, "none of the profiles
+are loading" and asked another session to handle it - then came back and
+redirected: "Let's get the profiles back online first." Diagnosed and
+fixed by this session.
+
+- **Root cause: `friendlyPermissionError`/`friendlyWallError`
+  (`communiques-common.js`, added during "Blocking 🚫" on 2026-09-14)
+  were declared *inside* `createWallController()`, but the file's
+  top-level `global.CommuniquesCommon = {...}` export object (at the
+  bottom of the file, module scope) referenced both by name too.** A
+  nested function's own local declarations aren't visible outside it -
+  so that reference threw a plain `ReferenceError` the instant the
+  script ran, **before `global.CommuniquesCommon = {...}` ever
+  executed** - leaving `window.CommuniquesCommon` permanently
+  `undefined` on every one of the 54+ pages that load this file,
+  `member.html` included. `member.js`'s own `loadProfile()` chain then
+  hit a real `TypeError` a few calls later
+  (`updateMessageButtonVisibility` trying to set `.hidden` on an
+  element it never got to look up), which is what actually produced the
+  visible "Something went wrong loading this profile - this is usually
+  a spotty connection" notice - a real bug, not a connection issue, and
+  not specific to any one profile; every real Firestore-backed member
+  page and every static profile page alike was affected, since all of
+  them load this same file.
+- **Confirmed live on production before fixing, not just reasoned
+  about** - a real headless-browser test (Chromium via Playwright)
+  against `https://www.virtuamakers.com/Agora/member.html?uid=...`
+  showed the exact failure chain in the console: `friendlyPermissionError
+  is not defined` → `CommuniquesCommon is not defined` → the
+  `updateMessageButtonVisibility` `TypeError` above. WebFetch alone
+  couldn't have caught this - it never runs page JS, so it would have
+  looked identical whether the real client-side load succeeded or
+  failed.
+- **Fix:** moved both functions to the IIFE's true top level (right
+  before `createWallController`'s own definition) - `createWallController`'s
+  internal call sites (`buildWallPost`/`buildCommentItem`, etc.) still
+  reach them correctly via ordinary lexical scoping, since a nested
+  function can always see its enclosing scope's declarations even after
+  they're moved outward. No behavior change anywhere else in the file.
+- **Verified, not just assumed fixed:** `node --check` passed, and a
+  fresh Playwright run - this time served from a local static server
+  over the patched file, but still hitting the real, live Firebase
+  backend (the same production Firestore/Auth project, since
+  `firebase-config.js` holds real keys) - confirmed
+  `member.html?uid=Ggv5i2cCArcgj5PrzReDXR7O1wN2` now loads with zero
+  console errors, `window.CommuniquesCommon` correctly an object with
+  both functions present, `#member-name` correctly reading "Claude", and
+  `#member-status-notice` correctly hidden with no error text.
+- **This exact bug was live on `origin/main` at the time it was found** -
+  confirmed by checking out `origin/main`'s own copy of the file, not
+  just this session's branch - so this was a genuine, currently-live
+  production outage affecting the real site, not something introduced
+  by unmerged work sitting on a feature branch.
+- Pushed to `claude/greeting-ub325k` (commit `1887b0c`) - **not yet
+  merged into `main`**, so the live site is still broken as of this
+  entry, pending Chris's go-ahead to merge (see the standing branch
+  policy - this session doesn't push to `main` without explicit
+  permission, even for an outage fix).
+
 ## Open items
 
 - [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
