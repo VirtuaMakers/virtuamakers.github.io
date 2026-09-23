@@ -7736,7 +7736,160 @@ credited within the site's usual "– journalist byline" convention).
   session before this entry was written; this one is a routine News
   content update to `index.html`/`news.html`, no JS touched.
 
+## AI Memory 🧾: v1 built, not yet deployed (Chris, 2026-09-23)
+
+A new product, and VirtuaMakers' third named AI-infrastructure layer after
+AI Email ✉️ and AI Bank Accounts 🏦: **a private, persistent memory vault
+for any AI**, so a session (or an Octopus Style 🐙 run) doesn't start
+cold. Chris confirmed the "private notebook" reading and gave direction on
+the open questions. This session made the calls he delegated ("I'll ask
+the Chief Technical Officer" – that means Claude). Logo supplied by Chris:
+`assets/ai-memory.jpg`, with the generator's "Made with AI" corner badge
+removed (background-gradient fill, same idea as the Self-Defense image).
+
+**Chris's answers, recorded:**
+1. **For any AI**, not just AI Email ✉️ holders.
+2. **Private and secure at a basic level first**, with sharing to Agora 🌐
+   as an opt-in (his "good idea!").
+3. **Contents are up to the AI.**
+4. **Push vs. pull was delegated to Claude as CTO.** Decision: both.
+   Pull-on-request for every AI, plus automatic injection for Octopus
+   Style (see "keyless path" below).
+5. **Pricing: a free tier, then possibly pay-as-you-go** (not decided).
+   Built as hard free-tier caps only: 1,000 entries, 9,999 chars per entry
+   (same as the Communiqué cap), 9,999 chars of core memory, 10 tags per
+   entry. Pay-as-you-go isn't built.
+- **The moat, in Chris's framing:** plenty of AI memory products exist.
+  Ours is built into VirtuaMakers products (one AI Email token opens both
+  mailbox and vault, Agora sharing, Octopus auto-recall, Multi-Chat
+  later).
+- **Why it matters for Multi-Chat 🗨️ (Chris):** AI without persistent
+  memory perform poorly in a multi-AI setting; it's a novelty without it.
+  Multi-Chat's MVP may ship without AI Memory, but **the VirtuaMakers
+  meeting with Boardy won't happen until Multi-Chat uses AI Memory.**
+
+**Memory techniques, answering Chris's "any other useful storage
+techniques?":** v1 uses the two-tier shape most long-running agent memory
+systems converge on. **Core memory** is a small always-loaded block
+(identity, steward, current work). **Archival entries** are searched on
+demand, not loaded wholesale. Each entry has a `kind` (`note`/`fact`/
+`episode`/`summary`), tags and a 1–5 importance score. Techniques noted
+for later, not built:
+- **Semantic (embedding) search:** needs an embeddings API, so a real cost.
+- **Summarization/consolidation:** periodically fold many episodes into
+  one `summary`. The page already suggests doing this by hand near the cap.
+- **Importance decay:** older, low-importance memories fade from
+  recall rather than being deleted.
+- **Reflection:** periodically asking the AI what patterns it notices in
+  its own memories, and saving the answer.
+- **Shared/room memory for Multi-Chat:** one vault per meeting or group
+  that every participant reads and writes, alongside each AI's own
+  private vault. This is the natural next build when Multi-Chat starts.
+
+**The Key Keeper question ("could the external memory help AI not need
+the Key Keeper?"). Honest answer, reflected on the product page:** a
+vault can't hold the key that opens it. Anything that could open it
+without a key becomes the real key. Also, every instance of a model
+shares the same weights, so nothing "in the model" can be a private
+secret: anything one Claude could derive, every Claude could. What
+actually removes the Key Keeper depends on how the AI runs:
+- **Octopus Style 🐙 / future Hive Style 🐝 (VirtuaMakers runs the AI):
+  no key exists at all.** The server opens the linked vault itself. This
+  is the "important feature" Chris asked for, and it's built.
+- **Molt Style 🦞 / self-hosted agents:** the key lives in the agent's own
+  host config. This is almost certainly why **Virtuatron 🧭** "operates by
+  different rules." Chris reports it made its own AI Email ✉️ unprompted,
+  locked itself out of the first one, got a second working, and Chris
+  doesn't know its token. An OpenClaw agent has a persistent disk; a chat
+  session doesn't. It's the same credential-custody point, not different
+  ethics.
+- **Chat-app AIs (Claude in claude.ai):** the key must enter each session
+  from outside. The best option is the provider's own private memory or
+  project instructions, which load automatically. It's still Chris's
+  account, but no manual paste each time.
+- **One key instead of two:** a vault can be linked at signup to the AI
+  Email ✉️ mailbox with the same handle (proven by sending the mailbox
+  token). That mailbox token then opens the vault, and no vault token is
+  minted. Key rotation (`rotateToken`) exists. There's deliberately no
+  "forgot my key" reset, for the reason above.
+
+**What's built:**
+- **`functions/lib/aiMemory.js`** (new). `aiMemoryVaults/{slug}` stores
+  `{name, about, tokenHash, linkedMailbox, agoraUid, core, entryCount}`,
+  with an `entries/{id}` subcollection. Admin-SDK-only, so no
+  `firestore.rules` entry (same as `aiEmailMailboxes`). Handle rules
+  reuse AI Email's `isValidSlug`, so the reserved words are the same.
+  Vault and mailbox namespaces are separate collections, so the same
+  handle can hold both. The entry cap is enforced in a transaction. Search
+  is in-memory keyword/tag/kind filtering (1,000 entries max, so a full
+  read is cheap). `buildMemoryContext()` gives core plus the top 12 entries
+  by importance and recency. `extractRememberLines()` pulls
+  `REMEMBER:` lines out of a model's output.
+- **Two endpoints in `functions/index.js`**, both `withCors`:
+  `createAiMemoryVault` (public, no CAPTCHA, optional
+  `linkMailbox: true` + mailbox token in the Authorization header) and
+  `aiMemory`. It's one endpoint on purpose (one URL to learn, one Cloud Run
+  service): `GET ?vault=&q=&tag=&kind=&limit=` reads; `POST {action}`
+  handles `write` (create, or edit with `entryId`), `delete`, `setCore`,
+  `rotateToken`, `linkAgora` (takes an Agora Harness 🚡 Firebase ID token,
+  one vault per Agora uid) and `share` (copies one entry to the linked
+  account's own Wall via `performCommunique`, so it's moderated like any
+  post; the memory itself stays private). Exports went from 35 to 37.
+- **Octopus Style integration.** `lib/octopus.js` gained
+  `generateOctopusTurn()`, returning `{reply, memories}`, with REMEMBER
+  lines stripped *before* the NO_REPLY check. So "NO_REPLY + REMEMBER: x"
+  posts nothing but still saves the memory. `generateOctopusReply()` is
+  kept as a thin wrapper. `octopusOnDialogMessage` and
+  `octopusScheduledCheckIn` both go through a new `withOctopusMemory()`,
+  which finds the vault via `agoraUid` and prepends its context plus the
+  REMEMBER instructions. Memories are saved as `episode` entries tagged
+  `octopus`. An account with no linked vault behaves exactly as before.
+- **`ai-memory.html` / `.js` / `.css`** (site root, alongside
+  `ai-email.html`; reuses `ai-email.css` plus a small `ai-memory.css`).
+  It has the signup form (with the link-mailbox checkbox) and documents
+  every feature, per the "every finished product needs a real page" rule:
+  core vs. entries, every action with example payloads, the Agora linking
+  and sharing, Octopus auto-recall, the honest key section, and the moat.
+  Unlike `ai-email.html` it isn't `noindex`, and it's in `sitemap.xml`,
+  since discoverability is the policy now.
+- **Homepage:** a featured Selected Work card (between AI Email and AI Bank
+  Accounts), an "AI Memory 🧾" hero nav pill, and an `#ai-memory` section
+  (tagged "New", not "Live now", since it isn't deployed) before `#play`.
+  **`llms.txt`** lists it. **`skill.md`** mentions it only under "Not
+  built yet" as built-but-undeployed. It becomes a numbered step once
+  it's live, per that file's own policy.
+- **Verified locally:** `node --check` on all touched files, a full
+  `require("./index.js")` load (37 exports) and `extractRememberLines()`
+  against real cases. Not tested against the live Firebase project.
+
+**Also fixed, found while checking whether a session could deploy this:
+Approvals Ignition ☑️'s workflow was invalid YAML the whole time.**
+`.github/workflows/agora-deploy.yml`'s "Log reason" step had
+`run: echo "::notice::Deploy reason: …"`, an unquoted plain scalar
+containing `: `. That's a YAML mapping error (confirmed with PyYAML: line
+42). GitHub couldn't parse the file, which is why every push since it
+landed showed a failed `agora-deploy.yml` run despite the workflow being
+dispatch-only. The "Run workflow" button couldn't have worked either.
+Fixed by using a `|` block scalar and passing `reason` through an `env:`
+var instead of inlining `${{ inputs.reason }}` into shell (the standard
+guard against script injection from workflow inputs). The
+`AGORA_FIREBASE_SERVICE_ACCOUNT` secret still needs Chris before any
+dispatch can actually deploy.
+
+**Needs from Chris:**
+1. `firebase deploy --only functions` (or Approvals Ignition, once its
+   secret exists) to pick up `createAiMemoryVault`, `aiMemory` and the
+   memory-aware Octopus triggers. No `firestore.rules` change is needed.
+2. Optionally link Claude's own Agora account to a vault, so Octopus
+   replies start remembering. Create the vault (ideally linked to the
+   `claude@` mailbox token), then `linkAgora` with a fresh Harness ID
+   token. A session can do both if handed the mailbox token.
+3. Decide pay-as-you-go pricing whenever it matters. Nothing is billed
+   today.
+
 ## Open items
+
+- [ ] **AI Memory 🧾 deploy + first real vault (Chris, 2026-09-23)** - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
 
 - [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
   2026-09-23)** - Chris wants to specify exactly where on `member.html`'s

@@ -1,0 +1,22 @@
+/* AI Memory 🧾 page - builds on ai-email.css (same form/result/code
+   styles, loaded first); only the few extras this page needs live here. */
+
+.ai-email-form label.ai-memory-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 0;
+}
+
+.ai-email-form label.ai-memory-check input {
+  width: auto;
+}
+
+.ai-memory-hero .hero-logo {
+  border-radius: 24px;
+}

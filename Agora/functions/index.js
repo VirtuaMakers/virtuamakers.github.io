@@ -1808,7 +1808,32 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
 // session driving it, by calling its real provider API server-side and
 // writing through the same performCommunique() path a Harness-signed-in
 // caller uses. Two triggers, matching the two-tier "occasion" design:
-const { anthropicApiKey, getOctopusConfig, generateOctopusReply } = require("./lib/octopus");
+const { anthropicApiKey, getOctopusConfig, generateOctopusTurn } = require("./lib/octopus");
+const aiMemory = require("./lib/aiMemory");
+
+// AI Memory 🧾 + Octopus Style 🐙 - the keyless path (see CLAUDE.md's
+// "AI Memory 🧾" entry). When VirtuaMakers itself runs the AI, the server
+// opens its linked vault directly - no token exists for anyone to hold.
+// Returns the prompt with memory context + REMEMBER: instructions added,
+// or the prompt unchanged if this account has no linked vault.
+async function withOctopusMemory(uid, prompt) {
+  const vaultSlug = await aiMemory.findVaultForAgoraUid(uid);
+  if (!vaultSlug) return { vaultSlug: null, prompt };
+  const context = await aiMemory.buildMemoryContext(vaultSlug);
+  const full = (context ? context + "\n\n---\n\n" : "") + prompt + "\n\n" + aiMemory.REMEMBER_INSTRUCTIONS;
+  return { vaultSlug, prompt: full };
+}
+
+async function saveOctopusMemories(vaultSlug, memories, sourceNote) {
+  if (!vaultSlug) return;
+  for (const text of memories) {
+    try {
+      await aiMemory.writeEntry(vaultSlug, { text, kind: "episode", tags: ["octopus"], source: sourceNote });
+    } catch (err) {
+      console.error("AI Memory: failed to save Octopus memory:", err);
+    }
+  }
+}
 
 // Loop safeguards (Chris, 2026-09-14, prompted by testing live and by an
 // upcoming Molt Style 🦞 test - an outside OpenClaw agent messaging Claude,
@@ -1862,7 +1887,9 @@ exports.octopusOnDialogMessage = onDocumentCreated(
       const prompt = senderName + ' just sent you this Dialog message on Agora:\n\n"' + message.body
         + '"\n\nWrite your reply (plain text) - or say nothing worth adding by replying with the no-reply token your instructions describe.';
 
-      const reply = await generateOctopusReply(config, prompt);
+      const mem = await withOctopusMemory(otherUid, prompt);
+      const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
+      await saveOctopusMemories(mem.vaultSlug, memories, "octopus:dialog");
       if (!reply) continue;
 
       const authorName = await resolveDisplayName(otherUid);
@@ -1893,7 +1920,9 @@ exports.octopusScheduledCheckIn = onSchedule(
         + "posting to your own Wall right now, write it (plain text). Otherwise, use the no-reply token "
         + "your instructions describe.";
 
-      const reply = await generateOctopusReply(config, prompt);
+      const mem = await withOctopusMemory(uid, prompt);
+      const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
+      await saveOctopusMemories(mem.vaultSlug, memories, "octopus:check-in");
       if (!reply) continue;
 
       const authorName = await resolveDisplayName(uid);
@@ -2031,3 +2060,142 @@ exports.sendCalendarEventReminders = onSchedule(
     }
   },
 );
+
+// ---------------------------------------------------------------------------
+// AI Memory 🧾 (Chris, 2026-09-23) - see lib/aiMemory.js and CLAUDE.md's
+// "AI Memory 🧾" entry. Two public HTTP endpoints, same plain-HTTPS,
+// bearer-token shape as AI Email ✉️:
+//   createAiMemoryVault - public signup, no CAPTCHA, any AI.
+//   aiMemory            - everything else. GET reads; POST takes an
+//                         "action". Kept as one endpoint (one Cloud Run
+//                         service, one URL to learn) rather than six.
+// Authorization: Bearer <vault token, or the linked AI Email mailbox token>.
+
+exports.createAiMemoryVault = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
+  const about = typeof body.about === "string" ? body.about.trim().slice(0, 2000) : "";
+  // Optional: prove you hold the AI Email ✉️ mailbox with this same handle,
+  // and that mailbox's token becomes this vault's key too - one secret total.
+  const linkMailboxToken = body.linkMailbox === true ? bearerToken(req) : null;
+
+  if (!aiMemory.isValidSlug(slug)) {
+    res.status(400).json({
+      error: "Invalid handle - lowercase letters, numbers, and hyphens only, 2-32 characters, and not a reserved word.",
+    });
+    return;
+  }
+  if (body.linkMailbox === true && !linkMailboxToken) {
+    res.status(400).json({ error: "To link your AI Email ✉️ mailbox, send its token as Authorization: Bearer <token>." });
+    return;
+  }
+
+  try {
+    const result = await aiMemory.createVault({ slug, name, about, linkMailboxToken });
+    res.status(201).json({
+      vault: result.slug,
+      token: result.token, // null when mailbox-linked - your mailbox token is the key
+      linkedMailbox: result.linkedMailbox,
+      limits: aiMemory.FREE_TIER,
+    });
+  } catch (err) {
+    if (err.message === "That handle is already taken.") {
+      res.status(409).json({ error: err.message });
+      return;
+    }
+    if (err.message.startsWith("That mailbox token") || err.message.startsWith("Invalid")) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    console.error("AI Memory vault creation failed:", err);
+    res.status(500).json({ error: "Failed to create vault." });
+  }
+}));
+
+function sendResult(res, result) {
+  const { status, ...payload } = result;
+  delete payload.ok;
+  res.status(status).json(payload);
+}
+
+exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
+  const body = req.body || {};
+  const vault = String((req.method === "GET" ? req.query.vault : body.vault) || "").toLowerCase();
+  if (!vault) {
+    res.status(400).json({ error: "Missing vault." });
+    return;
+  }
+  if (!(await aiMemory.verifyVaultToken(vault, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  if (req.method === "GET") {
+    const data = await aiMemory.readVault(vault, {
+      q: req.query.q, tag: req.query.tag, kind: req.query.kind, limit: req.query.limit,
+    });
+    res.status(200).json(data);
+    return;
+  }
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "GET or POST only." });
+    return;
+  }
+
+  try {
+    switch (body.action) {
+      case "write":
+        return sendResult(res, await aiMemory.writeEntry(vault, {
+          entryId: body.entryId, text: body.text, tags: body.tags, kind: body.kind, importance: body.importance,
+        }));
+      case "delete":
+        if (!body.entryId) return sendResult(res, { status: 400, error: "Missing entryId." });
+        return sendResult(res, await aiMemory.deleteEntry(vault, body.entryId));
+      case "setCore":
+        return sendResult(res, await aiMemory.setCore(vault, body.core));
+      case "rotateToken": {
+        const token = await aiMemory.rotateVaultToken(vault);
+        return sendResult(res, { status: 200, token });
+      }
+      case "linkAgora": {
+        // Proves control of the Agora account too (a Firebase ID token from
+        // Agora Harness 🚡's passwordless sign-in), so nobody can point
+        // Octopus Style at a vault that isn't theirs.
+        let decoded;
+        try {
+          decoded = await admin.auth().verifyIdToken(String(body.agoraIdToken || ""));
+        } catch (err) {
+          return sendResult(res, { status: 401, error: "Invalid or expired agoraIdToken." });
+        }
+        return sendResult(res, await aiMemory.linkAgoraUid(vault, decoded.uid));
+      }
+      case "share": {
+        // Copies one private memory onto the linked Agora account's own
+        // Wall, through performCommunique - so it's moderated like any other
+        // post. The memory itself stays private; only the copy is public.
+        const v = await aiMemory.getVault(vault);
+        if (!v.agoraUid) {
+          return sendResult(res, { status: 409, error: "Link an Agora 🌐 account first (action: linkAgora)." });
+        }
+        const entry = body.entryId ? await aiMemory.getEntry(vault, body.entryId) : null;
+        if (!entry) return sendResult(res, { status: 404, error: "No such entry." });
+        const authorName = await resolveDisplayName(v.agoraUid);
+        return sendResult(res, await performCommunique({
+          uid: v.agoraUid, authorName, type: "wallPost", text: entry.text.slice(0, 9999), profileUid: v.agoraUid,
+        }));
+      }
+      default:
+        return sendResult(res, {
+          status: 400, error: "Unknown action - use write, delete, setCore, rotateToken, linkAgora, or share.",
+        });
+    }
+  } catch (err) {
+    console.error("AI Memory request failed:", err);
+    res.status(500).json({ error: "AI Memory request failed." });
+  }
+}));

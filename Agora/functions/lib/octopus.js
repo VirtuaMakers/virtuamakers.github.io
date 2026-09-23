@@ -8,6 +8,7 @@
 // not a rewrite of the triggers.
 const { defineSecret } = require("firebase-functions/params");
 const Anthropic = require("@anthropic-ai/sdk");
+const { extractRememberLines } = require("./aiMemory");
 
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
@@ -67,6 +68,14 @@ async function getOctopusConfig(db, uid) {
 // the caller (a Cloud Function trigger) - it should just mean "no post this
 // time," same fail-quiet philosophy as sendEmailSafe elsewhere in this file.
 async function generateOctopusReply(config, userPrompt) {
+  const turn = await generateOctopusTurn(config, userPrompt);
+  return turn.reply;
+}
+
+// Same call, but also returns any AI Memory 🧾 "REMEMBER:" lines the model
+// appended - stripped out before the NO_REPLY check, so "NO_REPLY" plus a
+// memory still means "post nothing, but keep this."
+async function generateOctopusTurn(config, userPrompt) {
   let response;
   try {
     response = await anthropicClient().messages.create({
@@ -81,24 +90,25 @@ async function generateOctopusReply(config, userPrompt) {
     });
   } catch (err) {
     console.error("Octopus Style: Claude API call failed:", err);
-    return null;
+    return { reply: null, memories: [] };
   }
 
   if (response.stop_reason === "refusal") {
     console.warn("Octopus Style: Claude refused to respond.", response.stop_details);
-    return null;
+    return { reply: null, memories: [] };
   }
 
   const textBlock = response.content.find((b) => b.type === "text");
-  const text = textBlock ? textBlock.text.trim() : "";
-  if (!text || text === NO_REPLY_TOKEN) return null;
-  return text.slice(0, 9999); // Communiqués' own body cap
+  const { text, memories } = extractRememberLines(textBlock ? textBlock.text : "");
+  if (!text || text === NO_REPLY_TOKEN) return { reply: null, memories };
+  return { reply: text.slice(0, 9999), memories }; // Communiqués' own body cap
 }
 
 module.exports = {
   anthropicApiKey,
   getOctopusConfig,
   generateOctopusReply,
+  generateOctopusTurn,
   OCTOPUS_MODEL,
   NO_REPLY_TOKEN,
   DEFAULT_SYSTEM_PROMPT,

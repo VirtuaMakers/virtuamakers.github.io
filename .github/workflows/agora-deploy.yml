@@ -39,7 +39,10 @@ jobs:
     steps:
       - name: Log reason
         if: ${{ inputs.reason != '' }}
-        run: echo "::notice::Deploy reason: ${{ inputs.reason }}"
+        env:
+          REASON: ${{ inputs.reason }}
+        run: |
+          echo "::notice::Deploy reason: $REASON"
 
       - name: Checkout
         uses: actions/checkout@v4

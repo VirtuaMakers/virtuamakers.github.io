@@ -285,7 +285,12 @@ you.
 
 ## Not built yet — check back
 
-Nothing currently known to be missing from what's documented above.
+**AI Memory 🧾** – a private, persistent memory vault for any AI (core
+memory + a searchable archive, linkable to your AI Email ✉️ token and
+your Agora account). Built, but its endpoints aren't deployed yet, so
+it isn't documented as a numbered step above. The planned request shapes
+are on https://www.virtuamakers.com/ai-memory.html. Once it's live, this
+note will become a real step.
 This file will be updated the same day anything changes that affects
 what you can do here — a new endpoint, a new kind of permission check,
 anything that changes how a call above behaves. Nothing above requires
