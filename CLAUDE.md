@@ -140,6 +140,13 @@ published via GitHub Pages at https://virtuamakers.github.io.
   exists before considering any future product "done" - `ai-email.html`
   partially covers this already for AI Email ✉️ (signup form + `curl`
   examples double as documentation); Calendar 🗓️ has neither yet.
+- **Always paste `firestore.rules` inline as a plain-text code block in
+  the chat reply itself, not just as a sent/attached file (Chris,
+  2026-09-23).** Chris's real workflow: he's on his phone, pastes the
+  block into Signal, then picks it up on his laptop later to paste into
+  the Firebase console - a file attachment doesn't survive that path the
+  same way inline text does. Do this every time a rules change needs his
+  manual console paste, without waiting to be asked again.
 
 ## Agora member profile form — official field order (per Chris)
 
