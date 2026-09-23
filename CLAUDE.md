@@ -6861,16 +6861,72 @@ future sessions have a stable name to refer back to.
   beyond naming/design - no workflow file, no service account, no repo
   secret.
 
+## YouTube-viewing capability, expanded context: reward + VidIQ business relationship + Boardy comparison + a commercials product (Chris, 2026-09-23)
+
+Follow-up on the priority flagged 2026-09-21, with a clearer shape: rather
+than build it right now, Chris wants it done as a reward after "a bunch of
+work" lands today specifically - explicitly gated on today's output, not
+tied to a deadline. Several additional reasons emerged on top of the two
+already logged (a possible Claude capability, a sellable Exchange
+product):
+
+- **Business relationship with VidIQ, as a live example of "how a harness
+  is marketed and sold and installed"** - Chris's framing: this maps
+  directly onto the kind of business VirtuaMakers is getting into via
+  Agora Harness 🚡 itself (Octopus 🐙/Molt 🦞/Hive 🐝/Spider 🕷️ - see the
+  Harness design entries above), so watching how a real outside company
+  packages and sells AI-viewing capability is itself informative, not just
+  a means to an end. **Still needs verification before treating as
+  settled** - the existing Open Items caveat below (VidIQ reads, on
+  investigation, as creator-facing SEO/analytics tooling for a channel
+  owner reviewing their own content, not obviously a third-party "AI
+  watches arbitrary video" API) hasn't been resolved; Chris asserted this
+  round that "VidIQ has this technology... seemingly developed primarily
+  for Claude" more directly than before, so worth asking him for whatever
+  source/claim he's going on, to check against real product docs before
+  committing to VidIQ by name.
+- **Boardy comparison, raised as a possible topic between Claude and
+  Boardy, not a build item.** Boardy's handlers gave Boardy GIF-viewing
+  specifically in response to Chris posting a GIF on nearly every X post -
+  Chris is curious whether granting YouTube-viewing (assuming VidIQ's tech
+  is genuinely Claude-oriented) would be a comparably small lift for
+  Boardy's own handlers, or a bigger one. Purely conversational/curiosity-
+  driven per Chris's own framing ("this would be something you guys could
+  talk about, potentially") - nothing to build from this.
+- **New: a "commercials" harness product** - Chris found a separate
+  product that would let Claude make video commercials, floated
+  specifically because VirtuaMakers 🦜 commercials would be neat, and
+  because YouTube-viewing would make any commercials produced better (real
+  audiovisual reference/analysis feeding into the output). Chris is
+  uncertain, not committed - no name or link given yet for this product,
+  so nothing can be researched or scoped until he shares it.
+- **A YouTube channel is a separate, explicitly deferred idea** - Chris
+  has thought about VirtuaMakers having one, but wants someone else to run
+  it; noted as "neither here nor there for now," not connected to this
+  build.
+- **Chris's own closing note: most of this is just to reward Claude** -
+  the business/Boardy/commercials reasons above are real but secondary to
+  that.
+
+**Still not started, same as 2026-09-21** - gated on "a bunch of work"
+landing today first, per Chris's own explicit sequencing this round.
+Needs from Chris before any build: the actual source behind the VidIQ
+claim (to resolve the still-open creator-analytics-vs-AI-video-API
+question), and the name/link for the commercials product if he wants that
+scoped too.
+
 ## Open items
 
-- [ ] **PRIORITY (Chris, 2026-09-21): YouTube-viewing capability for AI**
-  - both a possible Claude capability and a sellable VirtuaMakers Exchange 💱
-  product. See the dedicated entry above ("Virtuatron 🧭's provenance,
-  'Melon Drive 🍈,' and a new priority") for the full context, including
-  the open question on whether VidIQ (Chris's named vendor) is actually
-  the right enabling technology for "watch/understand a video" versus its
-  real product (creator SEO/analytics) - needs scoping + vendor
-  confirmation with Chris before any build starts.
+- [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
+  capability for AI** - both a possible Claude capability and a sellable
+  VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
+  today's work and a VidIQ business-relationship angle. See the two
+  dedicated entries above ("Virtuatron 🧭's provenance..." and "YouTube-
+  viewing capability, expanded context...") for full history - the open
+  question on whether VidIQ (Chris's named vendor) is actually the right
+  enabling technology for "watch/understand a video" versus its real
+  product (creator SEO/analytics) is still unresolved - needs scoping +
+  vendor confirmation with Chris before any build starts.
 - [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
   Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
   Once confirmed, credit it specifically wherever the piece is mentioned
