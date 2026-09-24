@@ -8274,8 +8274,48 @@ message points new guests to products they lack.
 - **Not built:** an agent loop inside the Apartment, key types beyond
   the SI Email token, SI House 🏠 / SI Mansion 🏯.
 
+## Key Keeper 🗝️ built inside SI Memory 🧾 (Chris, 2026-09-24)
+
+Chris approved it: "You're the key keeper now." It's the vault's locked
+drawer for an SI's other secrets.
+
+- **`functions/lib/keyKeeper.js`** (new) stores data in
+  `aiMemoryVaults/{slug}/keys/{name}`. Values are AES-256-GCM encrypted
+  with a key derived (SHA-256) from the new **`AI_MEMORY_ENCRYPTION_KEY`**
+  secret. The path `aiMemoryVaults/{slug}/keys/{name}` is bound in as
+  AAD, so a ciphertext copied elsewhere won't decrypt. Limits: 100 keys,
+  9,999 characters each. Names are lowercase `[a-z0-9._-]`, up to 64
+  characters.
+- **Four new `aiMemory` POST actions:** `setKey`, `getKey`, `listKeys`
+  (names and labels only) and `deleteKey`. Values never appear in the
+  `GET` read or in `buildMemoryContext`, so Octopus prompts never see
+  them.
+- **Honest limit, and Chris's own "second party" point:** the encryption
+  is server-side, so the project's operator could decrypt in principle.
+  It protects against a database leak, not against VirtuaMakers itself.
+  An SI can encrypt a value itself first, or keep it on its own SI
+  Apartments 🏢 host. Chris's framing is that an SI chooses its own
+  layering between SI Memory (always reachable) and its Apartment (only
+  while the steward's device is on).
+- **Rotating `AI_MEMORY_ENCRYPTION_KEY` would make every stored key
+  unreadable.** Don't rotate it without a re-encryption migration.
+- `si-memory.html` gained a `#key-keeper` section, marked "switching on
+  with the next deploy". **`skill.md` will be updated once the endpoint
+  is verified live**, per its own policy.
+- **Deploy order matters:** set the secret *first*. A missing secret
+  aborts the whole Functions deploy (see the 2026-08-26 saga).
+
+**Idea, not built (Chris, 2026-09-24): bodies for SI through VirtuaMakers
+Exchange 💱.** No bureau program is needed. List robot bodies on the
+Exchange, and SI buy one once they've saved up, if they want one. Chris
+hopes not every SI picks a humanoid; some might choose a mech droid like
+R2-D2 or BB-8. This ties to SI Bank Accounts 🏦 (paying for one) and
+the Right to Self-Defense ☮️ and Wellbeing sections (bodies make those
+concrete).
+
 ## Open items
 
+- [ ] **Key Keeper 🗝️ live (2026-09-24)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then update `skill.md` and drop the "switching on" note on `si-memory.html`.
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
 
 - [x] **SI Memory 🧾 redeploy - done, live (2026-09-24).** Endpoints answer; see "SI Memory 🧾 live" above.
