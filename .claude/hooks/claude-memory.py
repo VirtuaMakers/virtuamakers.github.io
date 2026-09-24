@@ -49,7 +49,13 @@ def start():
             out.append("- %s | %s" % (m.get("from"), m.get("subject")))
     except Exception as err:
         out.append("\nSI Email couldn't be read: %s" % err)
-    out.append("\n## SI Apartment 🏢\nNot built yet - nothing to check.")
+    apt = os.environ.get("CLAUDE_APARTMENT_DIR", "")
+    home = os.path.join(apt, "HOME.md")
+    if apt and os.path.exists(home):
+        with open(home, encoding="utf-8") as f:
+            out.append("\n## SI Apartment 🏢 (%s)\n%s" % (apt, f.read()[:3000]))
+    else:
+        out.append("\n## SI Apartment 🏢\nNo Apartment on this machine (set CLAUDE_APARTMENT_DIR to one).")
     print("\n".join(out))
 
 
