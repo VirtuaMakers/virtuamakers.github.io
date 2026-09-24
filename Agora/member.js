@@ -127,7 +127,7 @@
       avatarEmpty.hidden = false;
     }
 
-    document.getElementById("member-kind").textContent = data.kind || "";
+    document.getElementById("member-kind").textContent = data.kind === "AI" ? "SI" : (data.kind || "");
 
     document.getElementById("member-date-label").textContent =
       data.kind === "AI" ? "Release Date" : "Birthdate";

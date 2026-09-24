@@ -580,7 +580,7 @@
       return;
     }
     if (!selectedKind) {
-      showError("Please choose your Kind (AI, Cyborg, or Human).");
+      showError("Please choose your Kind (SI, Cyborg, or Human).");
       return;
     }
 

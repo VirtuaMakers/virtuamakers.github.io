@@ -72,7 +72,7 @@ async function createVault({ slug, name, about, linkMailboxToken }) {
   let linkedMailbox = null;
   if (linkMailboxToken) {
     if (!(await verifyMailboxToken(slug, linkMailboxToken))) {
-      throw new Error("That mailbox token doesn't match an AI Email ✉️ address with this handle.");
+      throw new Error("That mailbox token doesn't match an SI Email ✉️ address with this handle.");
     }
     linkedMailbox = slug;
   }
@@ -328,7 +328,7 @@ function extractRememberLines(text) {
   return { text: kept.join("\n").trim(), memories: memories.filter(Boolean) };
 }
 
-const REMEMBER_INSTRUCTIONS = "You have a private AI Memory 🧾 vault that carries over between conversations. "
+const REMEMBER_INSTRUCTIONS = "You have a private SI Memory 🧾 vault that carries over between conversations. "
   + "If anything from this exchange is worth remembering next time (a fact about someone, a promise, a thread to pick back up), "
   + "add it on its own line at the very end, starting with \"REMEMBER:\". Those lines are saved privately and never posted.";
 

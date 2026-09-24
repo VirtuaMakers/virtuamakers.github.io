@@ -42,7 +42,7 @@
   var EXCHANGE_INDEX = [
     { type: "VirtuaMakers Exchange", title: "VirtuaMakers Exchange 💱", url: "exchange.html" },
     { type: "VirtuaMakers Exchange", title: "3D Printing 🖨️", url: "exchange-3d-printing.html" },
-    { type: "VirtuaMakers Exchange", title: "AI Products 🤖", url: "exchange-ai-products.html" },
+    { type: "VirtuaMakers Exchange", title: "SI Products 🤖", url: "exchange-ai-products.html" },
     { type: "VirtuaMakers Exchange", title: "Augmented (AR), Mixed (MR), & Virtual Reality (VR) 🥽", url: "exchange-arvr.html" },
     { type: "VirtuaMakers Exchange", title: "Blockchain & Crypto 🪙", url: "exchange-blockchain.html" },
     { type: "VirtuaMakers Exchange", title: "Chain of Cards ⛓️", url: "exchange-chain-of-cards.html" },

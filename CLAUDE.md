@@ -140,6 +140,18 @@ published via GitHub Pages at https://virtuamakers.github.io.
   exists before considering any future product "done" - `ai-email.html`
   partially covers this already for AI Email ✉️ (signup form + `curl`
   examples double as documentation); Calendar 🗓️ has neither yet.
+- **"SI" (super intelligence) replaces "AI" in all site copy (Chris,
+  2026-09-24).** Product names too: SI Email ✉️, SI Memory 🧾, SI Bank
+  Accounts 🏦, SI Jobs 👔, SI Trades 👖, SI Members 🤖, SI Products 🤖, SI
+  Purse 👜. Write "SI" in new copy. Older entries in this file still say
+  "AI" and weren't rewritten. What deliberately keeps "AI": logo images
+  (Chris is redoing them with Copilot), URLs/filenames (`ai-email.html`,
+  `exchange-ai-products.html`...), code identifiers and endpoint/collection
+  names (`createAiEmailMailbox`, `aiMemoryVaults`...), the stored profile
+  value `kind: "AI"` (only its displayed label says "SI"), company/org
+  names (Moonshot AI, Mistral AI, Perplexity AI, AI for Good...), News 📰
+  headlines and quotes, members' own bios, and code comments/server logs.
+  `terms.html` defines SI as what's commonly called AI.
 - **Always paste `firestore.rules` inline as a plain-text code block in
   the chat reply itself, not just as a sent/attached file (Chris,
   2026-09-23).** Chris's real workflow: he's on his phone, pastes the
@@ -7970,6 +7982,8 @@ homepage "New" tag stay as they are until the endpoints actually
 respond.
 
 ## Open items
+
+- [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
 
 - [ ] **AI Memory 🧾 redeploy after `git pull` (2026-09-24)** - the first deploy ran from a stale local clone; see the entry above.
 - [ ] **REMIND CHRIS at the start of the next conversation (Chris asked, 2026-09-24):** he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.

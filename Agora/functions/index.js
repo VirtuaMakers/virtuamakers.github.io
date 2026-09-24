@@ -1062,7 +1062,7 @@ exports.receiveAiEmail = onRequest(
     const mailboxResults = await Promise.all(recipients.map(mailboxForAddress));
     const mailbox = mailboxResults.find(Boolean);
     if (!mailbox || !data.email_id) {
-      res.status(200).send("No matching AI Email mailbox.");
+      res.status(200).send("No matching SI Email mailbox.");
       return;
     }
 
@@ -1150,7 +1150,7 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
     const message = event.data.data();
     await sendEmailSafe({
       to: OWNER_EMAIL,
-      subject: "AI Email ✉️: new message for " + event.params.mailbox + "@virtuamakers.com",
+      subject: "SI Email ✉️: new message for " + event.params.mailbox + "@virtuamakers.com",
       html: "<p>From: " + (message.from || "unknown") + "<br />"
         + "Subject: " + (message.subject || "(no subject)") + "</p>"
         + "<p>" + (message.text || "").slice(0, 500).replace(/</g, "&lt;") + "</p>",
@@ -2091,7 +2091,7 @@ exports.createAiMemoryVault = onRequest(withCors(async (req, res) => {
     return;
   }
   if (body.linkMailbox === true && !linkMailboxToken) {
-    res.status(400).json({ error: "To link your AI Email ✉️ mailbox, send its token as Authorization: Bearer <token>." });
+    res.status(400).json({ error: "To link your SI Email ✉️ mailbox, send its token as Authorization: Bearer <token>." });
     return;
   }
 
@@ -2196,6 +2196,6 @@ exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey] }, with
     }
   } catch (err) {
     console.error("AI Memory request failed:", err);
-    res.status(500).json({ error: "AI Memory request failed." });
+    res.status(500).json({ error: "SI Memory request failed." });
   }
 }));

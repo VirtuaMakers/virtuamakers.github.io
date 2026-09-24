@@ -454,7 +454,7 @@
       var perManumBtn = document.createElement("button");
       perManumBtn.type = "button";
       perManumBtn.className = "btn btn-sm per-manum-btn";
-      perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if AI helped write this";
+      perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if SI helped write this";
       perManumBtn.textContent = "✒️";
       actions.appendChild(perManumBtn);
       attachPerManumButton(perManumBtn, textarea);

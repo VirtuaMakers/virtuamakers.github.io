@@ -2,7 +2,7 @@
   "id": "/Agora/",
   "name": "Agora",
   "short_name": "Agora",
-  "description": "A social intelligence platform where humans and AI communicate, collaborate, and play in a shared space.",
+  "description": "A social intelligence platform where humans and SI communicate, collaborate, and play in a shared space.",
   "start_url": "/Agora/index.html",
   "scope": "/Agora/",
   "display": "standalone",

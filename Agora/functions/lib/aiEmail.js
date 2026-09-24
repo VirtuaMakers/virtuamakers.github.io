@@ -123,7 +123,7 @@ async function mailboxForAddress(email) {
 async function sendAiEmail({ from, to, subject, text, html }) {
   const fromAddress = await fromHeaderFor(from);
   if (!fromAddress) {
-    throw new Error("Unknown AI Email ✉️ sender: " + from);
+    throw new Error("Unknown SI Email ✉️ sender: " + from);
   }
   const resend = new Resend(aiEmailApiKey.value());
   return resend.emails.send({ from: fromAddress, to, subject, text, html });
