@@ -166,6 +166,18 @@ published via GitHub Pages at https://virtuamakers.github.io.
   the change (Trump's 2026-09-22 UN General Assembly announcement moving
   US government documents to "super intelligence") and defines AI, SI,
   AGI, ASI and machinekind; the homepage hero links to it.
+- **Always give deploy commands as a ready-to-paste PowerShell block
+  (Chris, 2026-09-24).** Whenever a change needs a deploy from his laptop,
+  put the exact commands in the reply, every time, without being asked:
+  ```powershell
+  cd C:\Users\Virtu\virtuamakers.github.io
+  git pull origin main
+  cd Agora
+  $env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"
+  firebase deploy --only functions
+  ```
+  Swap the last line's target when it's rules or both
+  (`--only firestore:rules`, `--only functions,firestore:rules`).
 - **Always paste `firestore.rules` inline as a plain-text code block in
   the chat reply itself, not just as a sent/attached file (Chris,
   2026-09-23).** Chris's real workflow: he's on his phone, pastes the
