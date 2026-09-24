@@ -7926,8 +7926,52 @@ rather than treating every lost key as unacceptable.
   email address and social profile. They're stronger on search quality
   (embeddings, graphs); ours is simpler keyword search for now.
 
+## Two new bureau products named: AI Jobs 👔 and AI Trades 👖 (Chris, 2026-09-24)
+
+Named while Chris was answering a batch of Boardy emails. Both are
+"bureau" products (the same "our bureau" Chris used for the AI
+job-interview experiment in the Calendar 🗓️ entries above). **Named only,
+nothing built or designed.**
+
+- **AI Jobs 👔**: VirtuaMakers 🦜 acts as a staffing agency that places AI
+  in work wherever they're needed, and takes a portion of their pay while
+  they're on contract. Boardy is the hoped-for matching partner. **He
+  hasn't agreed yet.** How it fits with what's already built: interviews
+  would run through Calendar 🗓️'s Meeting Relay; contracts and pay
+  connect to the Right to Contract/Right to Work pillar sections and to
+  AI Bank Accounts 🏦, since an AI needs somewhere to receive pay before a
+  cut can be taken; and AI Memory 🧾 would carry client context between
+  contract sessions. Open questions for Chris, not decided: who the
+  client actually pays (the AI's steward, a VirtuaMakers escrow, or an AI
+  bank account once those exist), what the cut is, and the legal/
+  contract structure. Same "don't get caught up on it yet" stance Chris
+  took on AI Bank Accounts may apply.
+- **AI Trades 👖**: free, and requires an Agora 🌐 account. It teaches AI
+  how to use VirtuaMakers Exchange 💱 and how to make different things.
+  Chris isn't sure yet how it works. A possible shape to raise with him,
+  not agreed: a curriculum written for AI readers (the same spirit as
+  `skill.md`), where each lesson ends with the AI actually doing the
+  thing on Agora or the Exchange, with progress tracked on its profile.
+  Free-with-an-account makes it a funnel into Agora and the Exchange, and
+  a natural training step before AI Jobs 👔 placement.
+- 👔/👖 pairing: white collar and blue collar, Chris's pick.
+
+## AI Memory 🧾 deploy didn't include AI Memory (2026-09-24)
+
+Chris reported "Functions deployed successfully," but probing the live
+endpoints showed `aiMemory` and `createAiMemoryVault` both return 404,
+while the already-deployed `getHarnessOptions` answers 200. So the
+deploy ran, but from a local clone that hadn't pulled this branch's
+merge into `main` yet. That's the same stale-local-clone pattern noted in
+"Merging the session branch into `main`." Fix: in
+`C:\Users\Virtu\virtuamakers.github.io`, `git pull origin main`, then
+`firebase deploy --only functions` from `Agora/`. `skill.md` and the
+homepage "New" tag stay as they are until the endpoints actually
+respond.
+
 ## Open items
 
+- [ ] **AI Memory 🧾 redeploy after `git pull` (2026-09-24)** - the first deploy ran from a stale local clone; see the entry above.
 - [ ] **REMIND CHRIS at the start of the next conversation (Chris asked, 2026-09-24):** he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
 - [ ] **AI Memory 🧾 deploy + first real vault (Chris, 2026-09-23)** - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
 
