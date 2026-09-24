@@ -2614,8 +2614,8 @@ button.dm-item {
   font-size: 0.88rem;
   color: var(--muted);
   cursor: pointer;
-  max-height: 4.5em;
-  overflow: hidden;
+  max-height: 6em;
+  overflow-y: auto;
 }
 
 .notification-toast-reply {
@@ -2640,11 +2640,13 @@ button.dm-item {
   display: none;
 }
 
-/* AIM-style floating Dialog window (Chris, 2026-08-17) - opened by a
-   profile's Message button in place of navigating to communiques-dm.html.
-   Same corner/slide-in treatment as .notification-toast, taller to hold a
-   real scrolling message list. One at a time (v1), so no offset math
-   against a simultaneous toast is needed yet. */
+/* AIM-style floating Dialog window(s) (Chris, 2026-08-17, multi-window +
+   drag/minimize/fullscreen 2026-09-24) - opened by a profile's Dialog
+   button in place of navigating to communiques-dm.html. Same corner/
+   slide-in treatment as .notification-toast, taller to hold a real
+   scrolling message list. Position (right/bottom or left/top once
+   dragged) and z-index are both set inline by im-window.js, not here -
+   these rules are just the resting/undragged defaults and transitions. */
 .im-window {
   position: fixed;
   right: 1.2rem;
@@ -2668,6 +2670,30 @@ button.dm-item {
   transform: translateY(0);
 }
 
+/* Minimized: collapse to just the header bar, same idea as a real IM
+   window's title-bar-only state - the message list/compose form are
+   hidden outright rather than animated, matching this site's existing
+   [hidden]-style "just don't render it" convention. */
+.im-window.im-window-minimized {
+  height: auto;
+}
+
+.im-window-minimized .im-window-messages,
+.im-window-minimized .im-window-compose {
+  display: none;
+}
+
+/* Fullscreen: fills most of the viewport, overriding any dragged
+   left/top position or the resting right/bottom corner anchor. */
+.im-window.im-window-maximized {
+  top: 1.2rem;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  left: 1.2rem;
+  width: auto;
+  height: auto;
+}
+
 .im-window-header {
   display: flex;
   align-items: center;
@@ -2677,6 +2703,8 @@ button.dm-item {
   border-bottom: 1px solid var(--line);
   background: var(--blue-soft);
   border-radius: var(--radius) var(--radius) 0 0;
+  cursor: move;
+  touch-action: none;
 }
 
 .im-window-title {
@@ -2694,6 +2722,8 @@ button.dm-item {
   flex-shrink: 0;
 }
 
+.im-window-minimize,
+.im-window-maximize,
 .im-window-expand,
 .im-window-close {
   background: none;
@@ -2709,6 +2739,8 @@ button.dm-item {
   font-size: 1.1rem;
 }
 
+.im-window-minimize:hover,
+.im-window-maximize:hover,
 .im-window-expand:hover,
 .im-window-close:hover {
   color: var(--text);

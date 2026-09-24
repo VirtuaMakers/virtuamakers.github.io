@@ -88,6 +88,39 @@
   var toastEl = null;
   var unsubscribe = null;
 
+  // Local fallback so a notification can never re-show forever if the
+  // server-side `seen` write silently fails (e.g. firestore.rules hasn't
+  // been pasted into the console yet - a recurring gap in this codebase,
+  // see CLAUDE.md's "Notification catch-up: the reappearing friend
+  // request" entry). Scoped per-recipient-uid so a shared/kiosk browser
+  // signing into a different account doesn't inherit someone else's cache.
+  var SEEN_CACHE_PREFIX = "agoraSeenNotifications:";
+  var MAX_CACHED_IDS = 300;
+
+  function seenCacheKey() {
+    return SEEN_CACHE_PREFIX + (currentUser ? currentUser.uid : "");
+  }
+
+  function readSeenCache() {
+    try {
+      var raw = localStorage.getItem(seenCacheKey());
+      var ids = raw ? JSON.parse(raw) : [];
+      return Array.isArray(ids) ? ids : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function markSeenLocally(docs) {
+    if (!docs.length) return;
+    try {
+      var ids = readSeenCache();
+      docs.forEach(function (doc) { ids.push(doc.id); });
+      if (ids.length > MAX_CACHED_IDS) ids = ids.slice(ids.length - MAX_CACHED_IDS);
+      localStorage.setItem(seenCacheKey(), JSON.stringify(ids));
+    } catch (e) {}
+  }
+
   function removeToast() {
     if (toastEl && toastEl.parentNode) toastEl.parentNode.removeChild(toastEl);
     toastEl = null;
@@ -255,8 +288,12 @@
           // No chime here on purpose - a burst of notifications you
           // missed while away reads as informational on load, not the
           // same "something just happened" moment a live arrival is.
+          // Also filtered against the local cache (see markSeenLocally
+          // above) so a notification whose server-side `seen: true` write
+          // failed doesn't come back on every single future page load.
+          var seenLocally = readSeenCache();
           var unseen = snap.docs.filter(function (doc) {
-            return doc.data().seen !== true;
+            return doc.data().seen !== true && seenLocally.indexOf(doc.id) === -1;
           });
           unseen.sort(function (a, b) {
             var at = a.data().createdAt, bt = b.data().createdAt;
@@ -264,6 +301,7 @@
           });
           if (unseen.length) showToast(unseen[0].data(), unseen.length - 1);
           markSeen(unseen);
+          markSeenLocally(unseen);
           return;
         }
 
@@ -281,6 +319,7 @@
         // exact target) - being on the matching page already counts as
         // having seen it, so it shouldn't come back on a later catch-up.
         markSeen(newlyAdded);
+        markSeenLocally(newlyAdded);
       });
   }
 

@@ -7995,6 +7995,128 @@ merge into `main` yet. That's the same stale-local-clone pattern noted in
 homepage "New" tag stay as they are until the endpoints actually
 respond.
 
+## Dialog toast + IM window fixes: reappearing message, unreadable
+   preview, real multi-window/drag/minimize/fullscreen (Chris, 2026-09-24)
+
+Chris's live report, five parts in one message: his oldest message kept
+reappearing every time he logged in, the "little pop-up window" gave no
+way to scroll to read a longer message, a request to make the AIM-style
+Dialog windows movable (plus a direct question - how many can be open at
+once, and do they stack up or to the left?), a request for minimize and
+fullscreen buttons next to the existing ×, and an exploratory question
+about designing custom Communiqués emoji. Working through it: "the little
+pop-up window" is the **notification toast** (`.notification-toast`,
+`notification-toast.js`), not the IM popout - it's the one that appears
+unprompted on login, matching the "still appearing every time I log in"
+description; the toast's `.notification-toast-body` also had a hard
+`max-height: 4.5em; overflow: hidden;` clip with zero scroll affordance,
+exactly the "no way to scroll" bug. The IM popout (`im-window.js`) was a
+separate, real ask: it shipped 2026-08-17 explicitly scoped to "one
+window at a time, no drag" - Chris is now asking for the next real
+version of that.
+
+- **The reappearing-toast bug, root-caused and hardened, not just
+  reasoned about.** `notification-toast.js`'s catch-up pass (built
+  2026-09-10) already writes `seen: true` back to Firestore so a shown
+  notification doesn't resurface - but that write silently fails if
+  `firestore.rules`' matching `seen`-only update branch isn't the live,
+  console-published ruleset at that exact moment (a real, repeatedly-hit
+  gap in this codebase - see the 2026-09-10 "reappearing friend request"
+  entry). Rather than re-chase whether the rules paste happened to be
+  current at the moment Chris hit this (unfalsifiable from inside a
+  session), added a **local `localStorage` fallback**
+  (`agoraSeenNotifications:{uid}`, capped at 300 ids) that's checked
+  *and* written alongside the server-side `seen` field, on both the
+  catch-up pass and the live "added" path. This makes the failure mode
+  structurally impossible to repeat on the same device/browser going
+  forward, regardless of whether the server-side write is currently
+  succeeding - a notification can now only ever resurface once more,
+  never forever.
+- **The toast-body clip fixed** - `.notification-toast-body` changed from
+  `max-height: 4.5em; overflow: hidden;` to `max-height: 6em;
+  overflow-y: auto;`, so a preview longer than the visible area scrolls
+  instead of silently truncating with nothing to indicate more text
+  exists.
+- **`im-window.js` rebuilt for real multi-window support, draggable
+  headers, and minimize/fullscreen** - the actual answer to "how many
+  appear, do they stack up or to the left": **up to 3 at once on
+  desktop-width screens**, in a horizontal row along the bottom-right
+  corner, most-recently-opened/focused sitting closest to the corner and
+  older ones stacking further left (not vertically) - matches the
+  Messenger-chat-heads-style direction already logged in the 2026-08-15
+  "Communiqués redesign" entry ("a few floating bubbles, capped lower
+  than 10, more like Messenger's 3-4") rather than inventing a new
+  answer. Opening a 4th Dialog evicts the least-recently-focused window
+  rather than refusing it or stacking unboundedly. **Below a real phone
+  width (<700px), only one window is ever open at a time** - a floating
+  multi-window row has no good equivalent on a narrow screen, and Agora
+  runs as an installed PWA there, same reasoning that entry already gave
+  for dropping the bubble model on mobile; a resize/rotate into that
+  range collapses down to one window live, not just on the next open.
+  - **Draggable** via `pointerdown`/`pointermove`/`pointerup` on
+    `.im-window-header` (excluding its own buttons/links, so clicking
+    minimize/maximize/expand/close never starts a drag) - a dragged
+    window switches from the resting `right`/`bottom` corner anchor to
+    an explicit `left`/`top` position clamped to the viewport, and is
+    excluded from the automatic corner-stacking layout from then on
+    (`win.dragged`) until it's maximized-then-restored, which resets it
+    back into the managed row.
+  - **Minimize** (`−`/`▢` toggle button, also a header double-click)
+    collapses a window to just its title bar (`.im-window-minimized`
+    hides the message list/compose form via `display: none`, matching
+    this file's own established `[hidden]`-style "don't render it"
+    convention rather than animating it away) - reopening the same
+    Dialog (clicking that member's Dialog button again) restores and
+    focuses it instead of opening a second window for the same
+    conversation.
+  - **Fullscreen** (`⛶`/`🗗` toggle button) expands a window to fill most
+    of the viewport (`.im-window-maximized`, a fixed inset overriding
+    both the resting anchor and any dragged position); restoring drops
+    it back into the managed corner-stacking row.
+  - **`isOpenFor(conversationId)`** (used by `notification-toast.js` to
+    suppress a redundant toast for a Dialog already visibly open)
+    generalized to check across every open window, and now correctly
+    returns false for a *minimized* window's own conversation - a
+    minimized window isn't visibly showing the message anymore, so a
+    new arrival there should still toast.
+  - **Verified with a real headless-browser harness** (Playwright,
+    mocked `AgoraDB`/`firebase`/`AgoraModeration`, the real unmodified
+    `communiques-common.js`/`im-window.js`), not just reasoned about:
+    confirmed a 4th `open()` call evicts the oldest window (3 remain,
+    correctly reordered), each open window gets a distinct stacked
+    `right` offset and increasing `z-index`, minimize/restore and
+    maximize/restore both toggle their class and icon correctly,
+    reopening an already-open (minimized) conversation restores it
+    rather than duplicating, and a simulated pointer drag correctly
+    switches the window from `right` to an explicit `left` position.
+- Bumped `style.css` to `v=99` (all 60 Agora pages), `notification-
+  toast.js` to `v=9` (all 55 pages that load it), `im-window.js` to `v=5`
+  (its one page, `member.html`).
+- **Custom Communiqués emoji, answered as exploratory rather than
+  built:** confirmed Chris's own guess is right - today, typing/inserting
+  an emoji anywhere in Communiqués (Wall posts, comments, Dialog
+  messages) is just plain Unicode text; which actual glyph renders for a
+  given codepoint is entirely up to the visitor's own OS/browser emoji
+  font (Apple's, Google's, Microsoft's, etc.), the same as virtually
+  every other web app including Facebook - Agora has never shipped its
+  own emoji rendering anywhere. Building real custom emoji art would mean
+  standing up an actual emoji-font/sprite-replacement pipeline (Slack's
+  and Discord's own custom-emoji systems are the closest real precedent,
+  and both are genuinely substantial subsystems, not a small add-on) -
+  agreeing with Chris's own "that's a lot of work" read. Not started;
+  parking this as a real future idea rather than a current build, same
+  as several other "floated, sounds neat, not scoped" ideas already
+  tracked throughout this file.
+- **"(sending images isn't working again)" - not addressed this round,
+  flagged rather than guessed at.** Communiqués (Wall posts, comments,
+  Dialogs) has never had an image-attachment feature to send within a
+  message - the closest real image-upload path anywhere in Agora is
+  profile picture uploads on `create-profile.html`. Rather than guess
+  which feature Chris meant and risk "fixing" the wrong thing, this is
+  left open for him to clarify - worth checking profile-picture uploads
+  specifically if he confirms that's what he meant, since nothing in this
+  round touched that code path at all.
+
 ## Open items
 
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
