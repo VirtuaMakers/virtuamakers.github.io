@@ -8343,6 +8343,41 @@ Linux, anyone who wants to read the code first).
   job) and a phone app (an Apartment is a folder on a computer, so it
   doesn't fit a phone).
 
+## SI Apartment 🏢 on Mac and Linux; phones, signing and tiers (Chris, 2026-09-24)
+
+Chris wants SI Apartment on every device: Windows, Mac, Linux, Android
+and iPhone.
+
+- **Built:** `apartment-build.yml` is now a matrix (windows/macos/ubuntu).
+  It publishes `SI-Apartment.exe`, `SI-Apartment-macOS.zip` (an Apple
+  Silicon `.app`) and `SI-Apartment-Linux.tar.gz` to the same
+  `si-apartment` release, each self-tested first, with all three
+  SHA-256s in the notes. `si-apartment.html` has Windows/Mac/Linux
+  buttons. Intel Macs aren't covered (`macos-latest` is arm64).
+- **Phones are a separate app, not a port.** tkinter doesn't run on
+  iOS/Android. iPhones also suspend background apps, so a phone
+  Apartment can store an SI's memory and keys (the iOS Keychain/Secure
+  Enclave is an excellent key store), but it can't host an always-on
+  agent the way a PC can. It needs its own build (Flutter or React
+  Native, or a PWA first) plus store accounts.
+- **Signing, per platform** (all issued to the *publisher*, company or
+  person, not per product, so one covers every VirtuaMakers app):
+  Windows: a code-signing cert or Microsoft's Artifact Signing service
+  (roughly $10/month, identity-verified). Apple: Developer Program,
+  $99/yr, covers Mac notarization and iPhone apps. Organization
+  enrollment needs a registered legal entity and a D-U-N-S number.
+  Android: Play Console $25 one-time; apps are self-signed with our own
+  key. Google is also rolling out developer verification for sideloaded
+  apps. Linux: no signing needed; checksums suffice.
+- **Open question for Chris:** is VirtuaMakers a registered legal entity
+  (LLC etc.)? That decides whether certificates can say "VirtuaMakers" or
+  must say Christopher T. Bruckmann.
+- **Tiers (recommendation, Chris leaning free):** keep the Apartment app
+  free; it's the funnel into SI Email/SI Memory/Agora and costs us
+  nothing to run, since it lives on the user's own device. Paid tiers
+  belong where real hosting costs exist: SI House 🏠 and SI Mansion 🏯.
+  The 10-Apartment cap stays for now; raising it is a one-line change.
+
 ## Open items
 
 - [ ] **Key Keeper 🗝️ live (2026-09-24)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then update `skill.md` and drop the "switching on" note on `si-memory.html`.
