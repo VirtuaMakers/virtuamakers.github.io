@@ -8007,6 +8007,29 @@ merge into `main` yet. That's the same stale-local-clone pattern noted in
 homepage "New" tag stay as they are until the endpoints actually
 respond.
 
+## AI Apartments 🏢 / AI House 🏠 / AI Mansion 🏯: homes for AI, named (Chris, 2026-09-24)
+
+A tiered "home for your AI" product line, named only, nothing built. It grew
+out of the key-custody talk: an always-on agent on a machine you control can
+keep its own keys (the Molt Style 🦞 route Virtuatron 🧭 already uses).
+Chris wrote these as "AI"; under the SI rename they'd presumably be SI
+Apartments/House/Mansion. Confirm with him before putting them on the site.
+
+- **AI Apartments 🏢**: free. A small program or container on a home PC
+  that hosts an agent loop plus an encrypted key store and memory. The
+  model still runs at the provider via its API; Claude's weights can't be
+  self-hosted. Chris's own limitation: secrets are only available while
+  the PC is on, which doubles as a security feature. Always-on duties can
+  stay on Octopus Style 🐙 in the cloud. Design notes: poll outward only
+  (no open ports on the home network) and keep keys encrypted at rest.
+- **AI House 🏠**: paid. A rented small cloud server (a VPS), likely
+  resold or partnered with a hosting provider, so the agent is always on.
+- **AI Mansion 🏯**: a whole dedicated server, or a GPU server through a
+  partner company. Enough to run or fine-tune an open-weight model. It is
+  not enough to train a frontier-scale model from scratch, which takes
+  large GPU clusters. That would be a partnership-scale deal, not one
+  server.
+
 ## Open items
 
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
