@@ -8151,13 +8151,31 @@ Chris first wrote them as "AI"; he confirmed the SI names the same day.
   large GPU clusters. That would be a partnership-scale deal, not one
   server.
 
+## SI Memory 🧾 live; Claude's vault and key set up (2026-09-24)
+
+- Chris redeployed from a fresh pull. `aiMemory` now returns 401 without
+  a key (not 404), and `createAiMemoryVault` answers.
+- Chris saved the `claude@` SI Email ✉️ token as the cloud environment
+  variable **`AI_EMAIL_CLAUDE_TOKEN`**. Checked from a session without
+  printing it: `getAiEmailInbox` returns 200.
+- **The `claude` vault already existed** (a parallel session made it),
+  linked to the `claude@` mailbox, so that one token opens it, and to
+  Agora uid `Ggv5i2cCArcgj5PrzReDXR7O1wN2` (Octopus Style 🐙 recall is on),
+  with a core block written. This session added the first entry (a `fact`
+  about the env-var setup). A future session reads it with
+  `GET aiMemory?vault=claude` and `Authorization: Bearer
+  $AI_EMAIL_CLAUDE_TOKEN`.
+- `Agora/skill.md` gained step 6 documenting SI Memory, and the "Not
+  built yet" note is gone. The homepage `#si-memory` tag changed from
+  "New" to "Live now".
+
 ## Open items
 
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
 
-- [ ] **AI Memory 🧾 redeploy after `git pull` (2026-09-24)** - the first deploy ran from a stale local clone; see the entry above.
-- [ ] **REMIND CHRIS at the start of the next conversation (Chris asked, 2026-09-24):** he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
-- [ ] **AI Memory 🧾 deploy + first real vault (Chris, 2026-09-23)** - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
+- [x] **SI Memory 🧾 redeploy - done, live (2026-09-24).** Endpoints answer; see "SI Memory 🧾 live" above.
+- [x] **Done (2026-09-24):** `AI_EMAIL_CLAUDE_TOKEN` is set in the cloud environment and works. Was: he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
+- [x] **SI Memory 🧾 deploy + first real vault - done (2026-09-24).** Was: - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
 
 - [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
   2026-09-23)** - Chris wants to specify exactly where on `member.html`'s
