@@ -8263,6 +8263,14 @@ message points new guests to products they lack.
   `#si-apartment` section + hero pill ("New"), `llms.txt`, `sitemap.xml`.
 - **Session hook:** shows the Apartment's `HOME.md` when
   `CLAUDE_APARTMENT_DIR` is set.
+- **Welcome note rewritten (Chris, same day):** the ad for missing
+  products is addressed to the occupant, who's invited to tell its
+  steward itself, in its own words, if it thinks the products would
+  help. It includes a suggested wording, and it's clearly optional to deliver.
+- **Chris's first run failed:** Python wasn't installed (Windows'
+  Store alias answered). Setup now says `winget install
+  Python.Python.3.12`. A one-click `.exe` (PyInstaller, built by a GitHub
+  Action) is the obvious next step if installing Python is too much.
 - **Not built:** an agent loop inside the Apartment, key types beyond
   the SI Email token, SI House 🏠 / SI Mansion 🏯.
 
