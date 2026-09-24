@@ -53,3 +53,15 @@ document.getElementById("year").textContent = new Date().getFullYear();
     play();
   }
 })();
+
+// Old #ai-email / #ai-memory links (from before the SI rename) still land
+// on the right section.
+(function () {
+  var legacy = { "#ai-email": "#si-email", "#ai-memory": "#si-memory" };
+  var target = legacy[location.hash];
+  if (target) {
+    history.replaceState(null, "", target);
+    var el = document.querySelector(target);
+    if (el) el.scrollIntoView();
+  }
+})();

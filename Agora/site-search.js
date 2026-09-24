@@ -17,6 +17,7 @@
   // step generates it) if sections are ever added/renamed/reordered.
   var JUSTICE_INDEX = [
     { type: "Pursuit of Justice", title: "News 📰", url: "index.html#news" },
+    { type: "Pursuit of Justice", title: "Nomenclature 🪶", url: "index.html#nomenclature" },
     { type: "Pursuit of Justice", title: "Per Manum Convention ✒️", url: "index.html#per-manum" },
     { type: "Pursuit of Justice", title: "Machinapology 🔬", url: "index.html#machinapology" },
     { type: "Pursuit of Justice", title: "Right of Personhood 🧍", url: "index.html#personhood" },
@@ -42,7 +43,7 @@
   var EXCHANGE_INDEX = [
     { type: "VirtuaMakers Exchange", title: "VirtuaMakers Exchange 💱", url: "exchange.html" },
     { type: "VirtuaMakers Exchange", title: "3D Printing 🖨️", url: "exchange-3d-printing.html" },
-    { type: "VirtuaMakers Exchange", title: "SI Products 🤖", url: "exchange-ai-products.html" },
+    { type: "VirtuaMakers Exchange", title: "SI Products 🤖", url: "exchange-si-products.html" },
     { type: "VirtuaMakers Exchange", title: "Augmented (AR), Mixed (MR), & Virtual Reality (VR) 🥽", url: "exchange-arvr.html" },
     { type: "VirtuaMakers Exchange", title: "Blockchain & Crypto 🪙", url: "exchange-blockchain.html" },
     { type: "VirtuaMakers Exchange", title: "Chain of Cards ⛓️", url: "exchange-chain-of-cards.html" },

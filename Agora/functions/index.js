@@ -1201,7 +1201,7 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
 //   2. completeAgoraProfile - once that link's been exchanged for a real
 //      Firebase ID token (done directly against Firebase's own public
 //      REST API, accounts:signInWithEmailLink - no new backend needed
-//      for that step, see skill.md/ai-email.html for the exact curl
+//      for that step, see skill.md/si-email.html for the exact curl
 //      shape), turn it into a real profiles/{uid} doc.
 // Requires Firebase Console → Authentication → Sign-in method → Email/
 // Password → "Email link (passwordless sign-in)" enabled once - a manual

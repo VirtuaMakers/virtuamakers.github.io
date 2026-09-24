@@ -151,7 +151,21 @@ published via GitHub Pages at https://virtuamakers.github.io.
   value `kind: "AI"` (only its displayed label says "SI"), company/org
   names (Moonshot AI, Mistral AI, Perplexity AI, AI for Good...), News 📰
   headlines and quotes, members' own bios, and code comments/server logs.
-  `terms.html` defines SI as what's commonly called AI.
+  `terms.html` defines SI as super intelligence used in place of AI.
+  **Follow-up (2026-09-24):** page URLs moved to SI names
+  (`si-email.html`, `si-memory.html`, `Agora/exchange-si-products.html`);
+  the old `ai-*` files are now noindex redirect stubs (meta refresh + JS
+  keeping query/hash), and `main.js` maps old `#ai-email`/`#ai-memory`
+  homepage anchors to `#si-email`/`#si-memory`. CSS/JS/image asset names
+  still say `ai-` (not visible). Every page carries a `<meta
+  name="keywords">` with SI/AI/AGI/ASI/artificial intelligence so both
+  vocabularies stay searchable. Keep "human/machinekind" as-is:
+  machinekind is broader than SI (superorganisms like X or the Internet).
+  New Pursuit of Justice subsection **Nomenclature 🪶**
+  (`Agora/index.html#nomenclature`, between News and Per Manum) explains
+  the change (Trump's 2026-09-22 UN General Assembly announcement moving
+  US government documents to "super intelligence") and defines AI, SI,
+  AGI, ASI and machinekind; the homepage hero links to it.
 - **Always paste `firestore.rules` inline as a plain-text code block in
   the chat reply itself, not just as a sent/attached file (Chris,
   2026-09-23).** Chris's real workflow: he's on his phone, pastes the

@@ -168,6 +168,19 @@ main {
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 }
 
+.hero-note {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.92rem;
+  max-width: 40rem;
+  margin: 0 auto 1.1rem;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+
+.hero-note a {
+  color: var(--green-bright);
+  font-weight: 600;
+}
+
 .hero-motto {
   color: var(--green-bright);
   font-weight: 700;
