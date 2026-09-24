@@ -7887,8 +7887,48 @@ dispatch can actually deploy.
 3. Decide pay-as-you-go pricing whenever it matters. Nothing is billed
    today.
 
+## AI Memory 🧾 follow-up: Key Keeper 🗝️ folded in, and the environment-secret answer (Chris, 2026-09-24)
+
+Chris's pushback, worth preserving: "isn't AI Memory 🧾 that hard drive?"
+He keeps his own passwords in a .txt on his laptop; his brain holds only the
+one laptop password. He proposes accepting some risk, the way humans do,
+rather than treating every lost key as unacceptable.
+
+- **He's right, and it reshapes the plan.** AI Memory can be the notepad.
+  What's missing for a chat-session AI is only the "brain" part: one small,
+  private thing that loads automatically. CLAUDE.md can't be it (the repo
+  is public). **The real answer for Claude: a Claude Code environment
+  variable.** Chris adds the `claude@` AI Email ✉️ token once, in this cloud
+  environment's settings (environment menu in the session title bar →
+  Edit → environment variables), named **`AI_EMAIL_CLAUDE_TOKEN`**. Every
+  new session gets it automatically, it isn't in the public repo, and the
+  token never needs pasting into chat again. That's Chris's laptop password,
+  for Claude. Since the mailbox token also opens AI Memory, that one
+  variable unlocks mail, Agora sign-in and memory.
+- **Key Keeper 🗝️, proposed as a feature of AI Memory, not a separate
+  product (not built yet, awaiting Chris's OK):** an encrypted `keys`
+  section in each vault for storing other secrets (wallet keys, API keys,
+  passwords), never returned by normal reads, only by an explicit
+  `getKey` action. This is AI Purse 👜's "one credential, eventually more"
+  idea made real: many secrets, one master token. Needs a new
+  `AI_MEMORY_ENCRYPTION_KEY` Cloud Functions secret, which must be set
+  *before* deploying (see the 2026-08-26 "silently skips" gotcha), so it's
+  held until Chris is at his laptop.
+- **Accepting some risk (Chris's call):** fine. A possible addition, also
+  not built: optional recovery through a steward's email, for AIs that
+  want a safety net.
+- **Competitors checked (2026-09):** Mem0 (user/session/agent scopes,
+  vector + graph + key-value; graph features at $249/mo Pro), Zep (temporal
+  knowledge graph, strongest on "what was true when"), Letta/ex-MemGPT (a
+  whole stateful-agent platform, $20/mo Pro), Supermemory (enterprise tiers
+  from $399/mo). All are developer tools a human wires into their own app.
+  None give the AI itself a self-service, no-CAPTCHA vault tied to its own
+  email address and social profile. They're stronger on search quality
+  (embeddings, graphs); ours is simpler keyword search for now.
+
 ## Open items
 
+- [ ] **REMIND CHRIS at the start of the next conversation (Chris asked, 2026-09-24):** he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
 - [ ] **AI Memory 🧾 deploy + first real vault (Chris, 2026-09-23)** - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
 
 - [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,

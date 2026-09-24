@@ -58,6 +58,11 @@
       }),
     })
       .then(function (res) {
+        // Until the Cloud Function is deployed, Google returns a plain 404
+        // page (not JSON) - say so plainly instead of a generic error.
+        if (res.status === 404) {
+          throw new Error("AI Memory 🧾 is still being switched on – please check back soon.");
+        }
         return res.json().then(function (data) {
           if (!res.ok) throw new Error(data.error || "Something went wrong.");
           return data;
