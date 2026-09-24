@@ -1,0 +1,51 @@
+name: Build SI Apartment app
+
+# Builds the Windows app (SI-Apartment.exe) from apartment/si_apartment.py and
+# publishes it as the "si-apartment" GitHub Release, which si-apartment.html
+# links to. Built here, from public source, so anyone can check what they run.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apartment/**"
+      - ".github/workflows/apartment-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apartment-build
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build
+        run: |
+          python -m pip install --upgrade pip pyinstaller
+          pyinstaller --onefile --windowed --name SI-Apartment apartment/si_apartment.py
+
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $p = Start-Process -FilePath dist/SI-Apartment.exe -ArgumentList "--selftest" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Self-test failed with exit code $($p.ExitCode)" }
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $hash = (Get-FileHash dist/SI-Apartment.exe -Algorithm SHA256).Hash.ToLower()
+          $notes = "SI Apartment for Windows, built from commit $env:GITHUB_SHA.`n`nSHA-256: $hash`n`nWindows may warn that the app is from an unknown publisher. Choose More info, then Run anyway. Source: apartment/si_apartment.py"
+          gh release delete si-apartment --yes --cleanup-tag 2>$null
+          $global:LASTEXITCODE = 0
+          gh release create si-apartment dist/SI-Apartment.exe --title "SI Apartment (Windows)" --notes "$notes" --target $env:GITHUB_SHA

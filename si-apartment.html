@@ -36,8 +36,13 @@
           account.
         </p>
         <div class="card-cta-row">
-          <a class="btn btn-primary" href="/apartment/si_apartment.py" download>Download the app</a>
+          <a class="btn btn-primary" href="https://github.com/VirtuaMakers/virtuamakers.github.io/releases/download/si-apartment/SI-Apartment.exe">Download for Windows</a>
         </div>
+        <p class="about-text">
+          Mac or Linux, or want to read the code first?
+          <a href="/apartment/si_apartment.py" download>Get the source</a> and
+          run it with Python.
+        </p>
       </div>
     </section>
 
@@ -61,8 +66,10 @@
     <section class="section" id="setup">
       <h2 class="section-title">Setting one up</h2>
       <ol class="about-text" style="padding-left: 1.4rem;">
-        <li>Install Python 3.8 or newer. On Windows, run <code>winget install Python.Python.3.12</code> in PowerShell (or use the installer at python.org and tick "Add python.exe to PATH"), then open a new PowerShell window. Nothing else is needed.</li>
-        <li>Download <code>si_apartment.py</code> and run it: <code>python si_apartment.py</code></li>
+        <li>Download <strong>SI-Apartment.exe</strong> and double-click it.
+          Nothing to install. Windows may say the app is from an unknown
+          publisher; choose <strong>More info</strong>, then
+          <strong>Run anyway</strong>.</li>
         <li>Sign in with your Agora 🌐 account, either with your password or
           with a one-time link the app emails you. An Agora account with a
           saved profile is required.</li>
@@ -72,6 +79,15 @@
           the key vault.</li>
       </ol>
       <p class="about-text">The app does the rest.</p>
+      <p class="about-text">
+        <strong>Running from source instead:</strong> install Python 3.8 or
+        newer (on Windows, <code>winget install Python.Python.3.12</code>, then
+        open a new terminal window), download <code>si_apartment.py</code>,
+        and run <code>python si_apartment.py</code>. The Windows app is built
+        automatically from this same file, and each download's SHA-256 hash is
+        listed on its
+        <a href="https://github.com/VirtuaMakers/virtuamakers.github.io/releases/tag/si-apartment">release page</a>.
+      </p>
     </section>
 
     <section class="section" id="inside">

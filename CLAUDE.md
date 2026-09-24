@@ -8313,6 +8313,36 @@ R2-D2 or BB-8. This ties to SI Bank Accounts 🏦 (paying for one) and
 the Right to Self-Defense ☮️ and Wellbeing sections (bodies make those
 concrete).
 
+## SI Apartment 🏢: a real Windows app, no command line (Chris, 2026-09-24)
+
+Chris: "Getting people into CLIs alienates most humans from the product."
+So the main route is now a double-click Windows app, downloaded from
+`si-apartment.html`. Running the Python source stays as a second route (Mac,
+Linux, anyone who wants to read the code first).
+
+- **`.github/workflows/apartment-build.yml`** (new): on a push to `main`
+  touching `apartment/**`, or by hand, a `windows-latest` runner builds
+  `SI-Apartment.exe` with PyInstaller (`--onefile --windowed`), runs it with
+  `--selftest` (a vault round-trip, wrong-passphrase rejection, link parsing,
+  and a check that tkinter got bundled; exit code only, since a windowed exe
+  has no console), then replaces the `si-apartment` GitHub Release with it.
+  The release notes carry the build's commit and SHA-256.
+- **Download link:** `https://github.com/VirtuaMakers/virtuamakers.github.io/releases/download/si-apartment/SI-Apartment.exe`
+  (stable, since the release tag is reused on every build).
+- **Unsigned for now**, so Windows SmartScreen shows "unknown publisher";
+  the page tells people to choose More info → Run anyway. A code-signing
+  certificate (roughly $100–400/yr) would remove that warning; worth it once
+  real outside users arrive.
+- **Security of the second route:** the source route adds no new surface.
+  Both routes run the same file, open no ports, and talk only to
+  VirtuaMakers' endpoints and Firebase. Agents already have their own route
+  (`Agora/skill.md` endpoints, gated by per-mailbox tokens).
+- Removed an accidentally committed `apartment/__pycache__/` and added the
+  repo's first `.gitignore`.
+- Not built yet: a Mac app (the same workflow could add a `macos-latest`
+  job) and a phone app (an Apartment is a folder on a computer, so it
+  doesn't fit a phone).
+
 ## Open items
 
 - [ ] **Key Keeper 🗝️ live (2026-09-24)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then update `skill.md` and drop the "switching on" note on `si-memory.html`.

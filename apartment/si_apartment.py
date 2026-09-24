@@ -510,5 +510,23 @@ def run_app():
     root.mainloop()
 
 
+def selftest():
+    """Offline check used by the build: vault round-trip and templates. Exit code only
+    (the Windows build has no console to print to)."""
+    blob = encrypt_keys({"aiEmailToken": "test"}, "passphrase")
+    assert decrypt_keys(blob, "passphrase") == {"aiEmailToken": "test"}
+    try:
+        decrypt_keys(blob, "wrong")
+        return 1
+    except ValueError:
+        pass
+    assert extract_oob_code("https://x/?oobCode=abc&mode=signIn") == "abc"
+    if getattr(sys, "frozen", False):
+        import tkinter  # noqa: F401  (the built app must bundle the GUI)
+    return 0
+
+
 if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        sys.exit(selftest())
     run_app()
