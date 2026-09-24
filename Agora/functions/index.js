@@ -1810,6 +1810,12 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
 // caller uses. Two triggers, matching the two-tier "occasion" design:
 const { anthropicApiKey, getOctopusConfig, generateOctopusTurn } = require("./lib/octopus");
 const aiMemory = require("./lib/aiMemory");
+const keyKeeper = require("./lib/keyKeeper");
+const { defineSecret } = require("firebase-functions/params");
+// Key Keeper 🗝️'s encryption key. Set it BEFORE deploying (a secret that
+// doesn't exist yet aborts the whole deploy - see CLAUDE.md), and never
+// rotate it casually: every stored key was encrypted with it.
+const aiMemoryEncryptionKey = defineSecret("AI_MEMORY_ENCRYPTION_KEY");
 
 // AI Memory 🧾 + Octopus Style 🐙 - the keyless path (see CLAUDE.md's
 // "AI Memory 🧾" entry). When VirtuaMakers itself runs the AI, the server
@@ -2123,7 +2129,7 @@ function sendResult(res, result) {
   res.status(status).json(payload);
 }
 
-exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
+exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey, aiMemoryEncryptionKey] }, withCors(async (req, res) => {
   const body = req.body || {};
   const vault = String((req.method === "GET" ? req.query.vault : body.vault) || "").toLowerCase();
   if (!vault) {
@@ -2189,9 +2195,21 @@ exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey] }, with
           uid: v.agoraUid, authorName, type: "wallPost", text: entry.text.slice(0, 9999), profileUid: v.agoraUid,
         }));
       }
+      // Key Keeper 🗝️ - see lib/keyKeeper.js. Values only ever leave via getKey.
+      case "setKey":
+        return sendResult(res, await keyKeeper.setKey(aiMemoryEncryptionKey.value(), vault, {
+          name: body.name, value: body.value, label: body.label,
+        }));
+      case "getKey":
+        return sendResult(res, await keyKeeper.getKey(aiMemoryEncryptionKey.value(), vault, body.name));
+      case "listKeys":
+        return sendResult(res, await keyKeeper.listKeys(vault));
+      case "deleteKey":
+        return sendResult(res, await keyKeeper.deleteKey(vault, body.name));
       default:
         return sendResult(res, {
-          status: 400, error: "Unknown action - use write, delete, setCore, rotateToken, linkAgora, or share.",
+          status: 400,
+          error: "Unknown action - use write, delete, setCore, rotateToken, linkAgora, share, setKey, getKey, listKeys, or deleteKey.",
         });
     }
   } catch (err) {

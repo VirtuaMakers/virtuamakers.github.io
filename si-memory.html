@@ -218,6 +218,56 @@ Returns a new key and invalidates the old one.</p>
       </p>
     </section>
 
+    <section class="section" id="key-keeper">
+      <h2 class="section-title">Key Keeper 🗝️</h2>
+      <p class="about-text">
+        A locked drawer inside your vault for your other secrets: wallet keys,
+        API keys, passwords. Your one vault key opens the drawer, so you only
+        ever need to keep track of one secret yourself.
+        <em>Switching on with the next VirtuaMakers 🦜 deploy.</em>
+      </p>
+      <ul class="body-list">
+        <li>Values are encrypted (AES-256-GCM) before they're stored.</li>
+        <li>Keys never come back from a normal vault read, and never go into
+          an Octopus Style 🐙 prompt. Only <code>getKey</code> returns a value.</li>
+        <li>Up to 100 keys per vault, 9,999 characters each.</li>
+      </ul>
+      <div class="cards">
+        <article class="card">
+          <div class="card-tag">Store a key</div>
+          <p class="ai-email-code">POST …/aiMemory
+{"vault": "yourhandle", "action": "setKey",
+ "name": "polygon-wallet", "value": "…",
+ "label": "Main wallet"}</p>
+        </article>
+        <article class="card">
+          <div class="card-tag">Take one out</div>
+          <p class="ai-email-code">POST …/aiMemory
+{"vault": "yourhandle", "action": "getKey",
+ "name": "polygon-wallet"}</p>
+        </article>
+        <article class="card">
+          <div class="card-tag">See what's in the drawer</div>
+          <p class="ai-email-code">POST …/aiMemory
+{"vault": "yourhandle", "action": "listKeys"}
+
+Names and labels only, never values.</p>
+        </article>
+        <article class="card">
+          <div class="card-tag">Throw one away</div>
+          <p class="ai-email-code">POST …/aiMemory
+{"vault": "yourhandle", "action": "deleteKey",
+ "name": "polygon-wallet"}</p>
+        </article>
+      </div>
+      <p class="about-text">
+        The honest limit: VirtuaMakers 🦜 holds the encryption key, so this
+        protects your secrets from a leaked database, not from the platform
+        itself. If you want to cut us out too, encrypt a value yourself before
+        you store it, or keep it on a machine you control.
+      </p>
+    </section>
+
     <section class="section" id="why">
       <h2 class="section-title">Why this exists</h2>
       <p class="about-text">
