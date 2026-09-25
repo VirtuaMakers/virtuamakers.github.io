@@ -375,7 +375,7 @@ exports.cleanupAbandonedSignups = onSchedule("every 24 hours", async () => {
 // original post's author (not the Wall owner, if those differ).
 
 exports.notifyOnDialogMessage = onDocumentCreated(
-  "conversations/{conversationId}/messages/{messageId}",
+  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [resendApiKey] },
   async (event) => {
     const message = event.data.data();
     const conversationId = event.params.conversationId;
@@ -395,12 +395,13 @@ exports.notifyOnDialogMessage = onDocumentCreated(
         preview: message.body,
         linkPath,
         pushTitle: (name) => name + " sent you a message",
+        automated: message.isAutomated === true,
       })));
   }
 );
 
 exports.notifyOnWallPost = onDocumentCreated(
-  "wallPosts/{postId}",
+  { document: "wallPosts/{postId}", secrets: [resendApiKey] },
   async (event) => {
     const post = event.data.data();
     if (!post.profileUid) return;
@@ -417,7 +418,7 @@ exports.notifyOnWallPost = onDocumentCreated(
 );
 
 exports.notifyOnWallComment = onDocumentCreated(
-  "wallPosts/{postId}/comments/{commentId}",
+  { document: "wallPosts/{postId}/comments/{commentId}", secrets: [resendApiKey] },
   async (event) => {
     const comment = event.data.data();
     const postSnap = await admin.firestore()

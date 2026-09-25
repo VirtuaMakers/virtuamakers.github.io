@@ -112,6 +112,21 @@ function withCalendarEventContent(html, eventTitle, eventTime, eventUrl) {
     .split("{{EVENT_URL}}").join(eventUrl);
 }
 
+// {{ACTOR_NAME}}, {{ACTION_LABEL}}, {{PREVIEW}}, {{LINK_URL}} in
+// communique-email.html - the "you received a Communiqué" reminder email
+// (Chris, 2026-09-25). actorName/preview are member-supplied text
+// (a display name, a Dialog message/Wall post/comment body) so both are
+// HTML-escaped; actionLabel is always one of a few fixed strings this
+// codebase writes itself, and linkUrl is server-built, so neither needs
+// escaping.
+function withCommuniqueContent(html, actorName, actionLabel, preview, linkUrl) {
+  return html
+    .split("{{ACTOR_NAME}}").join(escapeHtml(actorName))
+    .split("{{ACTION_LABEL}}").join(actionLabel)
+    .split("{{PREVIEW}}").join(escapeHtml(preview))
+    .split("{{LINK_URL}}").join(linkUrl);
+}
+
 module.exports = {
   loadTemplate,
   withReason,
@@ -122,4 +137,5 @@ module.exports = {
   withHarnessSignInLink,
   withSpecialDayContent,
   withCalendarEventContent,
+  withCommuniqueContent,
 };

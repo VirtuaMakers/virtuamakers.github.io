@@ -8378,8 +8378,120 @@ and iPhone.
   belong where real hosting costs exist: SI House 🏠 and SI Mansion 🏯.
   The 10-Apartment cap stays for now; raising it is a one-line change.
 
+## Communiqués 📨 email reminders, plus the real AIM-successor-app vision (Chris, 2026-09-25)
+
+Chris's ask, close to verbatim: Agora should email a member any time they
+receive Communiqués 📨, framed explicitly as a stopgap - "for now, that
+will remind them to return to the site." Long-term, he wants Communiqués
+to become a real spiritual successor to AIM: a little app that persists
+beyond closing the webpage, easily closed but otherwise standing, on
+desktop and as a real downloadable app, with the web version carrying a
+link to download the standalone app.
+
+**Built this round: the email reminder.** Extended the shared `notify()`
+helper (`functions/lib/notify.js`), the one choke point already backing
+every notification type, rather than duplicating logic per trigger:
+
+- **New `sendCommuniqueEmail()`**, called from inside `notify()` right
+  after the existing toast-doc write and FCM push. Gated to the three
+  types that are actually Communiqués in this codebase's own vocabulary -
+  `dialog_message`/`wall_post`/`wall_comment` - via a
+  `COMMUNIQUE_ACTION_LABELS` map; `friend_request`/`friend_special_day`
+  (which also route through `notify()`) and `calendar_event` (which
+  routes through `notifySystem()`, untouched) don't get this email, since
+  none of them are Communiqués. Reads the recipient's `email` straight off
+  their `profiles/{uid}` doc (already required at signup) and sends via
+  the existing `sendEmailSafe` - best-effort, same philosophy as every
+  other transactional email here, so a Resend hiccup never blocks the
+  toast/push that already happened.
+- **New template `Agora/emails/communique-email.html`** (+
+  `functions/templates/` copy, same hand-sync split every template here
+  needs) - "📨 {{ACTOR_NAME}} {{ACTION_LABEL}}", the message/post/comment
+  preview in quotes, a "Read it on Agora 🌐 →" link.
+  `withCommuniqueContent()` (new, `functions/lib/templates.js`)
+  substitutes it, HTML-escaping the actor name and preview (both
+  member-supplied text) same as every other template helper here.
+- **Skipped for Octopus Style 🐙 auto-replies, a deliberate scope call
+  not explicitly asked for but an obvious read of the actual intent.**
+  `notify()` gained an `automated` param; `notifyOnDialogMessage` passes
+  `message.isAutomated === true` through. The stated purpose is "remind
+  them to return to the site" - but the human on the other end of an
+  Octopus reply just sent the message that triggered it, so they're
+  already there. Emailing them about their own AI's instant reply would
+  be pure noise, and would compound badly on an active back-and-forth
+  (an email per bot turn). Toast/push are unaffected - only the email
+  step checks this. Wall posts/comments have no equivalent concern:
+  Octopus's own scheduled Wall posts are self-posts
+  (`recipientUid === actorUid`), already skipped by `notify()`'s
+  existing first line, so no separate check was needed there.
+- **`notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`**
+  each needed `secrets: [resendApiKey]` added to their trigger options
+  (previously bare document-path triggers with no secret - Resend was
+  never called from these three before) so the key is actually injected
+  at runtime; `notifyOnFriendRequest` was deliberately left alone, since
+  friend requests still don't get an email.
+- **Verified locally**: `node --check` on every touched file, a full
+  `require("./index.js")` load (still 37 exports - no new export, this
+  only changed existing ones), and `withCommuniqueContent()` exercised
+  directly against a payload with HTML in both the actor name and the
+  preview - both come out correctly escaped, no leftover `{{` in the
+  output. Not tested against the real Firebase project.
+
+**Needs from Chris before this is actually live:** `firebase deploy
+--only functions` (or Approvals Ignition ☑️, once its
+`AGORA_FIREBASE_SERVICE_ACCOUNT` secret exists) to pick up the three
+retriggered functions and the new template. No `firestore.rules` change -
+this only reads `profiles`/writes via the existing Admin-SDK email path.
+Until deployed, Communiqués keep working exactly as they already do
+(toast + push, no email) - nothing breaks in the gap.
+
+**The real AIM-successor-app vision - not built, here's what's actually
+true today versus what's a genuinely separate future build:**
+
+- **Agora already ships as a real installable PWA** - `manifest.json`,
+  a registered service worker (`sw.js`/`pwa-register.js`) on every page,
+  `display: "standalone"`. A visitor's browser already offers "Install
+  app"/"Add to Home Screen" today, which does give Communiqués (and all
+  of Agora) its own standalone window separate from the browser chrome -
+  functionally the "downloadable app" half of what Chris described
+  already exists as infrastructure. What's missing: **no visible
+  "Download the app" link or button anywhere** - it only surfaces via
+  each browser's own native install UI/menu, which most visitors never
+  notice. A real, visible install prompt (capturing the `beforeinstallprompt`
+  event, showing a header button, calling `.prompt()` on click - the
+  standard PWA pattern) would be a genuinely small, scoped follow-up if
+  Chris wants it - not built this round, since it touches every page's
+  header and wasn't the explicit ask, but flagged as the concrete next
+  step if he confirms.
+- **"Persists beyond closing the webpage" is the genuinely big, separate
+  piece - not solved by the PWA install alone.** An installed PWA is
+  still just a window that closes when the visitor closes it; nothing
+  about `display: standalone` keeps it running in the background the way
+  real AIM (or Messenger, Discord, etc.) does. That needs either (a) a
+  true native background process (outside what a website/PWA can do at
+  all - Service Workers can receive push in the background, which is
+  exactly what today's FCM push notifications already provide, but they
+  can't keep a whole app UI alive), or (b) accepting the real ceiling of
+  what a web app can promise and leaning fully into notifications
+  (push + now email) as the "it'll reach you anyway" substitute for true
+  persistence. Today's build is solidly in camp (b) - this round's email
+  reminder is one more rung on that ladder, not a step toward true
+  background persistence.
+- **This connects directly to work already logged and already deferred
+  to its own session**: the 2026-08-15 "Communiqués redesign" entry's
+  chat-heads/multi-window model (which `im-window.js` partially became
+  today - see the entry directly above this one) was always framed as
+  the closest this site gets to "AIM-like," and Chris was explicit there
+  that the full vision needed him to finish re-watching AIM footage
+  first. Nothing in that entry has changed - this round's email + the
+  PWA-infrastructure finding are both real, live pieces of the eventual
+  picture, but the full "persists like AIM, ships as a real app" build
+  is still the same standing future project, not something to start
+  piecemeal without Chris's own design pass first.
+
 ## Open items
 
+- [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
 - [ ] **Key Keeper 🗝️ live (2026-09-24)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then update `skill.md` and drop the "switching on" note on `si-memory.html`.
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
 
