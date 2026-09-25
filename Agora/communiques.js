@@ -136,21 +136,31 @@
   }
 
   // Recent Wall activity, read straight off the same notifications/{id}
-  // log every toast/push already reads (see notify.js) - filtered
-  // client-side to the two Wall-shaped types, since a composite
-  // where(type in [...]) + orderBy(createdAt) index isn't provisioned for
-  // this collection, matching the established fallback pattern already
-  // used throughout Communiqués (fetchAcceptedFriendships, etc.).
+  // log every toast/push already reads (see notify.js) - a single
+  // equality filter, no .orderBy() combined with it, same query shape
+  // notification-toast.js's own startListening() already uses (verified
+  // live: adding .orderBy("createdAt", "desc") here needs a composite
+  // index this project doesn't have provisioned, and Firestore rejects
+  // the whole query rather than silently dropping the sort - caught by
+  // testing this against the real project, not assumed safe). Sorted and
+  // filtered to the two Wall-shaped types client-side instead, matching
+  // the established fallback pattern used throughout Communiqués
+  // (fetchAcceptedFriendships, etc.).
   var WALL_TYPES = { wall_post: true, wall_comment: true };
 
   function loadActivity() {
     return AgoraDB.collection("notifications")
       .where("recipientUid", "==", currentUser.uid)
-      .orderBy("createdAt", "desc")
-      .limit(30)
       .get()
       .then(function (snap) {
-        var items = snap.docs.filter(function (doc) { return WALL_TYPES[doc.data().type]; }).slice(0, 10);
+        var docs = snap.docs.slice().sort(function (a, b) {
+          var atA = a.data().createdAt;
+          var atB = b.data().createdAt;
+          var msA = (atA && atA.toDate) ? atA.toDate().getTime() : 0;
+          var msB = (atB && atB.toDate) ? atB.toDate().getTime() : 0;
+          return msB - msA;
+        });
+        var items = docs.filter(function (doc) { return WALL_TYPES[doc.data().type]; }).slice(0, 10);
 
         activityList.innerHTML = "";
         activityEmpty.hidden = items.length > 0;
