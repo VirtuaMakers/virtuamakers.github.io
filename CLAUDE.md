@@ -8489,6 +8489,124 @@ true today versus what's a genuinely separate future build:**
   is still the same standing future project, not something to start
   piecemeal without Chris's own design pass first.
 
+## Communiqués 2.0 🐦: a real hub app, opened up from Agora, not built into it (Chris, 2026-09-25)
+
+Chris's clarifying follow-up on the AIM-successor vision above, close to
+verbatim: "unlike \[Facebook/Messenger\] we would be having the Agora 🌐
+app open up the Communiqués 📨 app... Facebook usually just tried to
+handle the messages itself, which historically it hasn't always done the
+best job (hence Messenger, but Facebook doesn't open up Messenger)... This
+is fine as the dedicated session for Communiqués 📨. I mean, it's just
+Communiqués 2.0, really." Two things landed together: the sharper
+architecture (Agora hands off to a distinct app, unlike Facebook, which
+never did) and an explicit green light to build it now, in this session -
+unlike several other features in this file that were deliberately deferred
+to "their own future session" (Calendar's Meeting Reflector, Approvals
+Ignition), this one wasn't.
+
+**What "opens up its own app" actually means today, concretely - real web
+infrastructure, not a metaphor:**
+
+- **`Agora/communiques.html` (+ `communiques.js`)** - a real, new hub page,
+  not a restoration of the old `communiques.html`/`communiques.js` deleted
+  2026-08-11 (that was a simple read-only Dialogs inbox with no real
+  "home" framing). This one is: a **Dialogs inbox** (every conversation
+  the signed-in member is in, newest-activity-first, each a clickable
+  `.dm-item` that opens straight into the existing `im-window.js` popout
+  rather than navigating away - falling back to `communiques-dm.html?c=`
+  only if `im-window.js` somehow isn't loaded, same graceful-degradation
+  pattern `member.js`'s own Dialog button already uses); a **New
+  Message** search (reusing `communiques-common.js`'s existing
+  `loadMessagableMembers()`/`filterMessagable()`/`fetchAcceptedFriendships()`
+  - the same "who can I message" directory the header search and Dialogs
+  already share, so it naturally respects `requireFriendToMessage`); and
+  a **Recent Wall Activity** list, read off the same `notifications/{id}`
+  log every toast/push already uses, filtered client-side to
+  `wall_post`/`wall_comment` (friend requests/special days/calendar
+  events are deliberately excluded - not Communiqués in this codebase's
+  own vocabulary, same scoping the 2026-09-25 email-reminder round above
+  already established).
+- **`Agora/communiques-manifest.json`** - a second, distinct Web App
+  Manifest (`id`/`name`/`short_name: "Communiqués"`, `start_url:
+  "/Agora/communiques.html"`) linked only from `communiques.html` itself,
+  alongside Agora's own existing `manifest.json` (linked only from
+  `index.html`). Both share the same `scope: "/Agora/"` and the same
+  single `sw.js` service worker (registered via the same shared
+  `pwa-register.js`) - this does **not** hit the "two service workers
+  can't share one scope" conflict already documented under Push
+  Notifications 🔔 above, since it's still one script; only the manifest
+  *identity* differs, which is what makes a browser treat "Communiqués"
+  as its own separately-installable app/icon/window from "Agora," the
+  same relationship Messenger has to Facebook. A real, working "Install
+  Communiqués 📨" button (`beforeinstallprompt` capture + `.prompt()`,
+  the standard PWA install pattern) ships on the hub page itself - not
+  previously built anywhere on Agora, even though the underlying
+  manifest/service-worker infrastructure for the *Agora* app has existed
+  since the original PWA build.
+- **Known, disclosed gap, not silently shipped:** both manifests' shared
+  `sw.js` still falls back to `/Agora/index.html` on an offline navigate
+  (see `SHELL_ASSETS`/the `fetch` handler) regardless of which app's
+  install a visitor is using - so an offline visit to an installed
+  Communiqués window would show Agora's own shell, not a dedicated
+  Communiqués one. Fixing this for real would mean `sw.js` inspecting
+  which page a failed navigate originated from and picking the right
+  fallback - a small, well-scoped follow-up, not done this round since it
+  wasn't the explicit ask and risked touching the one shared service
+  worker every Agora page already depends on.
+- **Icon art is reused from Agora's own icon set for now** (`assets/
+  icons/icon-{192,512}.png` and maskable variants) - a real, distinct
+  Communiqués icon (matching how Messenger's icon differs from
+  Facebook's) needs actual image art nobody's made yet, same "ship a
+  reasonable default, real art later" pattern this codebase has used
+  before for placeholder assets. Worth a real icon once Chris wants one.
+- **Header entry point, rolled out to all 60 pages** that already carry
+  the `#agora-profile-link` (the same set "Profile 🙂"/"News 📰" live
+  on) - a new `#agora-communiques-link` ("Communiqués 📨") right after
+  Profile 🙂, `hidden` by default and shown/hidden in sync with sign-in
+  state via a new 6th `communiquesLinkId` parameter on `auth-ui.js`'s
+  `wireInstance()` (mirrors `profileLink`'s own show/hide handling
+  exactly, including the optimistic-cache paint path - no per-user data
+  needed for its `href` unlike Profile's `memberUrl(uid)`, so it's set
+  once in HTML rather than computed in JS). Bumped `auth-ui.js` to
+  `v=21` across all 60 pages.
+- **`index.html#communiques`'s stale "Sign in to see your Communiqués
+  📨!" closing line** got a real link added right after it -
+  `Visit Communiqués 📨 →`, matching the section's own established
+  "Label →" pattern (`See all news →`, etc.) - this is the direct
+  "Facebook opens up Messenger" hand-off Chris described, now live from
+  the one page every visitor actually lands on first.
+- **`communiques.html` deliberately isn't in `sitemap.xml`** - same
+  reasoning as `member.html`/`create-profile.html`/`communiques-dm.html`,
+  none of which are listed either: it's a sign-in-gated app page with
+  nothing world-readable to show a crawler, not public content.
+- **Deliberately left untouched this round:** the existing inline
+  Wall/Dialogs UI on `member.html` and the 30 static profile pages -
+  ripping that out or redirecting it toward the new hub is a much larger,
+  riskier change touching 30+ shared pages, and Chris's own framing was
+  "Agora opens up Communiqués," not "Agora's own pages lose their
+  Communiqués UI." The two coexist: `member.html` still shows your own
+  Wall/Dialogs/Friends inline, exactly as before; `communiques.html` is
+  the new, separate, dedicated space Chris asked for.
+- **Verified without Chris's live Firebase project** (this sandbox's
+  gstatic.com CDN block means Firebase itself can never load here - the
+  same long-documented sandbox artifact this file already flags
+  elsewhere): a real headless-browser pass confirmed no unexpected
+  console errors beyond that known CDN block, correct manifest link,
+  correct header link, and balanced/cross-checked HTML/JS ids (the exact
+  "HTML/JS desync" bug class that caused the 2026-08-26 Wall-posting
+  outage and the 2026-09-23 site-wide profile-loading outage, both
+  documented above). Went further than that baseline given how much new
+  logic this round adds: a second pass with `AgoraDB`/`agoraOnAuthChange`/
+  `CommuniquesCommon` stubbed out (mocked Firestore data for two
+  Dialogs, three notifications, two messagable members) confirmed
+  `loadDialogs()` sorts by `lastMessageAt` correctly, an empty-preview
+  Dialog shows "No messages yet.", `loadActivity()` correctly excludes
+  `friend_request` notifications while including `wall_post`/
+  `wall_comment` with the right action-label text, and the New Message
+  search correctly ranks/filters a live query - all with zero thrown
+  errors. `node --check` passed on every touched/new JS file; the new
+  manifest's JSON parses cleanly.
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.

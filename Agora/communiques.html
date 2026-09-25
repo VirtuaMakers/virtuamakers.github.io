@@ -2,26 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, machinekind, cyborgs, VirtuaMakers, Agora" />
+  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, machinekind, cyborgs, VirtuaMakers, Agora, Communiqués" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Permanently Leave Agora 🌐 · Agora</title>
-  <meta name="description" content="Permanently delete your Agora profile and account." />
+  <title>Communiqués · Agora</title>
+  <meta name="description" content="Communiqués 📨 - your Agora Dialogs and Wall activity, in one place. Install it as its own app, or keep it open right here." />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="Permanently Leave Agora 🌐 · Agora" />
-  <meta property="og:description" content="Permanently delete your Agora profile and account." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://www.virtuamakers.com/Agora/leave-agora.html" />
-  <meta property="og:image" content="https://www.virtuamakers.com/Agora/assets/agora-logo.png" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Permanently Leave Agora 🌐 · Agora" />
-  <meta name="twitter:description" content="Permanently delete your Agora profile and account." />
-  <meta name="twitter:image" content="https://www.virtuamakers.com/Agora/assets/agora-logo.png" />
-
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
-  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%93%A8</text></svg>" />
+  <link rel="manifest" href="communiques-manifest.json" />
   <meta name="theme-color" content="#2b57d6" />
-  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -42,6 +30,7 @@
       <a class="back-link" id="agora-news-link" href="index.html#news">News 📰</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
       <a class="back-link" id="agora-communiques-link" href="communiques.html" hidden>Communiqués 📨</a>
+      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
         <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
@@ -58,20 +47,50 @@
   <script src="header-height.js?v=1"></script>
 
   <main>
-    <section class="section" id="leave-agora">
-      <h1>Permanently Leave Agora 🌐</h1>
-      <p class="lede" id="signed-out-notice">You need to sign in to do this.</p>
+    <section class="section" id="communiques-hub">
+      <h1 class="page-title">Communiqués 📨</h1>
+      <p class="lede">Every Dialog and Wall activity waiting for you, in one place - the
+        same way opening Messenger from Facebook opens a dedicated space for your
+        messages, except here Agora 🌐 actually does the hand-off.</p>
 
-      <div id="leave-content" hidden>
-        <p class="body-text"><a href="create-profile.html">← Return to editing your profile</a></p>
+      <p id="communiques-signed-out-notice" class="lede" hidden>
+        <button type="button" class="auth-link" id="communiques-signin-btn">Sign in</button>
+        to see your Communiqués 📨.
+      </p>
 
-        <p class="body-text"><em>Warning:</em><br />This permanently deletes your
-          profile and your account. It can't be undone, and you'd have to
-          start over from scratch. You're always welcome to sign up again
-          later if you change your mind.</p>
+      <div id="communiques-install-wrap" class="profile-panel" hidden>
+        <h2 class="panel-title">Install Communiqués</h2>
+        <p class="body-text">Keep Communiqués 📨 in its own window, separate from the rest
+          of Agora 🌐 - closable any time, and one click to reopen.</p>
+        <button type="button" class="btn btn-primary" id="communiques-install-btn">Install Communiqués 📨</button>
+        <p class="field-hint" id="communiques-install-hint" hidden>Already installed, or your
+          browser doesn't offer an install prompt here - look for "Install app" in your
+          browser's own menu instead.</p>
+      </div>
 
-        <button type="button" class="btn btn-danger" id="leave-btn">Yes, Permanently Leave Agora 🌐</button>
-        <span class="form-status" id="leave-status" hidden>Leaving…</span>
+      <div id="communiques-content" hidden>
+        <div class="profile-panel">
+          <h2 class="panel-title">New Message</h2>
+          <div class="search-picker">
+            <input type="text" id="communiques-new-message-search" class="friend-search-input"
+              placeholder="Search members to Dialog…" autocomplete="off" />
+            <div class="dm-list" id="communiques-new-message-results"></div>
+          </div>
+        </div>
+
+        <div class="profile-panel">
+          <h2 class="panel-title">Dialogs</h2>
+          <p class="form-status" id="communiques-dialogs-empty" hidden>No Dialogs yet - search
+            above to start one.</p>
+          <div class="dm-list" id="communiques-dialogs-list"></div>
+        </div>
+
+        <div class="profile-panel">
+          <h2 class="panel-title">Recent Wall Activity</h2>
+          <p class="form-status" id="communiques-activity-empty" hidden>Nothing yet - Wall
+            posts and comments involving you will show up here.</p>
+          <div class="dm-list" id="communiques-activity-list"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -101,10 +120,6 @@
         <p class="signin-forgot-password" id="agora-forgot-password-row">
           <button type="button" class="auth-link" id="agora-forgot-password-btn">Forgot password?</button>
         </p>
-        <label class="signin-terms-check" id="agora-terms-check-row" hidden>
-          <input type="checkbox" id="agora-terms-checkbox" />
-          I agree to the <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
-        </label>
         <p class="signin-error" id="agora-signin-error" hidden></p>
         <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
       </form>
@@ -112,24 +127,30 @@
         <span id="agora-toggle-text">Don't have an account?</span>
         <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
       </p>
-      <p class="signin-fine-print">By continuing, you agree to Agora's
-        <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</p>
     </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=6"></script>
   <script src="auth-ui.js?v=21"></script>
   <script src="site-search.js?v=6"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="leave-agora.js?v=3"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="bio-tags.js?v=1"></script>
+  <script src="moderation-client.js?v=1"></script>
+  <script src="communiques-common.js?v=16"></script>
+  <script src="notification-toast.js?v=9"></script>
+  <script src="push-notifications.js?v=1"></script>
+  <script src="im-window.js?v=5"></script>
+  <script src="pwa-register.js?v=1"></script>
+  <script src="communiques.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
-  <script src="pwa-register.js?v=1"></script>
 </body>
 </html>

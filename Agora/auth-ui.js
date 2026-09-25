@@ -239,12 +239,20 @@
     } catch (e) {}
   }
 
-  function wireInstance(signInId, signOutId, userInfoId, userNameId, profileLinkId) {
+  function wireInstance(signInId, signOutId, userInfoId, userNameId, profileLinkId, communiquesLinkId) {
     var signInBtn = document.getElementById(signInId);
     var signOutBtn = document.getElementById(signOutId);
     var userInfo = document.getElementById(userInfoId);
     var nameLink = document.getElementById(userNameId);
     var profileLink = profileLinkId ? document.getElementById(profileLinkId) : null;
+    // Communiqués 2.0's own dedicated app/hub link (Chris, 2026-09-25) -
+    // "Agora opens up the Communiqués app," so it shows/hides alongside
+    // Profile 🙂 rather than being visible to a signed-out visitor, since
+    // Communiqués has nothing to show someone with no account. Its own
+    // href needs no per-user data (unlike Profile's memberUrl(uid)), so
+    // it's set once here rather than in HTML, just for consistency with
+    // how every other conditionally-shown header link on this page works.
+    var communiquesLink = communiquesLinkId ? document.getElementById(communiquesLinkId) : null;
     if (!signInBtn) return;
 
     // Once a dedicated Profile link exists for this instance (the header,
@@ -270,6 +278,7 @@
         profileLink.href = memberUrl(cached.uid);
         profileLink.hidden = false;
       }
+      if (communiquesLink) communiquesLink.hidden = false;
       if (nameLink) {
         nameLink.textContent = cached.name;
         if (userInfo) userInfo.hidden = false;
@@ -296,6 +305,7 @@
         if (signOutBtn) signOutBtn.hidden = true;
         if (userInfo) userInfo.hidden = true;
         if (profileLink) profileLink.hidden = true;
+        if (communiquesLink) communiquesLink.hidden = true;
         return;
       }
 
@@ -313,6 +323,7 @@
         profileLink.href = memberUrl(user.uid);
         profileLink.hidden = false;
       }
+      if (communiquesLink) communiquesLink.hidden = false;
 
       if (!nameLink) {
         if (userInfo) userInfo.hidden = false;
@@ -362,7 +373,8 @@
     "agora-signout-btn",
     "agora-user-info",
     "agora-user-email",
-    "agora-profile-link"
+    "agora-profile-link",
+    "agora-communiques-link"
   );
   wireInstance(
     "agora-hero-signin-btn",
