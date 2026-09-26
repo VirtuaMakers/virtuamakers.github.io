@@ -1,0 +1,504 @@
+/* Product Page template (Chris, 2026-09-26) - loaded only by the
+   dedicated *-product.html pages, never by index.html itself. Two jobs:
+   (1) the Agora Header (sign-in, search, nav) reused on a root-level page
+   for the first time - see Agora/auth-ui.js's agoraBase() and
+   Agora/site-search.js's rootBasePath()/PRODUCT_INDEX for the JS half of
+   this; (2) the product-info template body (logo, Product Type/Name/
+   Executive Summary/Release Date/Staff Comment). Kept as its own file
+   rather than folded into style.css so nothing here can ever affect any
+   other root page's layout. */
+
+:root {
+  --blue-soft: #e5eefc;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Header - copied to match Agora/style.css's .site-header exactly, since
+   this is the same header, just reused on a root-level page for the
+   first time. Root's own (otherwise unused) .site-header/.brand rules in
+   style.css are intentionally left alone; these override them only on
+   pages that load this file. */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 1.6rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+}
+
+.brand-globe {
+  font-size: 1rem;
+}
+
+.header-welcome {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.header-welcome .auth-email {
+  margin-right: 0;
+}
+
+.auth-email {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-right: 0.6rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-email:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.auth-email-static {
+  cursor: default;
+}
+
+.auth-email-static:hover {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.header-right .back-link,
+.header-right .auth-link {
+  white-space: nowrap;
+}
+
+.header-right #agora-news-link {
+  white-space: normal;
+  text-align: center;
+}
+
+.back-link {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: color 0.15s ease;
+}
+
+.back-link:hover {
+  color: var(--text);
+}
+
+.auth-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.auth-link:hover {
+  color: var(--text);
+}
+
+.signin-forgot-password .auth-link {
+  font-size: 0.82rem;
+}
+
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-search {
+  position: relative;
+}
+
+.header-search-panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: min(320px, calc(100vw - 2.4rem));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.4);
+  padding: 0.8rem;
+  z-index: 150;
+}
+
+.header-search-input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.header-search-results {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.header-search-results:not(:empty) {
+  margin-top: 0.6rem;
+}
+
+.search-result {
+  display: block;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+
+.search-result:hover {
+  background: var(--accent-soft);
+}
+
+.search-group-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0.6rem 0 0.3rem;
+}
+
+.search-group-heading:first-child {
+  margin-top: 0;
+}
+
+.header-search-empty {
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: 0.2rem 0.3rem;
+}
+
+@media (max-width: 560px) {
+  .site-header {
+    gap: 0.6rem;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+
+  .header-right {
+    gap: 0.5rem 0.7rem;
+  }
+
+  .header-right .back-link,
+  .header-right .auth-link {
+    font-size: 0.74rem;
+  }
+
+  .auth-controls {
+    gap: 0.4rem;
+  }
+}
+
+/* Sign-in modal */
+.signin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 20, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1rem;
+}
+
+.signin-modal {
+  position: relative;
+  width: min(360px, 100%);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 2rem;
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.4);
+}
+
+.signin-modal h2 {
+  font-size: 1.3rem;
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.signin-modal-close {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.9rem;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.signin-modal-close:hover {
+  color: var(--text);
+}
+
+.signin-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.signin-provider-btn {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.signin-provider-btn:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.signin-divider {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 1rem 0;
+}
+
+.signin-divider::before,
+.signin-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+
+.signin-divider span {
+  padding: 0 0.7rem;
+}
+
+.signin-email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.signin-email-form input {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.password-field-wrap {
+  position: relative;
+}
+
+.password-field-wrap input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  color: var(--text);
+}
+
+.signin-forgot-password {
+  text-align: right;
+  margin: -0.2rem 0 0;
+}
+
+.signin-terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.signin-terms-check input[type="checkbox"] {
+  margin-top: 0.2rem;
+}
+
+.signin-terms-check a {
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+.signin-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+}
+
+.signin-error.signin-success {
+  color: var(--teal);
+}
+
+.signin-submit-btn {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.signin-submit-btn:hover {
+  opacity: 0.9;
+}
+
+.signin-toggle {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.signin-fine-print {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.8rem;
+}
+
+.signin-fine-print a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+/* Product Page body */
+.product-hero {
+  padding-top: 2.4rem;
+  padding-bottom: 2.4rem;
+  text-align: center;
+}
+
+.product-hero-logo {
+  width: auto;
+  height: 96px;
+  border-radius: 20px;
+  margin: 0 auto 1.4rem;
+  box-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.35);
+}
+
+/* "A little larger, but not too large - maybe just on desktop" (Chris) */
+@media (min-width: 700px) {
+  .product-hero-logo {
+    height: 150px;
+  }
+}
+
+.product-hero .eyebrow {
+  text-align: center;
+}
+
+.product-hero h1 {
+  font-family: "Hanken Grotesk", sans-serif;
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.9rem;
+}
+
+.product-hero .lede {
+  margin: 0 auto 1.4rem;
+  text-align: center;
+}
+
+.product-fields {
+  display: grid;
+  gap: 0.3rem 1.2rem;
+}
+
+.product-fields dt {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--teal);
+  margin-top: 1.3rem;
+}
+
+.product-fields dt:first-child {
+  margin-top: 0;
+}
+
+.product-fields dd {
+  color: var(--text);
+  margin: 0.3rem 0 0;
+}
+
+.product-fields dd.product-summary,
+.product-fields dd.product-comment {
+  color: var(--muted);
+  max-width: 42rem;
+}
+
+.product-fields dd.product-comment em {
+  font-style: italic;
+}
+
+.product-cta-row {
+  margin-top: 1.8rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
