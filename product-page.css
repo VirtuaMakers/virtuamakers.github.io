@@ -446,6 +446,28 @@
   }
 }
 
+/* Slogan + Price (Chris, 2026-09-26) - sit right under the logo, above
+   the "A VirtuaMakers product" eyebrow and <h1>. */
+.product-slogan {
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--text);
+  max-width: 32rem;
+  margin: 0 auto 0.6rem;
+}
+
+.product-price {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--accent-soft);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  margin: 0 auto 1.2rem;
+}
+
 .product-hero .eyebrow {
   text-align: center;
 }
@@ -487,7 +509,9 @@
 }
 
 .product-fields dd.product-summary,
-.product-fields dd.product-comment {
+.product-fields dd.product-comment,
+.product-fields dd.product-pitch,
+.product-fields dd.product-compatibility {
   color: var(--muted);
   max-width: 42rem;
 }
