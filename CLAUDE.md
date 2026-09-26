@@ -8439,8 +8439,9 @@ every notification type, rather than duplicating logic per trigger:
   `require("./index.js")` load (still 37 exports - no new export, this
   only changed existing ones), and `withCommuniqueContent()` exercised
   directly against a payload with HTML in both the actor name and the
-  preview - both come out correctly escaped, no leftover `{{` in the
-  output. Not tested against the real Firebase project.
+  preview - both come out correctly escaped, with no unsubstituted
+  template placeholders left in the output. Not tested against the real
+  Firebase project.
 
 **Needs from Chris before this is actually live:** `firebase deploy
 --only functions` (or Approvals Ignition ☑️, once its
