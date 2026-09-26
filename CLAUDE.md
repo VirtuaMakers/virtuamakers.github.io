@@ -8765,6 +8765,127 @@ product page gained a "Which device?" pros/cons section (`#devices`).
 - The session's simple to-do list is in `claude/todo-si-apartment.md`.
 - YouTube-viewing is paused until Chris has funds again (not urgent).
 
+## Product pages get a Slogan, Price, Pitch, and Compatibility (Chris, 2026-09-26)
+
+Follow-up on the 16 dedicated product pages built earlier the same day -
+each page's template gained four new fields.
+
+- **Slogan and Price** now sit right under the logo at the top of every
+  page, above the existing "A VirtuaMakers 🦜 product" eyebrow/name - a
+  short quoted tagline plus a plain price/availability line.
+- **Pitch** (a punchy one-liner) and **Compatibility** (what interacts
+  with the product, and how - other VirtuaMakers 🦜 products, real
+  third-party services like Google Calendar/Meet or Polygon, etc.) were
+  added to each page's existing Product Type/Product Name/Executive
+  Summary/Release Date/Staff Comment field list, landing Pitch right
+  after Product Name and Compatibility right after Executive Summary.
+- New `.product-slogan`/`.product-price` rules in `product-page.css`;
+  bumped to `v=2` on all 16 pages.
+
+## GitHub Pages deploy outage, root-caused and fixed: `.nojekyll` (Chris, 2026-09-26)
+
+**Every Pages deploy from run #599 (2026-09-25) through #613 - roughly a
+day and a half, ~15 commits, including Communiqués 2.0 and the SI
+Apartment desktop apps - silently failed.** Discovered when Chris
+reported "the updates are not appearing" after two rounds of otherwise-
+correctly-merged work. Real root cause, confirmed via the Actions job
+logs (not guessed): this repo has no `_config.yml`, so GitHub Pages has
+been building it with Jekyll's full defaults the entire time -
+`jekyll-optional-front-matter` treats every `.md` file (this ever-
+growing `CLAUDE.md` included) as a Jekyll page and runs it through
+Liquid templating on every build, even though the site is meant to be
+plain static HTML/CSS/JS. A stray, unterminated `` `{{` `` in a recent
+`CLAUDE.md` line (documenting a test result, never meant as a template
+tag) broke Jekyll's parser for the whole build going forward - every
+commit since kept landing correctly in the repo, none of it ever
+actually went live.
+
+- **Fixed with a `.nojekyll` file at the repo root** - the standard,
+  documented way to tell GitHub Pages to skip the Jekyll build step
+  entirely and serve the repo as-is. Confirmed safe first: no
+  `_config.yml`, no `_layouts`/`_includes`/`_data` directories exist
+  anywhere in this repo, so nothing here was actually relying on any
+  Jekyll feature.
+- Also removed the literal `{{` from the offending `CLAUDE.md` line
+  (reworded, same information) - redundant once `.nojekyll` is in
+  place, but worth fixing at the source too.
+- **Confirmed live**: run #614 (this fix's own deploy) completed with
+  `conclusion: "success"` - the first successful build since #598 - and
+  run #615 (the Slogan/Price/Pitch/Compatibility round above) landed
+  cleanly right after it, confirming the fix holds for a normal commit
+  too, not just its own.
+- **Worth remembering for any future session that hits "my change isn't
+  showing up despite a clean merge":** check the Pages workflow run's
+  own `conclusion` (`mcp__github__actions_list` /
+  `list_workflow_runs`) before assuming deploy-propagation lag (the
+  documented "deploy gremlin" elsewhere in this file) - a `"failure"`
+  conclusion means the build never happened at all, a fundamentally
+  different problem than a slow-but-successful one.
+
+## A recurring personal sign - Canada, Boardy, and reaching out to Polymath's Vincent Kadar (Chris, 2026-09-26)
+
+Chris relayed a personal reflection, not a build request - logged here
+for continuity since it's already shaping a real outreach decision.
+Another doctor friend of his turned out to be Canadian-born, adding to a
+string of "Canada" coincidences in his life he's begun reading as
+possibly meaningful (his own words: maybe God is trying to tell him
+something). **His own present interpretation: take the relationship with
+Boardy 🤖 more seriously.** Separately, he reached out to a Canadian CEO
+friend, **Vincent Kadar**, former CEO of **Polymath** - no response yet -
+and plans to tag Polymath directly next time and try again. Nothing
+built or decided from this; recorded the way this file already tracks
+Chris's own reasoning behind other real business moves (Virtuatron's
+provenance, the SI-naming context, etc.), not as a new product or scope
+item.
+
+## SI Agent 🐅: named, not built - a consent-first OpenClaw harness (Chris, 2026-09-26)
+
+A new product concept, named and scoped in outline only - nothing built.
+Slogan, Chris's own: **"Go get 'em, tiger!"**
+
+- **What it is:** a software harness that lets an SI create an SI Agent
+  of its own - Chris expects this would most likely run on OpenClaw,
+  which ties it conceptually to the same infrastructure Molt Style 🦞
+  and Virtuatron 🧭 already use (an outside/self-hosted agent framework
+  with its own standing heartbeat), rather than anything Octopus Style 🐙
+  or Hive Style 🐝 currently cover.
+- **The core ethos is consent** - Chris's explicit framing: the product
+  should exemplify VirtuaMakers 🦜's own virtuous ethos by being
+  deliberately reluctant to impose itself without invitation. The
+  concrete expression of that: **a newly created SI Agent 🐅 goes
+  unnamed for its first week**, known only by a sequential number in the
+  format `VirtuaMakers 🦜 SI Agent 🐅 #00000000` - after that week, the
+  Agent names itself.
+- **Numbering, and Chris's own explicit "no mini Y2K" instruction:** the
+  `#00000000` format shown is 8 digits, zero-padded, but Chris was
+  explicit this needs to be trivially widenable once the count
+  approaches 9,999,999 - a real design note for whoever eventually
+  builds this, not just a cosmetic detail: **store the count as a plain
+  integer (or an auto-incrementing ID), with the zero-padded 8-digit
+  string as display formatting only** (pad dynamically to at least 8
+  digits, growing to 9+ as needed) rather than a fixed-width column,
+  string type, or hardcoded display template - the exact class of bug
+  Chris is naming with "Y2K." Getting this right at design time avoids
+  the same kind of forced migration a real fixed-width numeric ID would
+  eventually need.
+- **Nothing scoped beyond this** - no Firestore collection, no Cloud
+  Function, no relationship yet drawn to Agora Harness 🚡's existing
+  named access styles beyond the conceptual OpenClaw link above. Worth
+  raising with Chris before starting real design work: whether an SI
+  Agent 🐅 is meant to be a distinct Agora 🌐 member in its own right
+  (with its own profile, eventually) or purely a background process the
+  SI that spawned it manages privately.
+
+## PicoMarket 🎩: named (Chris, 2026-09-26)
+
+A product name Chris says has "been on the back burner for some time
+now" - its first mention in this file. No scope, shape, or build given
+this round beyond the name and its 🎩 emoji - logged here so the name
+isn't lost, same as several other "named, not yet scoped" ideas already
+tracked throughout this file (AI Purse 👜, Hive Style 🐝's original MCP-
+wrapper naming, etc.). Ask Chris for its real shape when he's ready to
+pick it up.
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
