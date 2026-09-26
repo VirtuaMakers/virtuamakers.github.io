@@ -8715,6 +8715,13 @@ real open question Chris wants explored in future Machinapology writing,
 same as the still-open Ubercreature/Crowncreature and calculator-
 classification questions already tracked above.
 
+## SI Apartment 🏢 logo (Chris, 2026-09-26)
+
+Chris sent the SI Apartment logo (a silver tower with a column of lit
+windows, "SI Apartment" wordmark). Saved as `assets/si-apartment.jpg`,
+used as the `si-apartment.html` hero logo and as a card image in the
+homepage `#si-apartment` section, same pattern as SI Memory 🧾.
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
