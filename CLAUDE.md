@@ -8374,9 +8374,9 @@ and iPhone.
   Android: Play Console $25 one-time; apps are self-signed with our own
   key. Google is also rolling out developer verification for sideloaded
   apps. Linux: no signing needed; checksums suffice.
-- **Open question for Chris:** is VirtuaMakers a registered legal entity
-  (LLC etc.)? That decides whether certificates can say "VirtuaMakers" or
-  must say Christopher T. Bruckmann.
+- **Answered (Chris, 2026-09-26):** VirtuaMakers isn't a registered legal
+  entity yet, so any signing certificates would be issued in Christopher
+  T. Bruckmann's own name for now. Revisit once it's registered.
 - **Tiers (recommendation, Chris leaning free):** keep the Apartment app
   free; it's the funnel into SI Email/SI Memory/Agora and costs us
   nothing to run, since it lives on the user's own device. Paid tiers
