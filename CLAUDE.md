@@ -8750,6 +8750,20 @@ product page gained a "Which device?" pros/cons section (`#devices`).
   Windows, Mac and Linux, and could replace the tkinter app later.
   React Native is the alternative.
 
+## SI Apartment 🏢: iPhone app, "knock knock," Flutter; to-do saved (Chris, 2026-09-26)
+
+- Chris wants an iPhone app anyway: something beats nothing, it pulls
+  iPhone users into the ecosystem, and seeing the phone start the
+  Apartment on the computer nudges them to install it on their Mac/PC.
+- **Knock knock 🚪 (Chris's idea):** an SI requests entry, the steward
+  gets a notification on every device with a real door-knock sound, and
+  can let it in. Unlike web push, native apps can play custom
+  notification sounds on both iOS and Android, so this works.
+- **Flutter:** Chris doesn't need to install it; builds run in GitHub
+  Actions. iPhone installs still need a Mac/Xcode or the $99/yr account.
+- The session's simple to-do list is in `claude/todo-si-apartment.md`.
+- YouTube-viewing is paused until Chris has funds again (not urgent).
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
