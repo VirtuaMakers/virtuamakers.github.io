@@ -189,13 +189,26 @@
     });
   }
 
+  // Every Agora-internal relative link in this file (member.html,
+  // create-profile.html) is written as if the current page sits directly
+  // inside /Agora/ - true for every page this script originally shipped
+  // on. Once the Agora Header started loading on root-level product pages
+  // too (Chris, 2026-09-26), a third case appeared: a page outside /Agora/
+  // entirely, which needs those same links prefixed with "Agora/" instead
+  // of resolving relative to its own (wrong) directory.
+  function agoraBase() {
+    var p = window.location.pathname;
+    if (p.indexOf("/profiles/") !== -1) return "../";
+    if (p.indexOf("/Agora/") !== -1) return "";
+    return "Agora/";
+  }
+
   // Agora never shows a signed-in visitor's raw email address – only
   // their Agora profile name (or handle, once a name/handle preference
   // exists), falling back to their provider display name before their
   // profile has loaded. The name doubles as a link to their own profile.
   function memberUrl(uid) {
-    var base = window.location.pathname.indexOf("/profiles/") !== -1 ? "../member.html" : "member.html";
-    return base + "?uid=" + encodeURIComponent(uid);
+    return agoraBase() + "member.html?uid=" + encodeURIComponent(uid);
   }
 
   // Optimistic sign-in cache (Chris, 2026-09-10 - "showed me as signed out
@@ -398,7 +411,7 @@
     agoraOnAuthChange(function (user) {
       if (!user) return;
       AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
-        if (!doc.exists) window.location.href = "create-profile.html";
+        if (!doc.exists) window.location.href = agoraBase() + "create-profile.html";
       });
     });
   }

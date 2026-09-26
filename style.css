@@ -448,6 +448,23 @@ main {
   text-decoration: underline;
 }
 
+/* A small secondary link under a Selected Work card's title, pointing to
+   that product's own dedicated Product Page (Chris, 2026-09-26) -
+   deliberately quieter than .card-link (the card's primary CTA), so it
+   reads as "more detail elsewhere" rather than competing with it. */
+.product-page-link {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: -0.15rem 0 0.9rem;
+}
+
+.product-page-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
 .card p {
   color: var(--muted);
   font-size: 0.95rem;

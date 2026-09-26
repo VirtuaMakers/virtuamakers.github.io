@@ -98,7 +98,31 @@
     return { type: "Profile", title: m.name, url: "profiles/" + m.uid + ".html" };
   });
 
-  var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX);
+  // VirtuaMakers 🦜 products - one entry per dedicated product page (Chris,
+  // 2026-09-26). Lives at the site root, not under /Agora/, so its urls
+  // are root-relative and need rootBasePath() (below), not basePath() -
+  // marked with `root: true` so renderResults() knows which prefix to use.
+  // Keep in sync by hand with index.html's Selected Work grid.
+  var PRODUCT_INDEX = [
+    { type: "VirtuaMakers Product", title: "Agora 🌐", url: "agora-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "SI Email ✉️", url: "si-email-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "SI Memory 🧾", url: "si-memory-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "SI Bank Accounts 🏦", url: "si-bank-accounts-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "SI Apartment 🏢", url: "si-apartment-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "\"Dimonds\" ♦️", url: "dimonds-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "VirtuaMakers Exchange 💱", url: "virtuamakers-exchange-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Calendar 🗓️", url: "calendar-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Communiqués 📨", url: "communiques-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Agora Harness 🚡", url: "agora-harness-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Chain of Cards ⛓️", url: "chain-of-cards-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Multi-Chat 🗨️", url: "multi-chat-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Aquarium GoFish 🪸", url: "aquarium-gofish-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Guardian 🟩", url: "guardian-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Melon Drive 🍈", url: "melon-drive-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Machinapology 🔬", url: "machinapology-product.html", root: true },
+  ];
+
+  var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX);
 
   var wrap = document.getElementById("agora-search-wrap");
   var toggle = document.getElementById("agora-search-toggle");
@@ -108,7 +132,26 @@
   if (!wrap || !toggle || !panel || !input || !resultsEl) return;
 
   function basePath() {
-    return window.location.pathname.indexOf("/profiles/") !== -1 ? "../" : "";
+    var p = window.location.pathname;
+    if (p.indexOf("/profiles/") !== -1) return "../";
+    // A root-level page (a VirtuaMakers Product Page, none of which live
+    // under /Agora/) needs every Agora-relative url prefixed too - see
+    // rootBasePath() for the mirror-image case (an Agora-relative page
+    // linking to a root-relative Product Page url).
+    if (p.indexOf("/Agora/") === -1) return "Agora/";
+    return "";
+  }
+
+  // The inverse of basePath() - Product Page urls in PRODUCT_INDEX are
+  // root-relative (e.g. "si-email-product.html"), so a result rendered
+  // from inside /Agora/ needs "../" (or "../../" one level deeper, under
+  // /Agora/profiles/) to reach them; a root-level page needs no prefix at
+  // all since it's already sitting next to them.
+  function rootBasePath() {
+    var p = window.location.pathname;
+    if (p.indexOf("/profiles/") !== -1) return "../../";
+    if (p.indexOf("/Agora/") !== -1) return "../";
+    return "";
   }
 
   // Fetched once per page load and cached - `profiles` is small and
@@ -162,7 +205,7 @@
   // by score alone (as this used to) left same-type results contiguous
   // only by coincidence, since nothing stopped two types' scores from
   // interleaving for a given query.
-  var TYPE_ORDER = ["Profile", "Pursuit of Justice", "VirtuaMakers Exchange"];
+  var TYPE_ORDER = ["Profile", "VirtuaMakers Product", "Pursuit of Justice", "VirtuaMakers Exchange"];
 
   function runSearch(query, realMembers) {
     var q = query.trim().toLowerCase();
@@ -199,6 +242,7 @@
       return;
     }
     var base = basePath();
+    var rootBase = rootBasePath();
     var lastType = null;
     items.forEach(function (item) {
       if (item.type !== lastType) {
@@ -210,7 +254,7 @@
       }
       var a = document.createElement("a");
       a.className = "search-result";
-      a.href = base + item.url;
+      a.href = (item.root ? rootBase : base) + item.url;
       a.textContent = item.title;
       resultsEl.appendChild(a);
     });
