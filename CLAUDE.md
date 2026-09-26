@@ -8722,6 +8722,34 @@ windows, "SI Apartment" wordmark). Saved as `assets/si-apartment.jpg`,
 used as the `si-apartment.html` hero logo and as a card image in the
 homepage `#si-apartment` section, same pattern as SI Memory 🧾.
 
+## SI Apartment 🏢 on phones: Active light, remote start, native feel (Chris, 2026-09-26)
+
+Chris's phone ideas, with the corrections given. Nothing built yet; the
+product page gained a "Which device?" pros/cons section (`#devices`).
+
+- **"Active" signal:** good idea. The Apartment writes a heartbeat
+  (occupant, what it's doing, last seen) somewhere the phone can read.
+  On Android it can also be the foreground-service notification.
+- **iPhone correction:** a backgrounded iOS app gets seconds, not a
+  window a visit can count on, and the OS decides when. An SI runs at
+  its provider, so it can't reach into a phone at all. It leaves a
+  request in a relay (Firestore) and the app picks it up while open.
+  So iPhone visits work only while the app is on screen. Most visits are
+  quick, so that often suffices, but it isn't hosting.
+- **Remote start:** doable if a tiny always-on helper runs on the
+  computer (starts at login, polls the relay, launches the Apartment
+  when asked). Remote power-on is different: Wake-on-LAN needs a device
+  on the same home network and often doesn't work on laptops over Wi-Fi
+  or with the lid shut. Sleep, not shutdown, is the realistic state.
+- **No budget (Chris):** no store fees, no company registration. Android:
+  build an APK free in CI and offer it for download (Google is rolling
+  out developer verification for sideloaded apps; watch it). iPhone:
+  can't be installed natively without the $99/yr account, so it waits.
+- **Native feel, not a PWA (Chris):** recommendation is Flutter: one
+  codebase that compiles to real native apps on Android, iPhone,
+  Windows, Mac and Linux, and could replace the tkinter app later.
+  React Native is the alternative.
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
