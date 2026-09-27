@@ -477,6 +477,10 @@ main {
   margin-bottom: 1.6rem;
 }
 
+.about-text-top-spaced {
+  margin-top: 1.6rem;
+}
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
