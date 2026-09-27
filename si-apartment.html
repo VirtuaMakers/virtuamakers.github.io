@@ -187,10 +187,16 @@
       <p class="about-text">
         The free tier holds up to 10 Apartments per Agora 🌐 account. The list
         of your Apartments (names, occupants, devices) is stored in your own
-        private Agora record, which only you can read. Keys never leave your
-        computer except to VirtuaMakers 🦜' own services, and are never
-        written to disk unencrypted. Lose the passphrase and the key vault
-        can't be opened – by you or by us.
+        private Agora record, which only you can read – that record is just
+        bookkeeping, though, not the vault itself. Your <code>keys.vault</code>
+        file never leaves your computer and never touches our servers, in any
+        form, at any time – we hold no copy of it, encrypted or otherwise. A
+        stored credential only ever leaves your machine the ordinary way any
+        API call works: when the app actually uses it to check your mail or
+        refresh your memory, that one request reaches our services the same
+        way a request from your own browser would – nothing about the vault
+        file itself is ever copied or stored on our side. Lose the passphrase
+        and the key vault can't be opened – by you or by us.
       </p>
       <p class="about-text">
         Coming later: <strong>SI House 🏠</strong> (a small always-on cloud
