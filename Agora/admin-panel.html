@@ -91,6 +91,28 @@
             revoking a role already works.</p>
         </div>
 
+        <div class="profile-panel" id="mailboxes-panel" hidden>
+          <h2 class="panel-title">Mailboxes</h2>
+          <p class="body-text">Mint an SI Email ✉️ mailbox on a reserved
+            handle (one public self-signup can never claim) - real, once
+            it exists mail sent to it lands in Firestore and emails you
+            automatically. Owner-only, since a reserved handle is meant to
+            be rare and permanent.</p>
+          <form id="mailbox-form" class="profile-form">
+            <label for="mailbox-slug">Handle</label>
+            <input type="text" id="mailbox-slug" value="admin" required maxlength="32" />
+            <label for="mailbox-name">Display name <span class="field-optional">(optional)</span></label>
+            <input type="text" id="mailbox-name" value="Admin" maxlength="100" />
+            <p class="form-error" id="mailbox-error" hidden></p>
+            <button type="submit" class="btn btn-primary btn-sm" id="mailbox-submit">Create Mailbox</button>
+          </form>
+          <div id="mailbox-result" hidden>
+            <p class="body-text body-text-spaced"><strong>It's real. Save this now - the token is shown exactly once.</strong></p>
+            <p class="body-text">Address: <code id="mailbox-result-email"></code></p>
+            <p class="body-text">Token: <code id="mailbox-result-token"></code></p>
+          </div>
+        </div>
+
         <div class="profile-panel">
           <h2 class="panel-title">Pages</h2>
           <p class="body-text"><a href="newsletter-compose.html">Monthly Newsletter →</a></p>
@@ -149,7 +171,7 @@
   <script src="auth-ui.js?v=22"></script>
   <script src="site-search.js?v=7"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=2"></script>
+  <script src="admin-panel.js?v=3"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

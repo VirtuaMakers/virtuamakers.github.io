@@ -68,12 +68,19 @@ async function getMailbox(slug) {
 }
 
 // The only thing that ever mints a mailbox - called by createAiEmailMailbox
-// (public signup) and by the one-time claude@ migration. Fails if the slug
-// is invalid or already taken; returns the raw token exactly once - only
-// its hash is ever stored, matching how every other secret in this repo is
-// handled.
-async function createMailbox({ slug, name, about }) {
-  if (!isValidSlug(slug)) {
+// (public signup), by the one-time claude@ migration, and by
+// createReservedMailbox (owner-only, index.js) for a slug on the
+// RESERVED_SLUGS list - admin@ being the motivating case: reserved slugs
+// exist to stop public self-signup from squatting on them, not to make
+// them permanently unmintable, so allowReserved is the deliberate owner-only
+// escape hatch. Format is still enforced either way - this never lets a
+// malformed slug through, only a reserved-but-well-formed one. Fails if the
+// slug is invalid (or reserved, without the flag) or already taken; returns
+// the raw token exactly once - only its hash is ever stored, matching how
+// every other secret in this repo is handled.
+async function createMailbox({ slug, name, about, allowReserved = false, source = "" }) {
+  const validFormat = typeof slug === "string" && SLUG_PATTERN.test(slug);
+  if (!validFormat || (!allowReserved && RESERVED_SLUGS.has(slug))) {
     throw new Error("Invalid or reserved handle.");
   }
   const ref = mailboxRef(slug);
@@ -90,6 +97,14 @@ async function createMailbox({ slug, name, about }) {
       email,
       tokenHash: hashToken(token),
       about: about || "",
+      // Self-reported, not detected - see CLAUDE.md's "Spider Style 🕷️
+      // utilization" entry. There's no real way to see who fetched
+      // llms.txt/skill.md (GitHub Pages keeps no request logs we can
+      // read), so this is the honest substitute: an SI that found Agora
+      // through one of those files can say so, the same
+      // self-declaration spirit already used for Octopus Style
+      // eligibility - optional, never required, never verified.
+      source: (typeof source === "string" ? source.trim().slice(0, 100) : "") || "",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
   });

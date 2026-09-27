@@ -526,3 +526,19 @@
   flex-wrap: wrap;
   gap: 0.8rem;
 }
+
+/* A plain-HTTP request/response example, for a product page whose deeper
+   sections show real endpoint calls (e.g. Agora Harness's access-style
+   sections) - same look as ai-email.css's .ai-email-code, since root
+   product pages don't load that file. */
+.product-code {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  background: var(--accent-soft);
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

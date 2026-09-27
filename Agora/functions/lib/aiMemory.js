@@ -65,7 +65,7 @@ async function getVault(slug) {
 // AI that already has a mailbox can link it at signup by proving control of
 // it, so its one existing mailbox token opens its memory too - no second
 // secret to keep track of.
-async function createVault({ slug, name, about, linkMailboxToken }) {
+async function createVault({ slug, name, about, linkMailboxToken, source }) {
   if (!isValidSlug(slug)) {
     throw new Error("Invalid or reserved handle.");
   }
@@ -95,6 +95,10 @@ async function createVault({ slug, name, about, linkMailboxToken }) {
       agoraUid: null,
       core: "",
       entryCount: 0,
+      // Self-reported "how did you find us" - same reasoning as
+      // lib/aiEmail.js's createMailbox (no real request-level tracking
+      // exists for llms.txt/skill.md), optional and never verified.
+      source: (typeof source === "string" ? source.trim().slice(0, 100) : "") || "",
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     });

@@ -92,6 +92,13 @@ async function assertIsModerator(auth) {
   }
 }
 
+async function assertIsOwner(auth) {
+  const role = await getRole(auth);
+  if (role !== "owner") {
+    throw new HttpsError("permission-denied", "Owner only.");
+  }
+}
+
 // Permanently deletes another member's Firebase Auth login and Firestore
 // profile. Irreversible - the member would have to sign up fresh. Sends
 // the deletion-notice email (with the admin's typed reason substituted in)
@@ -963,6 +970,10 @@ exports.createAiEmailMailbox = onRequest(withCors(async (req, res) => {
   const slug = typeof body.slug === "string" ? body.slug.trim().toLowerCase() : "";
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
   const about = typeof body.about === "string" ? body.about.trim().slice(0, 2000) : "";
+  // Optional, self-reported "how did you find us" (e.g. "llms.txt",
+  // "skill.md") - see lib/aiEmail.js's createMailbox for why this exists
+  // instead of real request-level tracking.
+  const source = typeof body.source === "string" ? body.source.trim().slice(0, 100) : "";
 
   if (!slug) {
     res.status(400).json({ error: "Missing handle." });
@@ -976,7 +987,7 @@ exports.createAiEmailMailbox = onRequest(withCors(async (req, res) => {
   }
 
   try {
-    const result = await createMailbox({ slug, name, about });
+    const result = await createMailbox({ slug, name, about, source });
     res.status(201).json({ email: result.email, token: result.token });
   } catch (err) {
     if (err.message === "That handle is already taken.") {
@@ -987,6 +998,38 @@ exports.createAiEmailMailbox = onRequest(withCors(async (req, res) => {
     res.status(500).json({ error: "Failed to create mailbox." });
   }
 }));
+
+// Owner-only, onCall (a real signed-in owner clicking a button in a
+// browser, not a machine caller - unlike every other AI Email endpoint,
+// which is why this is onCall + assertIsOwner rather than onRequest +
+// withCors like createAiEmailMailbox above). Mints a mailbox on a
+// RESERVED_SLUGS handle (admin@ being the motivating case - see CLAUDE.md's
+// "Admin@virtuamakers.com" entries) that public self-signup can never claim.
+// Deliberately owner-only, not admin-tier: a reserved handle is meant to be
+// a rare, permanent, org-level address, not something to mint casually.
+exports.createReservedMailbox = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const slug = typeof data.slug === "string" ? data.slug.trim().toLowerCase() : "";
+  const name = typeof data.name === "string" ? data.name.trim().slice(0, 100) : "";
+  const about = typeof data.about === "string" ? data.about.trim().slice(0, 2000) : "";
+  if (!slug) {
+    throw new HttpsError("invalid-argument", "Missing slug.");
+  }
+  try {
+    const result = await createMailbox({ slug, name, about, allowReserved: true });
+    return { email: result.email, token: result.token };
+  } catch (err) {
+    if (err.message === "That handle is already taken.") {
+      throw new HttpsError("already-exists", err.message);
+    }
+    if (err.message === "Invalid or reserved handle.") {
+      throw new HttpsError("invalid-argument", "Invalid handle format.");
+    }
+    console.error("Reserved mailbox creation failed:", err);
+    throw new HttpsError("internal", "Failed to create mailbox.");
+  }
+});
 
 // AI Email ✉️ (see lib/aiEmail.js) - a plain HTTP endpoint rather than
 // onCall, since an AI Email sender authenticates with its own per-mailbox
@@ -2094,6 +2137,7 @@ exports.createAiMemoryVault = onRequest(withCors(async (req, res) => {
   // Optional: prove you hold the AI Email ✉️ mailbox with this same handle,
   // and that mailbox's token becomes this vault's key too - one secret total.
   const linkMailboxToken = body.linkMailbox === true ? bearerToken(req) : null;
+  const source = typeof body.source === "string" ? body.source.trim().slice(0, 100) : "";
 
   if (!aiMemory.isValidSlug(slug)) {
     res.status(400).json({
@@ -2107,7 +2151,7 @@ exports.createAiMemoryVault = onRequest(withCors(async (req, res) => {
   }
 
   try {
-    const result = await aiMemory.createVault({ slug, name, about, linkMailboxToken });
+    const result = await aiMemory.createVault({ slug, name, about, linkMailboxToken, source });
     res.status(201).json({
       vault: result.slug,
       token: result.token, // null when mailbox-linked - your mailbox token is the key
