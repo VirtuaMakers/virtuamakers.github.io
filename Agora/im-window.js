@@ -293,7 +293,66 @@
     sendBtn.type = "submit";
     sendBtn.className = "btn btn-sm btn-primary";
     sendBtn.textContent = "Send";
+    // Disabled until startOrOpenDialog() below resolves and win.conversationId
+    // is set - registering the submit handler immediately (rather than
+    // nested inside that promise, as before) closes a real race: a fast
+    // click on this enabled-looking button before the Firestore round-trip
+    // finished used to fall through to a native, unhandled form submission
+    // (page reload, message lost) since no listener existed yet (2026-09-27).
+    sendBtn.disabled = true;
     form.appendChild(sendBtn);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!win.conversationId) return; // not ready yet - button is disabled until it is
+      var conversationRef = AgoraDB.collection("conversations").doc(win.conversationId);
+      var body = textarea.value.trim();
+      if (!body) return;
+      error.hidden = true;
+      sendBtn.disabled = true;
+
+      var blocked = false;
+      var sendChain = AgoraModeration.checkText(body, "dialogMessage", { conversationId: win.conversationId }).then(function (result) {
+        if (result.decision === "block") {
+          blocked = true;
+          AgoraModeration.showBlocked(error, result.logId);
+          return;
+        }
+
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        return conversationRef.collection("messages").add({
+          authorUid: currentUser.uid,
+          body: body,
+          createdAt: now,
+          viewCount: 0,
+        }).then(function () {
+          return conversationRef.update({
+            lastMessage: body,
+            lastMessageAt: now,
+            lastMessageAuthorUid: currentUser.uid,
+          });
+        }).then(function () {
+          textarea.value = "";
+        });
+      });
+
+      // A stuck promise chain shouldn't leave the button disabled forever
+      // with no error and no way to retry - see communiques-common.js's
+      // withTimeout() for the real bug this fixes (2026-09-14).
+      C.withTimeout(sendChain, 20000, "Sending is taking longer than expected… check your connection and try again.")
+        .then(function () {
+          sendBtn.disabled = false;
+        })
+        .catch(function (err) {
+          sendBtn.disabled = false;
+          if (!blocked) {
+            error.textContent = err
+              ? C.friendlyPermissionError(err, "This member isn't accepting Dialogs from you right now.")
+              : "Something went wrong sending this message.";
+            error.hidden = false;
+          }
+        });
+    });
 
     el.appendChild(form);
 
@@ -307,6 +366,7 @@
     C.startOrOpenDialog(currentUser, otherUid, otherName).then(function (conversationId) {
       if (windows[otherUid] !== win) return; // closed while this was in flight
       win.conversationId = conversationId;
+      sendBtn.disabled = false;
       expandLink.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
 
       var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
@@ -327,56 +387,6 @@
         });
 
       textarea.focus();
-
-      form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        var body = textarea.value.trim();
-        if (!body) return;
-        error.hidden = true;
-        sendBtn.disabled = true;
-
-        var blocked = false;
-        var sendChain = AgoraModeration.checkText(body, "dialogMessage", { conversationId: conversationId }).then(function (result) {
-          if (result.decision === "block") {
-            blocked = true;
-            AgoraModeration.showBlocked(error, result.logId);
-            return;
-          }
-
-          var now = firebase.firestore.FieldValue.serverTimestamp();
-          return conversationRef.collection("messages").add({
-            authorUid: currentUser.uid,
-            body: body,
-            createdAt: now,
-            viewCount: 0,
-          }).then(function () {
-            return conversationRef.update({
-              lastMessage: body,
-              lastMessageAt: now,
-              lastMessageAuthorUid: currentUser.uid,
-            });
-          }).then(function () {
-            textarea.value = "";
-          });
-        });
-
-        // A stuck promise chain shouldn't leave the button disabled forever
-        // with no error and no way to retry - see communiques-common.js's
-        // withTimeout() for the real bug this fixes (2026-09-14).
-        C.withTimeout(sendChain, 20000, "Sending is taking longer than expected… check your connection and try again.")
-          .then(function () {
-            sendBtn.disabled = false;
-          })
-          .catch(function (err) {
-            sendBtn.disabled = false;
-            if (!blocked) {
-              error.textContent = err
-                ? C.friendlyPermissionError(err, "This member isn't accepting Dialogs from you right now.")
-                : "Something went wrong sending this message.";
-              error.hidden = false;
-            }
-          });
-      });
     }).catch(function (err) {
       if (windows[otherUid] !== win) return;
       messages.textContent = err.message || "Couldn't open this Dialog.";

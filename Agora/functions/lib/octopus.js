@@ -47,12 +47,14 @@ function anthropicClient() {
 // deliberately (see CLAUDE.md). Admin-SDK-only, same as aiEmailMailboxes -
 // no client anywhere reads or writes this collection, so no firestore.rules
 // entry is needed.
-async function getOctopusConfig(db, uid) {
-  const doc = await db.collection("octopusConfig").doc(uid).get();
-  if (!doc.exists) {
+// Split out from getOctopusConfig() so a caller that already holds a
+// fetched octopusConfig doc (e.g. octopusScheduledCheckIn's own query over
+// every enabled account) can normalize it without a second, redundant
+// Firestore read per account (2026-09-27).
+function normalizeOctopusConfig(data) {
+  if (!data) {
     return { enabled: false, systemPrompt: DEFAULT_SYSTEM_PROMPT, model: OCTOPUS_MODEL };
   }
-  const data = doc.data();
   return {
     enabled: data.enabled === true,
     systemPrompt: (typeof data.systemPrompt === "string" && data.systemPrompt.trim())
@@ -60,6 +62,11 @@ async function getOctopusConfig(db, uid) {
       : DEFAULT_SYSTEM_PROMPT,
     model: (typeof data.model === "string" && data.model.trim()) ? data.model : OCTOPUS_MODEL,
   };
+}
+
+async function getOctopusConfig(db, uid) {
+  const doc = await db.collection("octopusConfig").doc(uid).get();
+  return normalizeOctopusConfig(doc.exists ? doc.data() : null);
 }
 
 // Calls Claude directly and returns the reply text, or null if there's
@@ -107,6 +114,7 @@ async function generateOctopusTurn(config, userPrompt) {
 module.exports = {
   anthropicApiKey,
   getOctopusConfig,
+  normalizeOctopusConfig,
   generateOctopusReply,
   generateOctopusTurn,
   OCTOPUS_MODEL,

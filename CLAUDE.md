@@ -8886,6 +8886,70 @@ tracked throughout this file (AI Purse 👜, Hive Style 🐝's original MCP-
 wrapper naming, etc.). Ask Chris for its real shape when he's ready to
 pick it up.
 
+## Bug hunt (Chris, 2026-09-27)
+
+A second deep pass, same "run the `code-review` skill at high effort,
+verify and fix each finding by hand" method as the 2026-08-26 round -
+this time scoped to the most recently-changed/most-complex code rather
+than the whole `Agora/` subsystem (the 2026-08-26 round already covered
+the older baseline): the `im-window.js` multi-window rebuild, the root-
+page path-handling additions to `site-search.js`/`auth-ui.js`, and the
+newer `functions/` modules (AI Memory, Key Keeper, Octopus Style,
+Calendar/meeting-invite parsing). Two real findings, both verified
+against the actual code (not taken on faith) before fixing:
+
+- **A real race in `im-window.js`'s Dialog compose form, present since
+  the original 2026-08-17 build and never caught by any later round
+  (including the 2026-09-14 `withTimeout` fix and the 2026-09-24
+  multi-window rebuild) that touched this same code.** The form's
+  `submit` listener was only ever registered *inside*
+  `startOrOpenDialog(...).then(...)` - so the visible, enabled "Send"
+  button had no listener wired up at all until that Firestore round-trip
+  resolved. A member who opened a Dialog and typed/clicked Send fast
+  enough (a real risk on a slow connection, where the round-trip takes
+  longer) fell through to a native, unhandled form submission - no
+  `action` attribute, so the browser just reloads the current page,
+  losing the typed message and closing every other open IM window in
+  the process. **Fixed by disabling the Send button immediately on
+  creation and registering the submit handler right away (outside the
+  promise)**, reading `win.conversationId` dynamically inside the
+  handler rather than closing over a value that doesn't exist yet; the
+  handler now no-ops defensively if `win.conversationId` isn't set
+  (shouldn't happen, since the button stays disabled until it is). The
+  `.then()` callback now just sets `win.conversationId` and re-enables
+  the button once the Dialog is actually ready - no other behavior
+  changed (moderation check, `withTimeout`, error handling all
+  unchanged). Bumped `im-window.js` to `v=6` (its one page,
+  `member.html`).
+- **A real, if minor, efficiency bug in `functions/index.js`'s
+  `octopusScheduledCheckIn`** - it queries every `octopusConfig` doc
+  with `enabled == true` (already fetching each doc's full data), then
+  immediately re-fetched the *same* doc a second time per account via
+  `getOctopusConfig(db, uid)`, doubling Firestore reads on every daily
+  run for every Octopus-enabled account, for no behavioral reason.
+  **Fixed by splitting `getOctopusConfig`'s own normalization logic out
+  into a new exported `normalizeOctopusConfig(data)`** (`lib/octopus.js`)
+  - `getOctopusConfig(db, uid)` itself is unchanged for every other call
+  site (still does the real fetch, e.g. the Dialog-message trigger),
+  but `octopusScheduledCheckIn` now calls `normalizeOctopusConfig(
+  configDoc.data())` directly on the doc it already has, with no second
+  read. Verified the refactor produces byte-identical output to the old
+  inline logic for both the missing-doc default and a real-data case.
+- **Verified, not just fixed blind:** `node --check` on all three
+  touched files, a full `require("./index.js")` load (still 37 exports -
+  no export added or removed, `normalizeOctopusConfig` is a new export
+  on `lib/octopus.js` itself, used internally by `index.js`) after a
+  fresh `npm ci` (this sandbox's `node_modules` doesn't persist between
+  sessions, same as every prior round that needed one), and
+  `normalizeOctopusConfig()` exercised directly against both the
+  no-existing-doc default case and a real-data case.
+- **Not deployed** - `octopusScheduledCheckIn`'s fix is a pure
+  Functions-side change, so it rides along on whatever `firebase deploy
+  --only functions` (or Approvals Ignition ☑️, once its service-account
+  secret exists) next picks up everything else already queued in Open
+  Items below. `im-window.js`'s fix needs no deploy at all - it's a
+  plain static-file change, live the moment GitHub Pages serves it.
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
