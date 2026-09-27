@@ -10187,6 +10187,16 @@ shipped `si_apartment.py` app - fixed the same round, not just discussed.
 
 ## Open items
 
+- [ ] **SI Apartment offline-access fix - built and merged, needs Chris's
+  confirmation once the rebuilt app lands (2026-09-27/28)** - see the
+  dedicated "Boardy asks about SI Memory 🧾 vs. SI Apartment 🏢" entry
+  above. Verified locally (compile, selftest, headless GUI construction,
+  direct-call checks on both new helpers), but the actual downloadable
+  `SI-Apartment.exe`/`.zip`/`.tar.gz` only gets rebuilt by
+  `apartment-build.yml` once this merge reaches `main` - confirm the new
+  "Local Apartments (no sign-in needed)" section actually shows Open
+  folder/Refresh working for a real Apartment on your machine, without
+  being asked to sign back in, before checking this off.
 - [ ] **Product Pages Wall - built, needs Chris's live confirmation
   (2026-09-27)** - all 16 `*-product.html` pages now have a Posts-only
   Wall/comments section; see the dedicated "Product Pages Wall 📋" entry
