@@ -4,7 +4,10 @@
 Run it (Python 3.8+, nothing to install):  python si_apartment.py
 
 What it does:
-  1. Sign in with your Agora 🌐 account (required to activate).
+  1. Sign in with your Agora 🌐 account once, to activate (required only for
+     creating/removing an Apartment, or seeing one set up on another
+     computer - opening or refreshing one already on this machine needs no
+     sign-in, just its own passphrase; see "Local Apartments" in the app).
   2. Pick a folder and a name; the app builds the Apartment there:
        apartment.json   name, occupant, owner (no secrets)
        keys.vault       the occupant's keys, encrypted with your passphrase
@@ -17,8 +20,10 @@ Free tier: up to 10 Apartments per Agora account. The list lives in your
 account's private Firestore document (profiles/{uid}/private/apartments),
 which only you can read or write.
 
-Secrets never leave this machine except to VirtuaMakers' own endpoints, and
-they are never written to disk unencrypted.
+keys.vault never leaves this machine and is never written to disk
+unencrypted - we hold no copy of it, ever. A stored credential only leaves
+this machine the ordinary way any API call authenticates: in transit, when
+the app actually uses it to reach one of our endpoints.
 """
 import base64
 import datetime
@@ -358,6 +363,27 @@ def _read_json(path):
 
 # --------------------------------------------------------------- App ----
 
+def _open_folder_path(path):
+    """Opens an Apartment's folder in the OS file browser. Needs no network,
+    no passphrase, no Agora sign-in - it's just a local path."""
+    if sys.platform.startswith("win"):
+        os.startfile(path)
+    else:
+        os.system('%s "%s"' % ("open" if sys.platform == "darwin" else "xdg-open", path))
+
+
+def _refresh_path(path, ask_passphrase):
+    """Re-checks products and pulls fresh copies for one Apartment on this
+    computer. Only needs its own passphrase - refresh_apartment() never
+    touches the Agora session (see probe_products()/decrypt_keys() above),
+    so this doesn't require signing back in to Agora either."""
+    phrase = ask_passphrase()
+    if not phrase:
+        return
+    products = refresh_apartment(path, phrase)
+    return products
+
+
 def run_app():
     import tkinter as tk
     from tkinter import filedialog, messagebox, simpledialog
@@ -371,11 +397,68 @@ def run_app():
 
     root = tk.Tk()
     root.title("SI Apartment 🏢")
-    root.geometry("560x520")
+    root.geometry("560x620")
     pad = {"padx": 10, "pady": 4}
 
     tk.Label(root, text="SI Apartment 🏢", font=("", 16, "bold")).pack(**pad)
-    status = tk.Label(root, text="Sign in with your Agora 🌐 account to begin.", wraplength=520)
+
+    def fail(err):
+        messagebox.showerror("SI Apartment", str(err))
+
+    # Local Apartments - built from the paths cache saved on THIS computer at
+    # setup time, so it's populated before any sign-in happens and needs
+    # none to use. Sign-in is only for the cross-device registry below
+    # (adding/removing an Apartment, or seeing one set up on another
+    # machine) - never for opening or refreshing one you already have here.
+    local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)")
+    local_frame.pack(fill="both", expand=True, **pad)
+    local_listbox = tk.Listbox(local_frame, height=5)
+    local_listbox.pack(fill="both", expand=True, padx=6, pady=4)
+    local_ids = []
+
+    def redraw_local():
+        local_listbox.delete(0, "end")
+        local_ids[:] = list(state["paths"].keys())
+        for apt_id in local_ids:
+            path = state["paths"][apt_id]
+            try:
+                meta = _read_json(os.path.join(path, "apartment.json"))
+                label = "%s – %s" % (meta.get("name", apt_id), meta.get("occupant", "?"))
+            except Exception:
+                label = apt_id
+            local_listbox.insert("end", label)
+
+    def local_selected_path():
+        idx = local_listbox.curselection()
+        return state["paths"].get(local_ids[idx[0]]) if idx else None
+
+    def local_open_folder():
+        path = local_selected_path()
+        if path:
+            _open_folder_path(path)
+        else:
+            fail("Pick a local Apartment first.")
+
+    def local_refresh():
+        path = local_selected_path()
+        if not path:
+            return fail("Pick a local Apartment first.")
+        try:
+            products = _refresh_path(path, lambda: simpledialog.askstring(
+                "Passphrase", "Apartment passphrase:", parent=root, show="•"))
+            if products:
+                messagebox.showinfo("SI Apartment", "\n".join(
+                    "%s: %s" % (p, s["detail"]) for p, s in products.items()))
+        except Exception as err:
+            fail(err)
+
+    local_buttons = tk.Frame(local_frame)
+    local_buttons.pack(**pad)
+    tk.Button(local_buttons, text="Open folder", command=local_open_folder).pack(side="left", padx=4)
+    tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
+    redraw_local()
+
+    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove, or to see an Apartment set up on another computer.", wraplength=520)
     status.pack(**pad)
 
     signin = tk.Frame(root)
@@ -393,9 +476,6 @@ def run_app():
     apartments = tk.Frame(root)
     listbox = tk.Listbox(apartments, height=10)
     listbox.pack(fill="both", expand=True)
-
-    def fail(err):
-        messagebox.showerror("SI Apartment", str(err))
 
     def redraw():
         listbox.delete(0, "end")
@@ -458,6 +538,7 @@ def run_app():
             state["paths"][meta["id"]] = path
             _write_json(paths_file, state["paths"])
             redraw()
+            redraw_local()
             messagebox.showinfo("SI Apartment", "Built at %s. The occupant's map is in HOME.md." % path)
         except Exception as err:
             fail(err)
@@ -466,23 +547,19 @@ def run_app():
         apt_id = selected()
         if not apt_id or apt_id not in state["paths"]:
             return fail("Pick an Apartment that lives on this computer.")
-        phrase = simpledialog.askstring("Passphrase", "Apartment passphrase:", parent=root, show="•")
-        if not phrase:
-            return
         try:
-            products = refresh_apartment(state["paths"][apt_id], phrase)
-            messagebox.showinfo("SI Apartment", "\n".join("%s: %s" % (p, s["detail"]) for p, s in products.items()))
+            products = _refresh_path(state["paths"][apt_id], lambda: simpledialog.askstring(
+                "Passphrase", "Apartment passphrase:", parent=root, show="•"))
+            if products:
+                messagebox.showinfo("SI Apartment", "\n".join(
+                    "%s: %s" % (p, s["detail"]) for p, s in products.items()))
         except Exception as err:
             fail(err)
 
     def open_folder():
         apt_id = selected()
         if apt_id in state["paths"]:
-            path = state["paths"][apt_id]
-            if sys.platform.startswith("win"):
-                os.startfile(path)
-            else:
-                os.system('%s "%s"' % ("open" if sys.platform == "darwin" else "xdg-open", path))
+            _open_folder_path(state["paths"][apt_id])
 
     def remove():
         apt_id = selected()
@@ -494,6 +571,7 @@ def run_app():
             state["paths"].pop(apt_id, None)
             _write_json(paths_file, state["paths"])
             redraw()
+            redraw_local()
         except Exception as err:
             fail(err)
 
