@@ -542,3 +542,206 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+/* Product Wall (Chris, 2026-09-27) - "The Product Pages should have a
+   comments section, or a wall that Agora 🌐 members can make posts to."
+   Reuses Agora/communiques-common.js's createWallController() exactly the
+   way the 30 static Agora/profiles/*.html pages already do, keyed to a
+   per-page slug instead of a real profile uid - same pattern, see
+   Agora/product-page-wall.js. These rules are copied from Agora/style.css
+   (not loaded here at all) rather than importing that whole stylesheet
+   onto a root page, matching this file's own header-CSS precedent above -
+   only what the Wall markup actually needs, kept isolated. Posts only, no
+   Dialogs section (a product isn't someone you Dialog "with") -
+   createWallController() treats the Dialogs elements as fully optional
+   for exactly this case. */
+.subsection {
+  border-top: none;
+  padding-top: 0.6rem;
+  padding-bottom: 1.4rem;
+}
+
+.profile-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.5rem 1.8rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.8rem;
+}
+
+.panel-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 1.2rem;
+}
+
+.intro {
+  font-size: 1.05rem;
+  color: var(--muted);
+  max-width: 40rem;
+  margin-bottom: 1.8rem;
+}
+
+.intro a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.intro a:hover {
+  color: var(--teal-deep);
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 520px;
+}
+
+.profile-form label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.profile-form textarea {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  min-height: 14rem;
+  resize: vertical;
+}
+
+.profile-form .field-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+
+.profile-form-actions {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.form-status {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.form-error {
+  color: #c0392b;
+  font-size: 0.9rem;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.wall-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  margin-top: 1.2rem;
+}
+
+.wall-post {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+}
+
+.wall-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--line);
+}
+
+.communique-item-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.communique-body {
+  white-space: pre-wrap;
+}
+
+.wall-comment-form {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.9rem;
+}
+
+.wall-comment-collapsible {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-bottom: 0;
+  transition: grid-template-rows 0.3s ease, opacity 0.25s ease, margin-bottom 0.3s ease;
+}
+
+.wall-comment-collapsible.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-bottom: 0.6rem;
+}
+
+.wall-comment-form-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.wall-comment-form textarea {
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  resize: vertical;
+}
+
+.dm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.8rem 0 1.2rem;
+}
+
+.dm-pagination button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dm-page-indicator {
+  font-size: 0.85rem;
+  color: var(--muted);
+}

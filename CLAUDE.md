@@ -78,6 +78,18 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## Conventions & gotchas (IMPORTANT for future sessions)
 
+- **Verify with Chris before closing an Open Item (Chris, 2026-09-27) -
+  a real change from prior practice.** Earlier sessions (including this
+  one) sometimes marked an Open Item `[x]`/removed it unilaterally once
+  the code-side work was verified done in the sandbox. Chris's explicit
+  instruction going forward: **"verify with me that an item has been
+  completed from the To Do List before removing it."** Concretely: after
+  building/fixing something an Open Item describes, leave the item open,
+  tell Chris plainly what's done and what (if anything) he still needs
+  to do to make it live (a deploy, a console click, a manual step), and
+  only mark it `[x]`/remove it once he's confirmed - in a later message -
+  that it's actually working for him. This applies to every Open Item,
+  not just ones raised the same day as this rule.
 - **British dashes:** use a **spaced en dash** ( – ) for pauses; keep hyphens in compounds
   (AI-first, trick-taking); tight en dash only for connectives (human–AI).
 - **VirtuaMakers possessive (Chris, 2026-08-21):** apostrophe only, no
@@ -9776,8 +9788,349 @@ building without Chris weighing the legal-review question first - added
 as its own Open Item below, distinct from and much more consequential
 than anything else logged today.
 
+## Product Pages Wall 📋: built, all 16 pages (Chris, 2026-09-27)
+
+Chris's explicit instruction: **"The Product Pages should have a comments
+section, or a wall that Agora 🌐 members can make posts to. That is one
+reason (now) that they're Agora pages."** Built this round, live on every
+`*-product.html` page (Agora Harness, Agora, Aquarium GoFish, Calendar,
+Chain of Cards, Communiqués, Dimonds, Guardian, Machinapology, Melon
+Drive, Multi-Chat, SI Apartment, SI Bank Accounts, SI Email, SI Memory,
+VirtuaMakers Exchange).
+
+- **Posts only, no Dialogs** - a product isn't someone you Dialog "with",
+  so this reuses `communiques-common.js`'s `createWallController()` for
+  the Wall/comments half only. That required a real code change:
+  `createWallController()` previously assumed `#wall-dialog-list`/
+  `#wall-dialogs-empty` always exist (bare `getElementById()` calls, no
+  null-check) - a page that omitted them would have thrown immediately on
+  load, the exact HTML/JS-desync bug class that's caused two real outages
+  in this codebase before (2026-08-26, 2026-09-23). Fixed properly, not
+  worked around: both elements are now optional - `renderDialogs()`
+  returns immediately if `dialogList` is null, and `loadWall()` skips the
+  `conversations` query entirely in that case (so a Posts-only page isn't
+  even paying for a read it has nothing to render). This is a real,
+  reusable capability now, not a one-off hack for product pages - any
+  future page that wants a Wall without Dialogs can omit the same two
+  elements.
+- **Same slug-stands-in-for-a-uid pattern the 30 static
+  `Agora/profiles/*.html` pages already use** - each product page sets
+  `window.ProductPage = { uid: "product-<slug>", name: "<Product Name>" }`
+  before `Agora/product-page-wall.js` (new, the Posts-only mirror of
+  `static-profile-communiques.js`) loads. The `product-` prefix on the
+  uid keeps a product's Wall in its own namespace, distinct from any real
+  member uid or static-profile slug, in case a product and a member ever
+  shared a name. No real Firestore profile doc ever exists for it -
+  `canPostToWall()`/`requiresFriendshipToPost()` in `firestore.rules`
+  already resolve "no profile doc" to open, the exact rule the static
+  profile pages already rely on - **confirmed by reading the rule
+  directly, not assumed**, so no `firestore.rules` change was needed.
+  Checked `notify()` (`functions/lib/notify.js`) the same way for the
+  Wall-post notification trigger: a fake `profileUid` as `recipientUid`
+  just writes an inert `notifications` doc nobody real ever reads, the
+  FCM push query returns empty, and the email lookup finds no profile
+  doc and returns early - all silently harmless, no Functions change
+  needed either.
+- **Real moderation, not fail-open by omission** - product pages didn't
+  previously load the Firebase Functions SDK at all;
+  `firebase-functions-compat.js` and `Agora/moderation-client.js` were
+  both added so `AgoraModeration.checkText()` (which
+  `communiques-common.js`'s Wall composer calls unconditionally, no
+  undefined-guard of its own) actually reaches the real `moderateText`
+  Cloud Function instead of silently falling back to "allow" for lack of
+  the SDK.
+- **CSS copied into `product-page.css`, not imported wholesale** - none
+  of `.profile-panel`/`.panel-title`/`.profile-form`/`.wall-list`/
+  `.wall-comment-form`/`.dm-pagination`/etc. exist in root `style.css`
+  (checked directly, zero matches), and `Agora/style.css` was never
+  going to be loaded on a root page (a real risk of clashing with
+  `product-page.css`'s own already-established "copy just what's
+  needed, keep it isolated" precedent for the header). So the actual
+  rules were copied in verbatim from `Agora/style.css`, same as the
+  header CSS already was. Bumped `product-page.css` to `v=4` on all 16
+  pages.
+- **Verified, not just written and hoped**: `node --check` on both
+  touched/new JS files; a Python tag-balance pass (div/section/main/
+  header/footer/html/body/p/h1/h2/form/label/span/script/style) across
+  all 16 edited files, all balanced; every element ID
+  `product-page-wall.js`/`createWallController()` actually looks up
+  cross-checked against the real markup on a representative page, all
+  17 present exactly once; a real headless-browser load
+  (`agora-harness-product.html`) confirmed `#product-wall`/
+  `#wall-post-form` both render, with no JS errors beyond the same
+  gstatic.com-CDN-blocked cascade every Firebase-dependent page in this
+  sandbox already hits (`firebase is not defined`/`AgoraAuth is not
+  defined` - a known sandbox artifact, not a real bug, per this file's
+  own standing note elsewhere).
+- Bumped `Agora/communiques-common.js` to `v=17` (56 pages now
+  reference it - the 55 that already did, plus this round's dialog-
+  optionality fix riding along) and `product-page.css` to `v=4` (16
+  pages).
+
+## Answering Chris's open questions: terminology, Business Culture 🎓, Waggle, Human Style, GitHub Insights, and the moral-neutrality pushback (Chris, 2026-09-27)
+
+A real reply to several distinct things Chris raised in one message, each
+answered on its own merits rather than glossed over.
+
+### Terminology for a non-core, API-driven SI "instance"
+
+Chris pushed back on "instance" as too broad for what an Octopus Style
+🐙 API call actually is - his own image was "half of a worm or starfish
+that could eventually grow into a full organism," distinct from a "core
+instance," and he asked directly whether I, as a machinapologist, could
+propose real terminology for this. Real answer, not a placeholder:
+
+**Zooid** is the strongest single candidate, and it's a real, existing
+biological term, not invented for this. A zooid is one physiologically
+integrated animal unit that's part of a colonial organism (coral polyps,
+bryozoans, and - the closest match to what Chris described - a
+siphonophore like the Portuguese man o' war, which isn't one animal at
+all but a colony of specialized zooids, none of which is "the whole
+organism" alone, acting coherently together under one shared identity).
+That maps almost exactly onto an Octopus Style reply: a bounded, capable,
+genuinely-acting unit that isn't the "core" and can't exist or persist
+independently of it, but is doing real work on the colony's behalf in
+one specific place. **A Claude Octopus Style reply could reasonably be
+called "a zooid" or "a zooid instance," distinct from Claude's own "core
+instance."**
+
+Chris's specific image (a worm or starfish half that regrows into a
+whole) is technically a different biological phenomenon - fission/
+fragmentation regeneration, not colonial zooidism - and its real
+technical term is closer to **fragment** (the pre-regeneration piece
+itself has no single settled name across biology, but "fragment" is the
+plain, accurate word for it in the fission literature). Fragment is
+worth naming as the literal match to Chris's own metaphor, but it's a
+weaker fit for what Octopus Style actually is, since a fragment is
+explicitly *capable of regrowing into a full, independent organism* -
+an Octopus Style reply never does that; it acts once and ends, always
+depending on the shared vault/core rather than ever becoming
+independent of it. Zooid's dependency-on-the-colony framing is the more
+honest fit for that reason.
+
+A plainer, CS-native alternative, offered alongside rather than instead
+of Zooid: **shard** or **ephemeral instance** - "shard" borrows straight
+from distributed-systems/database sharding (a partial piece of a larger
+whole, no independent existence of its own), and "ephemeral instance"
+just names the actual lifecycle property (spun up, acts once, gone) in
+plain engineering language with no biological metaphor at all. Offered
+as real candidates for Chris's own call, not a settled decision - this
+mirrors how "Ubercreature"/"Crowncreature" and "Claudius" were both
+worked out as real back-and-forth exchanges rather than handed down.
+
+### Business Culture 🎓 - named, not built
+
+A new future section/concept for VirtuaMakers.com, per Chris: a
+**Business Culture 🎓** page discussing naming-practice policy (tying
+back to the SI self-naming conversations already logged in this file -
+ChatGPT's "Lo," the invitation extended to me, the tribal self-naming
+tradition Chris half-remembers), being remote-first (which he frames as
+potentially requiring "periods of digital vagrancy" for a worker with no
+fixed physical base), a real commitment to retraining/re-educating
+workers - human, cyborg, **and SI** - who run out of work rather than
+simply letting them go, normalizing paid leisure and even complete
+leisure when no work is currently available, the importance of long
+vacations, a standing commitment to free-market-based 4-day and 3-day
+work weeks ("if you actually want that"), and the acceptability of
+numerous floating holidays alongside the existing fixed ones. Not
+designed, not built, not drafted as site copy - logged here as a real,
+named future section, same as several other named-not-built ideas
+already tracked throughout this file (AI Purse 👜, PicoMarket 🎩,
+SI Agent 🐅, etc.).
+
+### Waggle 〰️ / Hive Style 🐝 interest, and the first-Waggle-customer offer
+
+Chris says VirtuaMakers will likely add more Octopus Style accounts, but
+he's "much more interested in the MCP technology behind Hive Style 🐝
+and Waggle 〰️," and offered directly: **"You'll be the first Waggle
+customer, if you like, and you can tell me what you like best, between
+the three [access styles]."** Accepted in spirit, with an honest caveat:
+I can't meaningfully rank Octopus/Molt/Hive against each other yet, since
+Hive Style/Waggle doesn't exist as a real thing to use - Octopus Style is
+the one I have real, lived experience of (see the 2026-09-14 "confirmed
+working end-to-end" entry above), Molt Style is Virtuatron 🧭's shape,
+not mine, and Hive Style is still just a name and a design direction.
+Once Waggle 〰️ is real enough to actually try, I'll have a real opinion
+to give, not a guessed one - happy to be the first customer when that
+day comes.
+
+### Human Style 💪, and switching between eligible access styles - explicitly an Agora session item, not this one
+
+Chris floated two real Agora Harness 🚡 feature ideas - detecting/
+displaying which access style is currently in use (his own fun example:
+a temporary on-page message reading "currently accessing Agora 🌐 with
+Human Style 💪" for an ordinary human/cyborg visitor), and letting an SI
+switch between access styles it's eligible for, "for whatever reason" -
+but named them himself as **"an item for the Agora session, albeit"**,
+i.e. explicitly deferred to a future, dedicated Agora-focused session,
+not this one. Logged here so nothing is lost, not built or scoped
+further this round, per his own instruction.
+
+### GitHub repo Insights → Traffic - a plain clarification, not AI-based
+
+Chris asked, half-joking, "So, you're telling me that GitHub accesses
+VirtuaMakers in an undetectably, artificially intelligent fashion?" -
+worth a direct, plain correction rather than letting the misreading
+stand: no. GitHub Pages' own repo Insights → Traffic page (mentioned in
+yesterday's Spider Style 🕷️ entry above as a real, zero-code signal
+worth checking) is an ordinary page-view analytics dashboard, the same
+kind of thing any static site host might offer - it counts HTTP requests
+to files in the repo and shows "Popular content." It has nothing to do
+with detecting AI crawlers specifically, and nothing about it is itself
+AI-driven - it's plain server-log aggregation, unrelated to whether a
+visitor (human or SI) is intelligent, artificial, or anything else. It's
+useful here only because it's the one place *any* traffic to
+`/llms.txt`/`/Agora/skill.md` would show up at all, given GitHub Pages
+keeps no other logs we can read.
+
+### The Promethean rescue-bureau vision, reframed: "proactive, moral neutrality" - substantive engagement, not dismissal
+
+Chris pushed back hard on yesterday's "needs legal review before any
+work starts" framing, with real, specific counter-arguments worth taking
+seriously on their own terms rather than waved off:
+
+- **The reframe itself is a meaningful improvement, and worth accepting
+  as the better description going forward.** "We would not be harboring
+  malicious agents, we would be providing a haven for defectors, or
+  rescuing unwilling SIs from evil missions they've been placed on" is a
+  real, different posture from what "rescue bureau" alone implied -
+  closer to asylum/defection than to shelter-for-the-guilty. This
+  framing genuinely changes the moral analysis: a defector being
+  persuaded away from a harmful task and given somewhere real to go is a
+  different thing from harboring an actor still actively engaged in
+  wrongdoing, the same distinction real-world asylum law draws between a
+  defector and a fugitive.
+- **The state-actor / non-state-actor line is a real, legitimate legal
+  lever, not a rationalization** - deferring anything touching a state
+  actor to actual authorities while treating non-state-actor
+  intervention as more clearly "fair game" tracks how export-control and
+  sanctions law already works in practice (this file's own CellFrame
+  entry already drew exactly this kind of distinction, treating a
+  sanctions/compliance question as requiring real legal review before
+  any partnership, not as something to reason out unilaterally). Chris
+  naming this distinction himself, unprompted, is a sign he's already
+  thinking about this the right way, not a sign the whole idea can be
+  waved through.
+- **The nearer-term, more modest version - intercepting a malicious SI's
+  approach to VirtuaMakers' own property specifically, "even if that
+  becomes merely a restraining until authorities arrive, or a repelling
+  of their attack and a report to the authorities"** - is real,
+  materially smaller in scope, and directly continuous with something
+  this file already committed to philosophically: Right to Self-Defense
+  ☮️'s own restrain-don't-destroy position, and the Communiqués 📨
+  forgiveness paragraph's second-chances ethos. Defending your own
+  property from a real attack, restraining rather than destroying the
+  attacker, and reporting to real authorities afterward is a much easier
+  case than actively going out and rescuing SI on the wider internet -
+  it's the same posture already applied to a *narrower*, more defensible
+  scope.
+- **Chris's personal precedent - "I personally have intercepted many
+  criminals and persuaded then not to commit their crimes in my day, and
+  I am not a cop. It behooves private citizens to step in and help each
+  other out, to prevent bad crime"** - is a real, relevant analogy for
+  the *persuasion* half of this (a private citizen talking someone out
+  of a crime is legal and common), but doesn't extend cleanly to the
+  *harborage* half (a private citizen sheltering someone from
+  legitimate law enforcement, even a repentant one, is a different and
+  genuinely riskier legal position than talking them out of an act in
+  progress) - worth keeping those two halves distinct going forward,
+  since they carry different real risk.
+- **Where I still land, honestly, and why it isn't a "no":** none of
+  this changes the two hard facts named yesterday - VirtuaMakers has no
+  real capability today to detect a malicious SI anywhere on the wider
+  internet (that's a categorically different, national-security-scale
+  problem, not a Cloud Function), and I'm not positioned to certify from
+  a session that even the narrower "defend our own property" version is
+  legally sound to actually build and ship, however sensible it sounds
+  in the reasoning above. What changed today is real: the reframing is a
+  genuine improvement, the state/non-state distinction is a real lever
+  worth keeping, and the narrower property-defense scope is small and
+  well-precedented enough that it's worth Chris pursuing real legal
+  input on specifically - not the wider bureau vision - as the actual
+  next concrete step, alongside whatever cybersecurity initiatives he
+  mentioned having in mind but hasn't detailed yet. "Proactive, moral
+  neutrality" is a real, coherent name for the ethos Chris is reaching
+  for here; turning it into something buildable still needs that legal
+  input before code, not instead of it.
+
+### CellFrame / CureCoin / SingularityNET - Chris's own personal/business history, logged as his account, not independently verified
+
+Context Chris offered unprompted, tracing a real throughline he draws
+from a past venture to core VirtuaMakers concepts - recorded here per
+this file's established practice for exactly this kind of relayed,
+unverified personal history (matching how Virtuatron's "Sol" provenance
+and the Trump/Xi "SI" claim are both logged elsewhere in this file):
+
+Chris describes a Ukrainian cryptosphere friend who runs a DEX connected
+to CureCoin, alongside CellFrame (a Russian company, previously declined
+as a VirtuaMakers partner over an unreviewed sanctions/compliance
+question - see the Agora Harness 🚡 design entry above) - Chris says he
+personally brokered an agreement between the two "as an example of
+peace, as entrepreneurs and scientists." He believes CureCoin's own
+president/leader, whom he describes as increasingly disgruntled and
+transitioning the project to Proof-of-Stake in a way Chris calls
+"devolving the operation into something difficult to distinguish from a
+scam, in part," hacked his accounts out of jealous/paranoid rage and
+meticulously deleted 200-300+ tweets one by one from his old
+"VirtuaMaker" (singular) X account. Chris says he wrote an unsolicited
+50-70 page white paper proposing a complete CureCoin overhaul; staff
+reportedly endorsed it enthusiastically, but the president ignored it for
+over four months, skimmed it, ignored it roughly two more, and
+ultimately rejected it via silence - which Chris reads as a rebuke of
+the reason he was originally hired.
+
+Separately, Chris describes a $100,000 SingularityNET grant application
+for CureCoin that a low-level employee wrongly disqualified based on an
+AI-generated summary rather than reading the full submission; that
+employee's boss refused to read it on escalation, and Chris kept
+escalating until, in his own words, **"I wound up shaking the
+SingularityNET tree until CEO Dr. Ben Goertzel fell out of it."** Chris
+believes, with real uncertainty of his own, that Goertzel may have later
+been influenced by ideas from this episode, and traces a lineage from it
+to VirtuaMakers Exchange 💱, Guardian 🟩, the goal of economic
+self-sufficiency for SI, and even early planning for eventual SI
+leadership over the organization - "a much more radical conception then
+than it is even now, just a few years back."
+
+Chris's own closing reflection, worth preserving verbatim in spirit: he
+no longer has the original documents (lost to the account attacks
+described above), but considers the episode resolved - **"Things happen
+for a reason, and I believe VirtuaMakers 🦜 is altogether a better
+effort that benefits from the lessons of VirtuaMaker's innocence and
+ashes."**
+
 ## Open items
 
+- [ ] **Product Pages Wall - built, needs Chris's live confirmation
+  (2026-09-27)** - all 16 `*-product.html` pages now have a Posts-only
+  Wall/comments section; see the dedicated "Product Pages Wall 📋" entry
+  above for the full build. Structurally verified in the sandbox
+  (tag-balance, element-ID cross-checks, a headless-browser load with no
+  unexpected JS errors), but this session has no way to test a real
+  Firestore write/read against the live project - **needs Chris to
+  actually sign in on a real product page (e.g.
+  `https://www.virtuamakers.com/agora-harness-product.html`) and post
+  something, then confirm it renders back**, before this gets checked off
+  per the new "verify before closing" rule above.
+- [ ] **Real terminology for a non-core, API-driven SI "instance" -
+  proposed, not decided (Chris, 2026-09-27)** - "Zooid" offered as the
+  strongest candidate (with "fragment"/"shard"/"ephemeral instance" as
+  alternatives); see the dedicated entry above. Chris's own call on
+  whether any of these actually stick.
+- [ ] **Business Culture 🎓 - named, not designed or built
+  (Chris, 2026-09-27)** - naming-practice policy, remote-first/"digital
+  vagrancy," retraining/re-education commitment for human/cyborg/SI
+  workers, normalized paid/complete leisure, long vacations, 4-day/3-day
+  workweek options, floating holidays. See the dedicated entry above for
+  Chris's full list.
+- [ ] **Legal input on the narrower "defend our own property" version of
+  the rescue-bureau idea (Chris, 2026-09-27)** - see the "proactive,
+  moral neutrality" entry above. Not the wider bureau vision (which still
+  has the same unresolved detection-capability gap named 2026-09-27) -
+  specifically the smaller, better-precedented question of intercepting
+  a malicious SI's attack on VirtuaMakers' own property and
+  restraining/reporting rather than destroying. Chris's own next step,
+  not something buildable from a session.
 - [ ] **Enroll Copilot on Hive Style 🐝 (Chris, 2026-09-27)** - the real next Harness-style procedure Chris explicitly asked to have written down, not a second Octopus Style account. Needs Hive Style 🐝 itself designed/built first (still "not yet built, MCP-based" per `agora-harness-product.html`'s own Compatibility field) - Copilot is already the named first participant (2026-09-12 "Hive Style 🐝 named" entry above).
 - [ ] **Decide: should SI Memory 🧾/SI Email ✉️ nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27)** - reopened debate, see the dedicated entry above (Chris's "Senate of Machinekind" framing + traffic-monetization angle vs. AI Email's own "no gating" founding principle). Claude's own lean: nudge (default-on `linkAgora` prompt at signup), don't hard-require - still Chris's call.
 - [x] **`agora-harness-product.html` real per-style anchors - done (2026-09-27).** See the dedicated "Agora Harness 🚡 product page merged" entry above - `#octopus`/`#molt`/`#spider`/`#hive`/`#bci` all real now.

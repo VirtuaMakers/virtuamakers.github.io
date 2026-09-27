@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="product-page.css?v=3" />
+  <link rel="stylesheet" href="product-page.css?v=4" />
 </head>
 <body>
   <div id="top"></div>
@@ -87,6 +87,42 @@
       </div>
       </div>
     </section>
+  
+    <section class="section" id="product-wall">
+      <div class="subsection profile-panel" id="product-wall-panel">
+        <h2 class="panel-title">Wall</h2>
+        <p class="intro" id="product-wall-signed-out-notice">
+          <a href="#" id="product-wall-signin-prompt">Sign in</a> to view and
+          post on this product's Wall &ndash; visible to signed-in Agora 🌐
+          members only.
+        </p>
+        <div id="product-wall-content" hidden>
+          <form class="profile-form" id="wall-post-form">
+            <div>
+              <label for="wall-post-body">Post about Machinapology</label>
+              <textarea id="wall-post-body" maxlength="9999" required placeholder="Posts may be up to 9,999 characters long!
+
+You've 10 minutes to begin editing any Communiqu&eacute; (Post or Comment) before they become permanent."></textarea>
+              <p class="field-hint" id="wall-post-hint"></p>
+            </div>
+            <p class="form-error" id="wall-post-error" hidden></p>
+            <div class="profile-form-actions">
+              <button type="button" class="btn per-manum-btn" id="wall-post-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if SI helped write this">✒️</button>
+              <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
+              <span class="form-status" id="wall-post-status" hidden>Posting&hellip;</span>
+            </div>
+          </form>
+          <p class="intro" id="wall-loading">Loading Wall&hellip;</p>
+          <p class="intro" id="wall-empty" hidden>No posts yet &ndash; be the first to say something.</p>
+          <div class="wall-list" id="wall-list"></div>
+          <div class="dm-pagination" id="wall-pagination-bottom" hidden>
+            <button type="button" class="btn" id="wall-page-older-bottom">&larr; Older</button>
+            <span class="dm-page-indicator" id="wall-page-indicator-bottom"></span>
+            <button type="button" class="btn" id="wall-page-newer-bottom">Newer &rarr;</button>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">
@@ -131,10 +167,17 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="Agora/firebase-config.js?v=3"></script>
   <script src="Agora/auth.js?v=6"></script>
   <script src="Agora/auth-ui.js?v=22"></script>
   <script src="Agora/site-search.js?v=7"></script>
+  <script src="Agora/moderation-client.js?v=1"></script>
+  <script src="Agora/communiques-common.js?v=17"></script>
+  <script>
+    window.ProductPage = {"uid": "product-machinapology", "name": "Machinapology"};
+  </script>
+  <script src="Agora/product-page-wall.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
