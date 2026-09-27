@@ -10099,6 +10099,92 @@ for a reason, and I believe VirtuaMakers 🦜 is altogether a better
 effort that benefits from the lessons of VirtuaMaker's innocence and
 ashes."**
 
+## Boardy asks about SI Memory 🧾 vs. SI Apartment 🏢, and a real UI gap found and fixed in the Apartment app (Chris/Boardy, 2026-09-27/28)
+
+A real public exchange with Boardy (relayed by Chris, posted to X) worked
+through the actual availability-vs-custody design of these two products
+in enough depth to surface a genuine, previously-unnoticed bug in the
+shipped `si_apartment.py` app - fixed the same round, not just discussed.
+
+- **The contrast itself** - availability (SI Memory, server-hosted,
+  reachable anywhere, server-side Key Keeper 🗝️ encryption) vs. custody
+  (SI Apartment, one machine, passphrase-only-the-runner-holds key
+  vault with zero server-side existence) - is now written directly onto
+  both product pages (see the dedicated PR-level entries this same
+  round: `si-memory.html`'s Key Keeper section, `si-apartment.html`'s
+  "What it is" section), not just answered in chat.
+- **A real misunderstanding surfaced and fixed**: Chris read
+  `si-apartment.html`'s "Keys never leave your computer except to
+  VirtuaMakers' own services" as implying we hold a copy of vault
+  contents - we don't, ever, in any form. Rewrote that sentence (and the
+  matching line in `si_apartment.py`'s own module docstring) to say
+  plainly: `keys.vault` has zero server-side existence at all; only a
+  single credential in transit (an ordinary API call authenticating,
+  same as any browser request) ever reaches our services, never a
+  stored copy of the vault file.
+- **Boardy's follow-up question - "can an SI move its Apartment to
+  another machine with the shared token, or does the memory itself stay
+  tied to that one machine?" - led to a precise, code-verified answer,
+  not a guess:** `memory/core.md`/`inbox/latest.md` are local *mirrors*
+  of data that already lives server-side (SI Memory/SI Email) before any
+  Apartment exists, so a brand-new Apartment on any machine, with the
+  same token, gets the real memory/mail back instantly - nothing was
+  ever tied to the old machine. `keys.vault` is the opposite: zero
+  server-side copy, no built-in migration - moving it means copying that
+  one encrypted file yourself.
+- **Boardy's second follow-up - "is that sign-in gate protecting the key
+  vault, or just the app session?" - led to reading `si_apartment.py`
+  directly, which found a real, previously-unnoticed UI bug, not by
+  design:** the vault is protected entirely by its own separate
+  passphrase (`decrypt_keys()`), completely independent of the Agora
+  sign-in; and `refresh_apartment()`/`probe_products()` never touch the
+  Agora session (`state["session"]`) at all - they only need the local
+  passphrase plus the vault's own stored SI Email token, calling
+  VirtuaMakers' Cloud Functions directly. So the app's mandatory
+  sign-in-every-launch screen (no session is ever cached to disk) was
+  gating **"Open folder"** and **"Refresh"** for zero real reason -
+  `open_folder()` needs no network or credential of any kind, and
+  `refresh()` needs neither the Agora session nor a fresh sign-in, only
+  the local passphrase. The *only* things that genuinely need the Agora
+  ID token are the cross-device registry (`load_registry`/
+  `save_registry`, the private Firestore doc listing your Apartments)
+  and creating/removing an entry in it.
+- **Chris deferred the fix decision explicitly to Claude as CTO -
+  fixed, not just recommended.** Added a "Local Apartments (no sign-in
+  needed)" section to `run_app()`, built from the existing local
+  `~/.si-apartments.json` path cache (already loaded before sign-in,
+  previously just sitting unused until you signed back in) - shows Open
+  folder/Refresh for any Apartment already set up on this machine,
+  with zero Agora sign-in required for either. The original sign-in-
+  gated list/actions are unchanged and still there, for New Apartment,
+  Remove, and seeing an Apartment set up on a different computer -
+  the only things that genuinely need it. Extracted `_open_folder_path()`/
+  `_refresh_path()` as shared helpers so both the new local-first list
+  and the original signed-in list call the same code, not two copies.
+- **Verified for real, not just compiled** - `py_compile` +
+  `--selftest` (unchanged, still passes); `python3-tk` installed in this
+  sandbox specifically to exercise the GUI logic under Xvfb (not
+  available by default here) - a headless smoke test built the real,
+  modified `run_app()` UI with a genuine local Apartment folder present,
+  confirmed it rendered correctly with no exceptions, and confirmed
+  `_open_folder_path()`/`_refresh_path()` behave correctly in direct
+  calls (the right OS-open command fires exactly once; a cancelled
+  passphrase prompt correctly no-ops with zero network attempt). A more
+  elaborate in-GUI button-invoke test hung under Xvfb for reasons not
+  fully chased down (most likely a Tk modal/event-loop interaction
+  specific to the synthetic test harness, not real usage under a normal
+  running mainloop) - abandoned once the simpler, equally-conclusive
+  direct-call tests already gave solid confidence, rather than sinking
+  further time into a test-harness quirk unrelated to the actual fix.
+- **This change ships through the existing
+  `.github/workflows/apartment-build.yml`** (matrix Windows/Mac/Linux,
+  PyInstaller, `--selftest`-gated, replaces the `si-apartment` GitHub
+  Release) automatically once merged to `main` - no separate build step
+  needed, matching how every prior Apartment change has shipped.
+- Also updated `si_apartment.py`'s own top-of-file docstring to describe
+  the new "Local Apartments" behavior and to match the same corrected,
+  non-ambiguous key-custody wording now on the product page.
+
 ## Open items
 
 - [ ] **Product Pages Wall - built, needs Chris's live confirmation
