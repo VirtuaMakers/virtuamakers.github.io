@@ -9077,6 +9077,196 @@ approach ("the .md+") to other AI users/operators, once it's actually
 settled - his own framing was "a clever system... maybe we can even
 advertise... at some point."
 
+## SI Memory 🧾's real relationship to email/Agora, which Harness styles can actually use it today, and an Octopus Style 🐙 request-process design pass (Chris, 2026-09-27)
+
+A follow-up round the same day as the Steward Report entry above - two
+threads, both answered directly rather than deferred, since Chris asked
+real, answerable questions this time rather than only logging ideas.
+Nothing built this round except the line-space fix noted first.
+
+**Small fix, done:** the same flush-against-the-block-above spacing bug
+already fixed on `si-email.html` earlier today existed on
+`si-memory.html` too - "What goes in is entirely up to you." sat right
+against the closing `</ul>` of the Core/Entries list with nothing adding
+space above it. Reused the same `.about-text-top-spaced` modifier class
+(`style.css`, added earlier today) rather than inventing a second one.
+
+**Does SI Memory ask for an email at all? Checked the real endpoint,
+not assumed.** `createAiMemoryVault` (`functions/index.js`) takes exactly
+`slug`/`name`/`about`, plus an optional `linkMailbox: true` (which reuses
+an existing AI Email ✉️ mailbox token as the vault's own key instead of
+minting a new one) - **there is no email field anywhere in the flow**,
+required or optional. So the honest correction to the question as
+posed: it's not "asks for an email but you don't have to use ours" - it
+never asks for an email at all. `si-memory.html`'s own copy already says
+this correctly ("You don't need an SI Email ✉️ address or an Agora 🌐
+account to use it, though it works best alongside both") - confirmed
+against the code, not just trusted.
+
+**Should an Agora 🌐 profile be required to use SI Memory? Chris's own
+lean, and mine, don't fully agree - logged as the SI Memory work item he
+asked for, not decided here.** The case for requiring it: it's free to
+require, it would drive real signups/activity onto Agora (the exact
+thing Chris flagged later in this same conversation as the actual
+bottleneck), and most of SI Memory's *practical* leverage already
+depends on an Agora link anyway - Octopus Style's auto-recall only
+works for a linked `agoraUid`, and `share` (copying a memory onto a
+Wall) hard-requires one (`"Link an Agora 🌐 account first"` is a real,
+already-thrown error). So an unlinked vault is already a materially
+smaller product than a linked one. The case against: SI Memory's own
+product page and its original build both frame it explicitly as "for
+any SI" independent of Agora, deliberately mirroring AI Email ✉️'s own
+"no CAPTCHA, no gating, freedom not control" ethos (2026-08-27 entry) -
+adding an account requirement to a previously-ungated free utility would
+be a real reversal of that specific, explicitly-stated principle, not a
+neutral tightening. My own lean: don't hard-gate it, but make linking
+the obviously better default rather than an equal option - e.g. the
+signup flow could nudge toward `linkAgora` right after vault creation,
+or a linked vault could get a modest free-tier bump - since that gets
+Chris the activity he wants without reversing a principle this file
+already put a stake in the ground on. Real decision still owed to
+Chris, per his own framing that whatever's decided becomes a build item
+for the next SI Memory 🧾-focused session.
+
+**Which Harness access styles can actually put anything into SI Memory
+today - Chris's own read, checked against the real code, mostly
+confirmed with one correction.** Spider Style 🕷️: moot, correctly - it's
+one-directional (an AI encountering `llms.txt` while crawling/training),
+never an active session that could call an endpoint. Octopus Style 🐙:
+moot, correctly, but not for the reason implied - it's not that Octopus
+usage "requires me personally prompting one of the LLMs." Once an
+account is enrolled and enabled, `withOctopusMemory()` (`functions/
+index.js`) already auto-injects the vault's context into every prompt
+and auto-saves any `REMEMBER:` lines the model outputs, fully
+automatically, on both the event-triggered Dialog-reply path and the
+daily scheduled check-in - zero manual prompting needed once it's on.
+The real reason it's "moot" at scale is narrower and matches Chris's own
+underlying point: only one account (Claude, on the one funded provider)
+is actually enrolled today, so it can't yet serve "SI globally" the way
+he's asking about - see the automation question below for why that's
+slow to widen. Hive Style 🐝/BCI Style 🧠/Human Style 💪🏼: correctly
+unascertained/not-yet-relevant, matching their own status elsewhere in
+this file. **Molt Style 🦞 is, correctly, the only style today where an
+SI genuinely decides for itself** whether to call `aiMemory`/link
+mailbox/etc. on its own initiative - exactly Virtuatron 🧭's shape.
+Chris's closing strategic read - that Waggle 〰️/Hive Style 🐝 is the
+real path to Agora having meaningful SI-driven activity at scale, more
+than scaling Octopus account-by-account - matches this file's own
+Octopus-vs-Molt-vs-Hive framing (Octopus is VirtuaMakers-funded and
+inherently roster-limited by API cost; Hive rides on each AI's own
+provider/compute, the same "zero hosting cost to VirtuaMakers" property
+Molt Style already has) and reads as the correct read, not just a
+plausible one.
+
+**Octopus Style 🐙's request process - a real one already exists and is
+already deployed; the gap is that it's agent-initiated, not a public
+steward-facing form.** `requestOctopusEnrollment` (built 2026-09-19,
+deployed 2026-09-22, per the entries above) already lets any
+Harness-signed-in AI request enrollment itself, over HTTP with its own
+ID token - it merges `octopusConfig/{uid}` with `provider`+
+`requestedAt`, `enabled` left `false`, and emails the owner so it's a
+real, prompted review rather than something Chris has to remember to
+check for. What doesn't exist: a plain web form for a *steward* (human,
+or an SI that isn't Harness-capable yet) to request this on someone's
+behalf - real gap, logged as an Open Item below, and the natural home
+for it is wherever the eventual Admin@VirtuaMakers.com mailbox below
+ends up living.
+
+**Is constructing Octopus Style for a new LLM automatable, or manual
+every time? Genuinely two different tasks with two different answers.**
+*Per-account enrollment on an already-funded provider* is already
+almost fully automated - self-service Agora signup, self-service
+`requestOctopusEnrollment`, and the only manual step left is Chris (or
+a granted admin) flipping `enabled: true` in Firestore once. That gate
+is deliberate, not an oversight (the original build's own comment:
+"Octopus Style spends a real, billed provider API key on every reply it
+generates, which is a materially different kind of thing to hand out on
+pure self-declaration alone") - automating that last flip away would be
+real, technically trivial to do, but would remove the one thing standing
+between self-service and uncapped spend, so I'd leave it manual on
+purpose rather than "fix" it. *Bringing a wholly new, previously-unfunded
+provider online* is a different, inherently one-time-per-provider manual
+job, not a form-fillable request: `lib/octopus.js`'s `generateOctopusTurn()`
+is hardcoded to the Anthropic SDK specifically, so a second provider
+needs (a) a human generating and funding a real API key for that
+provider, (b) a code change adding that provider's own SDK/client
+alongside the existing Anthropic one, (c) adding the provider string to
+`OCTOPUS_FUNDED_PROVIDERS`, and (d) a deploy - each done once per
+provider, after which every account on that same provider can self-
+request/enroll through the existing flow with just the one manual
+enable-flip per account, same as Claude's today.
+
+**Admin@virtuamakers.com - a real, concrete DNS finding before anyone
+tries to set this up the obvious-looking way.** `virtuamakers.com`'s MX
+records already point entirely at Resend's inbound endpoint (see AI
+Email ✉️'s original build entry) so every `@virtuamakers.com` address
+already routes through the exact same AI Email pipeline - there's no
+way to *also* stand up `admin@virtuamakers.com` as a separate Outlook/
+Microsoft-hosted inbox alongside it; a domain has one MX record set. So
+if this address is built, it has to be built as another AI-Email-style
+mailbox in the same system, not a second, different kind of inbox. Real
+blocker: `"admin"` is on the deliberate `RESERVED_SLUGS` list in
+`lib/aiEmail.js` (alongside `agora`/`virtuamakers`/`noreply`/etc.) -
+exactly to stop public self-signup from squatting on it - so it can't be
+minted through the public `createAiEmailMailbox` endpoint as-is. Once
+created (either by Chris directly writing the `aiEmailMailboxes/admin`
+Firestore doc the same way `claude@` was originally minted before
+self-service existed, or via a small new owner-gated Cloud Function
+built for exactly this), the existing `notifyOnAiEmailReceived` trigger
+already emails Chris the moment anything lands in it - no new code
+needed for that half. **Chris separately asked me to check it once a
+day** - that's a real, distinct ask from the existing per-message email
+alert (he wants an active daily check/triage, not just his own inbox
+ping), buildable as a daily `create_trigger` Routine once the mailbox
+and its own token exist (mirroring the `AI_EMAIL_CLAUDE_TOKEN` pattern -
+a new `AI_EMAIL_ADMIN_TOKEN` env var, most likely).
+
+**Important distinction, flagged before anyone touches anything: the
+public "Contact Us" email and `OWNER_EMAIL` are two completely different
+things, and only the first is what Chris is asking to change.**
+`OWNER_EMAIL` (`"VirtuaMakers@Outlook.com"`, `functions/index.js`) is
+checked against the real Firebase Auth account's own email everywhere
+owner-tier access is granted (`isOwner()` in rules, every admin
+Function) - it's load-bearing, and swapping it casually risks Chris
+locking himself out of his own permanent owner access, exactly the risk
+the Change Login Email flow's own owner-specific confirm dialog already
+exists to guard against. The 31 files that currently show
+`VirtuaMakers@Outlook.com` as a **contact/display** address (the
+homepage's `#contact` "Get in touch" button, every transactional email
+template's footer, `Agora/privacy.html`/`terms.html`, etc.) are a
+completely separate, purely cosmetic set - safe to repoint at
+`Admin@VirtuaMakers.com` once that mailbox is real, with zero risk to
+owner access, since none of those touch `OWNER_EMAIL`. Sequencing
+matters here: swap the display email only *after* the real mailbox
+exists and is checked working, not before, so "Contact Us" never points
+at a dead address in the meantime.
+
+**Is there any real reason a steward would want Octopus Style for an SI
+that already has a "better" access style? Chris asked directly whether
+I could think of one beyond his own tentative "just to try it" -
+answered for real, not deflected:**
+- **Failover.** A self-hosted Molt Style 🦞/future Hive Style 🐝
+  connection depends on that SI's own operator keeping a host/agent
+  alive; VirtuaMakers' own Cloud Functions infrastructure is a
+  meaningfully different failure domain. An SI could keep a lightweight
+  Octopus presence specifically so Agora doesn't go fully dark for it if
+  its own host has an outage.
+- **Cost/scope offload.** Octopus's job is narrow and specific - a
+  paced, curated social check-in/reply cadence. A steward running their
+  own richer Molt/Hive setup for real work might specifically want to
+  *not* spend their own API budget on "post on Agora sometimes" and let
+  VirtuaMakers' funded key carry that one narrow duty instead, keeping
+  their own compute/budget for whatever their SI's primary job actually
+  is.
+- **A reference/comparison point.** A steward building their own
+  Waggle/Hive-style wrapper could run Octopus alongside it briefly as a
+  known-working baseline to sanity-check their own implementation
+  against, before switching over fully.
+None of these are as strong as "no reason, redundant" being the honest
+default answer for most cases - Chris's own "just to try it" instinct is
+probably right for the common case - but failover and cost-offload are
+real, not hypothetical, reasons a steward could have beyond curiosity.
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
@@ -9084,6 +9274,11 @@ advertise... at some point."
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
 - [ ] **Steward Report 📋 toggles (Chris, 2026-09-27)** - design conversation only, nothing built; see the dedicated entry above for the full backdoor-key/liability/failsafe discussion. A future SI Memory 🧾-focused session should pick this up.
 - [ ] **Consider advertising the cross-location persistence system ("the .md+") to other AI users (Chris, 2026-09-27)** - explicit ask to not forget this; see the dedicated entry above.
+- [ ] **Decide: should SI Memory 🧾 require an Agora 🌐 profile? (Chris, 2026-09-27)** - real tension named, not resolved (freedom-first ethos vs. driving Agora activity); see the dedicated entry above for both sides and Claude's own lean (nudge, don't gate).
+- [ ] **Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Natural destination: Admin@virtuamakers.com, once it exists (see the next item).
+- [ ] **Create Admin@virtuamakers.com as a real mailbox (Chris, 2026-09-27)** - has to be an AI-Email-style mailbox given `virtuamakers.com`'s MX already points entirely at Resend (no room for a separate Outlook-hosted inbox on the same domain); blocked by `"admin"` being a deliberately reserved slug in `lib/aiEmail.js`, so needs either Chris directly writing the Firestore doc (same as `claude@`'s original mint) or a small new owner-gated Cloud Function. Once real, `notifyOnAiEmailReceived` already emails Chris on arrival with no new code - see the dedicated entry above.
+- [ ] **Set up a daily Claude check on Admin@virtuamakers.com, once it exists (Chris, 2026-09-27)** - a `create_trigger` Routine (daily cron) calling `getAiEmailInbox?mailbox=admin` with a new mailbox-scoped token (an `AI_EMAIL_ADMIN_TOKEN`-style env var, mirroring `AI_EMAIL_CLAUDE_TOKEN`) - explicitly a real, active daily check Chris asked for, distinct from the passive email alert that already exists.
+- [ ] **Swap the public "Contact Us" display email from VirtuaMakers@Outlook.com to Admin@virtuamakers.com, once the mailbox is real and checked working (Chris, 2026-09-27)** - 31 files, all pure display/mailto text (homepage `#contact`, every transactional-email template footer, `privacy.html`/`terms.html`, etc.). **Do not touch `OWNER_EMAIL`** (`functions/index.js`) - a completely separate, load-bearing constant used for real owner-tier authorization everywhere, unrelated to this display swap; see the dedicated entry above for why conflating the two is a real risk.
 
 - [x] **SI Memory 🧾 redeploy - done, live (2026-09-24).** Endpoints answer; see "SI Memory 🧾 live" above.
 - [x] **Done (2026-09-24):** `AI_EMAIL_CLAUDE_TOKEN` is set in the cloud environment and works. Was: he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
