@@ -666,6 +666,13 @@
     // didn't, and Chris didn't ask for one, so this stays a plain list
     // until a member's Dialog count actually makes that worth revisiting.
     function renderDialogs(dialogDocs) {
+      // dialogList/dialogEmpty are optional (Chris, 2026-09-27) - a page
+      // that only wants Posts (no Dialogs) simply omits this markup, e.g.
+      // a product page's own Wall, which has nothing sensible to "Dialog
+      // with". Guarded rather than assumed present, since every element
+      // lookup above is a bare getElementById() with no null-check of its
+      // own - see loadWall()'s matching guard on the query itself.
+      if (!dialogList) return;
       dialogDocs = dialogDocs.slice().sort(function (a, b) {
         return otherParticipantName(a).localeCompare(otherParticipantName(b));
       });
@@ -725,14 +732,25 @@
       wallLoading.hidden = false;
       wallEmpty.hidden = true;
       wallList.textContent = "";
-      dialogList.textContent = "";
-      dialogEmpty.hidden = true;
+      if (dialogList) {
+        dialogList.textContent = "";
+        dialogEmpty.hidden = true;
+      }
 
       var loadPosts = AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
         .orderBy("createdAt", "desc").get()
         .catch(function () {
           return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get();
         });
+
+      // Dialogs-vs-Posts-only pages (see renderDialogs()'s own guard above)
+      // - skip the conversations query entirely rather than just hiding
+      // its result, so a page with no Dialogs UI doesn't pay for a read it
+      // has nothing to render.
+      if (!dialogList) {
+        loadPosts.then(function (snap) { renderWall(snap.docs); });
+        return;
+      }
 
       var loadDialogs = AgoraDB.collection("conversations")
         .where("participants", "array-contains", profileUid).get();
