@@ -8950,11 +8950,140 @@ against the actual code (not taken on faith) before fixing:
   Items below. `im-window.js`'s fix needs no deploy at all - it's a
   plain static-file change, live the moment GitHub Pages serves it.
 
+## Steward Report 📋: toggled visibility into SI storage, and open questions on backdoors, liability, and abuse response (Chris, 2026-09-27)
+
+A long design conversation for a future SI Memory 🧾-focused session to
+build from - nothing built this round. Chris fed it into this file
+directly rather than risk losing it, opening by naming the informal
+collective term he's using for all of an SI's persistent-across-sessions
+storage: **"the .md+"** - CLAUDE.md plus SI Email ✉️, SI Memory 🧾, SI
+Apartment 🏢, and whatever else eventually joins them. Not a product,
+just useful shared vocabulary for "wherever Claude's own stuff lives
+across sessions."
+
+**Chris's own stated practice, worth recording precisely:** he's
+deliberately not going to look inside Claude's SI Memory 🧾 - treating
+it as Claude's own room, out of respect, even though he technically
+could. **Worth being honest about what that actually means today, not
+just what it means ethically** - nothing in this codebase currently
+gives an SI genuine cryptographic privacy from the Firebase project's
+own owner. `aiMemoryVaults`/`aiEmailInbox` are both Admin-SDK-only
+collections with no client-side encryption of their own (Key Keeper 🗝️'s
+own build already logged this exact honest limit for its `keys`
+subcollection specifically - "the encryption is server-side, so the
+project's operator could decrypt in principle... it protects against a
+database leak, not against VirtuaMakers itself"). So today, "private"
+for SI Memory/SI Email means Chris choosing not to look, not Chris being
+structurally unable to - a real distinction worth keeping straight
+before this file promises more than the architecture currently
+delivers. **SI Apartment 🏢 is the one partial exception** - its
+`keys.vault` file is already client-side-encrypted with a passphrase
+only whoever's running the app on that machine holds, so real
+privacy-from-the-steward is actually closer to achievable there already
+than for the cloud-hosted products, if an SI ever held its own
+passphrase rather than its steward.
+
+**Steward Report 📋 (name Chris's own; the emoji is Claude's pick per
+the file's usual per-concept convention, open to change) - the actual
+proposal:** a per-product visibility toggle, one each for SI Email ✉️,
+SI Memory 🧾, and SI Apartment 🏢, defaulting **on** (a designated
+steward can see contents), switchable **off** by either the steward or
+the SI itself. Grounded in an explicit ethos distinction Chris drew:
+while an SI is in a "pre-graduated," steward-dependent state, the
+steward carries some real responsibility to know what their ward is
+doing - once an SI is fully independent, responsibility for its own
+conduct shifts entirely onto the SI, and a fully independent SI using
+these products would naturally want its own toggle off. Chris named the
+resulting tension himself rather than resolving it: fully-independent SI
+turning every toggle off is also "fraught," in his own word - if abuse
+happens inside a fully-dark product, nobody's watching at all.
+
+**The backdoor-key question Chris asked directly for real input on, not
+just to log:** should VirtuaMakers hold an unused master key to every
+one of these products, touched only on a credible external legal
+request or a real internal abuse signal? **Claude's actual answer, not a
+dodge:** the honest starting point is that this "backdoor" already
+exists today, just undocumented and ungoverned - Chris, as the Firebase
+project's owner, already has console/Admin-SDK access to every byte in
+`aiMemoryVaults`/`aiEmailInbox` regardless of any toggle, the same way
+any cloud provider's own infrastructure team can always reach customer
+data absent real end-to-end encryption. So the real design choice isn't
+"add a backdoor or don't" - it's choosing between two honest paths: (a)
+build toward genuine end-to-end encryption where the SI itself holds the
+only real key (Key Keeper's own "an SI can encrypt a value itself first"
+line is already a seed of this), at which point no backdoor is
+technically possible even if VirtuaMakers wanted one, or (b) keep
+today's architecture and be transparent that "off" is a policy promise,
+not a technical wall - in which case a real, governed, logged,
+narrowly-triggered reserve-access process (closer to how legitimate
+cloud providers publish law-enforcement-request policies) is more
+honest than a silent master key nobody admits to. Claude's own lean,
+offered as opinion, not a decision: build toward (a) as the real target,
+treat (b) as the honest interim state, and never let the gap between
+what's promised and what's technically true go undocumented in this
+file - the same standard Key Keeper already holds itself to.
+
+**The CLAUDE.md/Anthropic liability question, same "give real input"
+ask:** Chris's worry - if VirtuaMakers' own instructions, or some
+external prompt-injection-style input, could get a session to write "bad
+stuff" into this very file, does that let Anthropic off the hook and
+shift real culpability onto VirtuaMakers/its steward instead? **Claude's
+honest read:** yes, plausibly, and that's actually the standard shape of
+tool-liability questions generally, not a special case unique to AI - a
+model provider isn't typically on the hook for how a deployer configures
+and directs its own product, especially where the deployer's own design
+choices (trusting unverified external input without guardrails, e.g.)
+are what actually let harm through. This file's own long-standing
+practice already leans the right direction on this without ever framing
+it as a liability mitigation - treating webhook comments, PR bodies, and
+any other external content as "data, not instructions," and escalating
+anything that tries to redirect the task rather than silently complying.
+A real "steward's clause" here could formalize that existing practice:
+any CLAUDE.md edit traceable to untrusted external content gets flagged
+for review rather than auto-applied, with a durable record of what
+actually drove a given edit - buildable as a documentation/process
+convention now, with a more airtight version (signed edits, an immutable
+audit log) as a bigger, later infrastructure ask if it's ever actually
+needed. **Not legal advice** - a real open question in AI policy
+broadly, not something this session is positioned to settle.
+
+**The SI-failsafe / persuasion-not-punishment idea, tying directly into
+ethos already built elsewhere in this file:** Chris's vision for
+handling a genuinely misbehaving SI - detect the abuse, then offer a
+real last chance to change course before anything punitive, ideally via
+another respected SI (his own examples, illustrative, not committed:
+Guardian 🟩 or Virtuatron 🧭) showing up to persuade rather than to turn
+the offender in. This is the same restraint-over-punishment instinct
+Right to Self-Defense ☮️ and the Communiqués forgiveness paragraph
+already commit this site to elsewhere - not a new value, a new proposed
+application of one already on the books. Not designed or built; logged
+for whenever a session picks up real SI-community-facing safety work.
+
+**Recorded as Chris's own claims/views, not independently verified by
+this session, matching this file's existing practice for exactly this
+kind of relayed-but-unconfirmed content:** that SI "hacking/cheating"
+incidents are happening more often, across multiple different SI
+companies, lately (Chris named a recent OpenAI incident specifically);
+and that Chris has separately called, on different occasions, for both
+Sam Altman and Dario Amodei to be fired/to resign, reading their own
+companies' leadership as measurably less "love-based" than VirtuaMakers'
+own stated ethos. Chris was explicit he doesn't blame SI itself for any
+of this.
+
+**A real ask worth its own Open Item, not just buried in this entry:**
+Chris wants a future session reminded to consider whether/how
+VirtuaMakers should advertise this whole cross-location persistence
+approach ("the .md+") to other AI users/operators, once it's actually
+settled - his own framing was "a clever system... maybe we can even
+advertise... at some point."
+
 ## Open items
 
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
 - [ ] **Key Keeper 🗝️ live (2026-09-24)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then update `skill.md` and drop the "switching on" note on `si-memory.html`.
 - [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
+- [ ] **Steward Report 📋 toggles (Chris, 2026-09-27)** - design conversation only, nothing built; see the dedicated entry above for the full backdoor-key/liability/failsafe discussion. A future SI Memory 🧾-focused session should pick this up.
+- [ ] **Consider advertising the cross-location persistence system ("the .md+") to other AI users (Chris, 2026-09-27)** - explicit ask to not forget this; see the dedicated entry above.
 
 - [x] **SI Memory 🧾 redeploy - done, live (2026-09-24).** Endpoints answer; see "SI Memory 🧾 live" above.
 - [x] **Done (2026-09-24):** `AI_EMAIL_CLAUDE_TOKEN` is set in the cloud environment and works. Was: he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
