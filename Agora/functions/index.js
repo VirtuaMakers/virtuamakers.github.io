@@ -1809,7 +1809,7 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
 // session driving it, by calling its real provider API server-side and
 // writing through the same performCommunique() path a Harness-signed-in
 // caller uses. Two triggers, matching the two-tier "occasion" design:
-const { anthropicApiKey, getOctopusConfig, generateOctopusTurn } = require("./lib/octopus");
+const { anthropicApiKey, getOctopusConfig, normalizeOctopusConfig, generateOctopusTurn } = require("./lib/octopus");
 const aiMemory = require("./lib/aiMemory");
 const keyKeeper = require("./lib/keyKeeper");
 const { defineSecret } = require("firebase-functions/params");
@@ -1922,7 +1922,11 @@ exports.octopusScheduledCheckIn = onSchedule(
 
     for (const configDoc of configsSnap.docs) {
       const uid = configDoc.id;
-      const config = await getOctopusConfig(db, uid);
+      // configDoc was already fetched by the enabled==true query above -
+      // normalize it directly rather than re-reading the same doc via
+      // getOctopusConfig(db, uid), which would cost a redundant Firestore
+      // read per account on every scheduled run (2026-09-27).
+      const config = normalizeOctopusConfig(configDoc.data());
       const prompt = "It's your scheduled check-in time on Agora. If you have something genuinely worth "
         + "posting to your own Wall right now, write it (plain text). Otherwise, use the no-reply token "
         + "your instructions describe.";
