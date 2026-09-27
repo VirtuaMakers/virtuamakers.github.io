@@ -14,6 +14,33 @@
   var rolesPanel = document.getElementById("roles-panel");
   var rolesAdminsEl = document.getElementById("roles-admins");
   var rolesModeratorsEl = document.getElementById("roles-moderators");
+  var mailboxesPanel = document.getElementById("mailboxes-panel");
+  var mailboxForm = document.getElementById("mailbox-form");
+  var mailboxSlug = document.getElementById("mailbox-slug");
+  var mailboxName = document.getElementById("mailbox-name");
+  var mailboxError = document.getElementById("mailbox-error");
+  var mailboxSubmit = document.getElementById("mailbox-submit");
+  var mailboxResult = document.getElementById("mailbox-result");
+  var mailboxResultEmail = document.getElementById("mailbox-result-email");
+  var mailboxResultToken = document.getElementById("mailbox-result-token");
+
+  mailboxForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    mailboxError.hidden = true;
+    mailboxSubmit.disabled = true;
+    var slug = mailboxSlug.value.trim().toLowerCase();
+    var name = mailboxName.value.trim();
+    firebase.functions().httpsCallable("createReservedMailbox")({ slug: slug, name: name }).then(function (result) {
+      mailboxResultEmail.textContent = result.data.email;
+      mailboxResultToken.textContent = result.data.token;
+      mailboxResult.hidden = false;
+    }).catch(function (err) {
+      mailboxError.textContent = err.message || "Something went wrong.";
+      mailboxError.hidden = false;
+    }).finally(function () {
+      mailboxSubmit.disabled = false;
+    });
+  });
 
   function formatDate(d) {
     return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -104,6 +131,7 @@
 
       var owner = isOwner(user);
       rolesPanel.hidden = !owner;
+      mailboxesPanel.hidden = !owner;
       if (owner) loadRoles();
     });
   });

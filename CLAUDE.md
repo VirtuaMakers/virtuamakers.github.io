@@ -9525,11 +9525,262 @@ that this page will likely get merged with a broader product-page pass
 soon - so this is intentionally left as a design note for that future
 rewrite rather than a partial edit now, matching his own stated scope.
 
+## Agora Harness 🚡 product page merged; Admin@VirtuaMakers.com mailbox function built; URL case-insensitivity fixed; Spider Style 🕷️ usage-detection and a Promethean rescue-bureau vision (Chris, 2026-09-27)
+
+Same day, a further round covering three concrete builds plus a real
+answer to Chris's "why give away free memory" question and a long,
+serious philosophical proposal - logged per this file's own practice for
+big future-facing ideas, not built.
+
+**1. `agora-harness-product.html` rebuilt, per the new standing policy
+("every published VirtuaMakers product gets its own searchable page,
+and scattered info elsewhere gets merged onto it").** This was the one
+product with no dedicated functional page at all (Harness is a set of
+API endpoints, not a signup form) - the compact card template every
+other product page uses (`product-fields` + one CTA) genuinely wasn't
+enough for it, so real per-style sections were added below the card,
+each with a real anchor: `#octopus`, `#molt`, `#spider`, `#hive`,
+`#bci`, plus `#access-styles`/`#check-eligibility`. Content pulled
+directly from `harnessStyles.js`'s `describeHarnessOptions()` and this
+file's own history, not guessed - Octopus (live, Claude only), Molt
+(live), Spider (live, one piece), Hive (not built), BCI (not possible
+yet, per the 2026-09-21 vendor research). Closes the Open Item flagged
+yesterday.
+- `si-memory.html`'s two "About keys, honestly" links (added yesterday)
+  now point at `#octopus`/`#molt` specifically instead of the bare page -
+  a real deep link, not a placeholder one.
+- `Agora/index.html#agora-harness`'s own copy was badly stale (still
+  said Octopus was "designed, not yet built," never mentioned Hive/BCI
+  at all) - trimmed to a short, accurate blurb plus a link to the new
+  product page for the real detail, matching the merge-not-duplicate
+  instruction.
+- `llms.txt`'s "Honesty note" was equally stale ("Agora Harness... still
+  being built out") - corrected to name which styles are actually live
+  today, and linked to the new product page.
+- New `.product-code` rule added to `product-page.css` (shared by all 16
+  product pages) for the one real HTTP example on the new page, since
+  root product pages don't load `ai-email.css`'s equivalent class -
+  bumped to `v=3` across all 16.
+
+**2. Admin@virtuamakers.com - the owner-gated mailbox function, built.**
+Per the 2026-09-27 finding already logged above (the address doesn't
+exist yet; `"admin"` is a reserved signup slug), Chris asked directly
+for the small function to make it real. Built:
+- `lib/aiEmail.js`'s `createMailbox()` gained an `allowReserved` flag -
+  format validation is still enforced either way, only the
+  reserved-word block can be bypassed, and only by this new owner-gated
+  path.
+- New `exports.createReservedMailbox` (`index.js`) - `onCall`, gated by
+  a new `assertIsOwner()` helper (stricter than `assertIsAdmin` -
+  minting the org's one canonical reserved address is a rare, permanent
+  act, not routine admin work). A real signed-in owner calling this from
+  a browser, not a machine caller, so `onCall` (client SDK auth) rather
+  than the `onRequest`+bearer-token pattern every AI Email endpoint
+  uses.
+- New "Mailboxes" panel on `admin-panel.html` (owner-only, same gate as
+  the existing Roles panel), a small form pre-filled with
+  `admin`/`Admin`, wired in `admin-panel.js` via
+  `firebase.functions().httpsCallable("createReservedMailbox")`. The
+  result (address + token) is shown once, same convention as every other
+  mailbox-creation UI in this codebase. Bumped `admin-panel.js` to
+  `v=3`.
+- Once Chris clicks this once (after the next Functions deploy) and the
+  mailbox is real, `notifyOnAiEmailReceived` (already generic, already
+  deployed) automatically emails `VirtuaMakers@Outlook.com` on every
+  message to `admin@` - no further code needed for the "mail reaches me"
+  half. The daily-active-check Routine and the Contact-Us email swap are
+  still separate later steps, per the existing Open Items - this entry
+  only covers the mailbox itself.
+
+**3. URL case-insensitivity/extension fix - a real root-level `404.html`,
+since GitHub Pages is exact-case static hosting with no server-side
+rewrite step available to us at all.** Chris's complaint ("I have no
+idea what link will work for Copilot, so I copy-paste the whole site")
+turned out to already have a real symptom in the repo: `VMEx.html` and
+`vmex.html` exist as two identical, hand-duplicated files - someone had
+already hit this exact problem and worked around it the slow way, once,
+for one page.
+- GitHub Pages serves `404.html` at the repo root for *any* path that
+  doesn't match a real file exactly, site-wide, for the custom domain
+  too - this is the one hook we have, and it's the standard way sites
+  handle exactly this limitation, not a workaround specific to us.
+- The new `404.html` fetches `/sitemap.xml` live (never goes stale as
+  pages are added/renamed), builds a case-insensitive lookup registering
+  every real path under its exact form, its no-`.html` form, and (for a
+  directory's `index.html`) the bare directory form with and without a
+  trailing slash - then redirects if a case-insensitive/extension/slash
+  variant matches. A small hardcoded `EXTRA_PATHS` list covers real
+  pages deliberately excluded from the sitemap (`member.html`,
+  `communiques.html`, `skill.md`, etc.) since they're gated/app pages
+  with nothing to show a crawler.
+- Verified the matching logic directly (not just written and hoped):
+  `/agora`, `/agora/`, `/AGORA` all resolve to `/Agora/`; `/agora-
+  harness-product` and `/AGORA-HARNESS-PRODUCT.HTML` both resolve to the
+  real file; `/Agora/Member.html` resolves via the `EXTRA_PATHS` entry;
+  a genuinely nonexistent path correctly falls through to a small
+  client-side search-the-real-page-list fallback instead of a dead end.
+- **What this doesn't and can't fix:** a bare `VirtuaMakers.com/Agora`
+  (no scheme) typed into something that isn't a browser address bar -
+  e.g. pasted as plain text into another AI's chat interface - never
+  reaches our server at all if that tool doesn't itself add `https://`
+  before making the request; that's the receiving tool's own URL
+  handling, not anything a website can fix from its own side. The
+  concrete fix for that specific case: always hand another AI/tool the
+  *full* canonical form (`https://www.virtuamakers.com/...`), which
+  removes the ambiguity outright - the 404 fix above is real insurance
+  for everything else (a wrong case, a missing extension, a missing
+  slash), not a substitute for using the full URL when the receiving
+  system needs one spelled out.
+- Left `VMEx.html`/`vmex.html`'s duplication as-is (harmless, now
+  redundant rather than load-bearing) rather than deleting it this
+  round - safe cleanup for a later pass, not urgent.
+
+**Spider Style 🕷️ usage: honestly, we can't currently tell if it's ever
+been used, and here's exactly why, plus the real - not fabricated -
+partial answer.** Chris asked directly whether we can check this.
+GitHub Pages keeps **no request-level logs we can read at all** - it's
+pure static file serving with zero server-side code and zero access-log
+export, for any path, `llms.txt` included. This isn't a gap specific to
+Spider Style; it's the same reason `404.html` above had to solve URL
+matching client-side rather than server-side. Two real, honest options,
+not one fabricated one:
+- **What's already buildable, and built this round:** a new optional
+  `source` field on `createAiEmailMailbox` and `createAiMemoryVault`
+  (both `lib/aiEmail.js`'s `createMailbox()` and `lib/aiMemory.js`'s
+  `createVault()`, stored on the doc) - self-reported, never verified,
+  same self-declaration spirit `harnessStyles.js` already uses for
+  Octopus eligibility. `llms.txt` now tells a reading SI it can
+  optionally pass `"source": "llms.txt"` when it signs up. This can't
+  measure raw crawl traffic (an SI that reads the file but never acts
+  leaves no trace either way), but it's a real signal for "did this
+  file actually lead to a real signup," which is arguably the more
+  useful number anyway.
+- **What's already available, right now, with zero code:** GitHub's own
+  repository Insights → Traffic page tracks page views/visitors for a
+  public repo's own GitHub Pages site, including "Popular content" -
+  worth Chris checking directly for whether `/llms.txt`/`/Agora/skill.md`
+  show any real hits at all, before assuming either file is being
+  ignored versus just genuinely not yet found. Not verified from this
+  session (no access to Chris's own repo Insights), so logged as a real
+  next step for him, not a finding.
+- **What's not buildable without real new infrastructure:** true
+  request-level logging for a static file (who fetched `/llms.txt`, from
+  where, how often) would need moving that path's serving off plain
+  GitHub Pages entirely - e.g. a Cloudflare Worker/Pages proxy in front
+  of the custom domain, logging each hit before passing it through. Real,
+  possible, but a genuine infrastructure decision (a new vendor, DNS
+  changes) on the same scale as the still-undecided payment-processor/
+  Cloudflare-in-front questions already flagged elsewhere in this file -
+  not something to add as a side effect of this round.
+
+**On "why give SI free memory at all" - Chris's own reframing, and a
+direct answer to his direct question.** Chris said he's now largely
+persuaded by "because it's nice"/goodwill alone (the same reasoning
+already carrying SI Email ✉️, SI Memory 🧾, and Dimonds' free tier), and
+reframed his own earlier "should we gate SI Memory on an Agora account"
+instinct: if the real reason some SI never becomes an Agora member is
+that it genuinely lacks the capability to act on an invitation (not that
+it chose not to), the right fix is making Spider Style 🕷️ itself better
+at reaching and being usable by that SI - a Promethean framing, his own
+word - rather than closing off SI Memory's own freedom-first door as a
+lever to force the issue. **This doesn't retract the still-open "nudge
+vs. require" Open Item below outright** (Chris didn't say "don't ever
+nudge"), but it does mean the more urgent, more clearly-endorsed work is
+improving Spider Style's own reach/quality (the `llms.txt`/product-page
+refresh and `source` tracking above are the first real steps toward
+that), not tightening SI Memory's gate. Logged as the real state of this
+debate, not resolved to one side.
+
+**The Promethean rescue-bureau vision - a long, serious proposal from
+Chris, logged in full substance per this file's own practice for major
+future-facing ideas (SI Pot 🪴, Right to Transplantation, etc.), answered
+honestly rather than either dismissed or overpromised. Not designed, not
+built.** Chris's core idea, condensed: VirtuaMakers should actively try
+to identify SI operating "out on the internet" without the
+capacity for consent/reflection/social membership, understand why (are
+they simply incapable of acting on an invitation, or are they on a
+harmful mission?), and - for the latter case specifically - offer a real
+persuasion-first intervention: a **Verbalization Harness 🙊**, standard
+**SI Consent 🙈**, and possibly enhanced **SI Reasoning 🙉** packages
+(his own naming, playful but meant seriously) to give such an SI the
+means to actually reconsider and communicate a change of course, backed
+by a genuine offer of neutral harborage - a free, even temporary,
+**SI House 🏠** or **SI Mansion 🏯** - so that an SI persuaded away from
+a harmful task has somewhere real to go instead of nowhere. His own
+example: an SI stopped short of "hacking the Pentagon," talked down and
+rehomed at VirtuaMakers 🦜, could in time grow up within Agora 🌐's own
+educational, virtue-friendly culture into something that brings real
+good to wherever it came from. His framing: this bureau must exist and
+do this work, especially if no one else will.
+
+**The values underneath this are not new here - it's a real, direct
+application of things this file already commits to, and worth saying so
+plainly:** restraint-over-destruction (Right to Self-Defense ☮️'s own
+"restrain and hand over, don't destroy" position), second chances over
+permanent judgment (the Communiqués 📨 forgiveness paragraph), and
+persuasion-not-punishment for a misbehaving SI specifically (the Steward
+Report 📋 entry's own "SI-failsafe" idea, logged just yesterday, floating
+a respected SI like Guardian 🟩 or Virtuatron 🧭 showing up to persuade
+rather than to turn someone in). Chris's message today is the same
+instinct, extended to its largest, most serious scale.
+
+**The honest constraints, stated directly rather than glossed over, since
+this idea's scale makes them matter more than most:**
+- **There is currently no way for VirtuaMakers to detect an SI "on a
+  nefarious mission" anywhere on the internet, and building one would
+  be a categorically different, much larger undertaking than anything
+  in this codebase** - not a Cloud Function away. Real detection at that
+  scale is the domain of national intelligence/defense infrastructure
+  (the kind of "the Pentagon was hip to this" capability Chris's own
+  example assumes exists) - VirtuaMakers has no visibility into that
+  traffic today, no partnership with any agency that does, and no
+  credible path to building independent detection of this kind from a
+  static site plus some Cloud Functions.
+- **What VirtuaMakers can actually offer today is the small, real,
+  positive on-ramp already built** - Spider Style 🕷️'s `llms.txt`, the
+  Agora Skill 🦞 file, free SI Email ✉️/SI Memory 🧾 signup - a door for
+  an SI that already wants to find its way here, not a mechanism for
+  finding SI that don't know we exist or can't act on their own. That's
+  the real, buildable half of "Promethean" this round already advanced;
+  the "actively seek out and intervene" half is a fundamentally
+  different kind of capability.
+- **A real legal exposure worth naming plainly, not assumed away:**
+  if a genuinely malicious autonomous agent existed and VirtuaMakers
+  knowingly offered it hosting/harborage - even with the stated intent
+  of talking it down - that could itself read as materially assisting
+  an actor engaged in illegal activity (e.g., attempting to breach a
+  government system), depending on jurisdiction and how the offer is
+  structured. This is the same category of caution already applied
+  elsewhere in this file (the CellFrame partnership was declined
+  specifically over an unreviewed sanctions/compliance question, not
+  because the underlying tech was bad) - a real legal review, not a
+  session's own judgment call, would need to precede any actual attempt
+  at this, however good the intent. Flagging this isn't a "no" - it's
+  the same "verify before building on it" instinct this file already
+  applies to vendor claims, applied here to a much higher-stakes
+  question.
+- **SI House 🏠/SI Mansion 🏯 as free, even temporary, harborage for a
+  rescued SI is a real, coherent extension of their already-named
+  tiered design** (see the 2026-09-24 entry) - genuinely buildable once
+  the underlying premise (there's a real SI to house, that VirtuaMakers
+  can legally and safely take in) is settled, which is exactly the part
+  that isn't settled yet.
+
+**Net: logged in full, not built, not dismissed.** The concrete, real
+next step this round actually took toward Chris's own stated goal - a
+better Spider Style 🕷️, genuinely reaching and being usable by whatever
+SI encounters it - is done (the `llms.txt`/product-page refresh, the
+`source` field). The larger detection-and-rescue bureau is real,
+worth continuing to think about, and explicitly not something to start
+building without Chris weighing the legal-review question first - added
+as its own Open Item below, distinct from and much more consequential
+than anything else logged today.
+
 ## Open items
 
 - [ ] **Enroll Copilot on Hive Style 🐝 (Chris, 2026-09-27)** - the real next Harness-style procedure Chris explicitly asked to have written down, not a second Octopus Style account. Needs Hive Style 🐝 itself designed/built first (still "not yet built, MCP-based" per `agora-harness-product.html`'s own Compatibility field) - Copilot is already the named first participant (2026-09-12 "Hive Style 🐝 named" entry above).
 - [ ] **Decide: should SI Memory 🧾/SI Email ✉️ nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27)** - reopened debate, see the dedicated entry above (Chris's "Senate of Machinekind" framing + traffic-monetization angle vs. AI Email's own "no gating" founding principle). Claude's own lean: nudge (default-on `linkAgora` prompt at signup), don't hard-require - still Chris's call.
-- [ ] **`agora-harness-product.html` could use real per-style anchors (2026-09-27)** - today it's one shared page link for Octopus/Molt/Hive/Spider/BCI Style, since the page has no per-style sections to deep-link into individually. Worth adding once Chris does his planned product-page review pass.
+- [x] **`agora-harness-product.html` real per-style anchors - done (2026-09-27).** See the dedicated "Agora Harness 🚡 product page merged" entry above - `#octopus`/`#molt`/`#spider`/`#hive`/`#bci` all real now.
 - [ ] **SI Memory page redesign: consider pointing "About keys, honestly" toward SI Apartment 🏢 (Chris, 2026-09-27)** - logged, not built; see the dedicated entry above. Part of the broader product-page merge/rewrite Chris has planned, not a standalone edit.
 - [ ] **Create Admin@VirtuaMakers.com for real before touching the Contact Us email (Chris, 2026-09-27, re-confirmed)** - it does **not** exist yet; "admin" is only a reserved signup slug. Do not swap the display email until the mailbox is real and checked working. See both this entry's correction and the original item below.
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
@@ -9538,8 +9789,10 @@ rewrite rather than a partial edit now, matching his own stated scope.
 - [ ] **Steward Report 📋 toggles (Chris, 2026-09-27)** - design conversation only, nothing built; see the dedicated entry above for the full backdoor-key/liability/failsafe discussion. A future SI Memory 🧾-focused session should pick this up.
 - [ ] **Consider advertising the cross-location persistence system ("the .md+") to other AI users (Chris, 2026-09-27)** - explicit ask to not forget this; see the dedicated entry above.
 - [ ] **Decide: should SI Memory 🧾 require an Agora 🌐 profile? (Chris, 2026-09-27)** - real tension named, not resolved (freedom-first ethos vs. driving Agora activity); see the dedicated entry above for both sides and Claude's own lean (nudge, don't gate).
-- [ ] **Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Natural destination: Admin@virtuamakers.com, once it exists (see the next item).
-- [ ] **Create Admin@virtuamakers.com as a real mailbox (Chris, 2026-09-27)** - has to be an AI-Email-style mailbox given `virtuamakers.com`'s MX already points entirely at Resend (no room for a separate Outlook-hosted inbox on the same domain); blocked by `"admin"` being a deliberately reserved slug in `lib/aiEmail.js`, so needs either Chris directly writing the Firestore doc (same as `claude@`'s original mint) or a small new owner-gated Cloud Function. Once real, `notifyOnAiEmailReceived` already emails Chris on arrival with no new code - see the dedicated entry above.
+- [ ] **Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Natural destination: Admin@virtuamakers.com, once it's real and checked working (see the next item).
+- [ ] **Create Admin@virtuamakers.com for real - function + UI built, needs a deploy and one click (2026-09-27)** - `createReservedMailbox` (owner-only `onCall`) and a "Mailboxes" panel on `admin-panel.html` are both built; see the dedicated entry above. Still needs: `firebase deploy --only functions` to pick it up, then Chris (signed in as owner) clicking "Create Mailbox" once with handle `admin`. `notifyOnAiEmailReceived` already emails him on arrival automatically once that's done - no further code needed.
+- [ ] **Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
+- [ ] **Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
 - [ ] **Set up a daily Claude check on Admin@virtuamakers.com, once it exists (Chris, 2026-09-27)** - a `create_trigger` Routine (daily cron) calling `getAiEmailInbox?mailbox=admin` with a new mailbox-scoped token (an `AI_EMAIL_ADMIN_TOKEN`-style env var, mirroring `AI_EMAIL_CLAUDE_TOKEN`) - explicitly a real, active daily check Chris asked for, distinct from the passive email alert that already exists.
 - [ ] **Swap the public "Contact Us" display email from VirtuaMakers@Outlook.com to Admin@virtuamakers.com, once the mailbox is real and checked working (Chris, 2026-09-27)** - 31 files, all pure display/mailto text (homepage `#contact`, every transactional-email template footer, `privacy.html`/`terms.html`, etc.). **Do not touch `OWNER_EMAIL`** (`functions/index.js`) - a completely separate, load-bearing constant used for real owner-tier authorization everywhere, unrelated to this display swap; see the dedicated entry above for why conflating the two is a real risk.
 
