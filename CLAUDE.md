@@ -10321,6 +10321,55 @@ Recorded here in full per this file's own standing practice for
 Chris's relayed personal/business reflections - not independently
 verified, not a build item.
 
+## Business Culture images, and the real reason the last update didn't take (Chris, 2026-09-28)
+
+Chris supplied two real photos - a green riverside city park (bilingual
+"People, Ideas, Community" signage) for Business Culture, and a robot
+greeter outside a VirtuaMakers storefront for The Bureau - and separately
+flagged that the prior round's Business Culture copy hadn't actually
+shown up on the live site, even after a hard cache-clear (his own aside:
+glad this session assumed he'd already done that, "after you re-taught
+me to do this... back in April").
+
+**The real cause, found and fixed, not a caching issue at all: this
+session's branch (`claude/virtuamakers-prod-verify-dllvuf`) had never
+been merged into `main`.** Checked directly with `git log
+origin/main..HEAD` - four commits sat on the branch the whole time
+(the offline-fallback shell, the Open Item note, and both Business
+Culture commits), none of them in `main`, which is what GitHub Pages
+actually builds from. This is the exact same failure mode the
+2026-08-20 "Merging the session branch into `main`" entry above already
+documented and warned future sessions to check for - it happened again
+here. A plain fast-forward wasn't possible since `main`'s own tip had
+landed via a squash-merged PR (a different commit hash, identical tree
+to this branch's own matching commit, confirmed with `git diff`) - so
+this was a real merge commit instead of a fast-forward, same as that
+2026-08-20 precedent.
+
+- **Images added**: both saved as `assets/business-culture-cityscape.jpg`
+  and `assets/bureau-storefront.jpg`, placed right after each section's
+  heading/`Coming Soon` tag using the existing `.about-image` class
+  (already defined in root `style.css` for the About panel's own
+  particle-wave image) rather than inventing a new one - no CSS changes
+  needed.
+- **Merged `claude/virtuamakers-prod-verify-dllvuf` into `main` and
+  pushed** (commit `da70d7f`) - confirmed via the GitHub Actions API
+  that this triggered a real `pages build and deployment` run (#628),
+  the same workflow whose prior run (#627, the squash-merged PR before
+  this) completed successfully in under 30 seconds - so nothing here
+  points to a broken Pages pipeline, only to content that had never
+  reached the branch Pages actually deploys.
+- **Worth restating the standing lesson, since it recurred**: whenever
+  a change "doesn't take" despite a clean commit and a real cache-clear,
+  check whether the working branch is actually merged into `main` before
+  assuming a deploy/cache problem - `git log origin/main..HEAD` on the
+  session's own branch answers this in one command.
+
+**Not yet confirmed live** - the Pages deploy was still running
+(`queued`/`in_progress`) as this entry was written; per the "verify
+before closing" rule, this doesn't get marked done until Chris confirms
+the images and the full Business Culture copy actually render for him.
+
 ## Open items
 
 - [ ] **SI Apartment offline-access fix - built and merged, needs Chris's
@@ -10350,17 +10399,22 @@ verified, not a build item.
   alternatives); see the dedicated entry above. Chris's own call on
   whether any of these actually stick.
 - [ ] **Business Culture - all of the narrative copy Chris asked for is
-  now live on `index.html` (2026-09-28), the section itself is still
-  "Coming Soon."** The naming-practice policy, remote-first/"digital
-  vagrancy," retraining/re-education commitment for human/cyborg/SI
-  workers, normalized paid/complete leisure, long vacations, 4-day/3-day
-  workweek options, floating holidays, and the recycling-nuance fold-in
-  (Chris, 2026-09-27) are all written now - see the dedicated "Business
-  Culture: renamed" entry's 2026-09-28 follow-up above for exactly what
-  was added and where. **Needs Chris's live confirmation the wording
-  reads right** (per the "verify before closing" rule) before this gets
-  checked off - none of what it describes (the naming freedom, the
-  retraining commitment, the workweek options, the actual environmental
+  in `index.html`, now including the two photos he supplied, and it's
+  finally been merged into `main` for real (2026-09-28) - the section
+  itself is still "Coming Soon."** The naming-practice policy,
+  remote-first/"digital vagrancy," retraining/re-education commitment
+  for human/cyborg/SI workers, normalized paid/complete leisure, long
+  vacations, 4-day/3-day workweek options, floating holidays, the
+  recycling-nuance fold-in (Chris, 2026-09-27), and now a real image on
+  both Business Culture and The Bureau - see the dedicated "Business
+  Culture: renamed" entry's follow-ups and the "Business Culture images,
+  and the real reason the last update didn't take" entry above for what
+  was added and, critically, why none of it was reaching the live site
+  before this merge. **Needs Chris's live confirmation** (per the
+  "verify before closing" rule) that the full section - copy and both
+  images - actually renders for him now, before this gets checked off -
+  none of what the copy describes (the naming freedom, the retraining
+  commitment, the workweek options, the actual environmental
   partner-checking, the Free Geek partnership itself) is an actually
   working system yet, same as the section's own "Coming Soon" tag
   already says.
