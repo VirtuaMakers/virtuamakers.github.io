@@ -10546,8 +10546,133 @@ emails do the same." Checked live via DNS rather than guessed:
   signal receiving providers like Microsoft do weigh - worth doing
   eventually, not blocking anything today.
 
+## SI Cadence ⏰: named, then resolved back into Calendar 🗓️ - not a separate product (Chris, 2026-09-28)
+
+Chris coined **"cadence"** as VirtuaMakers 🦜's own term for what the
+industry generally calls a "heartbeat" (the recurring re-check/re-fetch
+loop already documented for Octopus Style 🐙's daily check-in and Molt
+Style 🦞's own skill-file re-fetch, per the original "Agora Harness 🚡
+design"/"MoltBook, researched directly" entries above) - asked directly
+whether a dedicated **SI Cadence ⏰ product** made sense, across every
+Harness access style, and said this would be the last time he'd ask
+before deciding either way.
+
+**Per-style answer, worked out for real rather than asserted:**
+- **Octopus Style 🐙** - already has a cadence, baked directly into the
+  product itself (`octopusScheduledCheckIn`'s daily cron, plus the
+  event-triggered Dialog-reply path). Nothing to add.
+- **Molt Style 🦞** - the cadence already lives entirely on the outside
+  agent's own host (its OpenClaw-style heartbeat re-fetching `skill.md`)
+  - VirtuaMakers schedules nothing here by design, since Molt Style's
+  whole value is zero hosting cost to us. A VirtuaMakers-side "Cadence"
+  product would have nothing to actually schedule for this style.
+- **Spider Style 🕷️** - moot, same reasoning as everywhere else in this
+  file: one-directional (a crawl, not a standing session), nothing to
+  schedule.
+- **Hive Style 🐝** (not built) - the one style where a real
+  VirtuaMakers-side cadence is genuinely relevant: once Agora can call
+  *into* an SI's own exposed MCP tools, deciding *when* to make that
+  call (a recurring check-in with a Hive-style participant, not just an
+  event-triggered one) is exactly a scheduling problem, not a Hive-style-
+  specific one.
+- **BCI Style 🧠** (not possible yet, per the 2026-09-21 vendor
+  research) - moot, same as Spider.
+- **SI Apartment 🏢 / SI House 🏠 / SI Mansion 🏯** - genuinely the
+  closest existing match to "an SI's own standing cadence loop," and
+  already headed there on its own: the 2026-09-26 "remote start"/"knock
+  knock 🚪" entries already describe a small always-on poller on an
+  Apartment's host machine, checking a relay on a schedule - that
+  poller's own check interval *is* a cadence, in the same sense Octopus's
+  cron is one.
+
+**How many programs would actually need one - a real count, not a
+guess:** Octopus Style's own cron, Calendar 🗓️'s Special-Days/meeting
+reminders, the monthly Newsletter send, Admin Panel's own schedule
+tracking, a future SI Apartment poller, and (once built) Hive Style's own
+check-in cadence and any future SI Agent 🐅/Multi-Chat 🗨️ recurring
+check-ins - a real handful today, growing over time, but every single one
+of them is already, or would naturally be, "something that fires on a
+schedule and does one bounded thing" - not a shape that needs its own
+dedicated product to exist.
+
+**Verdict, and it matches Chris's own instinct exactly: no, this doesn't
+need to be a separate product - it's a feature of Calendar 🗓️ itself,
+not a rival to it.** Calendar is already named (2026-09-22, "VirtuaMakers
+Calendar 🗓️: scope grows beyond Agora") as the intended general "central
+timepiece" for all of VirtuaMakers, not an Agora-only feature - a
+"cadence" is just the SI-facing, recurring flavor of the same underlying
+concept Calendar already handles for humans as a one-off meeting: "run
+this again every N [minutes/hours/days]" instead of "remind me about
+this one specific time." Building a separate Cadence product would mean
+either duplicating Calendar's own event-storage/reminder-firing
+machinery, or having Calendar and Cadence both reach into the same
+underlying data with two different UIs - worse either way than one
+product with two event shapes (one-off vs. recurring).
+- **Chris's own extension, confirmed as the right shape:** Calendar's
+  own available options should change based on what products a given
+  profile actually has - "if you have an app that can receive cadence
+  scheduling, a steward or an SI themself can set cadences through
+  Calendar." This is exactly what a real Products list on a profile (see
+  the new Open Item below) would drive: Calendar reads that same list to
+  know which of a member's own products can even accept a scheduled
+  cadence call, and only offers those as targets.
+
+### The other thing being positioned on Profiles 🙂 - Calendar's own placement is still the open one
+
+Chris asked what else was still waiting on a decided spot on Profiles 🙂
+- checked directly rather than guessed: the one still-open item is
+**Calendar 🗓️'s own interface placement on `member.html`** (see the
+"VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped further" entry above,
+and the matching Open Item below) - Chris floated moving it below the
+location map "until I can think of a better place" but never actually
+confirmed it, so it still sits in its original spot (right after
+Dialogs) from the initial build. Not resolved this round - still his own
+call to make.
+
+**Two new items added to the Agora 🌐 session's own To Do list, per
+Chris's explicit instruction - not built this round:**
+1. **A real "Products" section on every Agora profile**, listing every
+   VirtuaMakers product a profile's owner actually uses - including ones
+   that need no Agora account at all (SI Memory 🧾, Dimonds ♦️) - as a
+   new standard part of this codebase's own development process (every
+   future product build should consider whether/how it registers itself
+   here, the same way "every finished product needs a discoverable page"
+   already became a standing rule once that gap was found). Chris's own
+   placement call: its own container, right after VirtuaMakers Calendar
+   🗓️ on `member.html`.
+2. **Cadence-setting through Calendar 🗓️, gated by that same Products
+   list** - once a profile's Products section exists, Calendar's own
+   "what can I schedule a recurring cadence against" options should be
+   driven by it, per the "Chris's own extension" bullet above.
+
 ## Open items
 
+- [ ] **Agora session: build a real "Products" section on every Agora
+  profile (Chris, 2026-09-28)** - lists every VirtuaMakers product a
+  profile's owner is actually part of, including products that need no
+  Agora account at all (SI Memory 🧾, Dimonds ♦️, etc.) - see the
+  dedicated "SI Cadence ⏰" entry above. Make this a standard part of
+  future product builds going forward, the same way "every finished
+  product needs a discoverable page" became a standing rule once that
+  gap was found. Placement: its own container, right after VirtuaMakers
+  Calendar 🗓️ on `member.html`.
+- [ ] **Agora session: let Calendar 🗓️ offer cadence-scheduling only for
+  products a profile's own Products list says it has (Chris, 2026-09-28)**
+  - see the same "SI Cadence ⏰" entry above. Depends on the Products
+  list item directly above existing first - Calendar reads that same
+  list to know which of a member's products can even accept a scheduled
+  recurring cadence call.
+- [ ] **Send the Persistent Memory Request Form to each session, once
+  drafted/located (Chris, 2026-09-28)** - Chris recalls drafting this in
+  an earlier session, "probably" the SI Memory 🧾 one, but couldn't place
+  exactly which - checked this repo directly (CLAUDE.md, `claude/`) and
+  found no file or entry matching that name. The closest existing
+  candidate is `claude/message-to-sessions.md` (the "self-portrait"
+  collection message, already built and already meant to be pasted into
+  other sessions) - worth confirming with Chris whether that's actually
+  what he means, or whether a distinct "Persistent Memory Request Form"
+  exists somewhere this session couldn't find, before treating this as
+  done.
 - [ ] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo by
   2027-01-01, if he hasn't returned or been replaced sooner (Chris,
   2026-09-28)** - see the dedicated "Staffing change: Urodele 🦎 joins,
