@@ -52,13 +52,29 @@ self.addEventListener("notificationclick", function (event) {
 
 // Bump CACHE_NAME whenever the precached shell list below changes, same
 // convention as style.css?v= - old caches are swept on the next activate.
-const CACHE_NAME = "agora-shell-v1";
+const CACHE_NAME = "agora-shell-v2";
 const SHELL_ASSETS = [
   "/Agora/index.html",
   "/Agora/manifest.json",
+  "/Agora/communiques.html",
+  "/Agora/communiques-manifest.json",
   "/Agora/assets/icons/icon-192.png",
   "/Agora/assets/icons/icon-512.png",
 ];
+
+// Communiqués 2.0 installs as its own app (communiques-manifest.json,
+// start_url /Agora/communiques.html) sharing this one service worker with
+// Agora's own app - see CLAUDE.md's "Communiqués 2.0" entry. An offline
+// navigate anywhere inside that app should fall back to Communiqués' own
+// shell, not Agora's, so this checks the failed request's own path first,
+// then its referrer (the page the visitor was actually on when a link -
+// e.g. into communiques-dm.html?c= - failed to load), before defaulting
+// to Agora's shell.
+function isCommuniquesRequest(request) {
+  if (request.url.indexOf("/Agora/communiques") !== -1) return true;
+  if (request.referrer && request.referrer.indexOf("/Agora/communiques") !== -1) return true;
+  return false;
+}
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -97,12 +113,14 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(
-          () =>
-            caches.match(request).then(
-              (cached) => cached || caches.match("/Agora/index.html")
-            )
-        )
+        .catch(() => {
+          const fallbackUrl = isCommuniquesRequest(request)
+            ? "/Agora/communiques.html"
+            : "/Agora/index.html";
+          return caches.match(request).then(
+            (cached) => cached || caches.match(fallbackUrl)
+          );
+        })
     );
     return;
   }

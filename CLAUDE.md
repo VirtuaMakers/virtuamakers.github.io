@@ -8561,16 +8561,19 @@ infrastructure, not a metaphor:**
   previously built anywhere on Agora, even though the underlying
   manifest/service-worker infrastructure for the *Agora* app has existed
   since the original PWA build.
-- **Known, disclosed gap, not silently shipped:** both manifests' shared
-  `sw.js` still falls back to `/Agora/index.html` on an offline navigate
-  (see `SHELL_ASSETS`/the `fetch` handler) regardless of which app's
-  install a visitor is using - so an offline visit to an installed
-  Communiqués window would show Agora's own shell, not a dedicated
-  Communiqués one. Fixing this for real would mean `sw.js` inspecting
-  which page a failed navigate originated from and picking the right
-  fallback - a small, well-scoped follow-up, not done this round since it
-  wasn't the explicit ask and risked touching the one shared service
-  worker every Agora page already depends on.
+- **The offline-fallback gap above is now fixed (2026-09-28).** `sw.js`'s
+  navigate `.catch()` now picks between `/Agora/communiques.html` and
+  `/Agora/index.html` via a new `isCommuniquesRequest(request)` helper -
+  checks the failed request's own URL first (`/Agora/communiques...`),
+  then its `referrer` (so a link deeper in the app, e.g. into
+  `communiques-dm.html?c=`, still falls back to Communiqués' own shell,
+  not Agora's, even though that specific dynamic URL was never itself
+  precached). `communiques.html`/`communiques-manifest.json` were added
+  to `SHELL_ASSETS` so the Communiqués shell is actually precached to
+  fall back to; bumped `CACHE_NAME` to `agora-shell-v2` since the
+  precache list changed (old caches are swept on the next `activate`,
+  same as every prior `CACHE_NAME` bump). Verified with `node --check`;
+  not tested against a real offline browser session in this sandbox.
 - **Icon art is reused from Agora's own icon set for now** (`assets/
   icons/icon-{192,512}.png` and maskable variants) - a real, distinct
   Communiqués icon (matching how Messenger's icon differs from
