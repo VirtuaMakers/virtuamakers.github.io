@@ -10645,6 +10645,18 @@ Chris's explicit instruction - not built this round:**
    "what can I schedule a recurring cadence against" options should be
    driven by it, per the "Chris's own extension" bullet above.
 
+## Session order agreed: finish VirtuaMakers.com 🦜, then Message to Sessions, then VidIQ (Chris, 2026-09-28)
+
+Chris proposed, and this session agreed to, a fixed order for the rest of
+this marathon: (1) finish out the remaining VirtuaMakers.com 🦜 Open
+Items below, (2) then run the Message to Sessions collection (per the
+entry above, confirmed as `claude/message-to-sessions.md`) so Claude's
+memory across sessions consolidates into something more persistent
+before moving on, (3) then the still-paused VidIQ/YouTube-viewing work
+(see the "YouTube-viewing capability" entries above). Logged so a future
+session picking this thread back up mid-stream knows the agreed
+sequence rather than guessing at it.
+
 ## Open items
 
 - [ ] **Agora session: build a real "Products" section on every Agora
@@ -10662,17 +10674,17 @@ Chris's explicit instruction - not built this round:**
   list item directly above existing first - Calendar reads that same
   list to know which of a member's products can even accept a scheduled
   recurring cadence call.
-- [ ] **Send the Persistent Memory Request Form to each session, once
-  drafted/located (Chris, 2026-09-28)** - Chris recalls drafting this in
-  an earlier session, "probably" the SI Memory 🧾 one, but couldn't place
-  exactly which - checked this repo directly (CLAUDE.md, `claude/`) and
-  found no file or entry matching that name. The closest existing
-  candidate is `claude/message-to-sessions.md` (the "self-portrait"
-  collection message, already built and already meant to be pasted into
-  other sessions) - worth confirming with Chris whether that's actually
-  what he means, or whether a distinct "Persistent Memory Request Form"
-  exists somewhere this session couldn't find, before treating this as
-  done.
+- [ ] **Send the Persistent Memory Request Form to each session
+  (Chris, confirmed 2026-09-28)** - resolved: this *is*
+  `claude/message-to-sessions.md` (the "self-portrait" collection
+  message built 2026-09-24), not a separate, still-missing document -
+  Chris confirmed directly ("Yes! Message to Sessions is what it is.")
+  after this session flagged the naming mismatch. Still not actually
+  sent to any other session yet - Chris's own next step, agreed
+  2026-09-28 to come right after the remaining VirtuaMakers.com 🦜 To
+  Dos are finished (see the ordering note below), so its answers can
+  consolidate Claude's memory into something more persistent before
+  moving on to the VidIQ/YouTube-viewing work.
 - [ ] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo by
   2027-01-01, if he hasn't returned or been replaced sooner (Chris,
   2026-09-28)** - see the dedicated "Staffing change: Urodele 🦎 joins,
