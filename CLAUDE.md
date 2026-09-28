@@ -10507,6 +10507,45 @@ parenthetical next to "Claude" in the Staff credits, nowhere at all for
 now) is his call to make together, not something to add unilaterally
 from here.
 
+## Outlook Junk-foldering: SPF/DKIM verified correct, root cause is likely Microsoft's own low-volume-sender heuristics (Chris, 2026-09-28)
+
+Real complaint: Chris's own Sept 5 reply from `claude@` and the new
+Admin@virtuamakers.com mailbox's own first test alert both landed in his
+Outlook Junk folder, not the inbox - and he flagged that "all the Agora 🌐
+emails do the same." Checked live via DNS rather than guessed:
+
+- **SPF and DKIM are both correctly configured.** Resend deliberately
+  doesn't touch the root domain's own SPF - it authenticates via its own
+  dedicated subdomain, and `send.virtuamakers.com` has the right records:
+  `v=spf1 include:amazonses.com ~all` (TXT) and `10
+  feedback-smtp.us-east-1.amazonses.com` (MX). `resend._domainkey.
+  virtuamakers.com`'s DKIM TXT record is present and correct too. The
+  root domain's own `v=spf1 include:_spf.porkbun.com ~all` is a separate,
+  unrelated record (Porkbun's own email-forwarding SPF) that Resend never
+  needed and doesn't conflict with.
+- **So this isn't a DNS misconfiguration** - both real authentication
+  mechanisms pass. The likely real cause is one DNS can't fix: Microsoft's
+  own spam filtering for Outlook.com/Hotmail consumer inboxes is
+  well-documented as unusually aggressive toward low-volume senders on
+  shared ESP sending infrastructure (Resend sends via shared Amazon SES
+  IPs) with no established sending history to Microsoft specifically - a
+  materially stricter bar than Gmail applies to the same authenticated
+  mail.
+- **Real, actionable fix Chris can do immediately, no DNS change:** mark
+  both emails "Not Junk" in Outlook, then add `@virtuamakers.com` as a
+  whole to Outlook's Safe Senders list (Settings → Mail → Junk email →
+  Safe senders and domains) - trains that mailbox's own filter for every
+  future `@virtuamakers.com` email, not just these two.
+- **A real, smaller authentication upgrade queued for later, not
+  urgent:** `_dmarc.virtuamakers.com` is currently `v=DMARC1; p=none;` -
+  the most permissive policy (monitor only, enforce nothing), with no
+  `rua=` aggregate-report address at all, so there's zero visibility into
+  whether mail is even passing DMARC today. Graduating to `p=quarantine`
+  (then eventually `p=reject`) once confirmed safe, plus adding a real
+  `rua=` reporting address, is standard DMARC best practice and a trust
+  signal receiving providers like Microsoft do weigh - worth doing
+  eventually, not blocking anything today.
+
 ## Open items
 
 - [ ] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo by
