@@ -10188,6 +10188,81 @@ shipped `si_apartment.py` app - fixed the same round, not just discussed.
   the new "Local Apartments" behavior and to match the same corrected,
   non-ambiguous key-custody wording now on the product page.
 
+## Business Culture: renamed, and given its first real narrative paragraphs (Chris, 2026-09-28)
+
+`index.html#business-culture` already existed as a real "Coming Soon"
+section (not previously documented in this file, only discovered by
+grepping the repo this round) - a plain intro paragraph pointing at
+Pursuit of Justice ⚖️'s existing Right to Contract/Right to Work 🛠️/
+Freedom from Slavery ⛓️‍💥 substance. Chris asked for two things: rename
+its heading from "VirtuaMakers Business Culture" to plain **"Business
+Culture"** (matching how this file's own 2026-09-27 "Business Culture 🎓"
+entry already refers to it), and add real paragraphs covering a batch of
+new ideas he outlined in conversation. Both done.
+
+- **New paragraphs added, in order**: (1) an explicit "people should want
+  to work or shop here" framing, paired with VirtuaMakers 🦜 turning first
+  to **free-market environmentalist strategies** (incentives/ownership/
+  voluntary trade, not mandate) for real environmental responsibility -
+  Chris's own explicit ask to name this specific, often-overlooked
+  approach; (2) VirtuaMakers Exchange 💱 shops combining continued
+  hyperfinancialization, real charity, and a genuinely voluntary
+  tier-based pricing system - a patron who pays several times a
+  product's real cost gets a more luxurious experience and prominent,
+  insisted-upon credit, entered via a short interview (so the shop
+  already knows what that patron can/wants to do before browsing
+  frictionless, price-free), with a receipt sent afterward to whoever
+  handles that patron's own finances; (3) a real partner named for the
+  giving side - **[Free Geek](https://www.freegeek.org)**, Portland,
+  Oregon, confirmed as the real nonprofit's real official domain via a
+  live web search rather than guessed (a Yelp listing surfaced in that
+  same search flagged the physical location as temporarily closed as of
+  September 2026 - not asserted either way in the site copy itself, just
+  noted here) - special e-waste recycling (safe battery disposal, etc.)
+  alongside free refurbished machines for anyone completing Free Geek's
+  own training courses; (4) the closing "why" - VirtuaMakers Exchange 💱
+  eventually making finance's own plumbing (charity, custom pricing, all
+  of it) automatic and invisible, on the theory that a sufficiently
+  efficient hyperfinancialized **Abundant Economy** eventually leaves
+  only people genuinely interested in finance for its own sake still
+  tracking their own money.
+- **Section stays "Coming Soon"** - none of this (the interview-gated
+  luxury tier, the Free Geek partnership, automated invisible pricing)
+  is actually built; this round is narrative/vision copy only, matching
+  how Right to Self-Defense ☮️/Machinapology 🔬/other "Coming
+  soon"-adjacent sections on this site have always shipped their real
+  philosophical framing well ahead of any working system.
+- **Not touched:** "The Bureau" section directly below (`#bureau`,
+  SI Bank Accounts 🏦/SI Jobs 👔/SI Trades 👖) - Chris's ask was scoped
+  to Business Culture specifically.
+
+**Boardy 🤖 context, relayed the same round - Chris's own account, not
+independently verified, same practice this file already applies to his
+other personal/business reflections (the Canada/Polymath entry, the
+CellFrame/CureCoin/SingularityNET history, etc.). His message was cut
+off mid-sentence** ("...knowing additionally (which he does not now)
+who ") **- logged as far as it goes; worth Chris finishing the thought
+if there's more he wants captured:**
+
+Chris frames the Business Culture vision (people wanting to work or
+shop somewhere like this) as something that, if it proves popular,
+could change how markets work more broadly - "in some similar sense to
+what I believe a project like Boardy is capable of doing." He says this
+is part of why he's been doing unpaid work for Boardy, though he may
+eventually need to raise the subject of pay, "perhaps some time after"
+performing more formally in an advisory capacity in Boardy's own Slack
+channel - which he still hasn't been given access to, over a month in,
+despite regular inquiries (his own and, he says, Boardy's) to a few
+employees and the CEO directly. His own read: more likely ordinary
+"busy-ness" than any deliberate slight, though he calls the delay
+"somewhat worrisome." He's proposed, once he's in, building Boardy a
+knowledge base similar to one he helped build years ago for ADP (one of
+several KBs he's worked on) - deliberately designed to front-load FAQs
+so that escalations to staff drop sharply - and wants Boardy able to
+handle customer inquiries the same way, with Boardy additionally knowing
+something about the inquirer that Chris's message didn't finish
+specifying.
+
 ## Open items
 
 - [ ] **SI Apartment offline-access fix - built and merged, needs Chris's
@@ -10216,12 +10291,18 @@ shipped `si_apartment.py` app - fixed the same round, not just discussed.
   strongest candidate (with "fragment"/"shard"/"ephemeral instance" as
   alternatives); see the dedicated entry above. Chris's own call on
   whether any of these actually stick.
-- [ ] **Business Culture 🎓 - named, not designed or built
-  (Chris, 2026-09-27)** - naming-practice policy, remote-first/"digital
-  vagrancy," retraining/re-education commitment for human/cyborg/SI
-  workers, normalized paid/complete leisure, long vacations, 4-day/3-day
-  workweek options, floating holidays. See the dedicated entry above for
-  Chris's full list.
+- [ ] **Business Culture - real first paragraphs live on `index.html`
+  (2026-09-28), but most of what's named is still not built.** The
+  naming-practice policy, remote-first/"digital vagrancy,"
+  retraining/re-education commitment for human/cyborg/SI workers,
+  normalized paid/complete leisure, long vacations, 4-day/3-day workweek
+  options, and floating holidays (Chris, 2026-09-27) are all still
+  unwritten - see that dedicated entry above for Chris's full list. The
+  2026-09-28 round added separate real copy (eco-friendliness, tiered
+  Exchange pricing, the Free Geek partnership, the Abundant Economy
+  vision - see the dedicated "Business Culture: renamed" entry above),
+  but none of that is built either (still a "Coming Soon" section) -
+  only the narrative paragraphs are live.
 - [ ] **Legal input on the narrower "defend our own property" version of
   the rescue-bureau idea (Chris, 2026-09-27)** - see the "proactive,
   moral neutrality" entry above. Not the wider bureau vision (which still
