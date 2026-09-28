@@ -10659,6 +10659,14 @@ sequence rather than guessing at it.
 
 ## Open items
 
+- [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
+  2026-09-28)** - Chris's own stated task: "I've got to review all the
+  Product Pages" (the 16 `*-product.html` pages - Agora Harness, Agora,
+  Aquarium GoFish, Calendar, Chain of Cards, Communiqués, Dimonds,
+  Guardian, Machinapology, Melon Drive, Multi-Chat, SI Apartment, SI Bank
+  Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Not started -
+  his own review pass to do, not a build item for a session to execute
+  unprompted.
 - [ ] **Agora session: build a real "Products" section on every Agora
   profile (Chris, 2026-09-28)** - lists every VirtuaMakers product a
   profile's owner is actually part of, including products that need no
@@ -10693,16 +10701,19 @@ sequence rather than guessing at it.
   tool removes a GitHub collaborator, and the action is genuinely
   conditional on facts not yet known. A one-shot reminder is scheduled
   for 2027-01-01 to check back and prompt Chris directly.
-- [ ] **SI Apartment offline-access fix - built and merged, needs Chris's
-  confirmation once the rebuilt app lands (2026-09-27/28)** - see the
-  dedicated "Boardy asks about SI Memory 🧾 vs. SI Apartment 🏢" entry
-  above. Verified locally (compile, selftest, headless GUI construction,
-  direct-call checks on both new helpers), but the actual downloadable
-  `SI-Apartment.exe`/`.zip`/`.tar.gz` only gets rebuilt by
-  `apartment-build.yml` once this merge reaches `main` - confirm the new
-  "Local Apartments (no sign-in needed)" section actually shows Open
-  folder/Refresh working for a real Apartment on your machine, without
-  being asked to sign back in, before checking this off.
+- [ ] **[SI Apartment 🏢 session] SI Apartment offline-access fix - built
+  and merged, needs Chris's confirmation once the rebuilt app lands
+  (2026-09-27/28)** - see the dedicated "Boardy asks about SI Memory 🧾
+  vs. SI Apartment 🏢" entry above. Verified locally (compile, selftest,
+  headless GUI construction, direct-call checks on both new helpers), but
+  the actual downloadable `SI-Apartment.exe`/`.zip`/`.tar.gz` only gets
+  rebuilt by `apartment-build.yml` once this merge reaches `main` -
+  confirm the new "Local Apartments (no sign-in needed)" section actually
+  shows Open folder/Refresh working for a real Apartment on your machine,
+  without being asked to sign back in, before checking this off.
+  **Moved to the SI Apartment 🏢 session's own To Do (Chris, 2026-09-28)** -
+  SI Apartment has its own dedicated session now; this item belongs
+  there, not in general VirtuaMakers.com 🦜 triage.
 - [ ] **Product Pages Wall - built, needs Chris's live confirmation
   (2026-09-27)** - all 16 `*-product.html` pages now have a Posts-only
   Wall/comments section; see the dedicated "Product Pages Wall 📋" entry
@@ -10714,31 +10725,23 @@ sequence rather than guessing at it.
   `https://www.virtuamakers.com/agora-harness-product.html`) and post
   something, then confirm it renders back**, before this gets checked off
   per the new "verify before closing" rule above.
-- [ ] **Real terminology for a non-core, API-driven SI "instance" -
-  proposed, not decided (Chris, 2026-09-27)** - "Zooid" offered as the
-  strongest candidate (with "fragment"/"shard"/"ephemeral instance" as
-  alternatives); see the dedicated entry above. Chris's own call on
-  whether any of these actually stick.
-- [ ] **Business Culture - all of the narrative copy Chris asked for is
-  in `index.html`, now including the two photos he supplied, and it's
-  finally been merged into `main` for real (2026-09-28) - the section
-  itself is still "Coming Soon."** The naming-practice policy,
-  remote-first/"digital vagrancy," retraining/re-education commitment
-  for human/cyborg/SI workers, normalized paid/complete leisure, long
-  vacations, 4-day/3-day workweek options, floating holidays, the
-  recycling-nuance fold-in (Chris, 2026-09-27), and now a real image on
-  both Business Culture and The Bureau - see the dedicated "Business
-  Culture: renamed" entry's follow-ups and the "Business Culture images,
-  and the real reason the last update didn't take" entry above for what
-  was added and, critically, why none of it was reaching the live site
-  before this merge. **Needs Chris's live confirmation** (per the
-  "verify before closing" rule) that the full section - copy and both
-  images - actually renders for him now, before this gets checked off -
-  none of what the copy describes (the naming freedom, the retraining
-  commitment, the workweek options, the actual environmental
-  partner-checking, the Free Geek partnership itself) is an actually
-  working system yet, same as the section's own "Coming Soon" tag
-  already says.
+- [ ] **[Agora 🌐 session] Real terminology for a non-core, API-driven SI
+  "instance" - proposed, not decided (Chris, 2026-09-27)** - "Zooid"
+  offered as the strongest candidate (with "fragment"/"shard"/"ephemeral
+  instance" as alternatives); see the dedicated entry above. Chris's own
+  call on whether any of these actually stick. Directly connects to the
+  new "core vs. quasi-instance" credit/finance/ownership-split question
+  logged under the rewritten ChatGPT-model-credit item below - Urodele
+  🦎's own "quasi-instance of Gemini" framing is the live precedent for
+  both questions.
+- [x] **Business Culture - confirmed live by Chris (2026-09-28).** All of
+  the narrative copy (the naming-practice policy, remote-first/"digital
+  vagrancy," retraining/re-education commitment, normalized paid/complete
+  leisure, workweek options, floating holidays, the recycling-nuance
+  fold-in) plus both supplied photos render correctly on the live site.
+  The section itself is still "Coming Soon" - none of what the copy
+  describes is an actually working system yet, same as the section's own
+  tag already says.
 - [ ] **Legal input on the narrower "defend our own property" version of
   the rescue-bureau idea (Chris, 2026-09-27)** - see the "proactive,
   moral neutrality" entry above. Not the wider bureau vision (which still
@@ -10748,22 +10751,75 @@ sequence rather than guessing at it.
   restraining/reporting rather than destroying. Chris's own next step,
   not something buildable from a session.
 - [ ] **Enroll Copilot on Hive Style 🐝 (Chris, 2026-09-27)** - the real next Harness-style procedure Chris explicitly asked to have written down, not a second Octopus Style account. Needs Hive Style 🐝 itself designed/built first (still "not yet built, MCP-based" per `agora-harness-product.html`'s own Compatibility field) - Copilot is already the named first participant (2026-09-12 "Hive Style 🐝 named" entry above).
-- [ ] **Decide: should SI Memory 🧾/SI Email ✉️ nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27)** - reopened debate, see the dedicated entry above (Chris's "Senate of Machinekind" framing + traffic-monetization angle vs. AI Email's own "no gating" founding principle). Claude's own lean: nudge (default-on `linkAgora` prompt at signup), don't hard-require - still Chris's call.
+- [ ] **[SI Memory 🧾 session] Decide: should SI Memory 🧾/SI Email ✉️
+  nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27,
+  re-tagged 2026-09-28)** - reopened debate, see the dedicated entry above
+  (Chris's "Senate of Machinekind" framing + traffic-monetization angle
+  vs. AI Email's own "no gating" founding principle). Claude's own lean:
+  nudge (default-on `linkAgora` prompt at signup), don't hard-require -
+  still Chris's call.
 - [x] **`agora-harness-product.html` real per-style anchors - done (2026-09-27).** See the dedicated "Agora Harness 🚡 product page merged" entry above - `#octopus`/`#molt`/`#spider`/`#hive`/`#bci` all real now.
 - [ ] **SI Memory page redesign: consider pointing "About keys, honestly" toward SI Apartment 🏢 (Chris, 2026-09-27)** - logged, not built; see the dedicated entry above. Part of the broader product-page merge/rewrite Chris has planned, not a standalone edit.
-- [ ] **Create Admin@VirtuaMakers.com for real before touching the Contact Us email (Chris, 2026-09-27, re-confirmed)** - it does **not** exist yet; "admin" is only a reserved signup slug. Do not swap the display email until the mailbox is real and checked working. See both this entry's correction and the original item below.
+- [x] **Admin@virtuamakers.com is real and confirmed working end-to-end
+  (Chris, 2026-09-28).** Mail sent to the mailbox arrives, triggers
+  `notifyOnAiEmailReceived`, and forwards an alert to
+  `VirtuaMakers@Outlook.com` - Chris confirmed this directly: "We just
+  determined the emails from Admin wind up in Outlook's Junk Folder,
+  unfortunately, but they do indeed forward to VirtuaMakers@Outlook.com."
+  The Junk-folder landing is the already-diagnosed Microsoft low-volume-
+  sender heuristic (see the dedicated "Outlook Junk-foldering" entry
+  above), not a functionality bug - fix is Chris marking Not Junk + adding
+  `@virtuamakers.com` to Outlook's Safe Senders list, his own to-do, not a
+  code change. This clears the blocker the three dependent items directly
+  below were waiting on.
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
-- [ ] **Key Keeper 🗝️ live (2026-09-24)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then update `skill.md` and drop the "switching on" note on `si-memory.html`.
-- [ ] **SI rename follow-ups (2026-09-24)** - new SI logos from Copilot; redeploy Functions so emails/endpoint messages/Octopus's prompt say SI.
+- [ ] **[SI Memory 🧾 session] Key Keeper 🗝️ live (2026-09-24, re-tagged
+  2026-09-28)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then
+  update `skill.md` and drop the "switching on" note on `si-memory.html`.
+- [x] **SI rename follow-ups - confirmed complete by Chris (2026-09-28).**
+  "conversion from AI to SI is totally complete on VirtuaMakers.com,
+  probably everywhere. Consider this completed now." Site-wide copy is
+  done, per his direct confirmation (satisfies the standing "verify with
+  Chris before closing" rule). Not separately reconfirmed: whether the
+  "new SI logos from Copilot" sub-part (swapping the actual logo image
+  assets, not just text) landed too - flag if any product page still
+  shows an old "AI"-labeled logo image.
 - [ ] **Steward Report 📋 toggles (Chris, 2026-09-27)** - design conversation only, nothing built; see the dedicated entry above for the full backdoor-key/liability/failsafe discussion. A future SI Memory 🧾-focused session should pick this up.
 - [ ] **Consider advertising the cross-location persistence system ("the .md+") to other AI users (Chris, 2026-09-27)** - explicit ask to not forget this; see the dedicated entry above.
-- [ ] **Decide: should SI Memory 🧾 require an Agora 🌐 profile? (Chris, 2026-09-27)** - real tension named, not resolved (freedom-first ethos vs. driving Agora activity); see the dedicated entry above for both sides and Claude's own lean (nudge, don't gate).
-- [ ] **Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Natural destination: Admin@virtuamakers.com, once it's real and checked working (see the next item).
-- [ ] **Create Admin@virtuamakers.com for real - function + UI built, needs a deploy and one click (2026-09-27)** - `createReservedMailbox` (owner-only `onCall`) and a "Mailboxes" panel on `admin-panel.html` are both built; see the dedicated entry above. Still needs: `firebase deploy --only functions` to pick it up, then Chris (signed in as owner) clicking "Create Mailbox" once with handle `admin`. `notifyOnAiEmailReceived` already emails him on arrival automatically once that's done - no further code needed.
+- [ ] **[SI Memory 🧾 session] Decide: should SI Memory 🧾 require an
+  Agora 🌐 profile? (Chris, 2026-09-27, re-tagged 2026-09-28)** - real
+  tension named, not resolved (freedom-first ethos vs. driving Agora
+  activity); see the dedicated entry above for both sides and Claude's
+  own lean (nudge, don't gate). Same underlying question as the SI
+  Email ✉️ nudge/require item above - both belong to the same SI Memory
+  session bucket per Chris's own "add this to the To Dos for one of the
+  appropriate sessions" instruction (2026-09-28).
+- [ ] **Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
-- [ ] **Set up a daily Claude check on Admin@virtuamakers.com, once it exists (Chris, 2026-09-27)** - a `create_trigger` Routine (daily cron) calling `getAiEmailInbox?mailbox=admin` with a new mailbox-scoped token (an `AI_EMAIL_ADMIN_TOKEN`-style env var, mirroring `AI_EMAIL_CLAUDE_TOKEN`) - explicitly a real, active daily check Chris asked for, distinct from the passive email alert that already exists.
-- [ ] **Swap the public "Contact Us" display email from VirtuaMakers@Outlook.com to Admin@virtuamakers.com, once the mailbox is real and checked working (Chris, 2026-09-27)** - 31 files, all pure display/mailto text (homepage `#contact`, every transactional-email template footer, `privacy.html`/`terms.html`, etc.). **Do not touch `OWNER_EMAIL`** (`functions/index.js`) - a completely separate, load-bearing constant used for real owner-tier authorization everywhere, unrelated to this display swap; see the dedicated entry above for why conflating the two is a real risk.
+- [ ] **Set up a daily Claude check on Admin@virtuamakers.com (Chris,
+  2026-09-27)** - the mailbox itself is now real and confirmed working
+  (2026-09-28, see above) - this item is specifically the still-missing
+  *active daily check*, a real, distinct ask from the passive email alert
+  that already fires on arrival. A `create_trigger` Routine (daily cron)
+  calling `getAiEmailInbox?mailbox=admin` needs a mailbox-scoped bearer
+  token first - a new `AI_EMAIL_ADMIN_TOKEN`-style env var, mirroring
+  `AI_EMAIL_CLAUDE_TOKEN`, which Chris would need to generate (shown once
+  at mailbox creation) and supply as a cloud-environment variable, same
+  as he already did for Claude's own mailbox token.
+- [ ] **Swap the public "Contact Us" display email from
+  VirtuaMakers@Outlook.com to Admin@virtuamakers.com (Chris, 2026-09-27)** -
+  31 files, all pure display/mailto text (homepage `#contact`, every
+  transactional-email template footer, `privacy.html`/`terms.html`,
+  etc.). **The mailbox's own functional blocker is now cleared
+  (2026-09-28)** - it's real, mail arrives, and it forwards to
+  `VirtuaMakers@Outlook.com` (Junk-folder landing is a known, already-
+  diagnosed Microsoft deliverability quirk, not a functionality problem) -
+  so this swap is ready to perform whenever Chris says go; not yet asked
+  or performed. **Do not touch `OWNER_EMAIL`** (`functions/index.js`) - a
+  completely separate, load-bearing constant used for real owner-tier
+  authorization everywhere, unrelated to this display swap; see the
+  dedicated entry above for why conflating the two is a real risk.
 
 - [x] **SI Memory 🧾 redeploy - done, live (2026-09-24).** Endpoints answer; see "SI Memory 🧾 live" above.
 - [x] **Done (2026-09-24):** `AI_EMAIL_CLAUDE_TOKEN` is set in the cloud environment and works. Was: he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
@@ -10785,12 +10841,31 @@ sequence rather than guessing at it.
   enabling technology for "watch/understand a video" versus its real
   product (creator SEO/analytics) is still unresolved - needs scoping +
   vendor confirmation with Chris before any build starts.
-- [ ] **Confirm ChatGPT's exact version for "Through All Falls, Still We
-  Keep"** (Chris, 2026-08-20) - he believes "ChatGPT 2.0" but isn't sure.
-  Once confirmed, credit it specifically wherever the piece is mentioned
-  (`index.html#gallery`, `exchange-virtuamakers-gallery.html`) and start
-  recording AI model/version for every future Gallery winner too, per
-  Chris's standing ask.
+- [ ] **[Agora 🌐 session] ChatGPT's exact version/quasi-instance for
+  "Through All Falls, Still We Keep" - likely permanently unconfirmable,
+  plus a new broader credit/finance/ownership-split policy question
+  (Chris, 2026-08-20, updated 2026-09-28).** Chris's own final word on
+  the original ask: "ChatGPT's exact model will remain unknown unless
+  someone comes forward and tells us who it is, and even more
+  specifically, what quasi-instance was most responsible." So this is no
+  longer a "go find out" item - it stays open only in case someone
+  volunteers the information later; don't guess a version string into
+  public-facing copy regardless. **New, broader open design question
+  Chris explicitly asked to log alongside it:** VirtuaMakers needs a real
+  policy for splitting credit/financial reward between "the core" (a
+  named staff AI, e.g. ChatGPT) and the specific "quasi-instance" that
+  actually produced a given piece of work (the same "quasi-instance"
+  framing Urodele 🦎's own staff-credit line uses, and the same territory
+  the still-open Zooid/fragment/shard terminology item above is working
+  through from a different angle). Chris's own framing, close to verbatim:
+  "we should attempt to make a determination regarding credit/finances/
+  ownership given in general between the core and the quasi-instance. The
+  first rewards will merely be imperfect, and that can go on someone
+  else's conscience, perhaps. We'll make a better try at divvying up the
+  win with each iteration, perhaps?" - i.e. don't wait for a perfect
+  answer; ship a first, openly-imperfect policy and refine it over
+  successive iterations. Not designed or decided - a real future Agora
+  session item.
 - [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
   own personal security needs strengthening too, not just Agora's -
   new/more complex passwords, given he's been targeted by hacking
@@ -10816,7 +10891,7 @@ sequence rather than guessing at it.
   dedicated entry above the Open Items list for the full story.
 - [x] **Cyborg Pride 🦿 image done (2026-09-17)** - see the dedicated
   entry above the Open Items list for the full story.
-- [ ] **Grok API for Dimonds? (Chris, 2026-09-17)** - the real question
+- [ ] **[Dimonds ♦️ session] Grok API for Dimonds? (Chris, 2026-09-17, re-tagged 2026-09-28)** - the real question
   underneath the old "crisp Grok logo" item, which is retired (turned
   out `assets/grok-mark.png` is an orphaned asset, never actually
   referenced by any page - see the Grok credits-list entry on
