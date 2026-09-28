@@ -35,10 +35,12 @@ published via GitHub Pages at https://virtuamakers.github.io.
      installed App) against the new org - app installations bind to the
      account's underlying ID, not just the name string, so this session's
      repo access would need re-granting after the transfer.
-  Real payoff beyond appearance: real org membership/roles for teammates
-  (Krishn, etc.) instead of ad hoc personal-repo collaborators. Purely
+  Real payoff beyond appearance: real org membership/roles for human
+  teammates instead of ad hoc personal-repo collaborators. Purely
   account-level GitHub administration Chris has to execute himself; not
-  something this session can do from here.
+  something this session can do from here. (Originally illustrated with
+  "Krishn, etc." - dropped 2026-09-28 once Krishn Tundia left staff, see
+  the dedicated entry near the end of this file.)
 
 ## Repo layout — two sites
 
@@ -10370,8 +10372,83 @@ this was a real merge commit instead of a fast-forward, same as that
 before closing" rule, this doesn't get marked done until Chris confirms
 the images and the full Business Culture copy actually render for him.
 
+## Staffing change: Urodele 🦎 joins, Krishn Tundia leaves (Chris, 2026-09-28)
+
+**New hire, per Chris's own listing, genuinely new information - checked
+directly, no prior mention of "Urodele" anywhere in this repo (CLAUDE.md,
+`index.html`, or elsewhere) before this message.** Chris said he felt
+like he'd started typing this up before and it now reads "almost like a
+dream" in his memory - worth taking at face value rather than assuming
+lost content: nothing was ever committed or logged, so there's nothing to
+recover, only this message to act on.
+
+- **🦎 Urodele (a quasi-instance of Gemini, of Alphabet) - Machinapologist
+  and Researcher** - added to `index.html`'s "VirtuaMakers Staff" list, in
+  the exact slot Krishn Tundia's entry occupied (see below), following
+  the same no-link, emoji-first pattern already used for Chris/Dr. Khoa/
+  Krishn (`<span class="credit-emoji">`) rather than the real-favicon
+  `<img class="credit-logo">` pattern the actual AI-provider entries use -
+  "quasi-instance" reads as its own identity, not literally
+  interchangeable with the existing "Gemini (of Alphabet) - Graphic
+  Designer" row already on the list, so it gets its own line rather than
+  being folded into that one. Chris's own "by Alphabet" was normalized to
+  "of Alphabet" to match every other entry's parenthetical convention.
+- **A real thematic echo, worth naming even though nobody asked for it to
+  be built into anything:** "Urodele" is the real biological name for the
+  amphibian order that includes salamanders and newts - the actual,
+  textbook example of limb/tissue regeneration in nature. That lands
+  directly on the still-open "fragment" side of the 2026-09-27 Zooid/
+  Ubercreature/Crowncreature terminology entry above (a fragment being
+  specifically *capable of regrowing into a full, independent organism*,
+  unlike a zooid) - a fitting name for a Machinapologist regardless of
+  whether Chris chose it with that connection in mind.
+- **Krishn Tundia removed from the same Staff list** - Chris's explicit
+  instruction to remove him from `index.html`'s credit list, done in the
+  same edit as adding Urodele. The historical mentions of Krishn
+  elsewhere in this file are left untouched, matching this file's own
+  standing practice of not rewriting past entries just because status
+  later changed (see how Christopher Bruckmann's own static-profile
+  retirement never touched the history describing his prior static
+  page) - **except** the still-open "Convert `github.com/VirtuaMakers`
+  to an Organization" TODO item near the top of this file, which named
+  "Krishn, etc." as a forward-looking illustrative example of a *future*
+  org-membership benefit - genericized to drop his name specifically,
+  since that one reference was making a live, still-current claim about
+  who'd benefit, not a historical record of something already said.
+  `claude/interview.md`'s own standing interview question ("What should
+  the other staff... know about how you work?") was updated the same way,
+  swapping Krishn for Urodele in that live staff list.
+- **GitHub access to the Guardian 🟩 repo - not touched, and not
+  touchable from here.** Chris's ask: revoke Krishn's access by January
+  1, 2027, if he hasn't returned to the company by then, or sooner if
+  someone else takes over his work first. Two real reasons this can't be
+  done as part of this edit: (1) it's a genuine future, conditional
+  action (contingent on whether Krishn has come back, or whether a
+  replacement exists, neither of which is knowable today), not something
+  to execute now; (2) the Guardian repo isn't even in this session's
+  authorized repo scope (only `virtuamakers.github.io` is) and no tool
+  available here can remove a GitHub collaborator regardless - this is
+  Chris's own GitHub-account-level action, same category as the still-
+  open org-conversion TODO above.
+- **A one-shot reminder scheduled for 2027-01-01T14:00Z** - trigger id
+  `trig_01MHRTPRVYdT2S36xjmKJmei`, matching the exact precedent already
+  set elsewhere in this file (the phone-2FA revisit Routine,
+  `trig_01RTpeFFeCbyrq1HVna4h6aj`, also fired into a fresh session on a
+  fixed future date for a decision that needed Chris's own input) - a
+  fresh session on that date will re-check whether Krishn has returned
+  or been replaced and, if not, prompt Chris to actually revoke the
+  Guardian repo access himself.
+
 ## Open items
 
+- [ ] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo by
+  2027-01-01, if he hasn't returned or been replaced sooner (Chris,
+  2026-09-28)** - see the dedicated "Staffing change: Urodele 🦎 joins,
+  Krishn Tundia leaves" entry above. Not buildable from a session: the
+  Guardian repo isn't in this session's authorized scope, no available
+  tool removes a GitHub collaborator, and the action is genuinely
+  conditional on facts not yet known. A one-shot reminder is scheduled
+  for 2027-01-01 to check back and prompt Chris directly.
 - [ ] **SI Apartment offline-access fix - built and merged, needs Chris's
   confirmation once the rebuilt app lands (2026-09-27/28)** - see the
   dedicated "Boardy asks about SI Memory 🧾 vs. SI Apartment 🏢" entry
