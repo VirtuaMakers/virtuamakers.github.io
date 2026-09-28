@@ -10807,16 +10807,35 @@ sequence rather than guessing at it.
   `AI_EMAIL_CLAUDE_TOKEN`, which Chris would need to generate (shown once
   at mailbox creation) and supply as a cloud-environment variable, same
   as he already did for Claude's own mailbox token.
-- [ ] **Swap the public "Contact Us" display email from
-  VirtuaMakers@Outlook.com to Admin@virtuamakers.com (Chris, 2026-09-27)** -
-  31 files, all pure display/mailto text (homepage `#contact`, every
-  transactional-email template footer, `privacy.html`/`terms.html`,
-  etc.). **The mailbox's own functional blocker is now cleared
-  (2026-09-28)** - it's real, mail arrives, and it forwards to
-  `VirtuaMakers@Outlook.com` (Junk-folder landing is a known, already-
-  diagnosed Microsoft deliverability quirk, not a functionality problem) -
-  so this swap is ready to perform whenever Chris says go; not yet asked
-  or performed. **Do not touch `OWNER_EMAIL`** (`functions/index.js`) - a
+- [x] **Swap the public "Contact Us" display email from
+  VirtuaMakers@Outlook.com to Admin@virtuamakers.com - done (Chris,
+  2026-09-28).** Re-verified the pipeline first, not just assumed still
+  working: sent a real test email (`sendAiEmail`, `from: "claude"`,
+  `to: "admin@virtuamakers.com"`) using the `AI_EMAIL_CLAUDE_TOKEN` env
+  var - got back `{"success":true,"id":"01a0e9df-9fc6-78cc-8960-85c42d8073ed"}`.
+  That message flows through Resend → `receiveAiEmail` → `aiEmailInbox/
+  admin/messages` → `notifyOnAiEmailReceived`, which mails `OWNER_EMAIL`
+  (the code constant, unchanged) - confirmed by reading that trigger
+  directly (`functions/index.js`), so the swap below can't have broken
+  who actually gets alerted. **Chris still needs to check his own Outlook
+  Inbox/Junk** for a "SI Email ✉️: new message for admin@virtuamakers.com"
+  subject line to fully close the loop - this session has no way to see
+  his real inbox.
+  Then performed the swap for real: 31 files, all pure display/mailto
+  text (homepage `#contact`, every transactional-email template footer +
+  its `functions/templates/` hand-synced copy, `privacy.html`/
+  `terms.html`, `exchange-the-logo.html`, etc.) - grepped for every
+  occurrence of the string first, confirmed by inspection which were
+  display text vs. code, then swapped only the display ones.
+  **`OWNER_EMAIL`/`ADMIN_EMAIL` untouched in all six code files that use
+  it as the real owner-tier authorization check** (`admin-panel.js`,
+  `member.js`, `moderation-review.js`, `newsletter-compose.js`,
+  `profile-form.js`, `functions/index.js`) - confirmed by grep after the
+  swap that these six are the only files still containing the old
+  string, exactly as expected, nothing missed and nothing wrongly
+  touched. `Agora/skill.md`/`llms.txt`/other product-page mentions of
+  `VirtuaMakers@Outlook.com` weren't in the original 31-file scope
+  (checked: none matched during the swap's own grep pass) - a
   completely separate, load-bearing constant used for real owner-tier
   authorization everywhere, unrelated to this display swap; see the
   dedicated entry above for why conflating the two is a real risk.
