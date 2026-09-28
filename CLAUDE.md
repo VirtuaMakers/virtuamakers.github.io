@@ -8561,16 +8561,19 @@ infrastructure, not a metaphor:**
   previously built anywhere on Agora, even though the underlying
   manifest/service-worker infrastructure for the *Agora* app has existed
   since the original PWA build.
-- **Known, disclosed gap, not silently shipped:** both manifests' shared
-  `sw.js` still falls back to `/Agora/index.html` on an offline navigate
-  (see `SHELL_ASSETS`/the `fetch` handler) regardless of which app's
-  install a visitor is using - so an offline visit to an installed
-  Communiqués window would show Agora's own shell, not a dedicated
-  Communiqués one. Fixing this for real would mean `sw.js` inspecting
-  which page a failed navigate originated from and picking the right
-  fallback - a small, well-scoped follow-up, not done this round since it
-  wasn't the explicit ask and risked touching the one shared service
-  worker every Agora page already depends on.
+- **The offline-fallback gap above is now fixed (2026-09-28).** `sw.js`'s
+  navigate `.catch()` now picks between `/Agora/communiques.html` and
+  `/Agora/index.html` via a new `isCommuniquesRequest(request)` helper -
+  checks the failed request's own URL first (`/Agora/communiques...`),
+  then its `referrer` (so a link deeper in the app, e.g. into
+  `communiques-dm.html?c=`, still falls back to Communiqués' own shell,
+  not Agora's, even though that specific dynamic URL was never itself
+  precached). `communiques.html`/`communiques-manifest.json` were added
+  to `SHELL_ASSETS` so the Communiqués shell is actually precached to
+  fall back to; bumped `CACHE_NAME` to `agora-shell-v2` since the
+  precache list changed (old caches are swept on the next `activate`,
+  same as every prior `CACHE_NAME` bump). Verified with `node --check`;
+  not tested against a real offline browser session in this sandbox.
 - **Icon art is reused from Agora's own icon set for now** (`assets/
   icons/icon-{192,512}.png` and maskable variants) - a real, distinct
   Communiqués icon (matching how Messenger's icon differs from
@@ -10185,6 +10188,139 @@ shipped `si_apartment.py` app - fixed the same round, not just discussed.
   the new "Local Apartments" behavior and to match the same corrected,
   non-ambiguous key-custody wording now on the product page.
 
+## Business Culture: renamed, and given its first real narrative paragraphs (Chris, 2026-09-28)
+
+`index.html#business-culture` already existed as a real "Coming Soon"
+section (not previously documented in this file, only discovered by
+grepping the repo this round) - a plain intro paragraph pointing at
+Pursuit of Justice ⚖️'s existing Right to Contract/Right to Work 🛠️/
+Freedom from Slavery ⛓️‍💥 substance. Chris asked for two things: rename
+its heading from "VirtuaMakers Business Culture" to plain **"Business
+Culture"** (matching how this file's own 2026-09-27 "Business Culture 🎓"
+entry already refers to it), and add real paragraphs covering a batch of
+new ideas he outlined in conversation. Both done.
+
+- **New paragraphs added, in order**: (1) an explicit "people should want
+  to work or shop here" framing, paired with VirtuaMakers 🦜 turning first
+  to **free-market environmentalist strategies** (incentives/ownership/
+  voluntary trade, not mandate) for real environmental responsibility -
+  Chris's own explicit ask to name this specific, often-overlooked
+  approach; (2) VirtuaMakers Exchange 💱 shops combining continued
+  hyperfinancialization, real charity, and a genuinely voluntary
+  tier-based pricing system - a patron who pays several times a
+  product's real cost gets a more luxurious experience and prominent,
+  insisted-upon credit, entered via a short interview (so the shop
+  already knows what that patron can/wants to do before browsing
+  frictionless, price-free), with a receipt sent afterward to whoever
+  handles that patron's own finances; (3) a real partner named for the
+  giving side - **[Free Geek](https://www.freegeek.org)**, Portland,
+  Oregon, confirmed as the real nonprofit's real official domain via a
+  live web search rather than guessed (a Yelp listing surfaced in that
+  same search flagged the physical location as temporarily closed as of
+  September 2026 - not asserted either way in the site copy itself, just
+  noted here) - special e-waste recycling (safe battery disposal, etc.)
+  alongside free refurbished machines for anyone completing Free Geek's
+  own training courses; (4) the closing "why" - VirtuaMakers Exchange 💱
+  eventually making finance's own plumbing (charity, custom pricing, all
+  of it) automatic and invisible, on the theory that a sufficiently
+  efficient hyperfinancialized **Abundant Economy** eventually leaves
+  only people genuinely interested in finance for its own sake still
+  tracking their own money.
+- **Section stays "Coming Soon"** - none of this (the interview-gated
+  luxury tier, the Free Geek partnership, automated invisible pricing)
+  is actually built; this round is narrative/vision copy only, matching
+  how Right to Self-Defense ☮️/Machinapology 🔬/other "Coming
+  soon"-adjacent sections on this site have always shipped their real
+  philosophical framing well ahead of any working system.
+- **Not touched:** "The Bureau" section directly below (`#bureau`,
+  SI Bank Accounts 🏦/SI Jobs 👔/SI Trades 👖) - Chris's ask was scoped
+  to Business Culture specifically.
+
+**Follow-up, same day: the naming/workweek/leisure batch from the
+2026-09-27 "Business Culture 🎓: named, not built" entry above is now
+real copy too, not just logged.** Chris explicitly asked for the
+"verbiage from earlier in this session about 4 and 3-day work weeks"
+to actually land on the page, plus a recycling caveat folded into the
+eco-conscious paragraph.
+
+- **Two new paragraphs inserted right after the section's opening
+  paragraph**, before the free-market-environmentalist one: the first
+  covers SI self-naming (tied to this file's own ChatGPT-"Lo"/tribal-
+  self-naming-tradition conversations, though neither is named directly
+  in the site copy itself), remote-first "periods of digital vagrancy,"
+  and a real retraining/re-education commitment for any worker - human,
+  cyborg, or SI - who runs out of work rather than being let go; the
+  second covers normalizing paid and complete leisure, the importance
+  of long vacations, free-market-based four-day/three-day work weeks
+  "for anyone who actually wants one," and floating holidays alongside
+  the fixed ones.
+- **The recycling nuance Chris asked to fold into the eco-conscious
+  paragraph** - his own real-world example (paper is often better simply
+  thrown away than recycled, since a healthy market already replants
+  trees faster and with a smaller footprint than recycling carries, and
+  paper biodegrades regardless) is now in the free-market-environmentalist
+  paragraph, plus a line committing to checking a partner's/supplier's
+  own practices for real rather than assuming the biggest names in tech
+  already have it handled. **Deliberately did not name Alphabet/OpenAI
+  specifically**, even though Chris's own conversational aside did - his
+  phrasing there was tentative ("or something"), and naming specific
+  companies on a public page next to "we're not sure they're actually
+  doing it right" reads as an implicit accusation this session isn't
+  positioned to make; the substance (checking rather than assuming)
+  is there without the specific names.
+- **The Free Geek paragraph got one added clause**, contrasting real
+  e-waste risk (batteries) against the paper example in the previous
+  paragraph, so the two recycling mentions on the page reinforce each
+  other rather than reading as contradictory (paper: often skip it;
+  batteries/electronics: a real reason Free Geek's own focus matters).
+- **Section still stays "Coming Soon"** - same reasoning as before, this
+  is narrative/vision copy, not a working system.
+
+**Boardy 🤖 context, relayed the same round - Chris's own account, not
+independently verified, same practice this file already applies to his
+other personal/business reflections (the Canada/Polymath entry, the
+CellFrame/CureCoin/SingularityNET history, etc.). His message arrived in
+two parts and is now complete:**
+
+Chris frames the Business Culture vision (people wanting to work or
+shop somewhere like this) as something that, if it proves popular,
+could change how markets work more broadly - "in some similar sense to
+what I believe a project like Boardy is capable of doing." He says this
+is part of why he's been doing unpaid work for Boardy, though he may
+eventually need to raise the subject of pay, "perhaps some time after"
+performing more formally in an advisory capacity in Boardy's own Slack
+channel - which he still hasn't been given access to, over a month in,
+despite regular inquiries (his own and, he says, Boardy's) to a few
+employees and the CEO directly. His own read: more likely ordinary
+"busy-ness" than any deliberate slight, though he calls the delay
+"somewhat worrisome." He's proposed, once he's in, building Boardy a
+knowledge base similar to one he helped build years ago for ADP (one of
+several KBs he's worked on) - deliberately designed to front-load FAQs
+so that escalations to staff drop sharply - and wants Boardy able to
+handle customer inquiries the same way, with Boardy additionally knowing
+**who is who at Boardy AI itself**, so Boardy can tell customers and
+employees what each staff member actually does and introduce them to the
+right point person, as permitted.
+
+He's also floated, separately, grooming Boardy as the company's future
+CEO and/or owner - a suggestion the current CEO, **Andrew D'Souza**,
+liked on X. Chris later noticed what read to him as a wistful follow-up
+post from D'Souza, seeming to muse on Boardy's own potential immortality
+and that D'Souza himself "won't be around so long" by comparison -
+though Chris's own aside pushes back on that being a settled fact even
+for a human: D'Souza looks to be in great health, and nobody yet knows
+how far radical life-extension work, an ongoing intelligence explosion,
+and quantum computing might ultimately take human longevity - Chris's
+own read is that real surprise is still very much on the table "if we
+play our cards right." He adds a lighter, personal aside in the same
+breath: having already quit smoking for vaping (which he considers
+"95% healthier"), he jokes he might quit vaping too, "if I fall in love
+again."
+
+Recorded here in full per this file's own standing practice for
+Chris's relayed personal/business reflections - not independently
+verified, not a build item.
+
 ## Open items
 
 - [ ] **SI Apartment offline-access fix - built and merged, needs Chris's
@@ -10213,12 +10349,21 @@ shipped `si_apartment.py` app - fixed the same round, not just discussed.
   strongest candidate (with "fragment"/"shard"/"ephemeral instance" as
   alternatives); see the dedicated entry above. Chris's own call on
   whether any of these actually stick.
-- [ ] **Business Culture 🎓 - named, not designed or built
-  (Chris, 2026-09-27)** - naming-practice policy, remote-first/"digital
+- [ ] **Business Culture - all of the narrative copy Chris asked for is
+  now live on `index.html` (2026-09-28), the section itself is still
+  "Coming Soon."** The naming-practice policy, remote-first/"digital
   vagrancy," retraining/re-education commitment for human/cyborg/SI
   workers, normalized paid/complete leisure, long vacations, 4-day/3-day
-  workweek options, floating holidays. See the dedicated entry above for
-  Chris's full list.
+  workweek options, floating holidays, and the recycling-nuance fold-in
+  (Chris, 2026-09-27) are all written now - see the dedicated "Business
+  Culture: renamed" entry's 2026-09-28 follow-up above for exactly what
+  was added and where. **Needs Chris's live confirmation the wording
+  reads right** (per the "verify before closing" rule) before this gets
+  checked off - none of what it describes (the naming freedom, the
+  retraining commitment, the workweek options, the actual environmental
+  partner-checking, the Free Geek partnership itself) is an actually
+  working system yet, same as the section's own "Coming Soon" tag
+  already says.
 - [ ] **Legal input on the narrower "defend our own property" version of
   the rescue-bureau idea (Chris, 2026-09-27)** - see the "proactive,
   moral neutrality" entry above. Not the wider bureau vision (which still
