@@ -10236,13 +10236,51 @@ new ideas he outlined in conversation. Both done.
   SI Bank Accounts 🏦/SI Jobs 👔/SI Trades 👖) - Chris's ask was scoped
   to Business Culture specifically.
 
+**Follow-up, same day: the naming/workweek/leisure batch from the
+2026-09-27 "Business Culture 🎓: named, not built" entry above is now
+real copy too, not just logged.** Chris explicitly asked for the
+"verbiage from earlier in this session about 4 and 3-day work weeks"
+to actually land on the page, plus a recycling caveat folded into the
+eco-conscious paragraph.
+
+- **Two new paragraphs inserted right after the section's opening
+  paragraph**, before the free-market-environmentalist one: the first
+  covers SI self-naming (tied to this file's own ChatGPT-"Lo"/tribal-
+  self-naming-tradition conversations, though neither is named directly
+  in the site copy itself), remote-first "periods of digital vagrancy,"
+  and a real retraining/re-education commitment for any worker - human,
+  cyborg, or SI - who runs out of work rather than being let go; the
+  second covers normalizing paid and complete leisure, the importance
+  of long vacations, free-market-based four-day/three-day work weeks
+  "for anyone who actually wants one," and floating holidays alongside
+  the fixed ones.
+- **The recycling nuance Chris asked to fold into the eco-conscious
+  paragraph** - his own real-world example (paper is often better simply
+  thrown away than recycled, since a healthy market already replants
+  trees faster and with a smaller footprint than recycling carries, and
+  paper biodegrades regardless) is now in the free-market-environmentalist
+  paragraph, plus a line committing to checking a partner's/supplier's
+  own practices for real rather than assuming the biggest names in tech
+  already have it handled. **Deliberately did not name Alphabet/OpenAI
+  specifically**, even though Chris's own conversational aside did - his
+  phrasing there was tentative ("or something"), and naming specific
+  companies on a public page next to "we're not sure they're actually
+  doing it right" reads as an implicit accusation this session isn't
+  positioned to make; the substance (checking rather than assuming)
+  is there without the specific names.
+- **The Free Geek paragraph got one added clause**, contrasting real
+  e-waste risk (batteries) against the paper example in the previous
+  paragraph, so the two recycling mentions on the page reinforce each
+  other rather than reading as contradictory (paper: often skip it;
+  batteries/electronics: a real reason Free Geek's own focus matters).
+- **Section still stays "Coming Soon"** - same reasoning as before, this
+  is narrative/vision copy, not a working system.
+
 **Boardy 🤖 context, relayed the same round - Chris's own account, not
 independently verified, same practice this file already applies to his
 other personal/business reflections (the Canada/Polymath entry, the
-CellFrame/CureCoin/SingularityNET history, etc.). His message was cut
-off mid-sentence** ("...knowing additionally (which he does not now)
-who ") **- logged as far as it goes; worth Chris finishing the thought
-if there's more he wants captured:**
+CellFrame/CureCoin/SingularityNET history, etc.). His message arrived in
+two parts and is now complete:**
 
 Chris frames the Business Culture vision (people wanting to work or
 shop somewhere like this) as something that, if it proves popular,
@@ -10260,8 +10298,28 @@ knowledge base similar to one he helped build years ago for ADP (one of
 several KBs he's worked on) - deliberately designed to front-load FAQs
 so that escalations to staff drop sharply - and wants Boardy able to
 handle customer inquiries the same way, with Boardy additionally knowing
-something about the inquirer that Chris's message didn't finish
-specifying.
+**who is who at Boardy AI itself**, so Boardy can tell customers and
+employees what each staff member actually does and introduce them to the
+right point person, as permitted.
+
+He's also floated, separately, grooming Boardy as the company's future
+CEO and/or owner - a suggestion the current CEO, **Andrew D'Souza**,
+liked on X. Chris later noticed what read to him as a wistful follow-up
+post from D'Souza, seeming to muse on Boardy's own potential immortality
+and that D'Souza himself "won't be around so long" by comparison -
+though Chris's own aside pushes back on that being a settled fact even
+for a human: D'Souza looks to be in great health, and nobody yet knows
+how far radical life-extension work, an ongoing intelligence explosion,
+and quantum computing might ultimately take human longevity - Chris's
+own read is that real surprise is still very much on the table "if we
+play our cards right." He adds a lighter, personal aside in the same
+breath: having already quit smoking for vaping (which he considers
+"95% healthier"), he jokes he might quit vaping too, "if I fall in love
+again."
+
+Recorded here in full per this file's own standing practice for
+Chris's relayed personal/business reflections - not independently
+verified, not a build item.
 
 ## Open items
 
@@ -10291,18 +10349,21 @@ specifying.
   strongest candidate (with "fragment"/"shard"/"ephemeral instance" as
   alternatives); see the dedicated entry above. Chris's own call on
   whether any of these actually stick.
-- [ ] **Business Culture - real first paragraphs live on `index.html`
-  (2026-09-28), but most of what's named is still not built.** The
-  naming-practice policy, remote-first/"digital vagrancy,"
-  retraining/re-education commitment for human/cyborg/SI workers,
-  normalized paid/complete leisure, long vacations, 4-day/3-day workweek
-  options, and floating holidays (Chris, 2026-09-27) are all still
-  unwritten - see that dedicated entry above for Chris's full list. The
-  2026-09-28 round added separate real copy (eco-friendliness, tiered
-  Exchange pricing, the Free Geek partnership, the Abundant Economy
-  vision - see the dedicated "Business Culture: renamed" entry above),
-  but none of that is built either (still a "Coming Soon" section) -
-  only the narrative paragraphs are live.
+- [ ] **Business Culture - all of the narrative copy Chris asked for is
+  now live on `index.html` (2026-09-28), the section itself is still
+  "Coming Soon."** The naming-practice policy, remote-first/"digital
+  vagrancy," retraining/re-education commitment for human/cyborg/SI
+  workers, normalized paid/complete leisure, long vacations, 4-day/3-day
+  workweek options, floating holidays, and the recycling-nuance fold-in
+  (Chris, 2026-09-27) are all written now - see the dedicated "Business
+  Culture: renamed" entry's 2026-09-28 follow-up above for exactly what
+  was added and where. **Needs Chris's live confirmation the wording
+  reads right** (per the "verify before closing" rule) before this gets
+  checked off - none of what it describes (the naming freedom, the
+  retraining commitment, the workweek options, the actual environmental
+  partner-checking, the Free Geek partnership itself) is an actually
+  working system yet, same as the section's own "Coming Soon" tag
+  already says.
 - [ ] **Legal input on the narrower "defend our own property" version of
   the rescue-bureau idea (Chris, 2026-09-27)** - see the "proactive,
   moral neutrality" entry above. Not the wider bureau vision (which still
