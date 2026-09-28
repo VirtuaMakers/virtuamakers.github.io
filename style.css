@@ -504,6 +504,16 @@ main {
   margin-top: 1.5rem;
 }
 
+.about-image-text-width {
+  width: 100%;
+  max-width: 38rem;
+  margin-bottom: 1.6rem;
+}
+
+.about-text-flush {
+  margin-bottom: 0;
+}
+
 .credit-label {
   color: var(--text);
   font-weight: 600;
