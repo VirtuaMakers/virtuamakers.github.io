@@ -10439,6 +10439,51 @@ recover, only this message to act on.
   or been replaced and, if not, prompt Chris to actually revoke the
   Guardian repo access himself.
 
+## Business Culture/Bureau images sized to text width, section spacing equalized (Chris, 2026-09-28)
+
+Two real, narrow layout bugs Chris caught by eye, both in the images/
+copy added the day before (see "Business Culture images, and the real
+reason the last update didn't take" above):
+
+- **The images ran wider than the text column.** Both used the plain
+  `.about-image` class (`width: 75%`, no `max-width`) - on a wide
+  desktop viewport that's meaningfully wider than `.about-text`'s own
+  `max-width: 38rem` column, so the pictures didn't actually match the
+  text's width the way every other image on this page-body does. New
+  `.about-image-text-width` modifier (`width: 100%; max-width: 38rem;`)
+  applied to both - `About`'s own trailing wave image is untouched,
+  since Chris only asked about these two.
+- **No line space below either image.** `.about-image` sets
+  `margin-top` but never `margin-bottom`, so the first sentence of each
+  section sat flush against the image's bottom edge. The same new
+  modifier also adds `margin-bottom: 1.6rem` - matching `.about-text`'s
+  own bottom margin, so the gap below the image reads the same as the
+  gap between any two ordinary paragraphs.
+- **Business Culture → Bureau's section gap was real, not
+  perceived** - traced to `.section`'s shared padding/border-top, which
+  is genuinely identical for every section on the page, so the
+  difference had to be elsewhere: About's last element (the wave image)
+  carries no `margin-bottom`, while Business Culture's last element (a
+  paragraph) carried its own `.about-text` `margin-bottom: 1.6rem` -
+  adding 1.6rem more whitespace before Bureau's border-top than About
+  added before Business Culture's. New `.about-text-flush` (`margin-
+  bottom: 0`) on that one paragraph only - both gaps are now identical
+  (padding+border on both sides, no extra trailing margin either side).
+- Bumped `style.css?v=` on `index.html` (the only page these two new
+  classes touch) from `v=3` to `v=4` - root `style.css` is a separate
+  file from `Agora/style.css` (already at `v=99`), and most other
+  root-level pages (the 16 product pages) load root `style.css`
+  unversioned, so only `index.html`'s own link needed bumping.
+- **Confirmed via GitHub Actions that every recent `main` push,
+  including the Krishn/Urodele staff-list change and this round's
+  Business Culture merge, actually deployed successfully** (`pages
+  build and deployment` runs #625-630, all `conclusion: "success"`) -
+  when Chris reported not seeing prior changes live, this ruled out a
+  broken Pages pipeline or the `.nojekyll`-class build failure
+  documented earlier; the most likely remaining explanation is simple
+  browser/CDN cache lag, worth a hard refresh or private window before
+  assuming a real regression.
+
 ## Open items
 
 - [ ] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo by
