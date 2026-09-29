@@ -79,9 +79,16 @@ a {
   z-index: 100;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
-  max-width: var(--maxw);
-  margin: 0 auto;
-  padding: 1.6rem 1.5rem;
+  /* Full-bleed background, content still centered at --maxw (Chris,
+     2026-09-29 - "I prefer the header take up the entire top of the
+     screen on desktop") - the old max-width+margin:auto approach left
+     the header's own background boxed to 960px, with the page's
+     background showing through on either side on wide screens. Padding
+     does the centering now instead of a width constraint, so the
+     background itself spans the full viewport. */
+  max-width: none;
+  width: 100%;
+  padding: 1.6rem max(1.5rem, calc((100% - var(--maxw)) / 2));
   display: flex;
   align-items: center;
   justify-content: space-between;

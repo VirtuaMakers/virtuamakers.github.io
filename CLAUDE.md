@@ -11194,6 +11194,62 @@ Two small, unrelated fixes from the same message.
   Mac/Linux, PyInstaller, self-test-gated) the moment this merges to
   `main`, same as every other Apartment app change.
 
+## Full-width header background + a white product-hero card on a green field (Chris, 2026-09-29)
+
+Chris's first real Product Pages review note, opened with genuine
+praise for the round of builds ("essentially one-shotted this,
+impeccably well") - two concrete fixes from the same message.
+
+- **The header background didn't span the full viewport width on
+  desktop.** `.site-header` (both `Agora/style.css` and
+  `product-page.css`, kept in sync since product pages reuse the exact
+  same header) used `max-width: var(--maxw); margin: 0 auto;` - so on a
+  wide screen the header's own `background: var(--bg)` box was boxed to
+  960px, with the page's own background showing through on either side.
+  Chris only noticed on Product Pages because their background there is
+  visually distinct enough (see the green-field redesign below) to make
+  the seam obvious - the same gap was already there on every Agora page
+  too, just less visible against Agora's own more neutral background.
+  Fixed in both files identically: `max-width: none; width: 100%;
+  padding: 1.6rem max(1.5rem, calc((100% - var(--maxw)) / 2));` - the
+  background now spans the full width, while the padding (not a width
+  constraint) keeps the actual header content centered at the same
+  960px it always was. The existing narrow-phone media query (fixed
+  `0.6rem` padding-left/right) still overrides cleanly at that
+  breakpoint, unchanged. Root `style.css`'s own separate, already-
+  documented-as-unused `.site-header` rule was left alone, matching
+  `product-page.css`'s own existing note that it's intentionally dead
+  code no live page references.
+- **Product-hero redesign: a white card on a green field, not the dark
+  homepage-hero photo.** Real root cause found while reading the CSS,
+  not guessed: `<section class="hero product-hero">` shares the root
+  `.hero` class with the homepage's own hero - including its dark
+  `hero-bg.png` photographic background, designed around *white* hero
+  text. But `.product-slogan`/`.product-price`/`.eyebrow` all use
+  dark-on-light colors (the same ones that work fine everywhere else on
+  the page's white body), which is exactly Chris's "the blue text I
+  can't read" complaint - dark teal/green text on a dark photo. Fixed by
+  overriding `.product-hero`'s own background (in `product-page.css`,
+  which loads after `style.css`, so it wins at equal specificity without
+  touching `.hero` itself or the homepage that still needs it) to a
+  green gradient (`linear-gradient(160deg, var(--green-bright),
+  var(--green-deep))`), and wrapping the logo/slogan/price/eyebrow in a
+  new white `.product-hero-card` (rounded, shadowed, centered) on all 17
+  `*-product.html` pages - a scripted, verified transform (tag-balance
+  checked after) given the identical structure across every page. The
+  large `<h1>` product name + emoji stays outside/below the card,
+  directly on the green field, per Chris's own explicit "leave it there,
+  looks really fantastic" - its existing white text + shadow styling
+  (from the shared `.hero h1` rule) needed no change, since white-on-
+  green already reads exactly as well as white-on-dark-photo did.
+  `.product-hero-card .eyebrow` gets `--green-deep` instead of the
+  shared rule's `--green-bright`, since the brighter green was tuned for
+  the dark photo and reads too low-contrast on white.
+- Bumped `product-page.css?v=` from `5` to `6` (all 17 product pages)
+  and `Agora/style.css?v=` from `99` to `100` (all 61 Agora pages that
+  load it) in the same commit as the content change, per this file's own
+  standing cache-busting discipline.
+
 ## Open items
 
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
