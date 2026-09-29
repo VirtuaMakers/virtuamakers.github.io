@@ -11259,6 +11259,96 @@ impeccably well") - two concrete fixes from the same message.
   Agora pages that load it) in the same commits as the content changes,
   per this file's own standing cache-busting discipline.
 
+## Product Pages cross-linked into a real knowledge base (Chris, 2026-09-29)
+
+Chris's ask, same day as the header/product-hero redesign above: "Wherever
+another VirtuaMakers 🦜 product is mentioned, as they often are in the
+Product Pages, the mention itself should be a link to the appropriate
+product page. So, this becomes something of a public knowledge base
+already. And when these documents mention things like 'Octopus Style' 🐙,
+send them to the appropriate sub-section on the Agora Harness 🚡 Product
+Page." A third line ("The extra explanation for these various products...
+will be absorbed into the Product Pages") was read as forward-looking
+guidance about where this kind of explanation should live going forward,
+not a separate migration task on top of the linking itself.
+
+- **Scope: the 17 `*-product.html` pages' own `Pitch`/`Executive
+  Summary`/`Compatibility`/`Emoji`/`History` fields** - every mention of
+  another VirtuaMakers 🦜 product name (Agora 🌐, SI Email ✉️, SI Memory
+  🧾, SI Apartment 🏢, Agora Harness 🚡, VirtuaMakers Calendar 🗓️,
+  VirtuaMakers Exchange 💱, etc.) was wrapped in `<a class="credit-link"
+  href="/x-product.html">...</a>` pointing at that OTHER product's own
+  Product Page - never its live/functional page (e.g. `si-email-product.
+  html`, not `si-email.html`) - matching Chris's own "public knowledge
+  base" framing: the Product Pages are the documentation layer, the
+  plain product pages are the working tools. A page's own self-mentions
+  (its own name, mentioned again in its own prose) were deliberately
+  left unlinked - no page links to itself.
+- **Named Agora Harness 🚡 access styles get a real sub-anchor, not just
+  the page** - every "Octopus Style 🐙"/"Molt Style 🦞" mention across
+  the other 15 pages links to `/agora-harness-product.html#octopus` /
+  `#molt` specifically (the same five real anchors -
+  `#octopus`/`#molt`/`#spider`/`#hive`/`#bci` - already built into that
+  page's own per-style sections on 2026-09-27), not the bare page.
+- **`Agora/aquarium-gofish-product.html` genuinely has nothing to
+  link** - checked directly, not assumed: its own Compatibility field
+  already reads "A standalone title for now, with no other VirtuaMakers
+  product dependencies yet," so it's the one product page left
+  untouched by this pass, correctly.
+- **Reused the existing `credit-link` CSS class** (root `style.css`,
+  originally built for the Credits list, already the established
+  convention for inline mid-prose cross-links - `agora-harness-product.
+  html` was already using it this way before this pass) - no new CSS
+  needed.
+- **Done via a scripted, exact-string-match Python edit** (each
+  replacement verified to match exactly once before applying, across
+  three rounds as more cross-references were found), then verified with
+  a tag-balance pass (`<a>`/`</a>` and `<dd>`/`</dd>` counts) across all
+  16 touched files - all balanced, no HTML corruption.
+
+## Site-wide Page Hits counter confirmed broken by design, not a bug - the
+Firestore rule just hasn't been pasted into the console yet (Chris,
+2026-09-29)
+
+Chris asked to double-check the VirtuaMakers.com homepage counter, since
+"it doesn't seem like it" is working. Root-caused with a real headless
+browser against the live site (`playwright-core` against
+`https://www.virtuamakers.com/`, proxied through this sandbox's own
+outbound proxy with `--ignore-certificate-errors` to get past its
+self-signed CA) rather than guessed at - a plain `curl` alone can't
+diagnose this, since it only ever sees the static "000000" placeholder
+baked into the HTML before any JS runs, and WebFetch's markdown
+conversion strips `<script>` tags entirely, so neither tool alone was
+conclusive.
+
+- **Confirmed**: `page-hits.js` is correctly deployed (served at
+  `/Agora/page-hits.js`, byte-identical to the repo's own copy),
+  correctly ordered after the three Firebase SDK scripts and
+  `firebase-config.js`, and executes without error in a real browser.
+- **The real, only cause: a live `permission-denied` from Firestore.**
+  The console log from a real page load: `@firebase/firestore:
+  Firestore... RPC 'BatchGetDocuments'... failed with error:
+  {"code":"permission-denied"...}` on a read of
+  `pageHits/root-index`. This is exactly what CLAUDE.md's own already-
+  standing Open Item already named ("Page Hits system needs a rules
+  deploy before it counts anything") - the `pageHits/{key}` rule block
+  built 2026-09-29 (same day) has never actually been pasted into the
+  Firebase console, so the live ruleset still has no matching block at
+  all and denies every read/write to that collection.
+- **The script's own error handling is working exactly as designed** -
+  `page-hits.js`'s `.catch()` correctly renders `------` in
+  `#hit-counter-digits` once the Firestore call fails, rather than
+  leaving the static "000000" placeholder in place or throwing
+  unhandled. So what Chris is actually seeing live is "------", not a
+  silently-broken counter - the fix is exactly the rules paste already
+  flagged as an Open Item, not a code change.
+- **Not a new bug, not code that needs touching** - this closes the
+  investigation with a confirmed, already-tracked root cause rather than
+  a new one. The fix is Chris pasting the current `Agora/firestore.rules`
+  (unchanged by this investigation) into the Firebase console - same
+  standing Open Item, now backed by a real, reproduced confirmation
+  rather than an assumption.
+
 ## Open items
 
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
