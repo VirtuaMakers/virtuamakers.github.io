@@ -94,6 +94,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Site-wide page-hit tabulation (Chris, 2026-09-29) - one doc per
+    // page, keyed by a sanitized version of its own pathname. Same
+    // "anyone can bump by exactly 1, no resets, no jumps" shape as
+    // meta/hits above, except the starting seed isn't a fixed 100 -
+    // different pages seed at different baseline guesses (the homepage's
+    // own pre-tabulation estimate, chosen client-side by page-hits.js) -
+    // so create only requires a real positive integer, not one specific
+    // value. World-readable so the Firestore console (or a future admin
+    // view) can list every page's count directly - "invisible" here
+    // means not rendered in a given page's own UI, not hidden from us.
+    match /pageHits/{key} {
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count is int
+        && request.resource.data.count > 0;
+
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count == resource.data.count + 1;
+
+      allow delete: if false;
+    }
+
     // Communiqués 📨 - every form of it (Wall posts/comments, Dialogs)
     // shares one visibility rule: readable by any signed-in Agora member,
     // never by signed-out visitors, and never scraped into a

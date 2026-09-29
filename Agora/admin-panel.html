@@ -113,6 +113,15 @@
           </div>
         </div>
 
+        <div class="profile-panel" id="page-hits-panel" hidden>
+          <h2 class="panel-title">Page Hits</h2>
+          <p class="body-text body-text-spaced">Every page's own visitor
+            tabulation - three (VirtuaMakers.com 🦜, Agora 🌐, VirtuaMakers
+            Exchange 💱) show a public count on the page itself; the rest
+            count silently and only show up here.</p>
+          <ul class="body-list" id="page-hits-list"><li>Loading…</li></ul>
+        </div>
+
         <div class="profile-panel">
           <h2 class="panel-title">Pages</h2>
           <p class="body-text"><a href="newsletter-compose.html">Monthly Newsletter →</a></p>
@@ -169,12 +178,13 @@
   <script src="firebase-config.js?v=3"></script>
   <script src="auth.js?v=6"></script>
   <script src="auth-ui.js?v=22"></script>
-  <script src="site-search.js?v=7"></script>
+  <script src="site-search.js?v=8"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=3"></script>
+  <script src="admin-panel.js?v=4"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
   <script src="pwa-register.js?v=1"></script>
+  <script src="page-hits.js?v=1"></script>
 </body>
 </html>

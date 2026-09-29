@@ -15,6 +15,8 @@
   var rolesAdminsEl = document.getElementById("roles-admins");
   var rolesModeratorsEl = document.getElementById("roles-moderators");
   var mailboxesPanel = document.getElementById("mailboxes-panel");
+  var pageHitsPanel = document.getElementById("page-hits-panel");
+  var pageHitsListEl = document.getElementById("page-hits-list");
   var mailboxForm = document.getElementById("mailbox-form");
   var mailboxSlug = document.getElementById("mailbox-slug");
   var mailboxName = document.getElementById("mailbox-name");
@@ -123,6 +125,54 @@
     });
   }
 
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // Undoes page-hits.js's own "/" -> "--" doc-ID sanitization, for a
+  // readable label. "root-index" is that same script's special case for
+  // the site root, since a bare "/" can't be a Firestore doc ID either.
+  function labelForKey(key) {
+    if (key === "root-index") return "/ (VirtuaMakers.com homepage)";
+    return "/" + key.replace(/--/g, "/");
+  }
+
+  // Owner-only, same reasoning as Roles above - a page's own hit count
+  // is otherwise only readable by opening the Firestore console
+  // directly, so this is just a friendlier view onto the same data.
+  // Merges the site-wide pageHits/{key} collection (page-hits.js, every
+  // page except Agora's own homepage) with meta/hits (Agora's own
+  // long-standing, separately-tracked counter - see hit-counter.js).
+  function loadPageHits() {
+    Promise.all([
+      AgoraDB.collection("pageHits").get(),
+      AgoraDB.collection("meta").doc("hits").get()
+    ]).then(function (results) {
+      var snap = results[0];
+      var agoraHitsDoc = results[1];
+      var rows = [];
+      snap.forEach(function (doc) {
+        var count = doc.data().count;
+        if (typeof count === "number") rows.push({ label: labelForKey(doc.id), count: count });
+      });
+      if (agoraHitsDoc.exists && typeof agoraHitsDoc.data().count === "number") {
+        rows.push({ label: "/Agora/ (own dedicated counter)", count: agoraHitsDoc.data().count });
+      }
+      rows.sort(function (a, b) { return b.count - a.count; });
+      if (!rows.length) {
+        pageHitsListEl.innerHTML = "<li>No hits recorded yet.</li>";
+        return;
+      }
+      pageHitsListEl.innerHTML = rows.map(function (r) {
+        return "<li>" + escapeHtml(r.label) + " &ndash; " + r.count + "</li>";
+      }).join("");
+    }).catch(function () {
+      pageHitsListEl.innerHTML = "<li>Couldn't load.</li>";
+    });
+  }
+
   agoraOnAuthChange(function (user) {
     isFullAdmin(user).then(function (isAdmin) {
       signedOutNotice.hidden = !!user;
@@ -132,7 +182,11 @@
       var owner = isOwner(user);
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
-      if (owner) loadRoles();
+      pageHitsPanel.hidden = !owner;
+      if (owner) {
+        loadRoles();
+        loadPageHits();
+      }
     });
   });
 })();

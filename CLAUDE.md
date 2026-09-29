@@ -10995,16 +10995,173 @@ Pages review** whenever he returns to it ("I'll be back with something
 about Product Pages next time"). Nothing here changes that ordering -
 logged for continuity, not acted on as a build item.
 
+## Product Card second link, SI Agent 🐅 product page, and a site-wide Page Hits system (Chris, 2026-09-29)
+
+Three real asks in one message, pivoting the VirtuaMakers.com session back
+to Product Pages work per Chris's own earlier stated plan.
+
+**1. "Product Page" moved into every Product Card's own `.card-links`
+row, styled identically to the primary CTA.** The 2026-09-26 build had
+deliberately made `.product-page-link` a small, quiet secondary link near
+the card's title ("reads as more detail elsewhere... not competing with
+it") - Chris reversed that call today: he wants it to look exactly like
+the primary "Visit X" link, sitting right beneath it in the same
+`.card-links` row, so a reader can immediately tell there's a second real
+option. All 16 existing cards on `index.html`'s Selected Work grid were
+restructured this way - cards that already had a `.card-links` row (Agora,
+SI Email, SI Memory, SI Apartment, Dimonds, VirtuaMakers Exchange,
+Communiqués, Agora Harness, Guardian, Machinapology) got "Product Page"
+added as a second `.card-link` under the existing one; cards with no row
+at all yet (SI Bank Accounts, Calendar, Chain of Cards, Multi-Chat,
+Aquarium GoFish, Melon Drive) got a new `.card-links` div holding just
+that one link. The old `.product-page-link` CSS rule (and its 2026-09-26
+comment explaining the now-reversed design intent) was deleted from
+`style.css` as dead code, not left orphaned. Bumped `style.css?v=` on
+`index.html` from `4` to `5`.
+
+**2. SI Agent 🐅, a new product - named and scoped 2026-09-26 ("SI Agent
+🐅: named, not built - a consent-first OpenClaw harness"), given a real
+Product Page today.** Logo supplied by Chris (an orange tiger silhouette
+over the wordmark), saved as `assets/si-agent.jpg`. `si-agent-product.html`
+follows the same unbuilt-product template `si-bank-accounts-product.html`
+already established (Staff Comment: "(Forthcoming)", no History field
+since nothing's shipped yet, per the "History only for published
+products" rule from the 2026-09-28 Emoji/History round) - Pitch/Executive
+Summary/Compatibility content pulled directly from the 2026-09-26 entry's
+own wording (the consent-first ethos, the unnamed-for-a-week `#00000000`
+numbering scheme, the "store a plain integer, pad for display only" note
+so it never needs a Y2K-style migration). Added: a matching "Coming
+Eventually" Product Card on `index.html`'s Selected Work grid (Product
+Page link only, no primary CTA yet, same shape as the other unbuilt
+cards); a `site-search.js` `PRODUCT_INDEX` entry (bumped to `v=8` across
+all 77 pages that load it, since the manifest content changed - cache-
+busted deliberately this time, per the 2026-09-10 "site-search.js's
+stale-cache 404" lesson); and a `sitemap.xml` entry. **Deliberately not
+added to `llms.txt`** - that file only lists real, live, self-servable
+products (SI Email, SI Memory, SI Apartment, the Skill/Harness pages),
+matching its own stated "document what's live, not what's planned"
+policy - SI Agent 🐅 is still "named, not built."
+
+**3. A site-wide Page Hits system - three public counters, everything
+else counted silently.** Chris's own framing: he wants visible hit
+counters on VirtuaMakers.com 🦜, Agora 🌐, and VirtuaMakers Exchange 💱
+specifically (the three pages "most likely to break out as their own
+websites"), with every other page's traffic tracked too but not shown -
+"invisible... except to us." Agora 🌐's homepage already had a real,
+long-running counter (`Agora/hit-counter.js`, a `meta/hits` Firestore
+doc seeded at 100 back when it first shipped) - left completely
+untouched, so its real accumulated count isn't disturbed by anything
+built today.
+
+- **New `Agora/page-hits.js`** - a generalized version of the same
+  once-per-session-via-`sessionStorage` dedup pattern `hit-counter.js`
+  already uses, but keyed by `pageHits/{key}`, one doc per page, with
+  `key` auto-derived from `location.pathname` (sanitized - Firestore doc
+  IDs can't contain "/", so `/Agora/exchange.html` becomes
+  `Agora--exchange.html`, and the bare root path becomes the special-
+  cased `root-index`) rather than hand-set per page. This is what made a
+  near-universal rollout tractable in one sitting: a page only needs the
+  one script tag, no per-page configuration, unless it also wants a
+  *visible* number (via `#hit-counter-digits`, same element ID
+  `hit-counter.js` already established) or a non-default starting seed
+  (`window.PageHitsSeed`, read only the first time a given page's doc is
+  ever created - mirrors `meta/hits`' own "starts at 100" convention,
+  just not hardcoded to that one value).
+- **New `pageHits/{key}` Firestore rule** - same "anyone can bump by
+  exactly 1, world-readable, no resets" shape as `meta/hits`, except
+  `create` accepts any real positive integer as the seed rather than one
+  fixed value, since different pages choose different starting guesses.
+  World-readable is deliberate, not an oversight - "invisible" means "not
+  rendered in that page's own UI," the same posture this file's own
+  `profileViews` field already established for Agora profiles
+  ("checking it means reading the Firestore document directly").
+- **VirtuaMakers.com's own homepage (`index.html`) needed the Firebase
+  stack added for the first time** - it previously loaded nothing but
+  `main.js`, a genuinely separate architecture from every Agora/product
+  page. Added the same three compat SDK scripts (`firebase-app`,
+  `firebase-auth` - required since `firebase-config.js` unconditionally
+  calls `firebase.auth()` even here - `firebase-firestore`) plus
+  `firebase-config.js` and `page-hits.js`, at the very bottom, right
+  after `main.js` - no sign-in UI, search box, or any other Agora-style
+  chrome was added, since none of that was asked for; this is scoped
+  purely to the hit counter. A new visible `.hit-counter-row` sits right
+  before `</main>`, styled with the root site's own teal/green palette
+  (new CSS in `style.css`, mirroring `Agora/style.css`'s existing
+  `.hit-counter*` rules almost exactly, just re-themed).
+  `window.PageHitsSeed = 500` - Chris's own estimate, used as-is since
+  this session has no way to check GitHub's repo Insights → Traffic page
+  itself (see the still-open Spider Style 🕷️ Open Item above for the
+  same "no access from here" limitation) or any other real traffic
+  source; there is no more-accurate number available to use instead.
+- **`Agora/exchange.html` (VMex 💱)** got the same `.hit-counter-row`
+  markup Agora's homepage already uses (its CSS already existed in
+  `Agora/style.css`, no changes needed there) plus `page-hits.js` - it
+  already loaded the full Firebase stack, so this was just the markup
+  and the one script tag.
+- **Rolled out `page-hits.js` to all 75 remaining pages that load
+  `firebase-config.js`** (every Agora subfolder page, all 28 static
+  `/profiles/*.html` pages, and all 17 root-level product pages
+  including the new SI Agent 🐅 one) via a bulk `</body>`-anchored
+  insertion, the same "roll out to every page that already loads the
+  shared config" pattern this file has used before for `site-search.js`/
+  `moderation-client.js` rollouts - `Agora/index.html` (keeps its own
+  dedicated counter) and `Agora/exchange.html`/root `index.html` (handled
+  individually above, to avoid a duplicate script tag) were the only
+  three pages deliberately excluded from the bulk pass.
+- **New owner-only "Page Hits" panel on `admin-panel.html`** - lists
+  every `pageHits/{key}` doc plus `meta/hits` itself, sorted highest-
+  first, with each Firestore key decoded back into a readable path
+  (`Agora--profiles--gemini.html` → `/Agora/profiles/gemini.html`).
+  Same owner-only gate as the existing Roles/Mailboxes panels (a granted
+  admin who isn't the owner sees Schedule/Pages only, matching how
+  `firestore.rules`' own `admins` collection read rule is already scoped
+  owner-only) - this satisfies "I really want to know how many hits
+  every single page is getting" without needing a second, separate
+  admin surface. Escapes every rendered label before inserting it into
+  the page - `pageHits`' own `create` rule only validates the `count`
+  field's shape, not the doc ID itself, so a directly-crafted Firestore
+  write (bypassing `page-hits.js` entirely) could in principle choose an
+  ID containing HTML-looking characters; escaping closes that off rather
+  than trusting a Firestore doc ID as safe-by-construction. Bumped
+  `admin-panel.js` to `v=4`.
+- **Verified locally**: `node --check` on `page-hits.js` and the updated
+  `admin-panel.js`, a full tag-balance pass (div/section/html/body/etc.)
+  across every HTML file touched this round (78 pages for the
+  `page-hits.js` rollout alone), and a spot-check of several files' own
+  tails (a root product page, an Agora subfolder page, a static profile
+  page, and the homepage itself) confirming the bulk `sed` insertion
+  landed exactly once, in the right place, with no HTML corruption.
+  **Not tested end-to-end against the real Firebase project** - same
+  "verified locally only" status as every other pending rules/Functions
+  change in this file.
+
+**Needs from Chris before any of this actually counts anything:** paste
+the updated `firestore.rules` into the Firebase console (Firestore
+Database → Rules) - the new `pageHits/{key}` block. No Cloud Functions
+deploy needed at all this round - everything here is a pure client +
+rules change, same graceful-degradation shape as every other pending
+rules-only change in this file: until the paste happens, every
+`page-hits.js` write is rejected by the still-live old ruleset (which has
+no `pageHits` match block at all), so nothing currently breaks, it simply
+doesn't count yet.
+
 ## Open items
 
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
   2026-09-28)** - Chris's own stated task: "I've got to review all the
-  Product Pages" (the 16 `*-product.html` pages - Agora Harness, Agora,
+  Product Pages" (now 17 `*-product.html` pages - Agora Harness, Agora,
   Aquarium GoFish, Calendar, Chain of Cards, Communiqués, Dimonds,
-  Guardian, Machinapology, Melon Drive, Multi-Chat, SI Apartment, SI Bank
-  Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Not started -
-  his own review pass to do, not a build item for a session to execute
-  unprompted.
+  Guardian, Machinapology, Melon Drive, Multi-Chat, SI Agent, SI Apartment,
+  SI Bank Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Not
+  started - his own review pass to do, not a build item for a session to
+  execute unprompted.
+- [ ] **Page Hits system needs a rules deploy before it counts anything
+  (Chris, 2026-09-29)** - built, not live; see the dedicated "Product Card
+  second link, SI Agent 🐅 product page, and a site-wide Page Hits system"
+  entry above. Paste the updated `firestore.rules` into the Firebase
+  console (the new `pageHits/{key}` block) - no Functions deploy needed.
+  Once live, worth a quick spot-check on the admin-only "Page Hits" panel
+  (`admin-panel.html`, owner-only) to confirm real counts are landing.
 - [ ] **Agora session: build a real "Products" section on every Agora
   profile (Chris, 2026-09-28)** - lists every VirtuaMakers product a
   profile's owner is actually part of, including products that need no
