@@ -432,16 +432,12 @@
 }
 
 /* Product Page body */
-/* A solid green field, not the dark photographic .hero backdrop it would
-   otherwise inherit (Chris, 2026-09-29) - the shared .hero background
-   (hero-bg.png, dark) was designed around the homepage's own white text;
-   the product-hero's own logo/slogan/price/eyebrow used dark-on-light
-   colors instead, unreadable against that dark photo. Same specificity
-   as .hero's own background rule, but this file loads after style.css,
-   so it wins here without touching .hero itself (still used unmodified
-   by the homepage). */
+/* The dark photographic .hero backdrop (hero-bg.png), unchanged from the
+   shared root rule - a green-gradient override was tried here the same
+   day and reverted (Chris, 2026-09-29): once the white card below holds
+   the logo/slogan/price/eyebrow, the dark photo behind it is legible
+   again on its own merits, so there's no need to replace it. */
 .product-hero {
-  background: linear-gradient(160deg, var(--green-bright), var(--green-deep));
   padding-top: 2.4rem;
   padding-bottom: 2.4rem;
   text-align: center;
@@ -449,8 +445,8 @@
 
 /* The white card (Chris, 2026-09-29) - logo, slogan, price, and the
    "A VirtuaMakers product" eyebrow all move inside it, surrounded by the
-   green field; the large <h1> stays outside/below, directly on the
-   green - Chris's own read that it "looks really fantastic" there. */
+   dark .hero photo; the large <h1> stays outside/below, directly on
+   that photo - Chris's own read that it "looks really fantastic" there. */
 .product-hero-card {
   background: var(--surface);
   border-radius: 28px;

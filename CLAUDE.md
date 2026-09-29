@@ -11220,35 +11220,44 @@ impeccably well") - two concrete fixes from the same message.
   documented-as-unused `.site-header` rule was left alone, matching
   `product-page.css`'s own existing note that it's intentionally dead
   code no live page references.
-- **Product-hero redesign: a white card on a green field, not the dark
-  homepage-hero photo.** Real root cause found while reading the CSS,
-  not guessed: `<section class="hero product-hero">` shares the root
-  `.hero` class with the homepage's own hero - including its dark
-  `hero-bg.png` photographic background, designed around *white* hero
-  text. But `.product-slogan`/`.product-price`/`.eyebrow` all use
-  dark-on-light colors (the same ones that work fine everywhere else on
-  the page's white body), which is exactly Chris's "the blue text I
-  can't read" complaint - dark teal/green text on a dark photo. Fixed by
-  overriding `.product-hero`'s own background (in `product-page.css`,
-  which loads after `style.css`, so it wins at equal specificity without
-  touching `.hero` itself or the homepage that still needs it) to a
-  green gradient (`linear-gradient(160deg, var(--green-bright),
-  var(--green-deep))`), and wrapping the logo/slogan/price/eyebrow in a
-  new white `.product-hero-card` (rounded, shadowed, centered) on all 17
+- **Product-hero redesign: a white card, first tried on a green field,
+  then reverted back to the original dark `.hero` photo (Chris,
+  2026-09-29, two rounds same day).** Real root cause found while
+  reading the CSS, not guessed: `<section class="hero product-hero">`
+  shares the root `.hero` class with the homepage's own hero - including
+  its dark `hero-bg.png` photographic background, designed around
+  *white* hero text. But `.product-slogan`/`.product-price`/`.eyebrow`
+  all use dark-on-light colors (the same ones that work fine everywhere
+  else on the page's white body), which is exactly Chris's "the blue
+  text I can't read" complaint - dark teal/green text on a dark photo.
+  First cut wrapped the logo/slogan/price/eyebrow in a new white
+  `.product-hero-card` (rounded, shadowed, centered) on all 17
   `*-product.html` pages - a scripted, verified transform (tag-balance
-  checked after) given the identical structure across every page. The
-  large `<h1>` product name + emoji stays outside/below the card,
-  directly on the green field, per Chris's own explicit "leave it there,
-  looks really fantastic" - its existing white text + shadow styling
-  (from the shared `.hero h1` rule) needed no change, since white-on-
-  green already reads exactly as well as white-on-dark-photo did.
-  `.product-hero-card .eyebrow` gets `--green-deep` instead of the
-  shared rule's `--green-bright`, since the brighter green was tuned for
-  the dark photo and reads too low-contrast on white.
-- Bumped `product-page.css?v=` from `5` to `6` (all 17 product pages)
-  and `Agora/style.css?v=` from `99` to `100` (all 61 Agora pages that
-  load it) in the same commit as the content change, per this file's own
-  standing cache-busting discipline.
+  checked after) given the identical structure across every page - *and*
+  swapped `.product-hero`'s own background to a green gradient. Chris
+  liked the card but asked to revert the green field back to the
+  original dark photo the same day: once the white card holds the
+  previously-unreadable text, the dark photo behind it is legible again
+  on its own merits, so replacing it wasn't needed after all - `.hero`'s
+  own background (unmodified, still used unmodified by the homepage) now
+  shows through `.product-hero` again, with no separate override.
+  **`.product-slogan`'s own dark ("blue") color was deliberately left
+  untouched through both rounds** - Chris's own explicit call once the
+  white card was in place: it's legible now, no further color change
+  needed. The large `<h1>` product name + emoji stays outside/below the
+  card either way, directly on whatever's behind it, per Chris's own
+  explicit "leave it there, looks really fantastic" - its existing white
+  text + shadow styling (from the shared `.hero h1` rule) never needed
+  to change, since white-on-dark-photo was always the design it was
+  built for. `.product-hero-card .eyebrow` still gets `--green-deep`
+  instead of the shared rule's `--green-bright`, since the brighter
+  green was tuned for the dark photo and reads too low-contrast on the
+  white card - kept through the revert, since Chris's ask was about the
+  field behind the card, not this one color.
+- Bumped `product-page.css?v=` from `5` to `7` across both rounds (all 17
+  product pages) and `Agora/style.css?v=` from `99` to `100` (all 61
+  Agora pages that load it) in the same commits as the content changes,
+  per this file's own standing cache-busting discipline.
 
 ## Open items
 
