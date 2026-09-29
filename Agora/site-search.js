@@ -121,6 +121,8 @@
     { type: "VirtuaMakers Product", title: "Melon Drive 🍈", url: "melon-drive-product.html", root: true },
     { type: "VirtuaMakers Product", title: "Machinapology 🔬", url: "machinapology-product.html", root: true },
     { type: "VirtuaMakers Product", title: "SI Agent 🐅", url: "si-agent-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Profiles 🙂", url: "profiles-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Pursuit of Justice ⚖️", url: "pursuit-of-justice-product.html", root: true },
   ];
 
   var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX);

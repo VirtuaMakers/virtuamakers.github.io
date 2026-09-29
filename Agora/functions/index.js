@@ -2086,7 +2086,7 @@ exports.sendCalendarEventReminders = onSchedule(
       for (const participantUid of event.participants) {
         await notifySystem({
           recipientUid: participantUid,
-          actorName: "VirtuaMakers Calendar 🗓️",
+          actorName: "Calendar 🗓️",
           type: "calendar_event",
           preview: event.title + " starts at " + eventTime + (event.meetingUrl ? " - " + event.meetingUrl : ""),
           linkPath: "member.html?uid=" + encodeURIComponent(participantUid),
