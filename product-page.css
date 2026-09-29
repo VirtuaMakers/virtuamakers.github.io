@@ -511,7 +511,9 @@
 .product-fields dd.product-summary,
 .product-fields dd.product-comment,
 .product-fields dd.product-pitch,
-.product-fields dd.product-compatibility {
+.product-fields dd.product-compatibility,
+.product-fields dd.product-emoji-note,
+.product-fields dd.product-history {
   color: var(--muted);
   max-width: 42rem;
 }

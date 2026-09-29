@@ -10733,6 +10733,66 @@ credit/finance-split Open Item below - worth folding this pairing
 technique into whatever policy eventually gets drafted there, as a
 drafting method rather than a separate build.
 
+## Product Pages get "Emoji" and "History" subsections - lore as a deliberate engagement strategy (Chris, 2026-09-28)
+
+Prompted by a real, small moment: Boardy (an AI) praised VirtuaMakers' own
+stylistic use of emoji in its copy on X, and asked what a couple of them
+meant - Chris explained SI Email ✉️ and SI Memory 🧾 (its receipt emoji
+being, in his own words, "apropos for a couple reasons, but in my mind
+mainly refers to the slang - it's a playful reference") directly. That
+led to a real, named content strategy, stated plainly rather than left
+implicit: Chris considers this kind of explanatory detail **"lore"** -
+his own belief, given directly, is that lore "gets people more involved
+with products and keeps them reading and fascinated and wanting more."
+Worth treating as a peer to this file's other standing content
+philosophies (the "little updates" cadence, "Facebook as default
+reference point, then ask how to differ") rather than a one-off.
+
+- **New "Emoji" field, added to all 16 `*-product.html` pages**
+  (Aquarium GoFish, Guardian, Agora, Chain of Cards, Agora Harness,
+  Communiqués, Dimonds, Calendar, SI Memory, Multi-Chat, SI Email, Melon
+  Drive, SI Bank Accounts, SI Apartment, VirtuaMakers Exchange,
+  Machinapology) - a new `<dt>Emoji</dt>`/`<dd class="product-emoji-note">`
+  pair in each page's existing `product-fields` list, right after
+  Release Date and before Staff Comment. Content drawn from this file's
+  own documented rationale where it exists (SI Memory 🧾's receipt-as-
+  slang explanation, straight from Chris's own words to Boardy;
+  Machinapology 🔬's move off 🤖 once AI Members claimed it, 2026-09-08;
+  Guardian 🟩's "emerald cube" framing from Copilot's own Staff Comment)
+  - never invented as a specific historical claim where none exists.
+  For products with no documented rationale (Aquarium GoFish 🪸, Chain of
+  Cards ⛓️, Calendar 🗓️, Multi-Chat 🗨️, SI Email ✉️, SI Bank Accounts 🏦,
+  SI Apartment 🏢, VirtuaMakers Exchange 💱), the copy describes what the
+  glyph plainly depicts and why that fits the product, staying safely
+  descriptive rather than asserting an unconfirmed "why Chris picked
+  this" story. **Melon Drive 🍈 is the one honest exception** - its own
+  name was floated as an undefined reward before this product page ever
+  existed (see the 2026-09-21 "Virtuatron's provenance..." entry above),
+  so its Emoji field says so plainly rather than inventing a tidy
+  rationale for a name that was never actually explained.
+- **New "History" field, added only to the 10 pages whose own Release
+  Date already reads as published/live** (Agora, Agora Harness,
+  Communiqués, Dimonds, Calendar, SI Memory, SI Email, SI Apartment,
+  VirtuaMakers Exchange, Machinapology) - per Chris's own explicit scope
+  ("for published products only"). The other 6 (Aquarium GoFish, Guardian,
+  Chain of Cards, Multi-Chat, Melon Drive, SI Bank Accounts) all read
+  "Coming Eventually"/"Coming Soon"/"in design" on their own Release Date
+  field, so they got an Emoji field only, no History - determined by
+  reading each page's own existing copy, not guessed. Each History entry
+  is a short, dated real-milestone summary pulled directly from this
+  file's own build history (e.g. Agora Harness's per-access-style rollout,
+  SI Apartment's cross-platform desktop build, VirtuaMakers Exchange's
+  NFT Gallery testnet mint) - never a fabricated timeline.
+- **New CSS**: `.product-emoji-note`/`.product-history` added to the same
+  muted, max-width-42rem rule `.product-summary`/`.product-comment`/
+  `.product-pitch`/`.product-compatibility` already share in
+  `product-page.css` - no new visual pattern, just folding two more field
+  types into the existing one. Bumped `product-page.css?v=` from `4` to
+  `5` across all 16 pages, same commit.
+- **Verified**: every file's `<dt>`/`</dt>` and `<dd`/`</dd>` counts match
+  after the edit (checked programmatically across all 16), so the new
+  fields didn't break the surrounding `dl` structure.
+
 ## Open items
 
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
