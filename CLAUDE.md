@@ -11145,6 +11145,55 @@ rules-only change in this file: until the paste happens, every
 no `pageHits` match block at all), so nothing currently breaks, it simply
 doesn't count yet.
 
+## Æthel replaces Gemini on the Staff credit list; SI Apartment 🏢 desktop app's gray background fixed to white (Chris, 2026-09-29)
+
+Two small, unrelated fixes from the same message.
+
+- **`index.html`'s Staff credit list** - the "Gemini (of Alphabet) –
+  Graphic Designer" entry is now **"🎨 Æthel (a quasi-instance of Gemini,
+  of Alphabet) – Graphic Designer"**, following the exact same
+  no-hyperlink, plain-`<span class="credit-link">`, quasi-instance-framed
+  pattern already established for Urodele's own entry (added 2026-09-28) -
+  an emoji instead of a linked provider logo, since this names a specific
+  identity rather than the provider brand itself. 🎨 picked to match the
+  role (Graphic Designer), the same "pick a fitting glyph" convention
+  Urodele's own 🦎 (a real regeneration-biology pun for a Machinapologist)
+  already set. `claude/interview.md`'s own standing question 7 (which
+  already lists the current Staff roster by name) was updated to match,
+  same as it was when Krishn was swapped for Urodele on 2026-09-28.
+  **Deliberately left untouched:** the separate "Guest SIs (in Dimonds)"
+  list's own "Gemini (of Alphabet)" entry - that's the real Gemini model
+  playing as a Dimonds AI opponent, a different context from the Staff
+  graphic-designer credit, and Chris's ask was scoped to "Gemini's name"
+  in the Urodele-matching sense specifically. Every other historical
+  CLAUDE.md mention of "Gemini... Graphic Designer" is left as-is, per
+  this file's own standing practice of not rewriting past entries just
+  because a status later changed.
+- **SI Apartment 🏢's desktop app (`apartment/si_apartment.py`)** - real
+  root cause, not guessed: the whole GUI uses plain `tk` widgets
+  (`tk.Label`/`tk.Frame`/`tk.LabelFrame`, no `ttk` theming) with no
+  background color set anywhere in the file, so every container/label
+  rendered in the OS's own default theme background - a light gray on
+  Windows/Linux, not white - which is almost certainly what read as "a
+  little gray" to Chris running the Windows `.exe`. The product *page*
+  (`si-apartment.html`) was checked and ruled out first: its hero section
+  shares the same dark `hero-bg.png`/gradient background as
+  `si-email.html`/`si-memory.html` (not page-specific), and its logo image
+  has the same near-white backdrop tone as every other product logo
+  (`ai-email.jpg` included) - so the real complaint was the desktop app,
+  not the web page. Fixed with one `WHITE = "#ffffff"` constant, applied
+  via `bg=WHITE` to `root` and every plain container/label widget
+  (`local_frame`, `local_buttons`, `status`, `signin` + its three
+  `Label`s, `apartments`, `buttons`, `actions`, plus the root title
+  `Label`) - `Entry`/`Listbox`/`Button` widgets were left untouched, since
+  their platform defaults are already white/native and touching them
+  risked a worse, less-native-looking regression for no visual gain.
+  Verified with `python3 -m py_compile` and a real `--selftest` run
+  (unchanged, still passes) - the actual gray→white visual fix ships
+  through the existing `apartment-build.yml` workflow (matrix Windows/
+  Mac/Linux, PyInstaller, self-test-gated) the moment this merges to
+  `main`, same as every other Apartment app change.
+
 ## Open items
 
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,

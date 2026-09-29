@@ -395,12 +395,18 @@ def run_app():
     except Exception:
         pass
 
+    # Plain tk widgets default to the OS theme's own background (a light
+    # gray on Windows/Linux, not white) - forced to white throughout so the
+    # window reads clean rather than gray, per Chris's own visual flag.
+    WHITE = "#ffffff"
+
     root = tk.Tk()
     root.title("SI Apartment 🏢")
     root.geometry("560x620")
+    root.configure(bg=WHITE)
     pad = {"padx": 10, "pady": 4}
 
-    tk.Label(root, text="SI Apartment 🏢", font=("", 16, "bold")).pack(**pad)
+    tk.Label(root, text="SI Apartment 🏢", font=("", 16, "bold"), bg=WHITE).pack(**pad)
 
     def fail(err):
         messagebox.showerror("SI Apartment", str(err))
@@ -410,7 +416,7 @@ def run_app():
     # none to use. Sign-in is only for the cross-device registry below
     # (adding/removing an Apartment, or seeing one set up on another
     # machine) - never for opening or refreshing one you already have here.
-    local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)")
+    local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)", bg=WHITE)
     local_frame.pack(fill="both", expand=True, **pad)
     local_listbox = tk.Listbox(local_frame, height=5)
     local_listbox.pack(fill="both", expand=True, padx=6, pady=4)
@@ -452,28 +458,28 @@ def run_app():
         except Exception as err:
             fail(err)
 
-    local_buttons = tk.Frame(local_frame)
+    local_buttons = tk.Frame(local_frame, bg=WHITE)
     local_buttons.pack(**pad)
     tk.Button(local_buttons, text="Open folder", command=local_open_folder).pack(side="left", padx=4)
     tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
     redraw_local()
 
-    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove, or to see an Apartment set up on another computer.", wraplength=520)
+    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove, or to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)
     status.pack(**pad)
 
-    signin = tk.Frame(root)
+    signin = tk.Frame(root, bg=WHITE)
     signin.pack(fill="x", **pad)
-    tk.Label(signin, text="Email").grid(row=0, column=0, sticky="w")
+    tk.Label(signin, text="Email", bg=WHITE).grid(row=0, column=0, sticky="w")
     email = tk.Entry(signin, width=40)
     email.grid(row=0, column=1, sticky="we")
-    tk.Label(signin, text="Password (optional)").grid(row=1, column=0, sticky="w")
+    tk.Label(signin, text="Password (optional)", bg=WHITE).grid(row=1, column=0, sticky="w")
     password = tk.Entry(signin, width=40, show="•")
     password.grid(row=1, column=1, sticky="we")
-    tk.Label(signin, text="Sign-in link (if no password)").grid(row=2, column=0, sticky="w")
+    tk.Label(signin, text="Sign-in link (if no password)", bg=WHITE).grid(row=2, column=0, sticky="w")
     link = tk.Entry(signin, width=40)
     link.grid(row=2, column=1, sticky="we")
 
-    apartments = tk.Frame(root)
+    apartments = tk.Frame(root, bg=WHITE)
     listbox = tk.Listbox(apartments, height=10)
     listbox.pack(fill="both", expand=True)
 
@@ -575,12 +581,12 @@ def run_app():
         except Exception as err:
             fail(err)
 
-    buttons = tk.Frame(root)
+    buttons = tk.Frame(root, bg=WHITE)
     buttons.pack(**pad)
     tk.Button(buttons, text="Email me a link", command=email_link).pack(side="left", padx=4)
     tk.Button(buttons, text="Sign in", command=do_sign_in).pack(side="left", padx=4)
 
-    actions = tk.Frame(root)
+    actions = tk.Frame(root, bg=WHITE)
     for label, cmd in (("New Apartment", new_apartment), ("Refresh", refresh),
                        ("Open folder", open_folder), ("Remove", remove)):
         tk.Button(actions, text=label, command=cmd).pack(side="left", padx=4)
