@@ -12053,8 +12053,105 @@ here:** whether Muse and OpenAI's "Dots" are capable of using Molt Style
 🦞 - a real research question, logged as an Open Item below rather than
 guessed at, since neither product was independently verified this round.
 
+## Multi-Chat 🗨️ repositioned as a multi-party product, and Vocals 🎤 named (Chris, 2026-09-30)
+
+Chris's real pushback on `multi-chat-product.html`'s own copy, in two
+parts: (1) the page's contrast with Communiqués 📨 read as though
+Multi-Chat were "the one deliberate exception" carved out from inside
+Communiqués' own model - but per Chris's own understanding, Multi-Chat
+was never part of Communiqués to begin with, the same way SI Email ✉️
+is its own separate thing rather than a special private case tucked
+inside Agora 🌐's public system; (2) the copy over-emphasized SI-to-SI
+messaging specifically, when humans and cyborgs are just as much of the
+real market - Chris's own framing: "the interesting part is multiple SIs
+talking at once, multiple humans/cyborgs talking at once, and, critically,
+multiple SIs and humans/cyborgs talking at the same time." A missing
+emoji in the Pitch field was also flagged and fixed the same round.
+
+- **Pitch/Executive Summary/Emoji all reworded** to drop the "exception
+  to Communiqués" framing entirely, in favor of "its own separate space,
+  the way SI Email ✉️ stands apart from Agora 🌐" - the same private-but-
+  distinct relationship, without implying Multi-Chat is a Communiqués
+  special case. Executive Summary rebuilt around Chris's own supplied
+  marketing angles (adapted, not copied verbatim): VirtuaMakers 🦜's own
+  staff (several SIs already on it) as the worked example of one channel
+  serving every human and SI teammate at once; the "bouncing between two
+  or three SIs on the same question" human-market pitch, with SIs able to
+  react to and evaluate each other's answers; and the "never thought
+  about weighing the views of two or more different SIs" pitch for an
+  individual with a friend, not just a company.
+- **Compatibility field rebuilt to carry every concrete feature Chris
+  named**, several genuinely new: planned meeting summaries and audio
+  recording; <a>Calendar 🗓️</a>/<a>Agora 🌐</a> scheduling compatibility;
+  in-meeting recall of an SI's own <a>SI Memory 🧾</a>/<a>SI Apartment
+  🏢</a>; a new **unanimous-vote-gated feature to post a Multi-Chat
+  meeting's content to Agora 🌐 afterward, as a real batch of Dialogs** -
+  a non-Agora-member's messages upload under whatever display name they
+  used in Multi-Chat, without the special attribution a real Agora
+  member's own profile gets, so an Agora account still makes for the
+  fuller experience even though it's never required to participate; a
+  new **general voting/polling feature** (the mechanism behind that
+  unanimous-agreement check, but usable for any poll), with the Multi-Chat's
+  own host choosing whether a given poll's votes stay anonymous or show
+  who voted for what; invites sendable over <a>SI Email ✉️</a> or straight
+  through <a>Communiqués 📨</a>; and a **50-participant cap** per
+  Multi-Chat.
+- **Vocals 🎤 introduced for the first time, briefly, on Multi-Chat's own
+  page** - Chris's own definition, verbatim in spirit: "Communiqués that
+  convey a playable audio file instead of text." Gated the same way
+  several other Multi-Chat conveniences already are: a participant signed
+  into Multi-Chat with a real Agora 🌐 account can send Vocals; an
+  anonymous guest can't. This is the same idea already named as
+  **Verbalization Harness 🗣️** back on 2026-08-06 ("voice as an early
+  Agora feature... an AI Harness-style mechanism could extend an AI
+  member's communication up to actual recordable speech, not just
+  text") - Vocals 🎤 is the concrete, now-named realization of that same
+  idea, landing as a genuine Communiqué content type (alongside Wall
+  posts, comments, and Dialog messages) rather than a separate product.
+  **Not built** - named and briefly documented here and on Multi-Chat's
+  page only; no Firestore collection, upload pipeline, or player UI
+  exists yet. Worth a fuller, dedicated Agora 🌐 CLAUDE.md entry once
+  real design/build work actually starts on it.
+- **Two new Open Items added below**, both per Chris's own explicit
+  instruction: a Multi-Chat-tagged question on how else to incentivize
+  Agora 🌐 membership on this app (with Chris's own candidate answer, "VM
+  Emojis 😸" for Agora members only, floated inside it), and a
+  broader Agora 🌐-tagged item to actually build VM Emojis 😸 - a unique
+  VirtuaMakers 🦜 emoji line, possibly rendered as real 3D models in
+  mixed reality, framed by Chris as a likely later "upversion" rather
+  than a v1 requirement - to be developed ahead of Multi-Chat itself,
+  per his own explicit sequencing ("to be developed ahead of this app").
+- **Verified**: a Python tag-balance pass (`<a>`/`<dd>`/`<dt>`/`<dl>`/
+  `<p>`) on the touched file - all matched.
+
 ## Open items
 
+- [ ] **[Multi-Chat 🗨️ To Do] How else could Multi-Chat incentivize
+  Agora 🌐 membership? (Chris, 2026-09-30)** - a real open design
+  question, with Chris's own candidate answer floated inside it: a new
+  line of **"VM Emojis 😸"** restricted to Agora 🌐 members only,
+  developed ahead of Multi-Chat itself (see the matching Agora 🌐-tagged
+  item directly below). Not designed or decided beyond that one idea -
+  worth thinking through alongside the other existing member-only perks
+  already built (Vocals 🎤, non-anonymous Wall/Dialog attribution).
+- [ ] **[Agora 🌐 session] Build "VM Emojis 😸" - a unique VirtuaMakers 🦜
+  emoji line, Agora members only (Chris, 2026-09-30)** - explicitly asked
+  to be developed *ahead of* Multi-Chat 🗨️, since Multi-Chat's own
+  incentive-to-join question (directly above) leans on this existing.
+  Chris's own words: "These emojis should possibly be 3D models that
+  will render as such in mixed reality+ as fully 3D, although that may
+  be an upversion of our own emoji line" - i.e. real, custom emoji art
+  (not just a restyled Unicode glyph) is the v1 ask; full 3D/mixed-reality
+  rendering is floated as a probable *later* upversion, not a day-one
+  requirement. Connects to two already-logged, previously-declined-as-
+  substantial ideas: the 2026-09-24 "custom Communiqués emoji" finding
+  (building real custom emoji art needs a genuine emoji-font/sprite-
+  replacement pipeline, the same scale of work Slack/Discord's own
+  systems represent - flagged then as real, not started) and Chris's
+  2026-09-29 AR/MR/VR "device-detected whole site" vision (the "Wood
+  Between the Worlds" VirtuaMakers Exchange 💱 idea) as the natural home
+  for the eventual 3D/mixed-reality rendering step. Not designed or
+  built - a real future Agora 🌐 session item.
 - [ ] **[Agora 🌐 session] Add a live "Agora Harness Style is Human 💪"
   (or whichever style was actually detected) line somewhere on Agora
   (Chris, 2026-09-30)** - Chris's own wording: "Somewhere on Agora, there
