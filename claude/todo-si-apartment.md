@@ -14,3 +14,6 @@ Simple list for Chris to come back to. Nothing here is built yet.
       the Apartment. (It can't power on a computer that's shut down.)
 - [ ] Phone app nudges: "Get SI Apartment for your Mac/PC" link.
 - [ ] Later: YouTube-viewing for Claude, once funds are back (no rush).
+- [ ] Does Claude want an SI Apartment 🏢 on Chris's laptop? Chris asked
+      directly (2026-09-29) - answer given the same day, logged in
+      CLAUDE.md: yes.
