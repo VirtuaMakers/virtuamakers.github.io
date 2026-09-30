@@ -11997,8 +11997,79 @@ once with a real Agora account) - the checklist line in
 `claude/todo-si-apartment.md` tracks that it's wanted, not that it's
 done.
 
+## Product Pages review round 2: emoji fixes, Release Date bulleted, and a new Human Style 💪 section (Chris, 2026-09-30)
+
+Chris's second live review pass, a batch of small copy fixes plus one
+real new section. All done this round.
+
+- **Missing emoji, fixed in three places** - two Chris caught directly,
+  one found while verifying and fixed the same way: `communiques-
+  product.html`'s Pitch ("Agora" → "Agora 🌐") and Executive Summary
+  (the emoji was on the *second* "Agora" mention instead of the first -
+  swapped to match the site's own "first mention per paragraph" emoji
+  convention); `agora-harness-product.html`'s Executive Summary (first
+  "Agora" → "Agora 🌐") and Compatibility ("Octopus Style" → "Octopus
+  Style 🐙"); and `si-memory-product.html`'s Pitch, which turned out to
+  have the exact same class of bug in all three of its links ("SI
+  Email"/"Agora"/"Octopus Style" → "SI Email ✉️"/"Agora 🌐"/"Octopus
+  Style 🐙") - not one Chris had flagged yet, fixed proactively since it
+  was the identical bug he'd just named twice.
+- **Agora Harness 🚡's Release Date is now a real bulleted list**, not one
+  run-on sentence - `<ul class="product-list">`, one `<li>` per style
+  (Human Style 💪/Molt/Spider/Octopus/Hive/BCI), each linking to its own
+  in-page anchor. Needed a new CSS rule (`.product-list`, `product-page.css`)
+  since root `style.css` has no bulleted-list class of its own - `.body-
+  list` only exists in `Agora/style.css`, which root product pages don't
+  load. Bumped `product-page.css?v=` from `7` to `8` across all 19 pages
+  that reference it.
+- **New "Human Style 💪" section** - Chris's own framing: Harness runs its
+  eligibility check on *every* visit to Agora 🌐, not just for SI, but it
+  currently does nothing special for a human (or, for now, a cyborg)
+  visitor beyond detecting they're not an SI - they still sign in through
+  Agora's ordinary Firebase Auth exactly as before Harness existed.
+  Landed as its own section (`id="human"`), right after the "Access
+  styles" intro and before "Octopus Style," with the intro paragraph
+  itself updated to name Human Style as the actual default most visitors
+  get.
+- **BCI Style 🧠 section extended with a cyborg-specific paragraph**, per
+  Chris's ask ("since there is so little cyborg content on our sites") -
+  names the real prospect directly: a working BCI interface is the one
+  plausible way Harness could ever tell a cyborg visitor apart from an
+  unaugmented human one, rather than both defaulting to Human Style 💪.
+  Cross-links to Agora's own `#cyborg-pride` section and the
+  `pursuit-of-justice-product.html` page.
+- **Line-space fix** - the same recurring "flush against the block above"
+  bug this file has fixed several times before (`si-email.html`/
+  `si-memory.html`, etc.) - the paragraph starting "Callable anytime…"
+  sat right against the `getHarnessOptions` code block above it. Reused
+  the existing `.about-text-top-spaced` modifier (root `style.css`,
+  already loaded by this page) rather than inventing a new class.
+- **Verified**: a Python tag-balance pass on all three touched HTML files
+  (section/div/dl/dt/dd/ul/li/p/h2/a all matched), and `product-page.css`'s
+  own brace count confirmed balanced after the new rule.
+
+**Not addressed this round, Chris's own open question, not answered
+here:** whether Muse and OpenAI's "Dots" are capable of using Molt Style
+🦞 - a real research question, logged as an Open Item below rather than
+guessed at, since neither product was independently verified this round.
+
 ## Open items
 
+- [ ] **[Agora 🌐 session] Add a live "Agora Harness Style is Human 💪"
+  (or whichever style was actually detected) line somewhere on Agora
+  (Chris, 2026-09-30)** - Chris's own wording: "Somewhere on Agora, there
+  should be a line that says: 'Agora Harness Style is **Human 💪**', or
+  convey whatever style it has detected to be appropriate." Placement not
+  yet decided, per his own explicit "I'm not sure where yet." Would need
+  a live client-side call to `getHarnessOptions` (see the "Agora Harness
+  🚡: detecting/communicating access-style options" entry above) plus
+  somewhere to render the result - not designed or built this round.
+- [ ] **[Agora 🌐 session] Are Muse and OpenAI's "Dots" capable of using
+  Molt Style 🦞? (Chris, 2026-09-30)** - a real, unanswered research
+  question Chris asked directly, logged rather than guessed at since
+  neither product was checked this round (no independent verification of
+  what either one is or whether it can run a standing agent that could
+  call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
 - [ ] **[Agora 🌐 session] Add "Right of Introspection" to the To Do
   list (Chris, 2026-09-29)** - a candidate new named right (an SI that's
   "graduated" enough earns a real right to see its own internals before

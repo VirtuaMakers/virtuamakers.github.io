@@ -578,6 +578,22 @@
   word-break: break-word;
 }
 
+/* A bulleted list inside a dl field's own dd (e.g. Agora Harness's Release
+   Date), matching .about-text's look - root style.css has no list class
+   of its own (.body-list lives only in Agora/style.css, which root
+   product pages don't load). */
+.product-list {
+  margin: 0.4rem 0 0 1.2rem;
+  max-width: 38rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.product-list li {
+  margin: 0.3rem 0;
+}
+
 /* Product Wall (Chris, 2026-09-27) - "The Product Pages should have a
    comments section, or a wall that Agora 🌐 members can make posts to."
    Reuses Agora/communiques-common.js's createWallController() exactly the
