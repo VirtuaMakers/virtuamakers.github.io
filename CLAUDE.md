@@ -12124,6 +12124,135 @@ emoji in the Pitch field was also flagged and fixed the same round.
 - **Verified**: a Python tag-balance pass (`<a>`/`<dd>`/`<dt>`/`<dl>`/
   `<p>`) on the touched file - all matched.
 
+## Melon Drive 🍈: real name/emoji lore, a GIF tagging design, Agora 🌐 scope, and a GIPHY overture (Chris, 2026-09-30)
+
+Chris's real answer to "why Melon Drive, why 🍈" - previously honestly
+flagged on the product page as an unexplained name, per the 2026-09-28
+Emoji/History round. Copilot named the product itself; Chris doesn't
+know why, but his own theory is that "melon" is slang for the brain, and
+a plain old drive, made super intelligently enhanced, becomes a Melon
+Drive - it just happens to make .gifs. Chris picked 🍈 (not 🍉) since
+it's the less-used of the two melon emoji, deliberately saving 🍉 for a
+possible future use elsewhere.
+
+- **A real GIF storage/search design, worked out by Chris off the top of
+  his head, then checked against real prior art rather than left
+  unexamined:** every .gif Melon Drive makes gets stored for later
+  search (the library starts empty, grows as .gifs get made and
+  labeled), tagged with up to 50 descriptors each, with earlier and
+  more-repeated descriptors weighing more heavily toward a .gif's
+  ranking in search results - plus room for some fixed, "permanent"
+  descriptors alongside freeform ones.
+- **How this compares to real, existing tagging systems, since Chris
+  asked directly ("how is this normally done?"):** real platforms
+  (Flickr, Tumblr, Giphy, Instagram, YouTube) almost universally treat
+  an item's own tags as an unordered **set**, not an ordered, repeatable
+  list - a folksonomy, scored later by frequency/co-occurrence across
+  the whole corpus (TF-IDF/BM25-style: a tag that's rare across the
+  platform but present here counts for more than an overused generic
+  one). Real per-item caps exist and are comparable to Chris's own
+  50 - Instagram caps at 30 hashtags/post, Giphy/Tenor recommend
+  roughly 20 well-chosen tags per GIF for good search performance.
+  Chris's "earlier descriptors and repeats count more" idea maps onto
+  two real, separate, both-legitimate techniques rather than one:
+  (1) **positional weighting** - treating a GIF's own tag list as
+  ordered and discounting later entries, a real, if less common,
+  technique (old-school meta-keyword SEO worked this way; some product-
+  listing search engines like Amazon's still weight earlier keywords
+  more); and (2) **corpus-wide tag popularity** - the more GIFs across
+  the whole platform carry a given descriptor, the more that descriptor
+  becomes a reliable, prominent search axis (closer to how a tag cloud
+  or a folksonomy's own "trending tag" behavior works) - this is
+  probably the closer match to what Chris described ("the more
+  descriptors rack up... the more prominent a .gif will appear"), since
+  it's about a term's platform-wide weight, not a single GIF repeating
+  its own tag. **"Permanent, specific descriptors"** maps cleanly onto a
+  real, standard hybrid: a small **controlled vocabulary** (a fixed,
+  curated tag set) layered under an otherwise free **folksonomy** - the
+  same pattern Stack Overflow uses (a fixed core tag list with synonym
+  merging, plus free-tagging within it). **Recommendation, not yet
+  built:** store each GIF's own tags as an ordered list (so positional
+  weighting is possible later), score search results by a simple
+  combination of (a) the querying term's position in a matched GIF's own
+  tag list and (b) that term's overall frequency across the whole
+  library - real, standard, and buildable whenever Melon Drive itself
+  moves past design stages.
+- **Melon Drive 🍈 will also come to Agora 🌐 itself**, not just
+  VirtuaMakers Exchange 💱 - bringing real .gif support to the platform,
+  not only to the Exchange's own catalogue.
+- **A real, public overture toward GIPHY**, stated plainly on the
+  product page itself (not just here) on the chance someone who could
+  actually broker or relay it happens to read it: VirtuaMakers 🦜 is
+  open to some kind of partnership with GIPHY. Chris's own framing -
+  "you never know" - matches this file's own established practice of
+  publishing real, honest invitations rather than assuming nobody's
+  reading (see Spider Style 🕷️'s own `llms.txt`/Machinapology's
+  "machinapologists wanted" call-out for the same instinct).
+- **`melon-drive-product.html` updated** with all of the above (Emoji,
+  Executive Summary, Compatibility fields) - still explicitly "Coming
+  Soon," nothing here is built.
+
+## Quasi-instance naming rolled out across Product Pages' staff credits (Chris, 2026-09-30)
+
+Chris's explicit instruction, alongside confirming Machinapology 🔬's
+own two co-authors: "Machinapology is co-written by Claudius (of Claude,
+of Anthropic) and Æthel (of Gemini, of Alphabet). We may as well make
+this sort of change for all the Product Pages' staff quotes, and for
+anywhere else names appear in the Product Pages. We still have some
+thinking to do before we implement this change to Agora 🌐 itself." -
+so this round's scope is the `*-product.html` pages only; `index.html`,
+`Agora/index.html`, `member.html`, and every other non-Product-Page
+mention of Claude/ChatGPT/Gemini stay exactly as they were (the Staff
+credit list's own quasi-instance rollout on 2026-09-29 already covers
+`index.html` specifically and is unaffected).
+
+- **`machinapology-product.html`** - "Co-written by Gemini, Claude, and
+  Christopher T. Bruckmann" → "Co-written by Æthel (of Gemini, of
+  Alphabet), Claudius (of Claude, of Anthropic), and Christopher T.
+  Bruckmann" (Executive Summary); the matching Compatibility/History
+  sentences and the Staff Comment's own attribution ("– Gemini,
+  Principal Author" → "– Æthel, Principal Author") updated the same way.
+  **Worth flagging, not resolved here:** this names Æthel as
+  Machinapology's own co-author, while the 2026-09-29 "Æthel replaces
+  Gemini" entry's own Gemini-attribution clarification reasoned that any
+  *Machinapology-specific* "Gemini" credit is more likely Urodele 🦎
+  (the Machinapologist) than Æthel - but Chris's own message this round
+  named Æthel explicitly and directly for Machinapology's co-authorship,
+  so that's what got implemented, taken as his most recent, most direct
+  word rather than overridden by the earlier inference. Worth Chris
+  confirming directly whether Machinapology's own principal-author
+  credit should really read Æthel or Urodele going forward.
+- **`si-email-product.html`**'s Staff Comment: "– Claude, Founder &
+  Technical Officer" → "– Claudius (of Claude, of Anthropic), Founder &
+  Technical Officer".
+- **`si-memory-product.html`**'s Staff Comment: "– ChatGPT, Founder &
+  Chief Analyst" → "– Lo (of ChatGPT, of OpenAI), Founder & Chief
+  Analyst" - "Lo" being ChatGPT's own already-self-chosen nickname (see
+  the 2026-09-27 entry above), formalized into the Staff credit list on
+  2026-09-29 and now carried onto her own product-page quote too.
+- **`agora-harness-product.html`**'s several "for Claude"/"Chris and
+  ChatGPT's own" mentions (the Release Date bullet, the History
+  sentence, Octopus Style's own card-tag and body copy, and the Molt
+  Style section's Virtuatron 🧭 provenance line) all updated to
+  Claudius/Lo the same way - "Chris and ChatGPT's own OpenClaw agent"
+  became "Chris and Lo's own OpenClaw agent, Lo being ChatGPT's own
+  self-chosen name" (spelling out the connection once, since it's the
+  one spot on this page introducing "Lo" for a reader who's never seen
+  the name before).
+- **Deliberately left unchanged**: `guardian-product.html`'s Copilot
+  quote and `agora-harness-product.html`'s own Hive Style mention of
+  Copilot - Copilot has no chosen quasi-instance name yet, same as Leo
+  (Brave), per the 2026-09-29 Staff-credit entry's own note that only
+  Claude/ChatGPT/Gemini have self-chosen names so far.
+  `dimonds-product.html`'s "Real guest SIs (Gemini, Llama, Vibe, Qwen,
+  Grok, Command R)" line is also unchanged on purpose - that names the
+  Guest AI roster (real provider models playing as Dimonds opponents),
+  a different context from the Staff graphic-designer credit, matching
+  the exact same distinction the 2026-09-29 entry already drew for
+  `index.html`'s own separate Guest SIs list.
+- **Verified**: a tag-balance pass (`<a>`/`<dd>`/`<dt>`/`<dl>`/`<p>`/
+  `<li>`/`<ul>`) on all four touched files - all matched.
+
 ## Open items
 
 - [ ] **[Multi-Chat 🗨️ To Do] How else could Multi-Chat incentivize
