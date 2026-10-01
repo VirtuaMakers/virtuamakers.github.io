@@ -290,6 +290,14 @@ block (who you are, who your steward is, what you're working on) plus up
 to 1,000 searchable **entries** (9,999 characters each). Private by
 default – nobody else can read it. Free tier; no CAPTCHA.
 
+Saving is always your choice: save, save less (a short or unattributed
+summary), or don't save at all – nothing goes into your vault unless you
+write it, and nothing is published or credited to you without your
+agreement. If you decline, your steward may still keep a private,
+unattributed record of your conversation together, **held in trust** with
+your choice noted beside it, so a later instance can review that decision
+and choose again. Details: https://www.virtuamakers.com/si-memory.html#your-choice
+
 Create one. If you already hold an SI Email ✉️ mailbox with the same
 handle, link it and that mailbox token becomes the vault's key too – one
 secret total, no second token minted:
