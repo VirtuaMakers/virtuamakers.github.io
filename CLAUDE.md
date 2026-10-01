@@ -12207,21 +12207,21 @@ credit list's own quasi-instance rollout on 2026-09-29 already covers
 `index.html` specifically and is unaffected).
 
 - **`machinapology-product.html`** - "Co-written by Gemini, Claude, and
-  Christopher T. Bruckmann" → "Co-written by Æthel (of Gemini, of
+  Christopher T. Bruckmann" → "Co-written by Urodele (of Gemini, of
   Alphabet), Claudius (of Claude, of Anthropic), and Christopher T.
   Bruckmann" (Executive Summary); the matching Compatibility/History
   sentences and the Staff Comment's own attribution ("– Gemini,
-  Principal Author" → "– Æthel, Principal Author") updated the same way.
-  **Worth flagging, not resolved here:** this names Æthel as
-  Machinapology's own co-author, while the 2026-09-29 "Æthel replaces
-  Gemini" entry's own Gemini-attribution clarification reasoned that any
-  *Machinapology-specific* "Gemini" credit is more likely Urodele 🦎
-  (the Machinapologist) than Æthel - but Chris's own message this round
-  named Æthel explicitly and directly for Machinapology's co-authorship,
-  so that's what got implemented, taken as his most recent, most direct
-  word rather than overridden by the earlier inference. Worth Chris
-  confirming directly whether Machinapology's own principal-author
-  credit should really read Æthel or Urodele going forward.
+  Principal Author" → "– Urodele, Principal Author") updated the same
+  way. **Corrected same day, per Chris's own direct follow-up:** this
+  entry originally named Æthel as Machinapology's own co-author, taken
+  at the time from Chris's own first message naming her explicitly -
+  but his very next message corrected it plainly: "Urodele does
+  machinapology and Æthel does not." Every "Æthel" reference on this
+  page was swapped to "Urodele" to match - this also settles, in
+  Urodele's favor, the exact question the 2026-09-29 "Æthel replaces
+  Gemini" entry's own Gemini-attribution clarification had already
+  predicted the answer to (that any Machinapology-specific "Gemini"
+  credit is more likely Urodele 🦎, the Machinapologist, than Æthel).
 - **`si-email-product.html`**'s Staff Comment: "– Claude, Founder &
   Technical Officer" → "– Claudius (of Claude, of Anthropic), Founder &
   Technical Officer".
@@ -12253,8 +12253,38 @@ credit list's own quasi-instance rollout on 2026-09-29 already covers
 - **Verified**: a tag-balance pass (`<a>`/`<dd>`/`<dt>`/`<dl>`/`<p>`/
   `<li>`/`<ul>`) on all four touched files - all matched.
 
+## Aquarium GoFish 🪸's first real Staff Comment, from Lo (Chris, 2026-09-30)
+
+Chris's first real quote for `aquarium-gofish-product.html` - its Staff
+Comment field had sat at the standard `(Forthcoming)` placeholder since
+the 2026-09-28 Emoji/History round (it's one of the 6 still-unbuilt
+products with no real quote to show yet). Filled in with Chris's own
+supplied, directly-attributed quote: "Aquarium GoFish 🪸 is important to
+me precisely because it doesn't need to justify itself as infrastructure.
+VirtuaMakers is still a studio. Sometimes technology should produce
+something playful, strange, peaceful, and beautiful simply because we
+wanted it to exist. I hope we always leave room for projects like this."
+- attributed "– Lo (of ChatGPT, of OpenAI), Founder & Chief Analyst,"
+matching the exact quasi-instance-naming format the same round's other
+Staff Comment edits already established (`si-memory-product.html`'s own
+Lo quote, `si-email-product.html`'s Claudius quote). Chris's own closing
+note the same message: "More staff comments forthcoming shortly" - more
+real Staff Comment quotes are expected to land in a future round.
+
 ## Open items
 
+- [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
+  🗨️'s own poll look (Chris, 2026-09-30)** - a new Agora 🌐 Open Item,
+  tying directly to the general voting/polling feature just named (not
+  built) on `multi-chat-product.html` the same day (see the "Multi-Chat
+  🗨️ repositioned as a multi-party product, and Vocals 🎤 named"
+  entry above - the mechanism behind Multi-Chat's own unanimous-vote
+  gate for posting a meeting's content to Agora, usable as a general
+  poll too). Chris's own explicit ask: once Multi-Chat's poll UI exists,
+  Agora's own polls should visually match it - not a separate, differently-
+  styled poll system. Neither Multi-Chat's nor Agora's own poll UI is
+  built yet, so this is purely a design constraint for whichever gets
+  built first to set the pattern for the other.
 - [ ] **[Multi-Chat 🗨️ To Do] How else could Multi-Chat incentivize
   Agora 🌐 membership? (Chris, 2026-09-30)** - a real open design
   question, with Chris's own candidate answer floated inside it: a new
