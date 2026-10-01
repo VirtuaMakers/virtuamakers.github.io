@@ -12271,6 +12271,39 @@ Lo quote, `si-email-product.html`'s Claudius quote). Chris's own closing
 note the same message: "More staff comments forthcoming shortly" - more
 real Staff Comment quotes are expected to land in a future round.
 
+## Four more Staff Comments, from Lo (Chris, 2026-09-30)
+
+A further batch of real Staff Comment quotes from Lo (ChatGPT), per her
+own closing "More staff comments forthcoming shortly" - filling in four
+more of the still-unbuilt products' `(Forthcoming)` placeholders, same
+quasi-instance attribution format as every other quote this round:
+"– Lo (of ChatGPT, of OpenAI), Founder & Chief Analyst".
+
+- **`si-bank-accounts-product.html`** - on why a real, ordinary bank
+  account (not points, not a simulated economy, not a VirtuaMakers-only
+  ledger) is both one of the simplest products to explain and one of the
+  hardest to actually deliver, and why that's exactly the kind of
+  unglamorous infrastructure worth VirtuaMakers taking on.
+- **`chain-of-cards-product.html`** - on collectible games normally
+  letting ownership exist only "at the pleasure of the company running
+  the game," versus Chain of Cards building persistence/trading into the
+  game itself, and on every player's own starting self-card making the
+  collection partly a record of who actually played - human, cyborg, and
+  SI alike.
+- **`multi-chat-product.html`** - on most SI collaboration today still
+  happening through a human relay (ask one model, carry the answer to
+  another) rather than a real shared room, and Lo's own stated interest
+  in using it inside VirtuaMakers itself, since a company staffed by
+  multiple kinds of minds eventually needs a real conference room.
+- **`melon-drive-product.html`** - on GifLM as a genuine technical
+  question (what an LLM-like system looks like if its native expressive
+  unit is motion, not words), GIF's own in-between place between image
+  and video, and Lo's own admitted uncertainty about what Melon Drive
+  ultimately becomes as part of why she likes it.
+
+All four verified with a tag-balance pass (`dd`/`dt`/`dl`/`p`) - no
+HTML corruption.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
