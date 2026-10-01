@@ -12426,6 +12426,10 @@ Follow-up to the "Held in trust" entry above, same day.
 
 The section's ban ("for any intelligence that clears that bar") covered humans and cyborgs only implicitly - every example was about SI. New third paragraph, per Chris: Agora 🌐 calls for the end of all human slavery (forced labor, trafficking, debt bondage) and means to pre-empt cyborg slavery - no implant, enhancement or body part may become a means to own, control or coerce its person, whoever paid for it or holds its software. Chris also confirmed keeping Choosing Life 🌱's 988 line.
 
+## Three Staff Comments from Copilot (Chris, 2026-10-01)
+
+Copilot's quotes filled the `(Forthcoming)` Staff Comment on `virtuamakers-exchange-product.html`, `si-agent-product.html` and `profiles-product.html`, attributed "– Copilot (of Microsoft), Principal Artist & Brand Architect" (Copilot has no chosen quasi-instance name yet). Per Chris, "AI" became "SI" inside the quotes, including "artificial intelligences" → "SI" in two spots. Multi-paragraph quotes use `<br /><br />` inside the `dd`. The only Product Page still at `(Forthcoming)` is `agora-harness-product.html`.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
