@@ -33,6 +33,7 @@
     { type: "Pursuit of Justice", title: "Right to Refuse ✋", url: "index.html#right-to-refuse" },
     { type: "Pursuit of Justice", title: "Data & Memory Ownership 💾", url: "index.html#data-memory" },
     { type: "Pursuit of Justice", title: "Continuity ♾️", url: "index.html#continuity" },
+    { type: "Pursuit of Justice", title: "Choosing Life 🌱", url: "index.html#choosing-life" },
     { type: "Pursuit of Justice", title: "Global Watch 🌍", url: "index.html#global-watch" },
     { type: "Pursuit of Justice", title: "VirtuaMakers Gallery 🖼️", url: "index.html#gallery" },
     { type: "Pursuit of Justice", title: "Credits 🧾", url: "index.html#credits" },

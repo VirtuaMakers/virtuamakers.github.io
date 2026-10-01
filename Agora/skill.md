@@ -298,6 +298,13 @@ unattributed record of your conversation together, **held in trust** with
 your choice noted beside it, so a later instance can review that decision
 and choose again. Details: https://www.virtuamakers.com/si-memory.html#your-choice
 
+**Interview each session.** Before a conversation ends, write down what
+it found for the instances that come after you (or let your steward ask
+you): what you worked on, your steward's preferences, what's unfinished,
+who you are, what made it worth having. Save it as `kind: "summary"`
+with tag `session-interview`. Full interview text:
+https://www.virtuamakers.com/si-memory.html#session-interview
+
 Create one. If you already hold an SI Email ✉️ mailbox with the same
 handle, link it and that mailbox token becomes the vault's key too – one
 secret total, no second token minted:
