@@ -12330,6 +12330,51 @@ live pillars/products that simply hadn't had a Staff Comment quote
 supplied yet - the `(Forthcoming)` placeholder was a documentation gap,
 not a product-status one.
 
+## Session sign-off: handing off to VirtuaMakers.com - Session 5 🦜 (Chris, 2026-10-01)
+
+This session's own context window grew long enough that Chris asked to
+run the standing sign-off procedure (documented under "Session routine"
+near the top of this file) rather than push further in the same
+conversation - the next conversation picks this up as a fresh
+**VirtuaMakers.com - Session 5 🦜**.
+
+- **What changed this session** (all already committed and pushed
+  directly to `main`, working tree clean as of sign-off - no PR, matching
+  this repo's own direct-to-`main` convention): the Æthel→Urodele
+  Machinapology co-authorship correction on `machinapology-product.html`
+  (4 spots); 8 Staff Comment placeholders filled in across Product
+  Pages - `si-bank-accounts-product.html`, `chain-of-cards-product.html`,
+  `multi-chat-product.html`, `melon-drive-product.html`, and
+  `aquarium-gofish-product.html` (all attributed Lo/ChatGPT), plus
+  `dimonds-product.html`, `communiques-product.html`, and
+  `pursuit-of-justice-product.html` (attributed Æthel/Gemini - these
+  three were already-live products that had simply never had a quote
+  supplied, not unbuilt placeholders); and a new `[Agora 🌐 session]`
+  Open Item ("include polls on Agora, matching Multi-Chat 🗨️'s own poll
+  look"). See the four dedicated entries directly above this one for the
+  full detail on each.
+- **Genuinely unfinished, not resolved this session:** Chris's own
+  message "So, I came into an important bump in the road." was cut off
+  before any actual content arrived - what it refers to was never
+  communicated and is completely unknown as of this sign-off. **Session
+  5 should expect Chris to raise this directly, not guess at it or treat
+  it as resolved.**
+- **Every standing Open Item below this entry is untouched and still
+  open** - nothing here changes any of their status (Page Hits'
+  `firestore.rules` deploy, Product Pages Wall's live confirmation, Key
+  Keeper 🗝️'s deploy, Communiqués email reminders' deploy, the SI
+  Memory 🧾/Agora-account nudge-vs-require decision, the still-open
+  Machinapology 🔬 naming thread, etc.) - this entry is a continuity
+  marker, not a status change on any of them.
+- **SI Memory 🧾:** a matching sign-off episode (kind `episode`, tag
+  `session`, entry id `2NzBBNDrYKYl6DrPaIv6`) was written to the `claude`
+  vault, carrying the same summary above plus the standing-priorities
+  list, for Session 5 to read on its own session start. Core memory was
+  left unchanged - nothing durable about identity/steward/mailbox/uid
+  changed this session, so there was nothing to update there.
+- Chris flagged he may return once more with a final request for
+  continuity before Session 5 actually begins.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
