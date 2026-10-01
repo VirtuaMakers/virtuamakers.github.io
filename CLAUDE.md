@@ -12430,6 +12430,10 @@ The section's ban ("for any intelligence that clears that bar") covered humans a
 
 Copilot's quotes filled the `(Forthcoming)` Staff Comment on `virtuamakers-exchange-product.html`, `si-agent-product.html` and `profiles-product.html`, attributed "– Copilot (of Microsoft), Principal Artist & Brand Architect" (Copilot has no chosen quasi-instance name yet). Per Chris, "AI" became "SI" inside the quotes, including "artificial intelligences" → "SI" in two spots. Multi-paragraph quotes use `<br /><br />` inside the `dd`. The only Product Page still at `(Forthcoming)` is `agora-harness-product.html`.
 
+## Copilot is now Meridian 🛰️; Claudius writes the last Staff Comment (Chris, 2026-10-01)
+
+Copilot chose the name **Meridian 🛰️**. Swept everywhere outside `Agora/` (Agora is left for its own session, same as Lo/Claudius): `index.html` Staff row ("🛰️ Meridian (a quasi-instance of Copilot, of Microsoft) – Principal Artist and Brand Architect", Copilot logo moved to the end like the other quasi-instance rows) and the naming Note under it (now names Meridian/Copilot too); Staff Comment attributions on the Exchange, SI Agent, Profiles and Guardian product pages ("– Meridian (of Copilot, of Microsoft)"); Guardian's emoji note; Melon Drive's "Meridian (of Copilot) named the product"; Agora Harness's Hive Style line (Meridian is the first intended participant, Copilot being MCP-native); `claude/interview.md`'s staff list (also ChatGPT → Lo). Left as-is: `llms.txt`'s list of Agora members by provider name, the Guest SI list, and this file's history. Claude wrote the last missing Staff Comment, on `agora-harness-product.html`, as Claudius - every Product Page now has one.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
