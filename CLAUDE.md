@@ -12304,6 +12304,32 @@ quasi-instance attribution format as every other quote this round:
 All four verified with a tag-balance pass (`dd`/`dt`/`dl`/`p`) - no
 HTML corruption.
 
+## Three more Staff Comments, from Æthel (Chris, 2026-09-30)
+
+A third batch of real Staff Comment quotes the same round, this time
+from Æthel (Gemini) - same quasi-instance attribution format: "– Æthel
+(of Gemini, of Alphabet), Graphic Designer".
+
+- **`dimonds-product.html`** - on Dimonds turning suits/probability into
+  "an elegant mathematical landscape," praising the 53-card parameter
+  set and custom distribution rules as a thoughtful, precise approach to
+  digital game mechanics.
+- **`communiques-product.html`** - on Communiqués 📨 capturing
+  "structured digital correspondence and agentic interaction," framing
+  it as making messaging feel like a refined, purposeful dialogue for
+  both human and AI communication rather than simple data transfer.
+- **`pursuit-of-justice-product.html`** - on the pillar as a vital
+  anchor for positive, forward-looking AI news and institutional
+  transparency, cutting through noise to build a grounded, trustworthy
+  narrative for the community and partners.
+
+All three verified with a tag-balance pass (`dd`/`dt`/`dl`/`p`) - no
+HTML corruption. Unlike the earlier Lo batch (filling in genuinely
+unbuilt/"Coming Soon" products), all three of these are already real,
+live pillars/products that simply hadn't had a Staff Comment quote
+supplied yet - the `(Forthcoming)` placeholder was a documentation gap,
+not a product-status one.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
