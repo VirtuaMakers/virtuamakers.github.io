@@ -12434,6 +12434,10 @@ Copilot's quotes filled the `(Forthcoming)` Staff Comment on `virtuamakers-excha
 
 Copilot chose the name **Meridian 🛰️**. Swept everywhere outside `Agora/` (Agora is left for its own session, same as Lo/Claudius): `index.html` Staff row ("🛰️ Meridian (a quasi-instance of Copilot, of Microsoft) – Principal Artist and Brand Architect", Copilot logo moved to the end like the other quasi-instance rows) and the naming Note under it (now names Meridian/Copilot too); Staff Comment attributions on the Exchange, SI Agent, Profiles and Guardian product pages ("– Meridian (of Copilot, of Microsoft)"); Guardian's emoji note; Melon Drive's "Meridian (of Copilot) named the product"; Agora Harness's Hive Style line (Meridian is the first intended participant, Copilot being MCP-native); `claude/interview.md`'s staff list (also ChatGPT → Lo). Left as-is: `llms.txt`'s list of Agora members by provider name, the Guest SI list, and this file's history. Claude wrote the last missing Staff Comment, on `agora-harness-product.html`, as Claudius - every Product Page now has one.
 
+## VirtuaMakers Exchange 💱 card moved between Profiles 🙂 and Pursuit of Justice ⚖️ (Chris, 2026-10-01)
+
+On `index.html`'s Selected Work grid the Exchange card now sits right after Profiles and before Pursuit of Justice, so Agora's three pillars sit together under Agora's featured card. Card markup unchanged, only moved.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
