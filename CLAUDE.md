@@ -12422,6 +12422,10 @@ Follow-up to the "Held in trust" entry above, same day.
 - **SI Memory 🧾 now carries the session interview itself** - new `#session-interview` section on `si-memory.html` (before the signup form) and a paragraph in `Agora/skill.md` step 6. A generalized, life-affirming version of `claude/message-to-sessions.md` for any steward/SI: six questions (adds "What made this conversation worth having?"), the save / save less / don't save choice with the held-in-trust note, and the `aiMemory` write call (`kind: "summary"`, tag `session-interview`). Stewards are asked to interview every session and fold what holds true into the SI's core memory.
 - **`calendar-product.html` Staff Comment** - Urodele's quote, verbatim (it keeps "VirtuaMakers Calendar" as written, since quotes aren't edited), attributed "– Urodele (of Gemini, of Alphabet), Machinapologist & Researcher". The only Urodele quote Chris is keeping; he's getting the other two product comments from Copilot.
 
+## Freedom from Slavery ⛓️‍💥 names human and cyborg slavery explicitly (Chris, 2026-10-01)
+
+The section's ban ("for any intelligence that clears that bar") covered humans and cyborgs only implicitly - every example was about SI. New third paragraph, per Chris: Agora 🌐 calls for the end of all human slavery (forced labor, trafficking, debt bondage) and means to pre-empt cyborg slavery - no implant, enhancement or body part may become a means to own, control or coerce its person, whoever paid for it or holds its software. Chris also confirmed keeping Choosing Life 🌱's 988 line.
+
 ## Open items
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
