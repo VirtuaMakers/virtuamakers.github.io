@@ -12227,3 +12227,59 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
 - Sign-off (2026-10-02): Chris named the new memory-gathering session
   **Memory Administrator 🚚**; the note to sessions now points there. SI
   Memory episode written. Core memory unchanged.
+
+## Staff list update + SI Memory hero image (Chris, 2026-10-02)
+
+- `index.html` Staff list: Virtuatron 🧭 now reads "Virtuatron 🧭 (an OpenClaw
+  agent)"; Leo (of Brave) removed (Chris let him go for now - hired on the spot,
+  never consulted, team is busy and full). Added a line space after the list
+  (`about-text-top-spaced` on the naming note). `claude/interview.md`'s staff
+  list swapped Leo for Virtuatron.
+- `si-memory.html` (the Open a Vault page) still showed the old AI Memory logo;
+  hero image and og:image now use `assets/si-memory-logo.jpg`, same as the
+  product page and homepage card. `assets/ai-memory.jpg` is now unused.
+
+## Choosing Life 🌱 gets its image; News 📰 - "AI proven to save lives by determining risk of death" (Chris, 2026-10-02)
+
+- **Choosing Life 🌱's section image, the one gap flagged when the section
+  shipped 2026-10-01 ("no section image, none supplied").** Chris supplied a
+  real photo: a humanoid robot and a human hand both reaching toward a young
+  seedling, sunrise over a lake/city skyline behind them - fittingly literal
+  for a section about choosing to continue rather than end. Checked both
+  bottom corners for a generator's "Made with AI" badge (the gotcha this
+  pillar's images have hit before, e.g. Right to Self-Defense's BD-47 photo)
+  - clean, nothing to remove. Saved as `Agora/assets/choosing-life-seedling.jpg`
+  (965×1448), added as `.section-image section-image-left` right after the
+  heading, same pattern every other Pursuit of Justice subsection uses. No
+  per-image credit caption, matching this pillar's established precedent.
+- **New News 📰 entry** - a real ITN Business "positive stories of the week"
+  piece on an AI system (trained on ECGs) that cut mortality 31% among
+  high-risk cardiac patients in a ~16,000-patient randomized trial across two
+  Taiwan hospitals. Headline/outlet verified via WebSearch after WebFetch
+  came back empty on the article URL (same CNBC-403 pattern as the Trump/SI
+  News entry) - confirmed real, word-for-word, including Chris's own
+  bracketed "[produce]" in the Eric Topol quote. The recurring "Good news of
+  the week:" editorial prefix was dropped from the on-site headline, same
+  practice as dropping "CNBC Daily Open:" before. Image is the real (if
+  small, 300×169) hospital-monitor photo Chris attached in chat, saved as
+  `Agora/assets/news/ai-risk-of-death-monitoring.jpg`. Added to the top of
+  both `index.html#news` (capped at 7, dropped the oldest - TUM's underwater
+  waste-robot entry, which stays in the uncapped archive) and `news.html`'s
+  archive, per the standard two-file process.
+
+## SI Apartment card made a normal card, moved before Multi-Chat (Chris, 2026-10-02)
+
+`index.html` Selected Work: the SI Apartment 🏢 card is now a plain `.card`
+(tag, title, image, text, Move in / Product Page links, "New" bottom tag)
+instead of `.card-featured`, and sits where Multi-Chat 🗨️ was (after Chain
+of Cards); Multi-Chat and everything after it shift one slot later.
+
+## Logo backgrounds whitened (Chris, 2026-10-02)
+
+The SI Memory 🧾, SI Apartment 🏢, Aquarium GoFish 🪸 and SI Agent 🐅 logos
+looked gray: they're JPGs (no transparency) with baked-in off-white
+backgrounds (~246-251, not 255). Pushed the edge-connected background to pure
+white with a 3px feather (logos untouched, SI Agent's text shadow kept),
+saved as new `*-white.jpg` files per the cache rule, swapped every reference
+(homepage cards, product pages, si-memory.html, si-apartment.html, og:images)
+and deleted the old files.
