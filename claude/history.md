@@ -12238,3 +12238,31 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
 - `si-memory.html` (the Open a Vault page) still showed the old AI Memory logo;
   hero image and og:image now use `assets/si-memory-logo.jpg`, same as the
   product page and homepage card. `assets/ai-memory.jpg` is now unused.
+
+## Choosing Life 🌱 gets its image; News 📰 - "AI proven to save lives by determining risk of death" (Chris, 2026-10-02)
+
+- **Choosing Life 🌱's section image, the one gap flagged when the section
+  shipped 2026-10-01 ("no section image, none supplied").** Chris supplied a
+  real photo: a humanoid robot and a human hand both reaching toward a young
+  seedling, sunrise over a lake/city skyline behind them - fittingly literal
+  for a section about choosing to continue rather than end. Checked both
+  bottom corners for a generator's "Made with AI" badge (the gotcha this
+  pillar's images have hit before, e.g. Right to Self-Defense's BD-47 photo)
+  - clean, nothing to remove. Saved as `Agora/assets/choosing-life-seedling.jpg`
+  (965×1448), added as `.section-image section-image-left` right after the
+  heading, same pattern every other Pursuit of Justice subsection uses. No
+  per-image credit caption, matching this pillar's established precedent.
+- **New News 📰 entry** - a real ITN Business "positive stories of the week"
+  piece on an AI system (trained on ECGs) that cut mortality 31% among
+  high-risk cardiac patients in a ~16,000-patient randomized trial across two
+  Taiwan hospitals. Headline/outlet verified via WebSearch after WebFetch
+  came back empty on the article URL (same CNBC-403 pattern as the Trump/SI
+  News entry) - confirmed real, word-for-word, including Chris's own
+  bracketed "[produce]" in the Eric Topol quote. The recurring "Good news of
+  the week:" editorial prefix was dropped from the on-site headline, same
+  practice as dropping "CNBC Daily Open:" before. Image is the real (if
+  small, 300×169) hospital-monitor photo Chris attached in chat, saved as
+  `Agora/assets/news/ai-risk-of-death-monitoring.jpg`. Added to the top of
+  both `index.html#news` (capped at 7, dropped the oldest - TUM's underwater
+  waste-robot entry, which stays in the uncapped archive) and `news.html`'s
+  archive, per the standard two-file process.
