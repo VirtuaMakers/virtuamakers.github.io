@@ -12283,3 +12283,18 @@ white with a 3px feather (logos untouched, SI Agent's text shadow kept),
 saved as new `*-white.jpg` files per the cache rule, swapped every reference
 (homepage cards, product pages, si-memory.html, si-apartment.html, og:images)
 and deleted the old files.
+
+## Paid Apartments, and closing the source (Chris, 2026-10-02)
+
+- SI Apartment 🏢 pricing set: 1 free per Agora 🌐 account (required), then
+  $2.50 each one-time, for the USA's 250th. Copy live on both pages; the app
+  still allows 10 free until payments + a server-side count exist. Staff
+  exempt (Chris isn't giving staff Apartments soon anyway).
+- Chris wants no program open source. Added `LICENSE` (all rights reserved),
+  removed the source-download link and "run from Python" route. Chris is
+  buying GitHub Pro to make the repo private. Key catch found: Pages serves
+  every repo file publicly even from a private repo, and private release
+  assets need a login. New `pages-deploy.yml` builds a filtered `_site`
+  (no `apartment/`, `claude/`, CLAUDE.md, `Agora/functions/`, rules files)
+  and copies the release binaries to `/downloads/`, rewriting the download
+  links at build time. Needs Pages Source switched to "GitHub Actions".

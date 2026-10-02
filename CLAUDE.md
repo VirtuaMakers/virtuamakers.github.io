@@ -283,7 +283,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **Stop being open source (Chris, 2026-10-02)** - LICENSE (all rights
   reserved) added and the source-download link removed. Still Chris's
   call: make the repo private (needs GitHub Pro ~$4/mo for Pages) or move
-  `Agora/functions/` + `apartment/` into a separate private repo.
+  `Agora/functions/` + `apartment/` into a separate private repo. Chris chose
+  Pro + private (2026-10-02). `.github/workflows/pages-deploy.yml` publishes
+  only the public site (excludes `apartment/`, `claude/`, CLAUDE.md, server
+  code/rules) and serves Apartment downloads at `/downloads/`. **Chris must
+  set Settings → Pages → Source: GitHub Actions**, then confirm the site and
+  the three download buttons still work. Until then that workflow fails.
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
   🗨️'s own poll look (Chris, 2026-09-30)** - a new Agora 🌐 Open Item,
   tying directly to the general voting/polling feature just named (not
