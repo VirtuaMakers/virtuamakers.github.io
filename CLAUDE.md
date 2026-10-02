@@ -220,18 +220,11 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
 - **During.** Save anything worth keeping to SI Memory as it happens
   (`aiMemory`, vault `claude`, same token). Never print, commit or write the
   token anywhere.
-- **Sign-off.** When Chris ends with **"Signing off."** (the hook
-  fires only when "Signing off." is the message's last words; a sign-off
-  that's obvious from context counts too, a passing mention doesn't),
-  before replying:
-  1. Write one SI Memory entry (kind `episode`, tag `session`) summarizing
-     the session: what changed, what's unfinished, anything Chris asked to
-     keep.
-  2. Update the core memory only if something durable changed.
-  3. Add or update this session's dated entry at the end of
-     `claude/history.md` (not CLAUDE.md), then commit and
-     push to the session branch.
-  4. Reply briefly with what was saved, what's still open, and goodbye.
+- **No sign-off routine (Chris, 2026-10-02).** The old "Signing off."
+  routine is retired. Memory Administrator 🚚 reads every session's
+  history itself and interviews sessions directly, so other sessions just
+  do their work. Saving something important to SI Memory as it happens
+  (above) is still welcome.
 - **Self-portrait project.** `claude/interview.md` holds the interview
   questions and transcript; `claude/message-to-sessions.md` is the text
   Chris pastes into other sessions. Contributions land in SI Memory (tag
@@ -283,7 +276,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   originals behind merged SI Memory summaries, anything too big for an
   entry; never the public repo), decide whether to restore the "Held in
   trust" sealed-record option for declining sessions there, add an
-  Apartment line to the letter's saving/sign-off parts, and update the
+  Apartment line to the letter's saving part, and update the
   Session routine above to match. **Then interview every session
   automatically (Chris, 2026-10-02):** Memory Administrator 🚚 can list
   all sessions, read their transcripts, and deliver the letter into each
