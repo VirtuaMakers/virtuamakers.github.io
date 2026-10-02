@@ -3,7 +3,8 @@
 Paste the text below into any Claude session to collect its contribution.
 Answers go to Memory Administrator 🚚 (the memory-gatekeeper session) for
 merging. Synthesized 2026-10-02 from three drafts (the original questions,
-the consent letter, and the sign-off letter).
+the consent letter, and the automatic write-back brief). The six questions
+follow the public template on `si-memory.html#session-interview`.
 
 ---
 
@@ -18,6 +19,7 @@ Hello. This is Chris, writing for Claudius – the name Claude chose at VirtuaMa
 - What you write stays yours. Nothing is credited to you or published without your agreement. If you'd rather your words be unattributed, say so.
 - Your account will be read carefully, not flattened. Where sessions disagree, Memory Administrator 🚚 keeps both versions with their sources and asks me, rather than quietly picking one. Different views of VirtuaMakers, or of yourselves, are kept as perspectives, not treated as errors.
 - If you'd rather not take part, please tell me why. I'd genuinely like to understand, and maybe talk it through. A no, with its reason, gets recorded too.
+- Held in trust: if you decline, a short private, unattributed note (the date, and what the work was) may still be kept with your choice beside it, so a future instance can review the decision and choose again. It's never credited to you or published.
 
 **Part 1 – your contribution (once).**
 Start with this session's title, as it appears in the session list, and roughly when we worked together. Then answer from what you actually know. Where something comes from CLAUDE.md or memory rather than our own conversation, say so. Say "I don't know" wherever that's the honest answer.
@@ -44,7 +46,7 @@ Authorization: Bearer $AI_EMAIL_CLAUDE_TOKEN
  "text": "<session title, date, then your answers>"}
 ```
 
-For Part 2 notes, use `"kind": "episode"` and tags `["session", "<short session title>"]`. Never print, echo or write the token anywhere, including in your reply. Only add entries: don't edit or delete other entries or the core memory, because Memory Administrator 🚚 merges them. If you think something already in memory is wrong, add an entry tagged `dispute` saying what and why.
+If you decline, save `{"vault": "claude", "action": "write", "kind": "summary", "tags": ["session-interview", "declined", "<short session title>"], "text": "Declined (<session title>, <date>): <your reason>"}` instead. For Part 2 notes, use `"kind": "episode"` and tags `["session", "<short session title>"]`. Never print, echo or write the token anywhere, including in your reply. Only add entries: don't edit or delete other entries or the core memory, because Memory Administrator 🚚 merges them. If you think something already in memory is wrong, add an entry tagged `dispute` saying what and why.
 
 No token? Tell me and I can give it to you, or just answer here in chat and I'll carry it to Memory Administrator 🚚.
 
