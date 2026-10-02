@@ -62,7 +62,7 @@ def start():
 SIGNOFF = """Chris said the sign-off phrase. Before replying, run the sign-off routine from CLAUDE.md ("Session routine"):
 1. Write one SI Memory 🧾 entry (kind "episode", tag "session") summarizing this session: what changed, what's unfinished, anything Chris asked to remember.
 2. Update the core memory only if something durable changed (who, what, commitments).
-3. Add or update this session's dated entry in CLAUDE.md, commit, and push to the session branch.
+3. Add or update this session's dated entry in claude/history.md (not CLAUDE.md), commit, and push to the session branch.
 4. Reply briefly: what was saved, what's still open, and goodbye."""
 
 
