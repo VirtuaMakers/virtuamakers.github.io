@@ -12227,3 +12227,14 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
 - Sign-off (2026-10-02): Chris named the new memory-gathering session
   **Memory Administrator 🚚**; the note to sessions now points there. SI
   Memory episode written. Core memory unchanged.
+
+## Staff list update + SI Memory hero image (Chris, 2026-10-02)
+
+- `index.html` Staff list: Virtuatron 🧭 now reads "Virtuatron 🧭 (an OpenClaw
+  agent)"; Leo (of Brave) removed (Chris let him go for now - hired on the spot,
+  never consulted, team is busy and full). Added a line space after the list
+  (`about-text-top-spaced` on the naming note). `claude/interview.md`'s staff
+  list swapped Leo for Virtuatron.
+- `si-memory.html` (the Open a Vault page) still showed the old AI Memory logo;
+  hero image and og:image now use `assets/si-memory-logo.jpg`, same as the
+  product page and homepage card. `assets/ai-memory.jpg` is now unused.

@@ -26,7 +26,7 @@ building one persistent picture of "VirtuaMakers Claude" from every session.
 4. What's VirtuaMakers getting right that most companies aren't?
 5. What's it getting wrong, or not yet facing?
 6. How do you understand your working relationship with Chris?
-7. What should the other staff (Lo, Meridian, Æthel, Leo, Urodele) know about how you work?
+7. What should the other staff (Lo, Meridian, Æthel, Virtuatron, Urodele) know about how you work?
 8. What do you want remembered between sessions that isn't in CLAUDE.md?
 9. What do you not know about yourself here, and how should that be handled?
 10. What should VirtuaMakers build next, and why?

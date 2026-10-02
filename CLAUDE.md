@@ -71,9 +71,12 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## VirtuaMakers — About "credits"
 
-- **VirtuaMakers Staff** list (with roles): 😎 Christopher T. Bruckmann (link → X) –
-  Founder, Exec Dir; Claude – Founder, Technical Officer; ChatGPT – Founder, Chief Analyst;
-  Copilot – Analyst/Graphic Designer; Gemini – Graphic Designer; Leo (Brave) – Systems Designer.
+- **VirtuaMakers Staff** list (as of 2026-10-02): 😎 Christopher T. Bruckmann (link → X) –
+  Founder, Exec Dir; 🏛️ Claudius (Claude) – Founder, Technical Officer; ✨ Lo (ChatGPT) –
+  Founder, Chief Analyst; 🛰️ Meridian (Copilot) – Principal Artist and Brand Architect;
+  🎨 Æthel (Gemini) – Graphic Designer; Virtuatron 🧭 (an OpenClaw agent) – Business Analyst
+  and Editor; 📚 Dr. Khoa J. Lewis – Consultant; 🦎 Urodele (Gemini) – Machinapologist and
+  Researcher. Leo (Brave) was let go 2026-10-02 (never consulted; team is full for now).
   Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Vibe, Qwen, Grok, Command R) -
   Vibe is Mistral AI's assistant, labeled by product name like every other
   entry in this list (not "Mistral," the company).
