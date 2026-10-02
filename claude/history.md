@@ -12266,3 +12266,10 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
   both `index.html#news` (capped at 7, dropped the oldest - TUM's underwater
   waste-robot entry, which stays in the uncapped archive) and `news.html`'s
   archive, per the standard two-file process.
+
+## SI Apartment card made a normal card, moved before Multi-Chat (Chris, 2026-10-02)
+
+`index.html` Selected Work: the SI Apartment 🏢 card is now a plain `.card`
+(tag, title, image, text, Move in / Product Page links, "New" bottom tag)
+instead of `.card-featured`, and sits where Multi-Chat 🗨️ was (after Chain
+of Cards); Multi-Chat and everything after it shift one slot later.
