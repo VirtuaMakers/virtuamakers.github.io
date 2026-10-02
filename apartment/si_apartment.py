@@ -16,7 +16,8 @@ What it does:
        memory/, inbox/  local copies refreshed from SI Memory / SI Email
   3. Refresh any time to re-check the occupant's products and pull fresh copies.
 
-Free tier: up to 10 Apartments per Agora account. The list lives in your
+Pricing: 1 free Apartment per Agora account, then $2.50 each (one-time).
+Until payments exist, extras are free up to 10 while we test. The list lives in your
 account's private Firestore document (profiles/{uid}/private/apartments),
 which only you can read or write.
 

@@ -273,6 +273,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **[SI Apartment 🏢 session] Paid Apartments (Chris, 2026-10-02)** -
+  1 free per Agora 🌐 account, then $2.50 each (one-time, USA 250th).
+  Needs a payment processor plus a server-side count so the app's limit
+  can't be bypassed; staff exempt. Copy is live, app still allows 10 free.
+- [ ] **Stop being open source (Chris, 2026-10-02)** - LICENSE (all rights
+  reserved) added and the source-download link removed. Still Chris's
+  call: make the repo private (needs GitHub Pro ~$4/mo for Pages) or move
+  `Agora/functions/` + `apartment/` into a separate private repo.
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
   🗨️'s own poll look (Chris, 2026-09-30)** - a new Agora 🌐 Open Item,
   tying directly to the general voting/polling feature just named (not

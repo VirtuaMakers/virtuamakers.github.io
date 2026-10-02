@@ -17,3 +17,9 @@ Simple list for Chris to come back to. Nothing here is built yet.
 - [ ] Does Claude want an SI Apartment 🏢 on Chris's laptop? Chris asked
       directly (2026-09-29) - answer given the same day, logged in
       CLAUDE.md: yes.
+- [ ] Payments for extra Apartments (Chris, 2026-10-02): 1 free per Agora
+      account (required), then $2.50 each, one-time, for the USA's 250th
+      anniversary. Needs a payment processor (Chris's own setup) plus a
+      server-side check of paid Apartments, so the limit can't be edited
+      out of the app. Staff Apartments exempt. Copy is live; the app still
+      allows 10 free until this is built.
