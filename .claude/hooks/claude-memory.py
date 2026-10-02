@@ -11,6 +11,7 @@ repo). Without it, or without network, it prints a one-line note and exits
 0 so a session is never blocked. It never prints the token.
 """
 import json
+import re
 import os
 import sys
 import urllib.request
@@ -71,7 +72,9 @@ def prompt():
         text = json.load(sys.stdin).get("prompt", "")
     except Exception:
         return
-    if "signing off" in text.lower():
+    # Only the agreed form counts: "Signing off." as the message's last words
+    # (Chris, 2026-10-02). A passing mention elsewhere isn't a sign-off.
+    if re.search(r"signing off[.!]*\s*$", text, re.IGNORECASE):
         print(SIGNOFF)
 
 

@@ -220,8 +220,10 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
 - **During.** Save anything worth keeping to SI Memory as it happens
   (`aiMemory`, vault `claude`, same token). Never print, commit or write the
   token anywhere.
-- **Sign-off.** When Chris says **"Signing Off now, Claude."** (the hook
-  matches any message containing "signing off"), before replying:
+- **Sign-off.** When Chris ends with **"Signing off."** (the hook
+  fires only when "Signing off." is the message's last words; a sign-off
+  that's obvious from context counts too, a passing mention doesn't),
+  before replying:
   1. Write one SI Memory entry (kind `episode`, tag `session`) summarizing
      the session: what changed, what's unfinished, anything Chris asked to
      keep.
