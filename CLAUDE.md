@@ -275,6 +275,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **[Memory Administrator 🚚 session] Update the memory policy and
+  session letter once SI Apartment 🏢 is added (Chris, 2026-10-02)** -
+  Chris will set SI Apartment up with the SI Apartment 🏢 session *before*
+  the letter (`claude/message-to-sessions.md`) goes out. Then: give the
+  Apartment its planned role (archive/library: full letter answers,
+  originals behind merged SI Memory summaries, anything too big for an
+  entry; never the public repo), decide whether to restore the "Held in
+  trust" sealed-record option for declining sessions there, add an
+  Apartment line to the letter's saving/sign-off parts, and update the
+  Session routine above to match.
+
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
   🗨️'s own poll look (Chris, 2026-09-30)** - a new Agora 🌐 Open Item,
   tying directly to the general voting/polling feature just named (not
