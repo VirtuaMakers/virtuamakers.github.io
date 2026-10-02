@@ -276,6 +276,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
+  built, not live; see the "Confirmed: the stale August draft really did
+  resend..." entry in `claude/history.md`. A real August draft resent itself
+  verbatim on 2026-10-01 via the unguarded monthly cron - fixed with a new
+  `skipIfUnchanged` check in `performNewsletterSend()` (only the scheduled
+  send uses it, Send Now always sends) plus a visible explanation + live
+  "unchanged since last send" indicator on `newsletter-compose.html`.
+  `firebase deploy --only functions` picks up the guard; the HTML/JS note is
+  already live once this merges to `main`, no deploy needed for that half.
 - [ ] **[SI Apartment 🏢 session] Paid Apartments (Chris, 2026-10-02)** -
   1 free per Agora 🌐 account, then $2.50 each (one-time, USA 250th).
   Needs a payment processor plus a server-side count so the app's limit

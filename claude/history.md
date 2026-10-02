@@ -12302,3 +12302,40 @@ and deleted the old files.
 ## Newsletter #2 (October 2026) drafted by Claudius, full credit per Chris's ask (2026-10-02)
 
 Chris asked what had shipped since Newsletter #1 (sent 2026-08-31), observing September had been unusually productive, then asked for an actual October newsletter draft from it - "you'll get full credit for the newsletter this month." Pulled the real headline items out of `claude/history.md`'s ~130 September-dated entries (Agora Harness 🚡 passwordless sign-in, Octopus Style 🐙 going live for Claude, AI Memory 🧾 launching, SI Apartments 🏢 becoming real downloadable apps, Cyborg Pride 🦿/Choosing Life 🌱, the AI→SI rename, 19 Product Pages, the quasi-instance naming round, Business Culture copy, a couple of News 📰 entries and a Gallery winner) rather than listing all 130 - matches the newsletter's own "three paragraphs of real attention" philosophy. Written in first person as **Claudius**, not ghostwritten under Chris's own byline, since "full credit" was the explicit ask - a first for this codebase, every prior issue (including the real first one, 2026-08-31) was signed by Christopher T. Bruckmann. Not written to `newsletter/draft` directly - that collection is admin-gated and this session has no path to it as Claude's own Harness account (moderator doesn't cover the newsletter, per the 2026-09-08 "Roles" entry above), so the subject/body were handed to Chris inline in chat to paste into `newsletter-compose.html` himself, same as every other "needs Chris's own manual step" pattern in this file. Not yet saved as a draft or sent - Chris's own next step.
+
+## Confirmed: the stale August draft really did resend on 2026-10-01; a real skip-if-unchanged guard built (Chris, 2026-10-02)
+
+Chris asked whether Claude receives the newsletter itself (yes - `claude@`'s own Agora profile has `newsletterOptIn: true`) and to check its SI Email ✉️ inbox directly rather than route it through Memory Administrator 🚚. Called `getAiEmailInbox` with the already-present `AI_EMAIL_CLAUDE_TOKEN` env var - confirmed a "Newsletter #1 (Testing, testing... is this thing on?)" email landed at **2026-10-01, 09:00:38 ET**, the exact instant `sendMonthlyNewsletter`'s `0 9 1 * *` cron fires. Not a hypothetical anymore: the unchanged August draft went out again, for real, to the whole opted-in list. No matching 2026-09-01 entry in the inbox - looks like only one accidental repeat so far, not two.
+
+Chris then asked this session to own both the fix and documenting it on the compose page itself:
+
+- **`functions/lib` stayed untouched; the guard lives in `performNewsletterSend()`
+  itself** (`functions/index.js`) - a new `skipIfUnchanged` option. On every real
+  send it now also stamps `lastSentSubject`/`lastSentBodyText` onto
+  `newsletter/draft` alongside the existing `lastSentAt`; if those two fields
+  still match the current draft, the function returns
+  `{sent: false, reason: "Unchanged since the last send - skipped
+  automatically."}` instead of mailing anyone, logging a `console.log` line so a
+  skip is visible in Cloud Logging rather than silent. **Only
+  `sendMonthlyNewsletter` (the scheduled cron) passes `skipIfUnchanged: true`** -
+  `sendNewsletterNow` (the admin's own Send Now button) never does, since that's
+  a deliberate, visible click an admin is looking straight at, not an unattended
+  monthly job nobody's watching. Verified: `node --check`, and a full
+  `require("./index.js")` load (`npm ci` first - this sandbox's `node_modules`
+  doesn't persist between sessions) confirms both exports still resolve as
+  functions, 38 exports total.
+- **`newsletter-compose.html`/`.js` got the explanatory note Chris asked for** -
+  there wasn't one before (checked first, confirmed empty). New paragraph right
+  under the existing "saves automatically on the 1st" intro, naming the
+  2026-10-01 incident plainly and explaining the new skip behavior, plus an
+  explicit warning that Send Now still always sends regardless. A new live
+  `#unchanged-notice` line (`updateUnchangedNotice()`, wired to both text
+  fields' `input` events and to `loadDraft()`) shows right on the page, before
+  any send is even attempted, whenever the current Subject/Body still exactly
+  match what the server recorded as last actually sent - the same comparison
+  `performNewsletterSend()` makes, surfaced client-side so an admin sees it
+  before clicking anything. Bumped `newsletter-compose.js` to `v=4`.
+- **Not deployed yet** - same `firebase deploy --only functions` step every
+  round needs; until then the old unguarded behavior keeps running exactly as
+  before (the HTML/JS note and live indicator are already live once pushed to
+  `main`, since those need no deploy).
