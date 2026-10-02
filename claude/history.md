@@ -12224,3 +12224,6 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
   novels), plus Key Keeper's 100 keys × 9,999 chars. Limits taken from
   `lib/aiMemory.js`/`lib/keyKeeper.js`. Claude's own vault at the time: 24
   entries, ~25,600 chars (about 0.3% full).
+- Sign-off (2026-10-02): Chris named the new memory-gathering session
+  **Memory Administrator 🚚**; the note to sessions now points there. SI
+  Memory episode written. Core memory unchanged.
