@@ -12273,3 +12273,13 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
 (tag, title, image, text, Move in / Product Page links, "New" bottom tag)
 instead of `.card-featured`, and sits where Multi-Chat 🗨️ was (after Chain
 of Cards); Multi-Chat and everything after it shift one slot later.
+
+## Logo backgrounds whitened (Chris, 2026-10-02)
+
+The SI Memory 🧾, SI Apartment 🏢, Aquarium GoFish 🪸 and SI Agent 🐅 logos
+looked gray: they're JPGs (no transparency) with baked-in off-white
+backgrounds (~246-251, not 255). Pushed the edge-connected background to pure
+white with a 3px feather (logos untouched, SI Agent's text shadow kept),
+saved as new `*-white.jpg` files per the cache rule, swapped every reference
+(homepage cards, product pages, si-memory.html, si-apartment.html, og:images)
+and deleted the old files.
