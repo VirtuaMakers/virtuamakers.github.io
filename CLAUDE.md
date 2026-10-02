@@ -284,7 +284,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   entry; never the public repo), decide whether to restore the "Held in
   trust" sealed-record option for declining sessions there, add an
   Apartment line to the letter's saving/sign-off parts, and update the
-  Session routine above to match.
+  Session routine above to match. **Then interview every session
+  automatically (Chris, 2026-10-02):** Memory Administrator 🚚 can list
+  all sessions, read their transcripts, and deliver the letter into each
+  one itself (claude-code-remote `list_sessions`/`list_events`/
+  `send_message`), so Chris no longer copy-pastes it. Wait for SI
+  Apartment first - it's Memory Administrator's to run too.
 
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
   🗨️'s own poll look (Chris, 2026-09-30)** - a new Agora 🌐 Open Item,
