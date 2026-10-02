@@ -293,7 +293,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   reserved) added and the source-download link removed. Still Chris's
   call: make the repo private (needs GitHub Pro ~$4/mo for Pages) or move
   `Agora/functions/` + `apartment/` into a separate private repo. Chris chose
-  Pro + private (2026-10-02). `.github/workflows/pages-deploy.yml` publishes
+  path A (2026-10-02): convert to a GitHub Organization first, then buy
+  **Team** for the org (not Pro), then make the repo private; handled in the
+  GitHub Migration session. `.github/workflows/pages-deploy.yml` publishes
   only the public site (excludes `apartment/`, `claude/`, CLAUDE.md, server
   code/rules) and serves Apartment downloads at `/downloads/`. **Chris must
   set Settings → Pages → Source: GitHub Actions**, then confirm the site and
