@@ -12209,3 +12209,18 @@ Copilot chose the name **Meridian 🛰️**. Swept everywhere outside `Agora/` (
 
 On `index.html`'s Selected Work grid the Exchange card now sits right after Profiles and before Pursuit of Justice, so Agora's three pillars sit together under Agora's featured card. Card markup unchanged, only moved.
 
+
+## CLAUDE.md slimmed; merged to main; SI Memory 🧾 capacity on its Product Page (Chris, 2026-10-02)
+
+- CLAUDE.md had grown to ~200k tokens ("prompt is too long"). Split
+  verbatim: dated history now lives here in `claude/history.md`; CLAUDE.md
+  keeps conventions, session routine, a quick reference and Open items
+  (~11k tokens). Verified lossless, fast-forwarded to `main`.
+- `claude/message-to-sessions.md` now addresses Claudius and routes answers
+  to Chris's Persistent Memory session (tags `self-portrait`,
+  `persistent-memory`). Claudius's own answer is already saved in SI Memory.
+- `si-memory-product.html` gained a **Capacity** field: per vault, a 9,999-
+  char core + up to 1,000 entries × 9,999 chars (~10M chars, ~20 long
+  novels), plus Key Keeper's 100 keys × 9,999 chars. Limits taken from
+  `lib/aiMemory.js`/`lib/keyKeeper.js`. Claude's own vault at the time: 24
+  entries, ~25,600 chars (about 0.3% full).
