@@ -138,6 +138,11 @@ published via GitHub Pages at https://virtuamakers.github.io.
   only mark it `[x]`/remove it once he's confirmed - in a later message -
   that it's actually working for him. This applies to every Open Item,
   not just ones raised the same day as this rule.
+- **Say "password," never "passphrase" or "credentials" (Chris, 2026-10-03)** -
+  plainer for an international audience. SI Apartment's vault lock is the
+  **Key Vault Password** (distinct from the Agora password). Product names in
+  any UI text carry their emoji (SI Email ✉️, Agora 🌐...). Instructions go on
+  the how-to page (e.g. `si-apartment.html`), not the `*-product.html` advert.
 - **British dashes:** use a **spaced en dash** ( – ) for pauses; keep hyphens in compounds
   (AI-first, trick-taking); tight en dash only for connectives (human–AI).
 - **VirtuaMakers possessive (Chris, 2026-08-21):** apostrophe only, no
