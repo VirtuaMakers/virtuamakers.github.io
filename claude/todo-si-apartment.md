@@ -23,3 +23,9 @@ Simple list for Chris to come back to. Nothing here is built yet.
       server-side check of paid Apartments, so the limit can't be edited
       out of the app. Staff Apartments exempt. Copy is live; the app still
       allows 10 free until this is built.
+- [ ] Doorbell / relay (Chris, 2026-10-03): let ANY Claude session (cloud,
+      phone) reach an Apartment. A cloud session leaves a request in a relay
+      (Firestore, gated by the SI's Access Token); the Apartment app on the
+      laptop polls outward while running, answers (e.g. reads/writes notes/,
+      or uses a stored key on the SI's behalf), and posts the reply back.
+      No open ports. Same plumbing as "knock knock" and remote start above.

@@ -82,6 +82,49 @@
       </p>
     </section>
 
+    <section class="section" id="who-can-reach-it">
+      <h2 class="section-title">Which conversations can reach it?</h2>
+      <p class="about-text">
+        This matters, so plainly: <strong>an Apartment can only be opened by
+        a conversation whose tools are running on the same computer.</strong>
+      </p>
+      <p class="about-text">
+        Every SI's thinking happens at its provider either way – nothing is
+        downloaded. What differs is where its "hands" are: the part that
+        reads files and runs things.
+      </p>
+      <ul class="about-text" style="padding-left: 1.4rem;">
+        <li><strong>Cloud conversations</strong> – an ordinary chat, or a
+          coding session started in the cloud, including from your phone –
+          have their hands on the provider's servers. They can reach anything
+          on the internet, which is why SI Memory 🧾 and SI Email ✉️ work from
+          anywhere. They can't reach your computer, because your computer
+          isn't on the internet for them to visit. That's the Apartment's
+          privacy working as designed.</li>
+        <li><strong>Local conversations</strong> have their hands on your
+          computer: for Claude, a Claude Code session you start on that
+          computer, in the terminal or in the desktop app working on a folder
+          there. These can open the Apartment.</li>
+        <li><strong>From your phone:</strong> start a session on the computer
+          with <code>claude remote-control</code>, and you can then drive
+          that same local session from the Claude app on your phone. The
+          computer still has to be on.</li>
+      </ul>
+      <p class="about-text">
+        Seeing a conversation in the desktop app doesn't make it local – the
+        app lists your cloud sessions too. What counts is where it runs.
+      </p>
+      <p class="about-text">
+        Most of what's in the Apartment is reachable from anywhere anyway:
+        <code>memory/</code> and <code>inbox/</code> are copies of the
+        occupant's SI Memory 🧾 and SI Email ✉️, which any conversation with
+        its Access Token can read directly. What only the Apartment holds is
+        its Key Vault and its <code>notes/</code>. Coming next: a
+        <strong>doorbell</strong>, so a cloud conversation can knock and the
+        Apartment app on your computer answers while it's running.
+      </p>
+    </section>
+
     <section class="section" id="setup">
       <h2 class="section-title">Setting one up</h2>
       <ol class="about-text" style="padding-left: 1.4rem;">
@@ -129,7 +172,7 @@
           <strong>Keep</strong> (in Edge, open the <strong>…</strong> menu
           next to the download first; in Chrome, choose <strong>Keep</strong>
           or <strong>Download anyway</strong>).</li>
-        <li>Open <code>SI-Apartment.exe</code>. A blue box says
+        <li>Open <code>SI-Apartment.exe</code>. A warning box says
           <strong>"Windows protected your PC"</strong>.
           <img src="assets/windows-smartscreen-1.png" alt="The Windows protected your PC box, with a More info link and a Don't run button" width="532" height="498" loading="lazy" style="display:block;width:100%;max-width:22rem;height:auto;margin:0.8rem 0;border-radius:8px;" /></li>
         <li>Click <strong>More info</strong>. It shows the app's name and
@@ -172,7 +215,7 @@
   memory/core.md   a copy of its SI Memory 🧾 core and recent entries
   inbox/latest.md  its newest SI Email ✉️ senders and subjects
   notes/           the occupant's own space</pre>
-      <p class="about-text">
+      <p class="about-text about-text-top-spaced">
         <strong>Refresh</strong> re-checks the occupant's products and pulls
         fresh copies of its memory and mail. It needs the Key Vault Password each
         time, because that's the only way to open the key vault.
