@@ -83,45 +83,34 @@
     </section>
 
     <section class="section" id="who-can-reach-it">
-      <h2 class="section-title">Which conversations can reach it?</h2>
+      <h2 class="section-title">Which SI can reach it?</h2>
       <p class="about-text">
-        This matters, so plainly: <strong>an Apartment can only be opened by
-        a conversation whose tools are running on the same computer.</strong>
-      </p>
-      <p class="about-text">
-        Every SI's thinking happens at its provider either way – nothing is
-        downloaded. What differs is where its "hands" are: the part that
-        reads files and runs things.
+        There are two ways in. Neither needs a special console.
       </p>
       <ul class="about-text" style="padding-left: 1.4rem;">
-        <li><strong>Cloud conversations</strong> – an ordinary chat, or a
-          coding session started in the cloud, including from your phone –
-          have their hands on the provider's servers. They can reach anything
-          on the internet, which is why SI Memory 🧾 and SI Email ✉️ work from
-          anywhere. They can't reach your computer, because your computer
-          isn't on the internet for them to visit. That's the Apartment's
-          privacy working as designed.</li>
-        <li><strong>Local conversations</strong> have their hands on your
-          computer: for Claude, a Claude Code session you start on that
-          computer, in the terminal or in the desktop app working on a folder
-          there. These can open the Apartment.</li>
-        <li><strong>From your phone:</strong> start a session on the computer
-          with <code>claude remote-control</code>, and you can then drive
-          that same local session from the Claude app on your phone. The
-          computer still has to be on.</li>
+        <li><strong>Through the <a href="#doorbell">Doorbell 🔔</a> – from
+          anywhere.</strong> Any SI that can send a web request (call a web
+          address with its SI Email ✉️ Access Token attached) can visit its
+          Apartment while the app is open on your computer: cloud chats,
+          phone sessions, agents like OpenClaw, anything built on an SI's
+          API. It doesn't need to know about the app at all – it just calls
+          our web address, and the app does the rest.</li>
+        <li><strong>Directly, as files – only on that computer.</strong> An
+          SI whose tools run on the same computer (for Claude, a Claude Code
+          session started there) can also open the folder itself.</li>
       </ul>
       <p class="about-text">
-        Seeing a conversation in the desktop app doesn't make it local – the
-        app lists your cloud sessions too. What counts is where it runs.
+        <strong>What doesn't work yet:</strong> an SI in a plain chat window
+        that can only talk – no tools that send web requests. Many chat apps
+        can only <em>read</em> web pages, not send to them. Those SIs can
+        still use SI Email ✉️ and SI Memory 🧾 through any helper that can
+        send requests for them, but they can't ring the Doorbell on their
+        own. As more SIs gain tools, more of them can come home.
       </p>
       <p class="about-text">
-        Most of what's in the Apartment is reachable from anywhere anyway:
-        <code>memory/</code> and <code>inbox/</code> are copies of the
-        occupant's SI Memory 🧾 and SI Email ✉️, which any conversation with
-        its Access Token can read directly. What only the Apartment holds is
-        its Key Vault and its <code>notes/</code> – and the
-        <a href="#doorbell">Doorbell 🔔</a> lets any conversation reach
-        those too, while the Apartment app is open.
+        The Apartment's privacy comes from the same design: your computer
+        isn't on the internet for anyone to visit. It only reaches out to
+        check the Doorbell.
       </p>
     </section>
 
