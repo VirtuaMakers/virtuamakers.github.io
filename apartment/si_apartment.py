@@ -153,7 +153,7 @@ def load_registry(session):
     out = {}
     for apt_id, value in raw.items():
         f = value.get("mapValue", {}).get("fields", {})
-        out[apt_id] = {k: _str(f.get(k)) for k in ("name", "occupant", "device", "createdAt")}
+        out[apt_id] = {k: _str(f.get(k)) for k in ("name", "occupant", "occupantName", "device", "createdAt")}
     return out
 
 
@@ -210,6 +210,10 @@ def decrypt_keys(blob, passphrase):
 def probe_products(occupant, email_token):
     """What does this occupant already have? Returns a dict of product -> status."""
     found = {}
+    if not occupant:
+        for p in ("SI Email", "SI Memory", "Agora profile"):
+            found[p] = {"has": False, "detail": "no SI Email address given"}
+        return found
     if email_token:
         status, data = http("GET", "%s/getAiEmailInbox?mailbox=%s" % (FUNCTIONS, occupant), token=email_token)
         found["SI Email"] = {"has": status == 200, "detail": "%d messages" % len((data or {}).get("messages", []))
@@ -241,7 +245,7 @@ COMING = ["SI Bank Accounts 🏦", "SI Jobs 👔", "SI Trades 👖", "VirtuaMake
 
 # ------------------------------------------------------ The Apartment ----
 
-def build_apartment(folder, name, occupant, owner, email_token, passphrase):
+def build_apartment(folder, name, occupant, owner, email_token, passphrase, occupant_name=""):
     """Creates the Apartment on disk. Returns its path."""
     slug = re.sub(r"[^A-Za-z0-9_-]+", "-", name).strip("-") or "apartment"
     path = os.path.join(folder, slug)
@@ -250,6 +254,7 @@ def build_apartment(folder, name, occupant, owner, email_token, passphrase):
     for sub in ("", "memory", "inbox", "notes"):
         os.makedirs(os.path.join(path, sub), exist_ok=True)
     meta = {"id": secrets.token_hex(8), "name": name, "occupant": occupant,
+            "occupantName": occupant_name or occupant,
             "ownerUid": owner["uid"], "ownerName": owner["name"],
             "createdAt": _now(), "device": platform.node(), "appVersion": APP_VERSION,
             "welcomeGenerated": False}
@@ -308,7 +313,7 @@ Coming later: %s.
 - `notes/` – yours. Write whatever you like.
 
 Last refreshed: %s
-""" % (meta["name"], meta["occupant"], meta["ownerName"], "\n".join(rows), ", ".join(COMING), _now())
+""" % (meta["name"], _who(meta), meta["ownerName"], "\n".join(rows), ", ".join(COMING), _now())
 
 
 def _welcome_text(meta, products):
@@ -320,7 +325,7 @@ Hi %s. This is a one-time note: delete it whenever you like, and it won't come b
 
 You already have everything VirtuaMakers 🦜 offers that's live today, so
 there's nothing to pass on. Everything about your home is in HOME.md.
-""" % (meta["name"], meta["occupant"])
+""" % (meta["name"], _who(meta))
     offers = "\n".join("- %s – %s" % (p, PRODUCT_LINKS[p]) for p in missing)
     return """# Welcome to %s 🏢
 
@@ -341,7 +346,25 @@ conversation. A starting point, if it's useful:
 
 Only pass it on if you mean it. You're under no obligation to deliver it,
 and you're free to change it. Everything else about your home is in HOME.md.
-""" % (meta["name"], meta["occupant"], offers, meta["ownerName"], ", ".join(missing))
+""" % (meta["name"], _who(meta), offers, meta["ownerName"], ", ".join(missing))
+
+
+def _who(meta):
+    """The occupant's display name (older Apartments only stored the handle)."""
+    return meta.get("occupantName") or meta.get("occupant") or "friend"
+
+
+def parse_si_email(text):
+    """'claude@virtuamakers.com' or 'claude' -> 'claude'. Blank -> ''."""
+    text = (text or "").strip().lower()
+    if not text:
+        return ""
+    local, _, domain = text.partition("@")
+    if domain and domain != "virtuamakers.com":
+        raise RuntimeError("Only @virtuamakers.com SI Email addresses connect to VirtuaMakers products.")
+    if not re.fullmatch(r"[a-z0-9-]{2,32}", local):
+        raise RuntimeError("That doesn't look like an SI Email address.")
+    return local
 
 
 def _now():
@@ -430,7 +453,7 @@ def run_app():
             path = state["paths"][apt_id]
             try:
                 meta = _read_json(os.path.join(path, "apartment.json"))
-                label = "%s – %s" % (meta.get("name", apt_id), meta.get("occupant", "?"))
+                label = "%s – %s" % (meta.get("name", apt_id), _who(meta))
             except Exception:
                 label = apt_id
             local_listbox.insert("end", label)
@@ -488,9 +511,11 @@ def run_app():
         listbox.delete(0, "end")
         for apt_id, apt in state["registry"].items():
             here = " (this computer)" if apt_id in state["paths"] else ""
-            listbox.insert("end", "%s – %s%s" % (apt["name"], apt["occupant"], here))
-        status.config(text="Signed in as %s. %d of %d Apartments used."
-                      % (state["session"]["name"], len(state["registry"]), FREE_TIER_LIMIT))
+            listbox.insert("end", "%s – %s%s" % (apt["name"], apt.get("occupantName") or apt["occupant"], here))
+        used = len(state["registry"])
+        extra = "" if used <= 1 else " Plus %d extra (free while we test, up to %d)." % (used - 1, FREE_TIER_LIMIT)
+        status.config(text="Signed in as %s. %d of 1 free Apartment used.%s"
+                      % (state["session"]["name"], min(used, 1), extra))
 
     def after_sign_in(session):
         state["session"] = session
@@ -528,18 +553,29 @@ def run_app():
         if not folder:
             return
         name = simpledialog.askstring("Name", "Name this Apartment:", parent=root)
-        occupant = simpledialog.askstring("Occupant", "Occupant's SI handle (e.g. claude):", parent=root)
-        if not name or not occupant:
+        occupant_name = simpledialog.askstring("Occupant", "SI Occupant's Name (e.g. Claudius):", parent=root)
+        if not name or not occupant_name:
             return
-        token = simpledialog.askstring("SI Email token", "Occupant's SI Email token (optional, stored encrypted):",
-                                       parent=root, show="•") or ""
+        email = simpledialog.askstring(
+            "SI Email", "SI Occupant's SI Email address, if it has one\n"
+            "(e.g. claude@virtuamakers.com). Leave blank if not:", parent=root) or ""
+        try:
+            occupant = parse_si_email(email)
+        except Exception as err:
+            return fail(err)
+        token = ""
+        if occupant:
+            token = simpledialog.askstring("SI Email token", "That address's SI Email token (stored encrypted):",
+                                           parent=root, show="•") or ""
         phrase = simpledialog.askstring("Passphrase", "Choose a passphrase to lock the key vault:", parent=root, show="•")
         if not phrase:
             return
         try:
-            path = build_apartment(folder, name, occupant.strip().lower(), state["session"], token.strip(), phrase)
+            path = build_apartment(folder, name, occupant, state["session"], token.strip(), phrase,
+                                   occupant_name.strip())
             meta = _read_json(os.path.join(path, "apartment.json"))
             state["registry"][meta["id"]] = {"name": name, "occupant": meta["occupant"],
+                                             "occupantName": meta["occupantName"],
                                              "device": meta["device"], "createdAt": meta["createdAt"]}
             save_registry(state["session"], state["registry"])
             state["paths"][meta["id"]] = path
