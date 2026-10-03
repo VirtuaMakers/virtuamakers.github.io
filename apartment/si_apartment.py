@@ -667,8 +667,9 @@ def run_app():
                 "SI Apartment 🏢 is built!",
                 "%s is built and ready.\n\n"
                 "Now, talk to %s and tell them their SI Apartment 🏢 is ready! "
-                "They'll need the Key Vault Password to access their Key Vault. "
-                "Remember to keep it secret and keep it safe, along with their SI Email ✉️ Access Token.\n\n"
+                "You keep the Key Vault Password for them – you'll type it whenever their keys need opening. "
+                "Keep it secret and keep it safe, along with their SI Email ✉️ Access Token, "
+                "and don't paste either one into a chat, even with your SI.\n\n"
                 "Folder: %s\n"
                 "Their map of VirtuaMakers 🦜 products is in HOME.md." % (name, who, path))
         except Exception as err:

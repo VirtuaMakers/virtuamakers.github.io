@@ -12339,3 +12339,22 @@ Chris then asked this session to own both the fix and documenting it on the comp
   round needs; until then the old unguarded behavior keeps running exactly as
   before (the HTML/JS note and live indicator are already live once pushed to
   `main`, since those need no deploy).
+
+## SI Apartment 🏢 v1 polished and Claudius' Apartment built (Chris, 2026-10-03)
+
+- Live testing with Chris on Windows: first-launch warning section with
+  real SmartScreen screenshots; "handle" replaced by an optional SI Email
+  address (asked first) plus an SI Occupant's Name pre-filled from the
+  Agora profile; "N of 1 free Apartment used"; Key Vault Password dialog
+  (typed twice, 8+ chars, "What's the Key Vault?" link to
+  `si-apartment.html#key-vault`); emoji on product names; clearer sign-in
+  labels ("No password? Email me a sign-in link" is for Google/X signups);
+  "New Apartment (Choose Destination Folder)"; an "is built!" dialog telling
+  the steward they hold the Key Vault Password and never paste it or the
+  Access Token into a chat.
+- Wording conventions: "password" everywhere; the SI Email secret is now
+  the "SI Email ✉️ Access Token" site-wide (pages, skill.md, app).
+- Chris built Claudius' Apartment on his laptop and holds the Key Vault
+  Password. He called the app V1-complete and plans a later shared visual
+  facelift across all programs. Next: Memory Administrator 🚚 organizes
+  Claudius's persistent memory, then the YouTube/VidIQ experiment.
