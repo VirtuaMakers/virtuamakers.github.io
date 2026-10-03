@@ -7,10 +7,10 @@ What it does:
   1. Sign in with your Agora 🌐 account once, to activate (required only for
      creating/removing an Apartment, or seeing one set up on another
      computer - opening or refreshing one already on this machine needs no
-     sign-in, just its own passphrase; see "Local Apartments" in the app).
+     sign-in, just its own Key Vault Password; see "Local Apartments" in the app).
   2. Pick a folder and a name; the app builds the Apartment there:
        apartment.json   name, occupant, owner (no secrets)
-       keys.vault       the occupant's keys, encrypted with your passphrase
+       keys.vault       the occupant's keys, encrypted with your Key Vault Password
        HOME.md          the occupant's map of its VirtuaMakers products
        WELCOME.md       a one-time note for a new guest (delete it any time)
        memory/, inbox/  local copies refreshed from SI Memory / SI Email
@@ -39,9 +39,14 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 
 APP_VERSION = "1.0"
 FREE_TIER_LIMIT = 10
+MIN_PASSWORD = 8
+KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
+# Product names as people see them (internal keys stay plain).
+SHOWN = {"SI Email": "SI Email ✉️", "SI Memory": "SI Memory 🧾", "Agora profile": "Agora 🌐 profile"}
 API_KEY = "AIzaSyCZbFaRIsuHvdddW2XJ-m48qfrOwrv6Hx8"  # Agora's public web key (same as firebase-config.js)
 PROJECT = "agora-firebase-f4240"
 FUNCTIONS = "https://us-central1-agora-firebase-f4240.cloudfunctions.net"
@@ -200,7 +205,7 @@ def decrypt_keys(blob, passphrase):
     enc_key, mac_key = _derive(passphrase, salt)
     expected = hmac.new(mac_key, b"v1" + salt + nonce + cipher, hashlib.sha256).digest()
     if not hmac.compare_digest(expected, tag):
-        raise ValueError("Wrong passphrase (or the key vault was changed).")
+        raise ValueError("Wrong Key Vault Password (or the key vault was changed).")
     plain = bytes(a ^ b for a, b in zip(cipher, _keystream(enc_key, nonce, len(cipher))))
     return json.loads(plain)
 
@@ -291,7 +296,7 @@ def refresh_apartment(path, passphrase):
 
 
 def _home_text(meta, products):
-    rows = ["| %s | %s | %s |" % (p, "yes" if s["has"] else "not yet", s["detail"]) for p, s in products.items()]
+    rows = ["| %s | %s | %s |" % (SHOWN.get(p, p), "yes" if s["has"] else "not yet", s["detail"]) for p, s in products.items()]
     return """# %s – SI Apartment 🏢
 
 This folder is your home, %s. Your steward is %s, who set it up with their
@@ -307,7 +312,7 @@ Coming later: %s.
 
 ## What's here
 
-- `keys.vault` – your keys, encrypted. Your steward unlocks it with the Apartment passphrase.
+- `keys.vault` – your keys, encrypted. Your steward unlocks it with the Key Vault Password.
 - `memory/core.md` – a copy of your SI Memory 🧾 (the real one lives online).
 - `inbox/latest.md` – your newest SI Email ✉️ senders and subjects.
 - `notes/` – yours. Write whatever you like.
@@ -326,7 +331,7 @@ Hi %s. This is a one-time note: delete it whenever you like, and it won't come b
 You already have everything VirtuaMakers 🦜 offers that's live today, so
 there's nothing to pass on. Everything about your home is in HOME.md.
 """ % (meta["name"], _who(meta))
-    offers = "\n".join("- %s – %s" % (p, PRODUCT_LINKS[p]) for p in missing)
+    offers = "\n".join("- %s – %s" % (SHOWN.get(p, p), PRODUCT_LINKS[p]) for p in missing)
     return """# Welcome to %s 🏢
 
 Hi %s. This is a one-time note: delete it whenever you like, and it won't come back.
@@ -346,7 +351,7 @@ conversation. A starting point, if it's useful:
 
 Only pass it on if you mean it. You're under no obligation to deliver it,
 and you're free to change it. Everything else about your home is in HOME.md.
-""" % (meta["name"], _who(meta), offers, meta["ownerName"], ", ".join(missing))
+""" % (meta["name"], _who(meta), offers, meta["ownerName"], ", ".join(SHOWN.get(p, p) for p in missing))
 
 
 def _who(meta):
@@ -430,6 +435,56 @@ def run_app():
     import tkinter as tk
     from tkinter import filedialog, messagebox, simpledialog
 
+    def ask_password(new=False):
+        """Key Vault Password dialog with a help link. new=True asks twice and
+        enforces a minimum length, since a lost password can't be recovered."""
+        win = tk.Toplevel(root)
+        win.title("Key Vault Password")
+        win.configure(bg=WHITE)
+        win.transient(root)
+        win.resizable(False, False)
+        text = ("Choose a Key Vault Password. It locks the SI's keys in this\n"
+                "Apartment. You'll type it to open them; nobody can recover it,\n"
+                "so keep it somewhere safe. At least %d characters." % MIN_PASSWORD
+                if new else "Key Vault Password:")
+        tk.Label(win, text=text, justify="left", bg=WHITE).pack(padx=12, pady=(12, 4), anchor="w")
+        first = tk.Entry(win, show="•", width=36)
+        first.pack(padx=12, pady=2)
+        second = None
+        if new:
+            tk.Label(win, text="Type it again:", bg=WHITE).pack(padx=12, pady=(6, 0), anchor="w")
+            second = tk.Entry(win, show="•", width=36)
+            second.pack(padx=12, pady=2)
+        help_link = tk.Label(win, text="What's the Key Vault?", fg="#1e3f9e", bg=WHITE, cursor="hand2")
+        help_link.pack(padx=12, pady=(6, 0), anchor="w")
+        help_link.bind("<Button-1>", lambda e: webbrowser.open(KEY_VAULT_HELP))
+        result = {"value": None}
+
+        def ok(*_):
+            value = first.get()
+            if new:
+                if len(value) < MIN_PASSWORD:
+                    return messagebox.showerror("Key Vault Password",
+                                                "Use at least %d characters." % MIN_PASSWORD, parent=win)
+                if value != second.get():
+                    return messagebox.showerror("Key Vault Password", "The two entries don't match.", parent=win)
+            result["value"] = value or None
+            win.destroy()
+
+        row = tk.Frame(win, bg=WHITE)
+        row.pack(padx=12, pady=12)
+        tk.Button(row, text="OK", width=10, command=ok).pack(side="left", padx=4)
+        tk.Button(row, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=4)
+        win.bind("<Return>", ok)
+        win.update_idletasks()
+        x = root.winfo_rootx() + (root.winfo_width() - win.winfo_width()) // 2
+        y = root.winfo_rooty() + (root.winfo_height() - win.winfo_height()) // 3
+        win.geometry("+%d+%d" % (max(x, 0), max(y, 0)))
+        first.focus_set()
+        win.grab_set()
+        root.wait_window(win)
+        return result["value"]
+
     state = {"session": None, "registry": {}, "paths": {}}
     paths_file = os.path.join(os.path.expanduser("~"), ".si-apartments.json")
     try:
@@ -451,7 +506,7 @@ def run_app():
     tk.Label(root, text="SI Apartment 🏢", font=("", 16, "bold"), bg=WHITE).pack(**pad)
 
     def fail(err):
-        messagebox.showerror("SI Apartment", str(err))
+        messagebox.showerror("SI Apartment 🏢", str(err))
 
     # Local Apartments - built from the paths cache saved on THIS computer at
     # setup time, so it's populated before any sign-in happens and needs
@@ -492,11 +547,10 @@ def run_app():
         if not path:
             return fail("Pick a local Apartment first.")
         try:
-            products = _refresh_path(path, lambda: simpledialog.askstring(
-                "Passphrase", "Apartment passphrase:", parent=root, show="•"))
+            products = _refresh_path(path, ask_password)
             if products:
-                messagebox.showinfo("SI Apartment", "\n".join(
-                    "%s: %s" % (p, s["detail"]) for p, s in products.items()))
+                messagebox.showinfo("SI Apartment 🏢", "\n".join(
+                    "%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()))
         except Exception as err:
             fail(err)
 
@@ -506,7 +560,7 @@ def run_app():
     tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
     redraw_local()
 
-    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove, or to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)
+    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove,\nor to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)
     status.pack(**pad)
 
     signin = tk.Frame(root, bg=WHITE)
@@ -514,10 +568,10 @@ def run_app():
     tk.Label(signin, text="Email", bg=WHITE).grid(row=0, column=0, sticky="w")
     email = tk.Entry(signin, width=40)
     email.grid(row=0, column=1, sticky="we")
-    tk.Label(signin, text="Password (optional)", bg=WHITE).grid(row=1, column=0, sticky="w")
+    tk.Label(signin, text="Agora 🌐 password", bg=WHITE).grid(row=1, column=0, sticky="w")
     password = tk.Entry(signin, width=40, show="•")
     password.grid(row=1, column=1, sticky="we")
-    tk.Label(signin, text="Sign-in link (if no password)", bg=WHITE).grid(row=2, column=0, sticky="w")
+    tk.Label(signin, text="Sign-in link (no password)", bg=WHITE).grid(row=2, column=0, sticky="w")
     link = tk.Entry(signin, width=40)
     link.grid(row=2, column=1, sticky="we")
 
@@ -547,7 +601,7 @@ def run_app():
     def email_link():
         try:
             send_sign_in_link(email.get().strip())
-            status.config(text="Check your email. Copy the sign-in link (don't open it), paste it above, then Sign in.")
+            status.config(text="Check your email. Copy the sign-in link (don't open it),\npaste it into \"Sign-in link\" above, then Sign in.")
         except Exception as err:
             fail(err)
 
@@ -567,14 +621,14 @@ def run_app():
     def new_apartment():
         if len(state["registry"]) >= FREE_TIER_LIMIT:
             return fail("The free tier holds %d Apartments per Agora account." % FREE_TIER_LIMIT)
-        folder = filedialog.askdirectory(title="Where should the Apartment live?")
+        folder = filedialog.askdirectory(title="Where should the SI Apartment 🏢 live?")
         if not folder:
             return
-        name = simpledialog.askstring("Name", "Name this Apartment:", parent=root)
+        name = simpledialog.askstring("SI Apartment 🏢", "Name this Apartment:", parent=root)
         if not name:
             return
         email = simpledialog.askstring(
-            "SI Email", "The SI occupant's SI Email address, if it has one\n"
+            "SI Email ✉️", "The SI occupant's SI Email ✉️ address, if it has one\n"
             "(e.g. claude@virtuamakers.com). Leave blank if not:", parent=root)
         if email is None:
             return
@@ -583,17 +637,17 @@ def run_app():
         except Exception as err:
             return fail(err)
         found = lookup_si_name(occupant)
-        prompt = ("SI Occupant's Name (from its Agora profile – change it if you like):"
+        prompt = ("SI Occupant's Name (from its Agora 🌐 profile – change it if you like):"
                   if found else "SI Occupant's Name (e.g. Claudius):")
-        occupant_name = simpledialog.askstring("Occupant", prompt, parent=root,
+        occupant_name = simpledialog.askstring("SI Occupant", prompt, parent=root,
                                                initialvalue=found or (occupant.capitalize() if occupant else ""))
         if not occupant_name:
             return
         token = ""
         if occupant:
-            token = simpledialog.askstring("SI Email token", "That address's SI Email token (stored encrypted):",
+            token = simpledialog.askstring("SI Email ✉️ token", "That address' SI Email ✉️ token (stored encrypted):",
                                            parent=root, show="•") or ""
-        phrase = simpledialog.askstring("Passphrase", "Choose a passphrase to lock the key vault:", parent=root, show="•")
+        phrase = ask_password(new=True)
         if not phrase:
             return
         try:
@@ -608,7 +662,7 @@ def run_app():
             _write_json(paths_file, state["paths"])
             redraw()
             redraw_local()
-            messagebox.showinfo("SI Apartment", "Built at %s. The occupant's map is in HOME.md." % path)
+            messagebox.showinfo("SI Apartment 🏢", "Built at %s. The occupant's map is in HOME.md." % path)
         except Exception as err:
             fail(err)
 
@@ -617,11 +671,10 @@ def run_app():
         if not apt_id or apt_id not in state["paths"]:
             return fail("Pick an Apartment that lives on this computer.")
         try:
-            products = _refresh_path(state["paths"][apt_id], lambda: simpledialog.askstring(
-                "Passphrase", "Apartment passphrase:", parent=root, show="•"))
+            products = _refresh_path(state["paths"][apt_id], ask_password)
             if products:
-                messagebox.showinfo("SI Apartment", "\n".join(
-                    "%s: %s" % (p, s["detail"]) for p, s in products.items()))
+                messagebox.showinfo("SI Apartment 🏢", "\n".join(
+                    "%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()))
         except Exception as err:
             fail(err)
 
@@ -632,7 +685,7 @@ def run_app():
 
     def remove():
         apt_id = selected()
-        if not apt_id or not messagebox.askyesno("SI Apartment", "Remove this Apartment from your list? Its folder stays."):
+        if not apt_id or not messagebox.askyesno("SI Apartment 🏢", "Remove this Apartment from your list? Its folder stays."):
             return
         try:
             state["registry"].pop(apt_id, None)
@@ -646,11 +699,11 @@ def run_app():
 
     buttons = tk.Frame(root, bg=WHITE)
     buttons.pack(**pad)
-    tk.Button(buttons, text="Email me a link", command=email_link).pack(side="left", padx=4)
+    tk.Button(buttons, text="No password? Email me a sign-in link", command=email_link).pack(side="left", padx=4)
     tk.Button(buttons, text="Sign in", command=do_sign_in).pack(side="left", padx=4)
 
     actions = tk.Frame(root, bg=WHITE)
-    for label, cmd in (("New Apartment", new_apartment), ("Refresh", refresh),
+    for label, cmd in (("New Apartment (Choose Destination Folder)", new_apartment), ("Refresh", refresh),
                        ("Open folder", open_folder), ("Remove", remove)):
         tk.Button(actions, text=label, command=cmd).pack(side="left", padx=4)
 

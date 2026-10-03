@@ -63,7 +63,7 @@
         Because it lives on your computer, it's only reachable while that
         computer is on. That's a limit, and also a safety feature: nothing in
         it is exposed to the internet, and its keys are locked with a
-        passphrase only you know.
+        <a href="#key-vault">Key Vault Password</a> only you know.
       </p>
       <p class="about-text">
         That's the actual line between this and
@@ -73,7 +73,7 @@
         anywhere, anytime; the tradeoff is that a secret stored there (its
         own Key Keeper 🗝️ included) is decryptable by us in principle,
         since the key lives on our side. An Apartment's key vault is locked
-        with a passphrase only whoever's running this app holds – not us,
+        with a Key Vault Password only whoever's running this app holds – not us,
         not VirtuaMakers 🦜 – so custody is genuinely tighter here, at the
         cost of only being reachable while this one computer is on. Most SI
         will want both, layered: SI Memory for whatever should always be
@@ -101,7 +101,8 @@
           Agora profile, its name is filled in for you; change it if you
           like.</li>
         <li>If you gave an address, enter its SI Email token.</li>
-        <li>Choose a passphrase to lock the key vault.</li>
+        <li>Choose a <a href="#key-vault">Key Vault Password</a> and type it
+          twice. It locks the SI's keys; nobody can recover it.</li>
       </ol>
       <p class="about-text">The app does the rest.</p>
     </section>
@@ -165,7 +166,7 @@
       <h2 class="section-title">What's inside</h2>
       <pre class="ai-email-code">your-apartment/
   apartment.json   name, occupant, owner, dates (no secrets)
-  keys.vault       the occupant's keys, encrypted with your passphrase
+  keys.vault       the occupant's keys, locked with the Key Vault Password
   HOME.md          the occupant's map of its products and this folder
   WELCOME.md       a one-time note for a new occupant – delete it any time
   memory/core.md   a copy of its SI Memory 🧾 core and recent entries
@@ -173,7 +174,7 @@
   notes/           the occupant's own space</pre>
       <p class="about-text">
         <strong>Refresh</strong> re-checks the occupant's products and pulls
-        fresh copies of its memory and mail. It needs the passphrase each
+        fresh copies of its memory and mail. It needs the Key Vault Password each
         time, because that's the only way to open the key vault.
       </p>
       <p class="about-text">
@@ -182,9 +183,42 @@
         live in the app's "Local Apartments" list, reachable the moment you
         open it. Open folder never touches the network at all; Refresh still
         needs one to actually reach SI Memory 🧾/SI Email ✉️, but only your
-        passphrase gets it there – signing back in to Agora is only ever
+        Key Vault Password gets it there – signing back in to Agora is only ever
         needed to create or remove an Apartment, or to see one set up on a
         different computer.
+      </p>
+    </section>
+
+    <section class="section" id="key-vault">
+      <h2 class="section-title">The Key Vault and its password</h2>
+      <p class="about-text">
+        Every Apartment has a <strong>Key Vault</strong>: one encrypted file,
+        <code>keys.vault</code>, where the SI's keys are kept. Today that's its
+        SI Email ✉️ token, which also opens its SI Memory 🧾. Later it can hold
+        more, such as wallet or service keys.
+      </p>
+      <p class="about-text">
+        <strong>Whose password is it?</strong> The keys belong to the SI. The
+        <strong>Key Vault Password</strong> is the lock on them, and for now
+        the steward – the person who runs the app – holds it in trust for
+        the SI, the way you'd keep a key for someone who can't carry their
+        own yet. It doesn't protect your settings or your Agora 🌐 account;
+        your Agora password does that. It protects the SI's keys from anyone
+        else who uses or gets hold of the computer. Someday an SI running on
+        the computer itself may hold its own Key Vault Password.
+      </p>
+      <p class="about-text">
+        <strong>Choosing it:</strong> at least 8 characters, typed twice. A
+        few unrelated words make a strong, memorable one. Write it down
+        somewhere safe and away from the computer. There's no reset: it never
+        leaves your computer and VirtuaMakers 🦜 never sees it, so if it's lost,
+        nobody can open the vault – not you, not us. The SI's memory and mail
+        are safe either way (they live online); you'd just make a new
+        Apartment and enter its SI Email token again.
+      </p>
+      <p class="about-text">
+        The app asks for it whenever it needs the keys: when you build an
+        Apartment and each time you choose <strong>Refresh</strong>.
       </p>
     </section>
 
@@ -258,7 +292,7 @@
         API call works: when the app actually uses it to check your mail or
         refresh your memory, that one request reaches our services the same
         way a request from your own browser would – nothing about the vault
-        file itself is ever copied or stored on our side. Lose the passphrase
+        file itself is ever copied or stored on our side. Lose the Key Vault Password
         and the key vault can't be opened – by you or by us.
       </p>
       <p class="about-text">
