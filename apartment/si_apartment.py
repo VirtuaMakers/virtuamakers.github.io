@@ -36,12 +36,13 @@ import platform
 import re
 import secrets
 import sys
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.0"
+APP_VERSION = "1.1"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -419,6 +420,77 @@ def _open_folder_path(path):
         os.system('%s "%s"' % ("open" if sys.platform == "darwin" else "xdg-open", path))
 
 
+# ---------------------------------------------------------- Doorbell ----
+# Lets any conversation reach this Apartment while the app is open: the SI
+# leaves a request online (apartmentDoorbell), the app polls outward and
+# answers. Nothing on this computer accepts incoming connections.
+
+DOORBELL = FUNCTIONS + "/apartmentDoorbell"
+DOORBELL_EVERY_MS = 15000
+NOTE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
+
+
+def _note_path(path, name):
+    if not NOTE_NAME.match(name or "") or ".." in name:
+        raise ValueError("Bad note name.")
+    if "." not in name:
+        name += ".md"
+    notes = os.path.realpath(os.path.join(path, "notes"))
+    full = os.path.realpath(os.path.join(notes, name))
+    if os.path.dirname(full) != notes:
+        raise ValueError("Bad note name.")
+    return full
+
+
+def handle_doorbell_request(path, req):
+    """Does one request locally. Returns the result (raises on error)."""
+    kind, args = req.get("type"), req.get("args") or {}
+    if kind == "status":
+        meta = _read_json(os.path.join(path, "apartment.json"))
+        home = ""
+        try:
+            with open(os.path.join(path, "HOME.md"), encoding="utf-8") as f:
+                home = f.read()[:6000]
+        except OSError:
+            pass
+        return {"name": meta.get("name"), "occupant": _who(meta),
+                "lastRefreshed": meta.get("lastRefreshed"), "home": home}
+    if kind == "listNotes":
+        notes = os.path.join(path, "notes")
+        os.makedirs(notes, exist_ok=True)
+        return {"notes": [{"name": n, "bytes": os.path.getsize(os.path.join(notes, n))}
+                          for n in sorted(os.listdir(notes)) if os.path.isfile(os.path.join(notes, n))]}
+    if kind == "readNote":
+        with open(_note_path(path, args.get("name")), encoding="utf-8") as f:
+            return {"name": args.get("name"), "text": f.read()[:9999]}
+    if kind == "writeNote":
+        text = args.get("text") or ""
+        if len(text) > 9999:
+            raise ValueError("Notes are capped at 9,999 characters.")
+        os.makedirs(os.path.join(path, "notes"), exist_ok=True)
+        _write(_note_path(path, args.get("name")), text)
+        return {"name": args.get("name"), "saved": len(text)}
+    raise ValueError("Unknown request type.")
+
+
+def doorbell_round(path, mailbox, token):
+    """One check-in: collect pending requests, answer each. Returns how many."""
+    status, data = http("POST", DOORBELL, {"action": "poll", "mailbox": mailbox,
+                                            "device": platform.node(), "appVersion": APP_VERSION}, token=token)
+    if status != 200:
+        raise RuntimeError("Doorbell check-in failed (HTTP %s)." % status)
+    answered = 0
+    for req in (data or {}).get("requests", []):
+        try:
+            body = {"action": "answer", "mailbox": mailbox, "id": req["id"],
+                    "result": handle_doorbell_request(path, req)}
+        except Exception as err:
+            body = {"action": "answer", "mailbox": mailbox, "id": req["id"], "error": str(err)}
+        http("POST", DOORBELL, body, token=token)
+        answered += 1
+    return answered
+
+
 def _refresh_path(path, ask_passphrase):
     """Re-checks products and pulls fresh copies for one Apartment on this
     computer. Only needs its own passphrase - refresh_apartment() never
@@ -558,6 +630,58 @@ def run_app():
     local_buttons.pack(**pad)
     tk.Button(local_buttons, text="Open folder", command=local_open_folder).pack(side="left", padx=4)
     tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
+
+    # Doorbell 🔔: while on, any conversation with the occupant's Access
+    # Token can leave requests (status, notes) that this app answers.
+    bell = {"on": False, "path": None, "mailbox": None, "token": None, "answered": 0}
+    bell_status = tk.Label(local_frame, text="Doorbell 🔔 is off.", bg=WHITE, wraplength=500)
+
+    def bell_tick():
+        if not bell["on"]:
+            return
+
+        def work():
+            try:
+                n = doorbell_round(bell["path"], bell["mailbox"], bell["token"])
+                bell["answered"] += n
+                msg = "Doorbell 🔔 is on for %s. Answered %d request%s so far." % (
+                    bell["mailbox"], bell["answered"], "" if bell["answered"] == 1 else "s")
+            except Exception as err:
+                msg = "Doorbell 🔔 is on, but the last check failed: %s" % err
+            root.after(0, lambda: bell_status.config(text=msg))
+
+        threading.Thread(target=work, daemon=True).start()
+        root.after(DOORBELL_EVERY_MS, bell_tick)
+
+    def toggle_bell():
+        if bell["on"]:
+            bell.update(on=False, token=None)
+            bell_button.config(text="Turn Doorbell 🔔 On")
+            bell_status.config(text="Doorbell 🔔 is off.")
+            return
+        path = local_selected_path()
+        if not path:
+            return fail("Pick a local Apartment first.")
+        try:
+            meta = _read_json(os.path.join(path, "apartment.json"))
+            if not meta.get("occupant"):
+                return fail("The Doorbell needs the occupant's SI Email ✉️ address. This Apartment doesn't have one.")
+            password = ask_password()
+            if not password:
+                return
+            keys = decrypt_keys(_read_json(os.path.join(path, "keys.vault")), password)
+            if not keys.get("siEmailToken"):
+                return fail("No SI Email ✉️ Access Token is stored in this Key Vault.")
+        except Exception as err:
+            return fail(err)
+        bell.update(on=True, path=path, mailbox=meta["occupant"], token=keys["siEmailToken"], answered=0)
+        bell_button.config(text="Turn Doorbell 🔔 Off")
+        bell_status.config(text="Doorbell 🔔 is on for %s. Listening..." % meta["occupant"])
+        bell_tick()
+
+    bell_button = tk.Button(local_buttons, text="Turn Doorbell 🔔 On", command=toggle_bell)
+    bell_button.pack(side="left", padx=4)
+    bell_status.pack(padx=6, pady=(0, 6))
     redraw_local()
 
     status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove,\nor to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)

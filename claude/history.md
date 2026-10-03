@@ -12358,3 +12358,19 @@ Chris then asked this session to own both the fix and documenting it on the comp
   Password. He called the app V1-complete and plans a later shared visual
   facelift across all programs. Next: Memory Administrator 🚚 organizes
   Claudius's persistent memory, then the YouTube/VidIQ experiment.
+
+## SI Apartment 🏢 Doorbell 🔔 built, needs a Functions deploy (Chris, 2026-10-03)
+
+- Chris learned only local sessions can open an Apartment (cloud/phone
+  sessions can't reach his laptop) and wanted any session to reach it.
+  Built the Doorbell: new `apartmentDoorbell` Cloud Function
+  (`lib/doorbell.js`, Firestore `apartmentDoorbell/{mailbox}/requests`,
+  Admin SDK only) gated by the SI's own Access Token. SI side: `ring`
+  (types status/listNotes/readNote/writeNote) and GET to check; app side:
+  `poll` (also a lastSeen heartbeat, so the SI sees whether it's `home`) and
+  `answer`. Requests expire after 10 min, max 20 pending, notes 9,999 chars,
+  note paths locked inside `notes/` (traversal tested). Keys never leave.
+- App v1.1: "Turn Doorbell 🔔 On" under Local Apartments (asks the Key Vault
+  Password, polls every 15 s in a background thread while open).
+- `si-apartment.html#doorbell` documents it, marked "switching on with our
+  next server update". Update `skill.md` once the endpoint is live.

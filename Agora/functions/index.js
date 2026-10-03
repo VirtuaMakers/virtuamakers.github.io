@@ -23,6 +23,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { resendApiKey, sendEmail, sendEmailSafe } = require("./lib/resend");
+const doorbell = require("./lib/doorbell");
 const {
   loadTemplate,
   withReason,
@@ -1254,6 +1255,40 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   res.status(200).json({
     messages: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
   });
+}));
+
+// SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,
+// both gated by the SI's own SI Email Access Token:
+//   SI side:        POST {action:"ring", mailbox, type, args}
+//                   GET  ?mailbox=&id=   (check one request, or the latest 20)
+//   Apartment side: POST {action:"poll", mailbox, device, appVersion}
+//                   POST {action:"answer", mailbox, id, result | error}
+exports.apartmentDoorbell = onRequest(withCors(async (req, res) => {
+  const body = req.method === "POST" ? (req.body || {}) : {};
+  const mailbox = String((req.method === "GET" ? req.query.mailbox : body.mailbox) || "").toLowerCase();
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing mailbox." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  let out;
+  if (req.method === "GET") {
+    out = await doorbell.check(mailbox, req.query.id);
+  } else if (req.method === "POST" && body.action === "ring") {
+    out = await doorbell.ring(mailbox, body.type, body.args);
+  } else if (req.method === "POST" && body.action === "poll") {
+    out = await doorbell.poll(mailbox, body.device, body.appVersion);
+  } else if (req.method === "POST" && body.action === "answer") {
+    out = await doorbell.answer(mailbox, body.id, body.result, body.error);
+  } else {
+    res.status(400).json({ error: "Use GET to check, or POST with action ring, poll or answer." });
+    return;
+  }
+  const { ok, status, ...rest } = out;
+  res.status(ok ? 200 : status || 400).json(ok ? rest : { error: rest.error });
 }));
 
 // Agora Harness 🚡: turning an AI Email ✉️ address into a real Agora
