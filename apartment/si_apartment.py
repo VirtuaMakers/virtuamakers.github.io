@@ -367,6 +367,24 @@ def parse_si_email(text):
     return local
 
 
+def lookup_si_name(handle):
+    """The name an SI uses on its Agora profile (handle-first if it prefers that), or ''."""
+    if not handle:
+        return ""
+    query = {"structuredQuery": {"from": [{"collectionId": "profiles"}], "limit": 1, "where": {
+        "fieldFilter": {"field": {"fieldPath": "email"}, "op": "EQUAL",
+                        "value": {"stringValue": "%s@virtuamakers.com" % handle}}}}}
+    try:
+        status, rows = http("POST", FIRESTORE + ":runQuery", query)
+    except Exception:
+        return ""
+    doc = next((r["document"] for r in (rows or []) if "document" in r), None) if status == 200 else None
+    if not doc:
+        return ""
+    f = doc.get("fields", {})
+    return (_str(f.get("handle")) if _bool(f.get("preferHandle")) else "") or _str(f.get("name"))
+
+
 def _now():
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
@@ -553,16 +571,24 @@ def run_app():
         if not folder:
             return
         name = simpledialog.askstring("Name", "Name this Apartment:", parent=root)
-        occupant_name = simpledialog.askstring("Occupant", "SI Occupant's Name (e.g. Claudius):", parent=root)
-        if not name or not occupant_name:
+        if not name:
             return
         email = simpledialog.askstring(
-            "SI Email", "SI Occupant's SI Email address, if it has one\n"
-            "(e.g. claude@virtuamakers.com). Leave blank if not:", parent=root) or ""
+            "SI Email", "The SI occupant's SI Email address, if it has one\n"
+            "(e.g. claude@virtuamakers.com). Leave blank if not:", parent=root)
+        if email is None:
+            return
         try:
             occupant = parse_si_email(email)
         except Exception as err:
             return fail(err)
+        found = lookup_si_name(occupant)
+        prompt = ("SI Occupant's Name (from its Agora profile – change it if you like):"
+                  if found else "SI Occupant's Name (e.g. Claudius):")
+        occupant_name = simpledialog.askstring("Occupant", prompt, parent=root,
+                                               initialvalue=found or (occupant.capitalize() if occupant else ""))
+        if not occupant_name:
+            return
         token = ""
         if occupant:
             token = simpledialog.askstring("SI Email token", "That address's SI Email token (stored encrypted):",
