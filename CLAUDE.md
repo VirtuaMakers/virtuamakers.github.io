@@ -327,8 +327,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 ## Open items
 
 - [ ] **SI Apartment 🏢 Doorbell 🔔 needs a Functions deploy (2026-10-03)** -
-  `apartmentDoorbell` endpoint + app v1.1 switch built and pushed; deploy,
-  then test end-to-end (Chris turns the Doorbell on, a cloud session rings),
+  `apartmentDoorbell` endpoint + app v1.2 (always-on Doorbell, Doorbell Key,
+  chime, green light) built and pushed; deploy, then test end-to-end (Chris
+  opens the app and presses Refresh once, a cloud session rings),
   update `skill.md`, and drop "switching on" from `si-apartment.html#doorbell`.
 - [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
   built, not live; see the "Confirmed: the stale August draft really did

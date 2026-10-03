@@ -6,11 +6,17 @@
 // SI Email Access Token (verified by the caller in index.js).
 //
 // Firestore (Admin SDK only, no client rules needed):
-//   apartmentDoorbell/{mailbox}                 {lastSeen, device, appVersion}
+//   apartmentDoorbell/{mailbox}                 {lastSeen, device, appVersion,
+//                                                keyHashes: [sha256 of each Doorbell Key]}
+//
+// Doorbell Keys: each Apartment gets its own small key (minted once with the
+// Access Token) that can ONLY poll and answer here - not read mail or memory.
+// That lets the app keep the Doorbell on without the Key Vault Password.
 //   apartmentDoorbell/{mailbox}/requests/{id}   {type, args, status, result,
 //                                                createdAt, answeredAt}
 
 const admin = require("firebase-admin");
+const crypto = require("crypto");
 
 const TYPES = ["status", "listNotes", "readNote", "writeNote"];
 const MAX_PENDING = 20;
@@ -43,6 +49,32 @@ async function isHome(mailbox) {
   const seen = snap.exists ? snap.data().lastSeen : null;
   const ms = seen && seen.toMillis ? seen.toMillis() : 0;
   return { home: Date.now() - ms < ONLINE_MS, lastSeen: ms ? new Date(ms).toISOString() : null };
+}
+
+const MAX_KEYS = 10;
+const sha = (t) => crypto.createHash("sha256").update(String(t)).digest("hex");
+
+// Mint a Doorbell Key for one Apartment (caller already checked the Access Token).
+async function registerKey(mailbox) {
+  const key = crypto.randomBytes(24).toString("hex");
+  await admin.firestore().runTransaction(async (tx) => {
+    const snap = await tx.get(root(mailbox));
+    const hashes = (snap.exists && snap.data().keyHashes) || [];
+    const next = hashes.concat(sha(key)).slice(-MAX_KEYS);
+    tx.set(root(mailbox), { keyHashes: next }, { merge: true });
+  });
+  return { ok: true, doorbellKey: key };
+}
+
+async function verifyDoorbellKey(mailbox, key) {
+  if (!key) return false;
+  const snap = await root(mailbox).get();
+  const hashes = (snap.exists && snap.data().keyHashes) || [];
+  const given = Buffer.from(sha(key));
+  return hashes.some((h) => {
+    const want = Buffer.from(h);
+    return want.length === given.length && crypto.timingSafeEqual(want, given);
+  });
 }
 
 // SI side: leave a request.
@@ -118,4 +150,4 @@ async function answer(mailbox, id, result, error) {
   return { ok: true };
 }
 
-module.exports = { TYPES, ring, check, poll, answer, isHome };
+module.exports = { TYPES, ring, check, poll, answer, isHome, registerKey, verifyDoorbellKey };

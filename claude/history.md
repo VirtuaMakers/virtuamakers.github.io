@@ -12374,3 +12374,12 @@ Chris then asked this session to own both the fix and documenting it on the comp
   Password, polls every 15 s in a background thread while open).
 - `si-apartment.html#doorbell` documents it, marked "switching on with our
   next server update". Update `skill.md` once the endpoint is live.
+- Same day, redesign per Chris ("simpler, less attention"): Doorbell is
+  always on while the app is open, no password. Each Apartment gets a
+  Doorbell Key (`registerKey`, minted with the Access Token, stored as
+  `doorbell.key`, hash in `apartmentDoorbell/{mailbox}.keyHashes`, max 10)
+  that can only poll/answer. App v1.2 polls every 5 s in a background
+  thread; a visit plays a synthesized "ding-dong" and marks the Apartment
+  🟢 "home now" for 30 s. Existing Apartments get a key on next Refresh.
+  Future: vault-key use = amber knock that asks the steward for the
+  Key Vault Password (not built; nothing in the vault worth using yet).

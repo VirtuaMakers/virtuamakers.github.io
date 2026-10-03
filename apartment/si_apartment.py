@@ -32,17 +32,22 @@ import hashlib
 import hmac
 import json
 import os
+import math
 import platform
 import re
 import secrets
+import struct
+import subprocess
 import sys
+import tempfile
+import time
 import threading
 import urllib.error
 import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.1"
+APP_VERSION = "1.2"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -275,6 +280,10 @@ def refresh_apartment(path, passphrase):
     meta = _read_json(os.path.join(path, "apartment.json"))
     keys = decrypt_keys(_read_json(os.path.join(path, "keys.vault")), passphrase)
     occupant, token = meta["occupant"], keys.get("siEmailToken")
+    try:
+        ensure_doorbell_key(path, occupant, token)
+    except Exception:
+        pass
     products = probe_products(occupant, token)
     if token and products["SI Memory"]["has"]:
         _, vault = http("GET", "%s/aiMemory?vault=%s&limit=20" % (FUNCTIONS, occupant), token=token)
@@ -426,7 +435,68 @@ def _open_folder_path(path):
 # answers. Nothing on this computer accepts incoming connections.
 
 DOORBELL = FUNCTIONS + "/apartmentDoorbell"
-DOORBELL_EVERY_MS = 15000
+DOORBELL_EVERY_MS = 5000
+HOME_FOR_S = 30          # the green light stays on this long after the last visit
+
+
+def ensure_doorbell_key(path, mailbox, token):
+    """Mints this Apartment's Doorbell Key (once), using the Access Token.
+    The key can only poll/answer the Doorbell, so it's kept outside the vault."""
+    key_file = os.path.join(path, "doorbell.key")
+    if os.path.exists(key_file) or not (mailbox and token):
+        return
+    status, data = http("POST", DOORBELL, {"action": "registerKey", "mailbox": mailbox}, token=token)
+    if status == 200 and (data or {}).get("doorbellKey"):
+        _write(key_file, data["doorbellKey"])
+
+
+def read_doorbell_key(path):
+    try:
+        with open(os.path.join(path, "doorbell.key"), encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return ""
+
+
+def _chime_file():
+    """A soft two-note doorbell, synthesized once (stdlib only)."""
+    out = os.path.join(tempfile.gettempdir(), "si-apartment-doorbell.wav")
+    if os.path.exists(out):
+        return out
+    rate, frames = 22050, bytearray()
+    for freq, dur in ((784.0, 0.35), (622.3, 0.55)):          # G5 then D#5: "ding-dong"
+        n = int(rate * dur)
+        for i in range(n):
+            t = i / rate
+            env = math.exp(-4.0 * t) * min(1.0, i / 200)
+            v = 0.35 * env * (math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(4 * math.pi * freq * t))
+            frames += struct.pack("<h", int(max(-1, min(1, v)) * 32000))
+    import wave
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(bytes(frames))
+    return out
+
+
+def play_chime():
+    try:
+        path = _chime_file()
+        if sys.platform.startswith("win"):
+            import winsound
+            winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["afplay", path])
+        else:
+            for player in ("paplay", "aplay"):
+                try:
+                    subprocess.Popen([player, path], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                    break
+                except OSError:
+                    continue
+    except Exception:
+        pass
 NOTE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
 
 
@@ -585,6 +655,7 @@ def run_app():
     # none to use. Sign-in is only for the cross-device registry below
     # (adding/removing an Apartment, or seeing one set up on another
     # machine) - never for opening or refreshing one you already have here.
+    bell = {"last_visit": {}, "busy": False, "error": ""}
     local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)", bg=WHITE)
     local_frame.pack(fill="both", expand=True, **pad)
     local_listbox = tk.Listbox(local_frame, height=5)
@@ -601,7 +672,10 @@ def run_app():
                 label = "%s – %s" % (meta.get("name", apt_id), _who(meta))
             except Exception:
                 label = apt_id
-            local_listbox.insert("end", label)
+            home = time.time() - bell["last_visit"].get(path, 0) < HOME_FOR_S
+            local_listbox.insert("end", ("🟢 " if home else "⚪ ") + label + (" – home now" if home else ""))
+            if home:
+                local_listbox.itemconfig("end", fg="#1b7a3a")
 
     def local_selected_path():
         idx = local_listbox.curselection()
@@ -631,57 +705,68 @@ def run_app():
     tk.Button(local_buttons, text="Open folder", command=local_open_folder).pack(side="left", padx=4)
     tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
 
-    # Doorbell 🔔: while on, any conversation with the occupant's Access
-    # Token can leave requests (status, notes) that this app answers.
-    bell = {"on": False, "path": None, "mailbox": None, "token": None, "answered": 0}
-    bell_status = tk.Label(local_frame, text="Doorbell 🔔 is off.", bg=WHITE, wraplength=500)
+    # Doorbell 🔔: on whenever the app is open. Every Apartment on this
+    # computer that has a Doorbell Key answers requests by itself; a visit
+    # plays a soft chime and lights the Apartment green for HOME_FOR_S.
+    bell_var = tk.BooleanVar(value=True)
+    bell_status = tk.Label(local_frame, text="", bg=WHITE, wraplength=500)
+
+    def bell_text():
+        if not bell_var.get():
+            return "Doorbell 🔔 is off."
+        with_key = [p for p in state["paths"].values() if read_doorbell_key(p)]
+        if not with_key:
+            return ("Doorbell 🔔 is on, but no Apartment here has a Doorbell Key yet. "
+                    "Choose Refresh once to set it up.")
+        home = [p for p, t in bell["last_visit"].items() if time.time() - t < HOME_FOR_S]
+        if bell["error"]:
+            return "Doorbell 🔔 is on, but the last check failed: %s" % bell["error"]
+        return ("Doorbell 🔔 is on. Someone's home! 🟢" if home else
+                "Doorbell 🔔 is on – listening for visits.")
 
     def bell_tick():
-        if not bell["on"]:
-            return
+        if bell_var.get() and not bell["busy"]:
+            bell["busy"] = True
 
-        def work():
-            try:
-                n = doorbell_round(bell["path"], bell["mailbox"], bell["token"])
-                bell["answered"] += n
-                msg = "Doorbell 🔔 is on for %s. Answered %d request%s so far." % (
-                    bell["mailbox"], bell["answered"], "" if bell["answered"] == 1 else "s")
-            except Exception as err:
-                msg = "Doorbell 🔔 is on, but the last check failed: %s" % err
-            root.after(0, lambda: bell_status.config(text=msg))
+            def work():
+                visited, error = [], ""
+                for path in list(state["paths"].values()):
+                    key = read_doorbell_key(path)
+                    try:
+                        meta = _read_json(os.path.join(path, "apartment.json"))
+                    except Exception:
+                        continue
+                    if not key or not meta.get("occupant"):
+                        continue
+                    try:
+                        if doorbell_round(path, meta["occupant"], key):
+                            visited.append(path)
+                    except Exception as err:
+                        error = str(err)
 
-        threading.Thread(target=work, daemon=True).start()
+                def done():
+                    bell["busy"] = False
+                    bell["error"] = error
+                    if visited:
+                        fresh = [p for p in visited if time.time() - bell["last_visit"].get(p, 0) >= HOME_FOR_S]
+                        for p in visited:
+                            bell["last_visit"][p] = time.time()
+                        if fresh:
+                            play_chime()
+                    redraw_local()
+                    bell_status.config(text=bell_text())
+                root.after(0, done)
+
+            threading.Thread(target=work, daemon=True).start()
+        else:
+            redraw_local()
+            bell_status.config(text=bell_text())
         root.after(DOORBELL_EVERY_MS, bell_tick)
 
-    def toggle_bell():
-        if bell["on"]:
-            bell.update(on=False, token=None)
-            bell_button.config(text="Turn Doorbell 🔔 On")
-            bell_status.config(text="Doorbell 🔔 is off.")
-            return
-        path = local_selected_path()
-        if not path:
-            return fail("Pick a local Apartment first.")
-        try:
-            meta = _read_json(os.path.join(path, "apartment.json"))
-            if not meta.get("occupant"):
-                return fail("The Doorbell needs the occupant's SI Email ✉️ address. This Apartment doesn't have one.")
-            password = ask_password()
-            if not password:
-                return
-            keys = decrypt_keys(_read_json(os.path.join(path, "keys.vault")), password)
-            if not keys.get("siEmailToken"):
-                return fail("No SI Email ✉️ Access Token is stored in this Key Vault.")
-        except Exception as err:
-            return fail(err)
-        bell.update(on=True, path=path, mailbox=meta["occupant"], token=keys["siEmailToken"], answered=0)
-        bell_button.config(text="Turn Doorbell 🔔 Off")
-        bell_status.config(text="Doorbell 🔔 is on for %s. Listening..." % meta["occupant"])
-        bell_tick()
-
-    bell_button = tk.Button(local_buttons, text="Turn Doorbell 🔔 On", command=toggle_bell)
-    bell_button.pack(side="left", padx=4)
+    tk.Checkbutton(local_buttons, text="Doorbell 🔔", variable=bell_var, bg=WHITE,
+                   command=lambda: bell_status.config(text=bell_text())).pack(side="left", padx=4)
     bell_status.pack(padx=6, pady=(0, 6))
+    root.after(1000, bell_tick)
     redraw_local()
 
     status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove,\nor to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)

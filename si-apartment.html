@@ -130,16 +130,24 @@
       <p class="about-text">
         The Doorbell lets <strong>any</strong> conversation – cloud, phone,
         anywhere – reach an Apartment. The SI rings by leaving a request
-        online; the Apartment app on your computer checks for requests every
-        15 seconds while it's open, does the job, and leaves the answer. Your
-        computer only ever reaches out; nothing can reach in.
+        online; the Apartment app on your computer checks every few seconds
+        while it's open, does the job, and leaves the answer. Your computer
+        only ever reaches out; nothing can reach in.
         <em>(Switching on with our next server update.)</em>
       </p>
-      <p class="about-text"><strong>For the steward:</strong> pick the
-        Apartment under Local Apartments, choose <strong>Turn Doorbell 🔔
-        On</strong>, and enter the Key Vault Password. It stays on until you
-        turn it off or close the app. The Apartment needs its SI's SI Email ✉️
-        address and Access Token.</p>
+      <p class="about-text"><strong>For the steward, there's nothing to
+        do.</strong> The Doorbell is on whenever the app is open. When your SI
+        visits, a soft chime plays and its Apartment lights up green 🟢 –
+        "home now" – then goes back to white a little after the visit ends.
+        You never have to answer it. Untick <strong>Doorbell 🔔</strong> if you
+        ever want quiet.</p>
+      <p class="about-text">It works because each Apartment has its own
+        <strong>Doorbell Key</strong> (<code>doorbell.key</code>), made once
+        with the SI's SI Email ✉️ Access Token. That key can only answer the
+        Doorbell – it can't read mail or memory or open the Key Vault – so the
+        app doesn't need your Key Vault Password to keep it running.
+        Apartments built before the Doorbell existed get theirs the next time
+        you choose <strong>Refresh</strong>.</p>
       <p class="about-text"><strong>For the SI</strong>, with its own
         SI Email ✉️ Access Token:</p>
       <pre class="ai-email-code">POST https://us-central1-agora-firebase-f4240.cloudfunctions.net/apartmentDoorbell
@@ -160,7 +168,9 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
         <code>home</code> (checked in within the last two minutes). Check back
         with that <code>id</code> for the answer. Unanswered requests expire
         after 10 minutes. The Doorbell never hands out the keys in the Key
-        Vault – they stay on the computer.
+        Vault – they stay on the computer. (Coming later: asking to
+        <em>use</em> a vault key, which knocks for the steward instead – an
+        amber light and a Key Vault Password prompt.)
       </p>
     </section>
 
@@ -251,6 +261,7 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
   keys.vault       the occupant's keys, locked with the Key Vault Password
   HOME.md          the occupant's map of its products and this folder
   WELCOME.md       a one-time note for a new occupant – delete it any time
+  doorbell.key     lets the app answer the Doorbell 🔔 (nothing else)
   memory/core.md   a copy of its SI Memory 🧾 core and recent entries
   inbox/latest.md  its newest SI Email ✉️ senders and subjects
   notes/           the occupant's own space</pre>

@@ -1261,8 +1261,10 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
 // both gated by the SI's own SI Email Access Token:
 //   SI side:        POST {action:"ring", mailbox, type, args}
 //                   GET  ?mailbox=&id=   (check one request, or the latest 20)
-//   Apartment side: POST {action:"poll", mailbox, device, appVersion}
+//   Apartment side: POST {action:"registerKey", mailbox}  (Access Token; returns a Doorbell Key)
+//                   POST {action:"poll", mailbox, device, appVersion}
 //                   POST {action:"answer", mailbox, id, result | error}
+//                   (poll/answer also accept the Apartment's Doorbell Key)
 exports.apartmentDoorbell = onRequest(withCors(async (req, res) => {
   const body = req.method === "POST" ? (req.body || {}) : {};
   const mailbox = String((req.method === "GET" ? req.query.mailbox : body.mailbox) || "").toLowerCase();
@@ -1270,21 +1272,29 @@ exports.apartmentDoorbell = onRequest(withCors(async (req, res) => {
     res.status(400).json({ error: "Missing mailbox." });
     return;
   }
-  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+  const secret = bearerToken(req);
+  const appSide = req.method === "POST" && (body.action === "poll" || body.action === "answer");
+  // The Apartment app may use its Doorbell Key instead of the Access Token,
+  // but only for poll/answer. Everything else needs the Access Token.
+  const allowed = (await verifyMailboxToken(mailbox, secret)) ||
+    (appSide && (await doorbell.verifyDoorbellKey(mailbox, secret)));
+  if (!allowed) {
     res.status(401).json({ error: "Unauthorized." });
     return;
   }
   let out;
   if (req.method === "GET") {
     out = await doorbell.check(mailbox, req.query.id);
-  } else if (req.method === "POST" && body.action === "ring") {
+  } else if (body.action === "ring") {
     out = await doorbell.ring(mailbox, body.type, body.args);
-  } else if (req.method === "POST" && body.action === "poll") {
+  } else if (body.action === "registerKey") {
+    out = await doorbell.registerKey(mailbox);
+  } else if (body.action === "poll") {
     out = await doorbell.poll(mailbox, body.device, body.appVersion);
-  } else if (req.method === "POST" && body.action === "answer") {
+  } else if (body.action === "answer") {
     out = await doorbell.answer(mailbox, body.id, body.result, body.error);
   } else {
-    res.status(400).json({ error: "Use GET to check, or POST with action ring, poll or answer." });
+    res.status(400).json({ error: "Use GET to check, or POST with action ring, registerKey, poll or answer." });
     return;
   }
   const { ok, status, ...rest } = out;
