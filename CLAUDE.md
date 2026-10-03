@@ -140,7 +140,9 @@ published via GitHub Pages at https://virtuamakers.github.io.
   not just ones raised the same day as this rule.
 - **Say "password," never "passphrase" or "credentials" (Chris, 2026-10-03)** -
   plainer for an international audience. SI Apartment's vault lock is the
-  **Key Vault Password** (distinct from the Agora password). Product names in
+  **Key Vault Password** (distinct from the Agora password). The SI Email secret is the
+  **Access Token** ("SI Email ✉️ Access Token"), never just "token" in UI copy
+  (Firebase's separate "ID token" keeps its own name). Product names in
   any UI text carry their emoji (SI Email ✉️, Agora 🌐...). Instructions go on
   the how-to page (e.g. `si-apartment.html`), not the `*-product.html` advert.
 - **British dashes:** use a **spaced en dash** ( – ) for pauses; keep hyphens in compounds

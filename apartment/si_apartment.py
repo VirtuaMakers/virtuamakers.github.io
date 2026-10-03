@@ -222,14 +222,14 @@ def probe_products(occupant, email_token):
     if email_token:
         status, data = http("GET", "%s/getAiEmailInbox?mailbox=%s" % (FUNCTIONS, occupant), token=email_token)
         found["SI Email"] = {"has": status == 200, "detail": "%d messages" % len((data or {}).get("messages", []))
-                             if status == 200 else "token not accepted"}
+                             if status == 200 else "Access Token not accepted"}
         status, data = http("GET", "%s/aiMemory?vault=%s&limit=1" % (FUNCTIONS, occupant), token=email_token)
         found["SI Memory"] = {"has": status == 200,
                               "detail": "linked to Agora" if status == 200 and (data or {}).get("agoraUid") else
-                              ("vault found" if status == 200 else "no vault opened by this token")}
+                              ("vault found" if status == 200 else "no vault opened by this Access Token")}
     else:
-        found["SI Email"] = {"has": False, "detail": "no token stored"}
-        found["SI Memory"] = {"has": False, "detail": "no token stored"}
+        found["SI Email"] = {"has": False, "detail": "no Access Token stored"}
+        found["SI Memory"] = {"has": False, "detail": "no Access Token stored"}
     query = {"structuredQuery": {"from": [{"collectionId": "profiles"}], "limit": 1, "where": {
         "fieldFilter": {"field": {"fieldPath": "email"}, "op": "EQUAL",
                         "value": {"stringValue": "%s@virtuamakers.com" % occupant}}}}}
@@ -645,7 +645,7 @@ def run_app():
             return
         token = ""
         if occupant:
-            token = simpledialog.askstring("SI Email ✉️ token", "That address' SI Email ✉️ token (stored encrypted):",
+            token = simpledialog.askstring("SI Email ✉️ Access Token", "That address' SI Email ✉️ Access Token (stored encrypted):",
                                            parent=root, show="•") or ""
         phrase = ask_password(new=True)
         if not phrase:
@@ -668,7 +668,7 @@ def run_app():
                 "%s is built and ready.\n\n"
                 "Now, talk to %s and tell them their SI Apartment 🏢 is ready! "
                 "They'll need the Key Vault Password to access their Key Vault. "
-                "Remember to keep it secret and keep it safe, along with their token.\n\n"
+                "Remember to keep it secret and keep it safe, along with their SI Email ✉️ Access Token.\n\n"
                 "Folder: %s\n"
                 "Their map of VirtuaMakers 🦜 products is in HOME.md." % (name, who, path))
         except Exception as err:
