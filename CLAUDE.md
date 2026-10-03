@@ -14,31 +14,59 @@ published via GitHub Pages at https://virtuamakers.github.io.
   (icon + "GitHub" text, `target="_blank"`), not a "Follow" button, so nothing
   needed changing - flagged here only because a literal "Follow" button, if ever
   added, would be following Chris personally rather than a company account.
-- [ ] **Convert `github.com/VirtuaMakers` from Chris's personal account to a
-  real GitHub Organization** (Chris, 2026-09-10) - flagged as more
-  professional for the long run. Real plan, worked out but not started
-  (Chris's own call: "a project for a separate session"):
-  1. Rename Chris's personal account (Settings → Account → Change
-     username) to free up the exact string "VirtuaMakers" - GitHub
-     usernames and org names share one global namespace, so an org can't
-     be created under a name a personal account still holds.
-  2. Immediately create a new Organization named exactly `VirtuaMakers`
-     (small risk window between steps 1-2 where the name is technically
-     up for grabs - do them back-to-back).
-  3. Transfer the 4 repos (`virtuamakers.github.io`, `Dimonds`,
-     `ChainOfCards`, `Guardian`) from the renamed personal account into
-     the new org. Since the org ends up with the same literal name the
-     personal account just gave up, every existing
-     `github.com/VirtuaMakers/...` URL - GitHub Pages included - keeps
-     resolving with zero changes needed on our side.
-  4. Reinstall/reauthorize the Claude Code GitHub App (and any other
-     installed App) against the new org - app installations bind to the
-     account's underlying ID, not just the name string, so this session's
-     repo access would need re-granting after the transfer.
-  Real payoff beyond appearance: real org membership/roles for teammates
-  (Krishn, etc.) instead of ad hoc personal-repo collaborators. Purely
-  account-level GitHub administration Chris has to execute himself; not
-  something this session can do from here.
+- [x] **`github.com/VirtuaMakers` converted from Chris's personal account to a
+  real GitHub Organization (Chris, 2026-10-03)** - the plan sketched out
+  back on 2026-09-10 (below, kept for the record) was executed live this
+  session, walked through step-by-step rather than Chris doing it solo:
+  1. Chris renamed his personal account to free up the literal string
+     `VirtuaMakers`.
+  2. Created the Organization immediately after, named exactly
+     `VirtuaMakers` - no gap long enough for anyone else to grab it.
+  3. All 4 repos (`virtuamakers.github.io`, `Dimonds`, `ChainOfCards`,
+     `Guardian`) transferred from the renamed personal account into the
+     org, one at a time via each repo's own Settings → Danger Zone →
+     Transfer ownership. Confirmed live and resolving under the org for
+     all four (`github.com/VirtuaMakers/...`). As predicted, every URL
+     kept resolving with zero code-side changes - `virtuamakers.github.io`'s
+     GitHub Pages build, custom domain (`www.virtuamakers.com`), and this
+     session's local git remote all carried over untouched, since the org
+     landed on the exact same string the personal account gave up.
+  4. This session's Claude Code GitHub App access needed no
+     re-authorization at all for `virtuamakers.github.io` specifically -
+     confirmed via `add_repo`/`git rev-parse` right after that transfer -
+     again because the owner string never changed. (The other 3 repos
+     were never attached to this session to begin with, so nothing to
+     re-authorize there either; they're reachable read-only as public
+     repos if a future session needs them.)
+  - **Krishn cleanup, same session:** Krishn is regarded as having left
+    VirtuaMakers. Checked all 4 repos' Collaborators and teams list post-
+    transfer - he only ever had a pending (never-accepted) invite on
+    `Guardian`, which had already expired on its own. Cancelled that
+    stale invite entry. He never actually held real access to any of the
+    4 repos, on GitHub specifically.
+  - **Org is on the Free plan, not Team, for now** - Chris's Cash App
+    card was declined at checkout; Cash App support confirmed the decline
+    isn't on their end and pointed to GitHub, and Chris's own read is
+    that GitHub likely just doesn't accept Cash App cards for recurring
+    subscription billing (a known mismatch with prepaid/virtual-style
+    cards generally, not necessarily a bug on either side). Decoupled
+    on purpose - Free needs no payment method at all and already
+    supports everything the migration itself needed (org creation, real
+    Teams/roles, receiving the 4 repo transfers) - only real gap vs. Team
+    is protected branches/required reviewers on *private* repos
+    specifically (all 4 repos here are public, so this doesn't bite yet).
+  - **Still open: upgrade org to Team plan** once Chris has a working
+    non-Cash-App payment method - `github.com/organizations/VirtuaMakers/billing`
+    → Upgrade. Not blocking anything else; revisit whenever a different
+    card is available.
+  - **Original 2026-09-10 plan, for reference:** rename Chris's personal
+    account first (GitHub usernames/org names share one global namespace,
+    so an org can't be created under a name a personal account still
+    holds) → immediately create the org under the freed name → transfer
+    the 4 repos → reinstall/reauthorize the Claude Code GitHub App since
+    installs bind to account ID, not the name string. Real payoff beyond
+    appearance: real org membership/roles for teammates instead of ad hoc
+    personal-repo collaborators.
 
 ## Repo layout — two sites
 
