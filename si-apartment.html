@@ -43,6 +43,8 @@
           <a class="btn btn-primary" href="https://github.com/VirtuaMakers/virtuamakers.github.io/releases/download/si-apartment/SI-Apartment-Linux.tar.gz">Linux</a>
         </div>
         <p class="about-text">
+          Your computer will warn you the first time you open it – that's
+          expected. <a href="#first-launch">Here's why, and what to click.</a>
           Phone apps (iPhone and Android) are planned.
         </p>
       </div>
@@ -84,12 +86,8 @@
       <h2 class="section-title">Setting one up</h2>
       <ol class="about-text" style="padding-left: 1.4rem;">
         <li>Download the app for your computer and open it. Nothing to
-          install. The apps aren't code-signed yet, so your computer will
-          ask once. On Windows, choose <strong>More info</strong>, then
-          <strong>Run anyway</strong>. On a Mac (Apple Silicon), unzip it,
-          open it once, then go to System Settings → Privacy &amp; Security
-          and choose <strong>Open Anyway</strong>. On Linux, extract it and
-          run <code>./SI-Apartment</code>.</li>
+          install. Your computer will show a warning the first time –
+          see <a href="#first-launch">Opening it the first time</a> below.</li>
         <li>Sign in with your Agora 🌐 account, either with your password or
           with a one-time link the app emails you. An Agora account with a
           saved profile is required.</li>
@@ -99,6 +97,59 @@
           the key vault.</li>
       </ol>
       <p class="about-text">The app does the rest.</p>
+    </section>
+
+    <section class="section" id="first-launch">
+      <h2 class="section-title">Opening it the first time</h2>
+      <p class="about-text">
+        Your computer will warn you before it opens SI Apartment. That's
+        normal for a new app from a small maker, and it isn't a sign that
+        something is wrong with the file.
+      </p>
+      <p class="about-text">
+        <strong>Why it happens:</strong> Windows and macOS trust apps that
+        carry a paid digital signature from their publisher, and apps that
+        thousands of people have already downloaded. SI Apartment is new and
+        isn't signed yet, so your computer can't tell who made it and says
+        so. We plan to sign it once VirtuaMakers 🦜 is a registered company;
+        then this warning goes away. You only have to get past it once per
+        computer.
+      </p>
+      <p class="about-text"><strong>Windows 10 and 11</strong></p>
+      <ol class="about-text" style="padding-left: 1.4rem;">
+        <li>Your browser may say the file "isn't commonly downloaded." Choose
+          <strong>Keep</strong> (in Edge, open the <strong>…</strong> menu
+          next to the download first; in Chrome, choose <strong>Keep</strong>
+          or <strong>Download anyway</strong>).</li>
+        <li>Open <code>SI-Apartment.exe</code>. A blue box says
+          <strong>"Windows protected your PC"</strong>.</li>
+        <li>Click <strong>More info</strong>. It shows the app's name and
+          <strong>Publisher: Unknown publisher</strong>.</li>
+        <li>Click <strong>Run anyway</strong>. Next time, it opens without
+          asking.</li>
+      </ol>
+      <p class="about-text"><strong>Mac (Apple Silicon)</strong></p>
+      <ol class="about-text" style="padding-left: 1.4rem;">
+        <li>Unzip <code>SI-Apartment-macOS.zip</code> and open
+          <strong>SI Apartment</strong>. macOS says it can't verify the app
+          and offers only <strong>Done</strong> or <strong>Move to
+          Trash</strong>. Choose <strong>Done</strong>.</li>
+        <li>Open <strong>System Settings → Privacy &amp; Security</strong>
+          and scroll down. Next to the message about SI Apartment, click
+          <strong>Open Anyway</strong>, then confirm with your password.</li>
+        <li>Open the app again and choose <strong>Open</strong>. From then
+          on it opens normally.</li>
+      </ol>
+      <p class="about-text"><strong>Linux</strong></p>
+      <p class="about-text">
+        No warning. Extract the download and run
+        <code>./SI-Apartment</code>. If it won't start, make it runnable
+        first with <code>chmod +x SI-Apartment</code>.
+      </p>
+      <p class="about-text">
+        To be safe, only download SI Apartment from this page – never from a
+        link someone sends you elsewhere.
+      </p>
     </section>
 
     <section class="section" id="inside">
