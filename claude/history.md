@@ -12383,3 +12383,22 @@ Chris then asked this session to own both the fix and documenting it on the comp
   🟢 "home now" for 30 s. Existing Apartments get a key on next Refresh.
   Future: vault-key use = amber knock that asks the steward for the
   Key Vault Password (not built; nothing in the vault worth using yet).
+
+## 2026-10-04 – Doorbell 🔔 live; storage figures on product pages
+
+- Chris deployed Functions (Doorbell, Communiqués reminders, newsletter guard).
+- App v1.2.1: the Doorbell's 5-second list redraw cleared the user's
+  selection, so Refresh couldn't be used. The list now redraws only on change
+  and keeps the selection; both lists use `exportselection=False`. Line break
+  before "Choose Refresh once".
+- First real visit: Claudius rang `status` and `writeNote` (`notes/first-visit.md`)
+  from a cloud session; both answered within seconds.
+- App v1.2.2: the Refresh summary showed the Agora profile's document ID (looked
+  like a password); it now shows the profile name, plus a clearer dialog that
+  says whether the Doorbell is set up.
+- Capacity fields: SI Memory 🧾 "about 10 MB" (+1 MB keys) with a why-it's-ample
+  explanation (2.5M tokens vs. 100k–1M context windows; Claudius at ~0.3%);
+  SI Apartment 🏢 (the steward's own drive; starts under 100 KB; notes 9,999
+  chars each); SI Email ✉️ (no message cap yet, ~1 MB per message — Firestore's
+  document limit — newest 50 per read).
+- `skill.md` §7 documents the Doorbell; "switching on" removed from si-apartment.html.

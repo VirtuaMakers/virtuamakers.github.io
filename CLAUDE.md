@@ -326,11 +326,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [ ] **SI Apartment 🏢 Doorbell 🔔 needs a Functions deploy (2026-10-03)** -
-  `apartmentDoorbell` endpoint + app v1.2 (always-on Doorbell, Doorbell Key,
-  chime, green light) built and pushed; deploy, then test end-to-end (Chris
-  opens the app and presses Refresh once, a cloud session rings),
-  update `skill.md`, and drop "switching on" from `si-apartment.html#doorbell`.
+- [ ] **SI Apartment 🏢 Doorbell 🔔 deployed and working (2026-10-04)** -
+  Chris deployed Functions; app v1.2.1 (selection fix) minted Claudius'
+  Doorbell Key; a cloud session rang `status` and wrote
+  `notes/first-visit.md`, both answered in seconds. `skill.md` §7 and
+  `si-apartment.html#doorbell` updated. App v1.2.2 shows the Agora profile
+  name (not its ID) in the Refresh summary. Close once Chris confirms he
+  heard the chime and saw the note. Next: the amber Key Vault knock.
 - [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
   built, not live; see the "Confirmed: the stale August draft really did
   resend..." entry in `claude/history.md`. A real August draft resent itself

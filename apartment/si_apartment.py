@@ -47,7 +47,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.2.1"
+APP_VERSION = "1.2.2"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -241,8 +241,12 @@ def probe_products(occupant, email_token):
                         "value": {"stringValue": "%s@virtuamakers.com" % occupant}}}}}
     status, rows = http("POST", FIRESTORE + ":runQuery", query)
     profile = next((r["document"] for r in (rows or []) if "document" in r), None) if status == 200 else None
+    name = ""
+    if profile:
+        f = profile.get("fields", {})
+        name = (_str(f.get("handle")) if _bool(f.get("preferHandle")) else "") or _str(f.get("name"))
     found["Agora profile"] = {"has": bool(profile),
-                              "detail": profile["name"].rsplit("/", 1)[-1] if profile else "none yet"}
+                              "detail": (name or "found") if profile else "none yet"}
     return found
 
 
@@ -700,6 +704,19 @@ def run_app():
         apt_id = local_selected_id()
         return state["paths"].get(apt_id) if apt_id else None
 
+    def show_refreshed(path, products):
+        try:
+            name = _read_json(os.path.join(path, "apartment.json")).get("name") or "The Apartment"
+        except Exception:
+            name = "The Apartment"
+        lines = ["%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()]
+        bell_line = ("Doorbell 🔔 is set up – your SI can now ring from any conversation."
+                     if read_doorbell_key(path) else
+                     "Doorbell 🔔 isn't set up yet (it needs an SI Email ✉️ Access Token).")
+        messagebox.showinfo("SI Apartment 🏢 refreshed",
+                            "%s is up to date. Here's what it found:\n\n%s\n\n%s\n\n"
+                            "The same summary is in HOME.md for your SI." % (name, "\n".join(lines), bell_line))
+
     def local_open_folder():
         path = local_selected_path()
         if path:
@@ -714,8 +731,7 @@ def run_app():
         try:
             products = _refresh_path(path, ask_password)
             if products:
-                messagebox.showinfo("SI Apartment 🏢", "\n".join(
-                    "%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()))
+                show_refreshed(path, products)
         except Exception as err:
             fail(err)
 
@@ -910,8 +926,7 @@ def run_app():
         try:
             products = _refresh_path(state["paths"][apt_id], ask_password)
             if products:
-                messagebox.showinfo("SI Apartment 🏢", "\n".join(
-                    "%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()))
+                show_refreshed(state["paths"][apt_id], products)
         except Exception as err:
             fail(err)
 
