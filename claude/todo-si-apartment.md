@@ -29,3 +29,9 @@ Simple list for Chris to come back to. Nothing here is built yet.
       laptop polls outward while running, answers (e.g. reads/writes notes/,
       or uses a stored key on the SI's behalf), and posts the reply back.
       No open ports. Same plumbing as "knock knock" and remote start above.
+
+- [ ] **Aesthetics pass (with all the apps, later) - Chris, 2026-10-04.** The
+  window opens tall with a lot of empty space at the bottom: either fill it
+  with an illustration (e.g. the SI Apartment 🏢 tower) or size the window to
+  its contents. App is otherwise done at v1.4 (Doorbell, lights, Last visit,
+  amber knock all confirmed working).

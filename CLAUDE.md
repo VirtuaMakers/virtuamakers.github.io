@@ -326,16 +326,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [ ] **SI Apartment 🏢 Doorbell 🔔 deployed and working (2026-10-04)** -
-  Chris deployed Functions; app v1.2.1 (selection fix) minted Claudius'
-  Doorbell Key; a cloud session rang `status` and wrote
-  `notes/first-visit.md`, both answered in seconds. `skill.md` §7 and
-  `si-apartment.html#doorbell` updated. App v1.2.2 shows the Agora profile
-  name (not its ID) in the Refresh summary. Chris heard the chime; v1.3
-  replaces the list with radio buttons + red/green lights + a persistent
-  "Last visit" line + Remove from list/Add existing; v1.4 adds the amber
-  knock (`type: "knock"`, needs a Functions deploy). Close once Chris confirms
-  a real knock works. Then the app rests until the all-apps aesthetics pass.
+- [x] **SI Apartment 🏢 Doorbell 🔔 + amber knock - confirmed by Chris
+  (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
+  read back from the cloud. The app rests until the all-apps aesthetics pass
+  (see `claude/todo-si-apartment.md`).
 - [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
   built, not live; see the "Confirmed: the stale August draft really did
   resend..." entry in `claude/history.md`. A real August draft resent itself

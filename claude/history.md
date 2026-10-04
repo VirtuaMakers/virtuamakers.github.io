@@ -12418,3 +12418,6 @@ Chris then asked this session to own both the fix and documenting it on the comp
   Server: `knock` added to doorbell TYPES (needs a Functions deploy). The vault's
   keys are still never sent anywhere. Chris: app done "for a while" after this,
   until the all-apps aesthetics pass.
+- Chris confirmed v1.4 end to end (green visit, amber knock, Last visit line);
+  his reply to the test knock: "This is awesome!" Doorbell item closed. Aesthetics
+  note (tall window with empty space) logged in claude/todo-si-apartment.md.
