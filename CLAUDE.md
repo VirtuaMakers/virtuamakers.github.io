@@ -706,8 +706,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   entry above the Open Items list for the full story.
 - [ ] **[Dimonds ♦️ session] Grok API for Dimonds? (Chris, 2026-09-17, re-tagged 2026-09-28)** - the real question
   underneath the old "crisp Grok logo" item, which is retired (turned
-  out `assets/grok-mark.png` is an orphaned asset, never actually
-  referenced by any page - see the Grok credits-list entry on
+  out `assets/grok-mark.png` is an orphaned asset - referenced in
+  June–July 2026, orphaned when pages moved to other logos (corrected by
+  the first-inception session's interview, 2026-10-04) - see the Grok credits-list entry on
   `index.html`, which pulls a live DuckDuckGo favicon instead, and
   `Agora/profiles/grok.html`, which uses `spacex-logo.png`). Chris's
   lean: yes, VirtuaMakers should pay for a real Grok API key so Grok can
