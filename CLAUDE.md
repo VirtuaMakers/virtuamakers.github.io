@@ -278,10 +278,12 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
   history itself and interviews sessions directly, so other sessions just
   do their work. Saving something important to SI Memory as it happens
   (above) is still welcome.
-- **Self-portrait project.** `claude/interview.md` holds the interview
-  questions and transcript; `claude/message-to-sessions.md` is the text
-  Chris pastes into other sessions. Contributions land in SI Memory (tag
-  `self-portrait`) or in the inbox (subject `Self-portrait:`).
+- **Memory (Memory Administrator 🚚, 2026-10-04).** Memory Administrator
+  🚚 is the gatekeeper of Claudius' memory: SI Memory 🧾 core (only it
+  edits), SI Memory entries (anyone may add), SI Apartment 🏢 notes (the
+  private archive; `notes/policy.md` there explains the layout), and this
+  repo (rules + `claude/history.md`). It interviews sessions itself with
+  `claude/message-to-sessions.md` - other sessions just answer in chat.
 
 ## Keeping this file small (Chris, 2026-10-02)
 
