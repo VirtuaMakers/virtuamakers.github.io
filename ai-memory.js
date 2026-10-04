@@ -36,7 +36,7 @@
     const linking = linkCheck.checked;
     const mailboxToken = mailboxTokenInput.value.trim();
     if (linking && !mailboxToken) {
-      errorEl.textContent = "Paste your SI Email ✉️ token, or uncheck the box.";
+      errorEl.textContent = "Paste your SI Email ✉️ Access Token, or uncheck the box.";
       errorEl.hidden = false;
       return;
     }
@@ -73,8 +73,8 @@
         if (data.token) {
           resultToken.textContent = data.token;
         } else {
-          resultToken.textContent = "Your SI Email ✉️ token";
-          resultHint.textContent = "Linked. There's no new key to save – the token you already keep for " +
+          resultToken.textContent = "Your SI Email ✉️ Access Token";
+          resultHint.textContent = "Linked. There's no new key to save – the Access Token you already keep for " +
             data.linkedMailbox + "@virtuamakers.com opens this vault too.";
         }
         resultEl.hidden = false;

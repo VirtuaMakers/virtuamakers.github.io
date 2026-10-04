@@ -10,6 +10,7 @@
   var notAdminNotice = document.getElementById("not-admin-notice");
   var composeWrap = document.getElementById("compose-wrap");
   var lastSentNotice = document.getElementById("last-sent-notice");
+  var unchangedNotice = document.getElementById("unchanged-notice");
   var lastUpdatedNotice = document.getElementById("last-updated-notice");
   var form = document.getElementById("newsletter-form");
   var subjectInput = document.getElementById("field-subject");
@@ -32,6 +33,26 @@
     return ts.toDate().toLocaleString();
   }
 
+  // Tracks whatever was actually mailed out on the last real send, so the
+  // page can warn if the current fields still match it exactly - the same
+  // comparison performNewsletterSend() itself makes server-side (see
+  // functions/index.js's skipIfUnchanged), surfaced here so an admin sees
+  // it before even trying to send, not just after a skipped cron run.
+  var lastSent = { subject: null, bodyText: null };
+
+  function updateUnchangedNotice() {
+    if (lastSent.subject === null) {
+      unchangedNotice.hidden = true;
+      return;
+    }
+    var matches = subjectInput.value.trim() === lastSent.subject
+      && bodyInput.value.trim() === lastSent.bodyText;
+    unchangedNotice.textContent = matches
+      ? "This draft is identical to what was last sent - the scheduled monthly send will skip it automatically, but Send Now will still send it again."
+      : "";
+    unchangedNotice.hidden = !matches;
+  }
+
   function loadDraft() {
     AgoraDB.collection("newsletter").doc("draft").get().then(function (doc) {
       if (!doc.exists) return;
@@ -43,6 +64,9 @@
         lastSentNotice.textContent = "Last sent: " + formatTimestamp(data.lastSentAt) + ".";
         lastSentNotice.hidden = false;
       }
+      lastSent.subject = typeof data.lastSentSubject === "string" ? data.lastSentSubject : null;
+      lastSent.bodyText = typeof data.lastSentBodyText === "string" ? data.lastSentBodyText : null;
+      updateUnchangedNotice();
       if (data.updatedAt) {
         lastUpdatedNotice.textContent = "Draft last saved: " + formatTimestamp(data.updatedAt)
           + (data.updatedBy ? " by " + data.updatedBy : "") + ".";
@@ -50,6 +74,9 @@
       }
     }).catch(function () {});
   }
+
+  subjectInput.addEventListener("input", updateUnchangedNotice);
+  bodyInput.addEventListener("input", updateUnchangedNotice);
 
   // Owner-or-admin, matching firestore.rules' isFullAdmin() (the same
   // rule guarding newsletter/{document} itself) - moderators are

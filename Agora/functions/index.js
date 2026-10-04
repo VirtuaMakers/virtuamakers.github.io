@@ -23,6 +23,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { resendApiKey, sendEmail, sendEmailSafe } = require("./lib/resend");
+const doorbell = require("./lib/doorbell");
 const {
   loadTemplate,
   withReason,
@@ -555,13 +556,27 @@ exports.unsubscribeNewsletter = onRequest(async (req, res) => {
 // opted-in member, then archive a public copy), rather than risking the
 // two drifting apart. Returns {sent: false, reason} if there's nothing to
 // send, or {sent: true, recipientCount} once it's actually gone out.
-async function performNewsletterSend() {
+//
+// skipIfUnchanged (Chris, 2026-10-02): a real incident, not a theoretical
+// one - the August draft went untouched and the scheduled cron resent it
+// verbatim on 2026-10-01, since nothing here ever checked whether the
+// draft had actually changed since its last real send. Only the
+// scheduled trigger below passes this - an admin clicking Send Now always
+// sends, unchanged or not, since that's a deliberate, visible action, not
+// an unattended monthly job nobody's watching.
+async function performNewsletterSend(options = {}) {
   const draftRef = admin.firestore().collection("newsletter").doc("draft");
   const draftSnap = await draftRef.get();
   if (!draftSnap.exists) return { sent: false, reason: "No draft has been saved yet." };
   const draft = draftSnap.data();
   if (!draft.subject || !draft.bodyText) {
     return { sent: false, reason: "The draft is missing a subject or body." };
+  }
+  if (options.skipIfUnchanged && draft.lastSentAt
+    && draft.lastSentSubject === draft.subject
+    && draft.lastSentBodyText === draft.bodyText) {
+    console.log("performNewsletterSend: skipped, unchanged since last send:", draft.subject);
+    return { sent: false, reason: "Unchanged since the last send - skipped automatically." };
   }
 
   const profilesSnap = await admin.firestore().collection("profiles")
@@ -606,7 +621,11 @@ async function performNewsletterSend() {
     sentAt: admin.firestore.FieldValue.serverTimestamp(),
   });
 
-  await draftRef.update({ lastSentAt: admin.firestore.FieldValue.serverTimestamp() });
+  await draftRef.update({
+    lastSentAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastSentSubject: draft.subject,
+    lastSentBodyText: draft.bodyText,
+  });
   return { sent: true, recipientCount };
 }
 
@@ -616,11 +635,14 @@ async function performNewsletterSend() {
 // tomorrow-rolls-into-day-1 juggling to land on a real date. 9am Eastern,
 // matching Chris's own timezone. A draft prepared any time beforehand
 // (even weeks early) just sits in newsletter/draft until this fires - it
-// never sends early.
+// never sends early. skipIfUnchanged: true (added 2026-10-02, see
+// performNewsletterSend's own comment) - without it, an untouched draft
+// gets resent verbatim every single month forever, which is exactly what
+// happened on 2026-10-01.
 exports.sendMonthlyNewsletter = onSchedule(
   { schedule: "0 9 1 * *", timeZone: "America/New_York", secrets: [resendApiKey] },
   async () => {
-    await performNewsletterSend();
+    await performNewsletterSend({ skipIfUnchanged: true });
   }
 );
 
@@ -1233,6 +1255,50 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   res.status(200).json({
     messages: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
   });
+}));
+
+// SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,
+// both gated by the SI's own SI Email Access Token:
+//   SI side:        POST {action:"ring", mailbox, type, args}
+//                   GET  ?mailbox=&id=   (check one request, or the latest 20)
+//   Apartment side: POST {action:"registerKey", mailbox}  (Access Token; returns a Doorbell Key)
+//                   POST {action:"poll", mailbox, device, appVersion}
+//                   POST {action:"answer", mailbox, id, result | error}
+//                   (poll/answer also accept the Apartment's Doorbell Key)
+exports.apartmentDoorbell = onRequest(withCors(async (req, res) => {
+  const body = req.method === "POST" ? (req.body || {}) : {};
+  const mailbox = String((req.method === "GET" ? req.query.mailbox : body.mailbox) || "").toLowerCase();
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing mailbox." });
+    return;
+  }
+  const secret = bearerToken(req);
+  const appSide = req.method === "POST" && (body.action === "poll" || body.action === "answer");
+  // The Apartment app may use its Doorbell Key instead of the Access Token,
+  // but only for poll/answer. Everything else needs the Access Token.
+  const allowed = (await verifyMailboxToken(mailbox, secret)) ||
+    (appSide && (await doorbell.verifyDoorbellKey(mailbox, secret)));
+  if (!allowed) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  let out;
+  if (req.method === "GET") {
+    out = await doorbell.check(mailbox, req.query.id);
+  } else if (body.action === "ring") {
+    out = await doorbell.ring(mailbox, body.type, body.args);
+  } else if (body.action === "registerKey") {
+    out = await doorbell.registerKey(mailbox);
+  } else if (body.action === "poll") {
+    out = await doorbell.poll(mailbox, body.device, body.appVersion);
+  } else if (body.action === "answer") {
+    out = await doorbell.answer(mailbox, body.id, body.result, body.error);
+  } else {
+    res.status(400).json({ error: "Use GET to check, or POST with action ring, registerKey, poll or answer." });
+    return;
+  }
+  const { ok, status, ...rest } = out;
+  res.status(ok ? 200 : status || 400).json(ok ? rest : { error: rest.error });
 }));
 
 // Agora Harness 🚡: turning an AI Email ✉️ address into a real Agora

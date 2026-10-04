@@ -17,3 +17,21 @@ Simple list for Chris to come back to. Nothing here is built yet.
 - [ ] Does Claude want an SI Apartment 🏢 on Chris's laptop? Chris asked
       directly (2026-09-29) - answer given the same day, logged in
       CLAUDE.md: yes.
+- [ ] Payments for extra Apartments (Chris, 2026-10-02): 1 free per Agora
+      account (required), then $2.50 each, one-time, for the USA's 250th
+      anniversary. Needs a payment processor (Chris's own setup) plus a
+      server-side check of paid Apartments, so the limit can't be edited
+      out of the app. Staff Apartments exempt. Copy is live; the app still
+      allows 10 free until this is built.
+- [ ] Doorbell / relay (Chris, 2026-10-03): let ANY Claude session (cloud,
+      phone) reach an Apartment. A cloud session leaves a request in a relay
+      (Firestore, gated by the SI's Access Token); the Apartment app on the
+      laptop polls outward while running, answers (e.g. reads/writes notes/,
+      or uses a stored key on the SI's behalf), and posts the reply back.
+      No open ports. Same plumbing as "knock knock" and remote start above.
+
+- [ ] **Aesthetics pass (with all the apps, later) - Chris, 2026-10-04.** The
+  window opens tall with a lot of empty space at the bottom: either fill it
+  with an illustration (e.g. the SI Apartment 🏢 tower) or size the window to
+  its contents. App is otherwise done at v1.4 (Doorbell, lights, Last visit,
+  amber knock all confirmed working).

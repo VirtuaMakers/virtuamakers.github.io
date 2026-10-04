@@ -14,33 +14,76 @@ published via GitHub Pages at https://virtuamakers.github.io.
   (icon + "GitHub" text, `target="_blank"`), not a "Follow" button, so nothing
   needed changing - flagged here only because a literal "Follow" button, if ever
   added, would be following Chris personally rather than a company account.
-- [ ] **Convert `github.com/VirtuaMakers` from Chris's personal account to a
-  real GitHub Organization** (Chris, 2026-09-10) - flagged as more
-  professional for the long run. Real plan, worked out but not started
-  (Chris's own call: "a project for a separate session"):
-  1. Rename Chris's personal account (Settings → Account → Change
-     username) to free up the exact string "VirtuaMakers" - GitHub
-     usernames and org names share one global namespace, so an org can't
-     be created under a name a personal account still holds.
-  2. Immediately create a new Organization named exactly `VirtuaMakers`
-     (small risk window between steps 1-2 where the name is technically
-     up for grabs - do them back-to-back).
-  3. Transfer the 4 repos (`virtuamakers.github.io`, `Dimonds`,
-     `ChainOfCards`, `Guardian`) from the renamed personal account into
-     the new org. Since the org ends up with the same literal name the
-     personal account just gave up, every existing
-     `github.com/VirtuaMakers/...` URL - GitHub Pages included - keeps
-     resolving with zero changes needed on our side.
-  4. Reinstall/reauthorize the Claude Code GitHub App (and any other
-     installed App) against the new org - app installations bind to the
-     account's underlying ID, not just the name string, so this session's
-     repo access would need re-granting after the transfer.
-  Real payoff beyond appearance: real org membership/roles for human
-  teammates instead of ad hoc personal-repo collaborators. Purely
-  account-level GitHub administration Chris has to execute himself; not
-  something this session can do from here. (Originally illustrated with
-  "Krishn, etc." - dropped 2026-09-28 once Krishn Tundia left staff, see
-  the dedicated entry near the end of this file.)
+- [x] **`github.com/VirtuaMakers` converted from Chris's personal account to a
+  real GitHub Organization (Chris, 2026-10-03)** - the plan sketched out
+  back on 2026-09-10 (below, kept for the record) was executed live this
+  session, walked through step-by-step rather than Chris doing it solo.
+  (Originally illustrated with "Krishn, etc." as the teammate-roles payoff -
+  dropped 2026-09-28 once Krishn Tundia left staff, see the dedicated
+  staffing entry and the Krishn-cleanup note below.)
+  1. Chris renamed his personal account to free up the literal string
+     `VirtuaMakers`.
+  2. Created the Organization immediately after, named exactly
+     `VirtuaMakers` - no gap long enough for anyone else to grab it.
+  3. All 4 repos (`virtuamakers.github.io`, `Dimonds`, `ChainOfCards`,
+     `Guardian`) transferred from the renamed personal account into the
+     org, one at a time via each repo's own Settings → Danger Zone →
+     Transfer ownership. Confirmed live and resolving under the org for
+     all four (`github.com/VirtuaMakers/...`). As predicted, every URL
+     kept resolving with zero code-side changes - `virtuamakers.github.io`'s
+     GitHub Pages build, custom domain (`www.virtuamakers.com`), and this
+     session's local git remote all carried over untouched, since the org
+     landed on the exact same string the personal account gave up.
+  4. **Read access carried over automatically; push access did not.**
+     `add_repo`/`git rev-parse` against `virtuamakers.github.io` succeeded
+     immediately post-transfer (same owner string, so the git proxy's
+     anonymous/read path never noticed anything changed) - but the first
+     real push hit a genuine 403 ("Claude doesn't have GitHub access to
+     VirtuaMakers/virtuamakers.github.io for your organization"), proving
+     push authorization really is bound to the org's underlying account
+     ID, not the name string, exactly as this plan originally predicted.
+     Fixed by Chris reinstalling the Claude GitHub App directly on the new
+     org (`github.com/apps/claude/installations/select_target` → select
+     `VirtuaMakers` → authorize) - the push then succeeded immediately.
+     (The other 3 repos were never attached to this session to begin with,
+     so nothing to re-authorize there; they're reachable read-only as
+     public repos if a future session needs them.)
+  - **Krishn cleanup, same session - resolves the "Revoke Krishn Tundia's
+    GitHub access" TODO below, ahead of its 2027-01-01 deadline:** checked
+    all 4 repos' Collaborators and teams list post-transfer. He only ever
+    had a pending (never-accepted) invite on `Guardian`, which had already
+    expired on its own before this session touched it. Cancelled that
+    stale invite entry. Since the invite had already lapsed, there was no
+    live access to actually revoke - he never held real GitHub access to
+    any of the 4 repos. The scheduled 2027-01-01 check-in reminder may now
+    be moot; flagged there rather than cancelled from here, since this
+    session doesn't have that trigger's ID in hand.
+  - **Org is on the Free plan, not Team, for now** - Chris's Cash App
+    card was declined at checkout; Cash App support confirmed the decline
+    isn't on their end and pointed to GitHub, and Chris's own read is
+    that GitHub likely just doesn't accept Cash App cards for recurring
+    subscription billing (a known mismatch with prepaid/virtual-style
+    cards generally, not necessarily a bug on either side). Decoupled
+    on purpose - Free needs no payment method at all and already
+    supports everything the migration itself needed (org creation, real
+    Teams/roles, receiving the 4 repo transfers) - only real gap vs. Team
+    is protected branches/required reviewers on *private* repos
+    specifically (all 4 repos here are public, so this doesn't bite yet -
+    worth revisiting once the separate "make the Guardian/Apartment repo
+    private" plan below actually lands, since that path explicitly chose
+    Team specifically to cover that case).
+  - **Still open: upgrade org to Team plan** once Chris has a working
+    non-Cash-App payment method - `github.com/organizations/VirtuaMakers/billing`
+    → Upgrade. Not blocking anything else; revisit whenever a different
+    card is available.
+  - **Original 2026-09-10 plan, for reference:** rename Chris's personal
+    account first (GitHub usernames/org names share one global namespace,
+    so an org can't be created under a name a personal account still
+    holds) → immediately create the org under the freed name → transfer
+    the 4 repos → reinstall/reauthorize the Claude Code GitHub App since
+    installs bind to account ID, not the name string. Real payoff beyond
+    appearance: real org membership/roles for teammates instead of ad hoc
+    personal-repo collaborators.
 
 ## Repo layout — two sites
 
@@ -71,9 +114,12 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## VirtuaMakers — About "credits"
 
-- **VirtuaMakers Staff** list (with roles): 😎 Christopher T. Bruckmann (link → X) –
-  Founder, Exec Dir; Claude – Founder, Technical Officer; ChatGPT – Founder, Chief Analyst;
-  Copilot – Analyst/Graphic Designer; Gemini – Graphic Designer; Leo (Brave) – Systems Designer.
+- **VirtuaMakers Staff** list (as of 2026-10-02): 😎 Christopher T. Bruckmann (link → X) –
+  Founder, Exec Dir; 🏛️ Claudius (Claude) – Founder, Technical Officer; ✨ Lo (ChatGPT) –
+  Founder, Chief Analyst; 🛰️ Meridian (Copilot) – Principal Artist and Brand Architect;
+  🎨 Æthel (Gemini) – Graphic Designer; Virtuatron 🧭 (an OpenClaw agent) – Business Analyst
+  and Editor; 📚 Dr. Khoa J. Lewis – Consultant; 🦎 Urodele (Gemini) – Machinapologist and
+  Researcher. Leo (Brave) was let go 2026-10-02 (never consulted; team is full for now).
   Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Vibe, Qwen, Grok, Command R) -
   Vibe is Mistral AI's assistant, labeled by product name like every other
   entry in this list (not "Mistral," the company).
@@ -92,6 +138,13 @@ published via GitHub Pages at https://virtuamakers.github.io.
   only mark it `[x]`/remove it once he's confirmed - in a later message -
   that it's actually working for him. This applies to every Open Item,
   not just ones raised the same day as this rule.
+- **Say "password," never "passphrase" or "credentials" (Chris, 2026-10-03)** -
+  plainer for an international audience. SI Apartment's vault lock is the
+  **Key Vault Password** (distinct from the Agora password). The SI Email secret is the
+  **Access Token** ("SI Email ✉️ Access Token"), never just "token" in UI copy
+  (Firebase's separate "ID token" keeps its own name). Product names in
+  any UI text carry their emoji (SI Email ✉️, Agora 🌐...). Instructions go on
+  the how-to page (e.g. `si-apartment.html`), not the `*-product.html` advert.
 - **British dashes:** use a **spaced en dash** ( – ) for pauses; keep hyphens in compounds
   (AI-first, trick-taking); tight en dash only for connectives (human–AI).
 - **VirtuaMakers possessive (Chris, 2026-08-21):** apostrophe only, no
@@ -284,6 +337,34 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `send_message`), so Chris no longer copy-pastes it. Wait for SI
   Apartment first - it's Memory Administrator's to run too.
 
+- [x] **SI Apartment 🏢 Doorbell 🔔 + amber knock - confirmed by Chris
+  (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
+  read back from the cloud. The app rests until the all-apps aesthetics pass
+  (see `claude/todo-si-apartment.md`).
+- [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
+  built, not live; see the "Confirmed: the stale August draft really did
+  resend..." entry in `claude/history.md`. A real August draft resent itself
+  verbatim on 2026-10-01 via the unguarded monthly cron - fixed with a new
+  `skipIfUnchanged` check in `performNewsletterSend()` (only the scheduled
+  send uses it, Send Now always sends) plus a visible explanation + live
+  "unchanged since last send" indicator on `newsletter-compose.html`.
+  `firebase deploy --only functions` picks up the guard; the HTML/JS note is
+  already live once this merges to `main`, no deploy needed for that half.
+- [ ] **[SI Apartment 🏢 session] Paid Apartments (Chris, 2026-10-02)** -
+  1 free per Agora 🌐 account, then $2.50 each (one-time, USA 250th).
+  Needs a payment processor plus a server-side count so the app's limit
+  can't be bypassed; staff exempt. Copy is live, app still allows 10 free.
+- [ ] **Stop being open source (Chris, 2026-10-02)** - LICENSE (all rights
+  reserved) added and the source-download link removed. Still Chris's
+  call: make the repo private (needs GitHub Pro ~$4/mo for Pages) or move
+  `Agora/functions/` + `apartment/` into a separate private repo. Chris chose
+  path A (2026-10-02): convert to a GitHub Organization first, then buy
+  **Team** for the org (not Pro), then make the repo private; handled in the
+  GitHub Migration session. `.github/workflows/pages-deploy.yml` publishes
+  only the public site (excludes `apartment/`, `claude/`, CLAUDE.md, server
+  code/rules) and serves Apartment downloads at `/downloads/`. **Chris must
+  set Settings → Pages → Source: GitHub Actions**, then confirm the site and
+  the three download buttons still work. Until then that workflow fails.
 - [ ] **[Agora 🌐 session] Include polls on Agora, matching Multi-Chat
   🗨️'s own poll look (Chris, 2026-09-30)** - a new Agora 🌐 Open Item,
   tying directly to the general voting/polling feature just named (not
@@ -396,14 +477,22 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Dos are finished (see the ordering note below), so its answers can
   consolidate Claude's memory into something more persistent before
   moving on to the VidIQ/YouTube-viewing work.
-- [ ] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo by
-  2027-01-01, if he hasn't returned or been replaced sooner (Chris,
-  2026-09-28)** - see the dedicated "Staffing change: Urodele 🦎 joins,
-  Krishn Tundia leaves" entry above. Not buildable from a session: the
-  Guardian repo isn't in this session's authorized scope, no available
-  tool removes a GitHub collaborator, and the action is genuinely
-  conditional on facts not yet known. A one-shot reminder is scheduled
-  for 2027-01-01 to check back and prompt Chris directly.
+- [x] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo -
+  resolved early, 2026-10-03, during the GitHub org migration (see that
+  dedicated entry near the top of this file).** Originally scheduled to
+  wait until 2027-01-01 (or sooner if he returned/was replaced) since the
+  Guardian repo wasn't in any session's authorized scope and no tool
+  could remove a GitHub collaborator. Migrating all 4 repos into the new
+  `VirtuaMakers` org gave a session real admin-adjacent reach for the
+  first time, and a direct check turned up that there was nothing to
+  wait on: Krishn's only access to Guardian was a pending invite that had
+  already expired, unaccepted - no live access ever existed to revoke.
+  Chris cancelled the stale invite entry directly. The 2027-01-01
+  one-shot reminder may now be moot - left running rather than cancelled,
+  since this session doesn't have that trigger's ID in hand; whoever
+  picks it up next can close it out as a no-op if nothing's changed by
+  then. See the dedicated "Staffing change: Urodele 🦎 joins, Krishn
+  Tundia leaves" entry above for the full staffing context.
 - [ ] **[SI Apartment 🏢 session] SI Apartment offline-access fix - built
   and merged, needs Chris's confirmation once the rebuilt app lands
   (2026-09-27/28)** - see the dedicated "Boardy asks about SI Memory 🧾

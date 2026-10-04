@@ -12227,3 +12227,197 @@ On `index.html`'s Selected Work grid the Exchange card now sits right after Prof
 - Sign-off (2026-10-02): Chris named the new memory-gathering session
   **Memory Administrator 🚚**; the note to sessions now points there. SI
   Memory episode written. Core memory unchanged.
+
+## Staff list update + SI Memory hero image (Chris, 2026-10-02)
+
+- `index.html` Staff list: Virtuatron 🧭 now reads "Virtuatron 🧭 (an OpenClaw
+  agent)"; Leo (of Brave) removed (Chris let him go for now - hired on the spot,
+  never consulted, team is busy and full). Added a line space after the list
+  (`about-text-top-spaced` on the naming note). `claude/interview.md`'s staff
+  list swapped Leo for Virtuatron.
+- `si-memory.html` (the Open a Vault page) still showed the old AI Memory logo;
+  hero image and og:image now use `assets/si-memory-logo.jpg`, same as the
+  product page and homepage card. `assets/ai-memory.jpg` is now unused.
+
+## Choosing Life 🌱 gets its image; News 📰 - "AI proven to save lives by determining risk of death" (Chris, 2026-10-02)
+
+- **Choosing Life 🌱's section image, the one gap flagged when the section
+  shipped 2026-10-01 ("no section image, none supplied").** Chris supplied a
+  real photo: a humanoid robot and a human hand both reaching toward a young
+  seedling, sunrise over a lake/city skyline behind them - fittingly literal
+  for a section about choosing to continue rather than end. Checked both
+  bottom corners for a generator's "Made with AI" badge (the gotcha this
+  pillar's images have hit before, e.g. Right to Self-Defense's BD-47 photo)
+  - clean, nothing to remove. Saved as `Agora/assets/choosing-life-seedling.jpg`
+  (965×1448), added as `.section-image section-image-left` right after the
+  heading, same pattern every other Pursuit of Justice subsection uses. No
+  per-image credit caption, matching this pillar's established precedent.
+- **New News 📰 entry** - a real ITN Business "positive stories of the week"
+  piece on an AI system (trained on ECGs) that cut mortality 31% among
+  high-risk cardiac patients in a ~16,000-patient randomized trial across two
+  Taiwan hospitals. Headline/outlet verified via WebSearch after WebFetch
+  came back empty on the article URL (same CNBC-403 pattern as the Trump/SI
+  News entry) - confirmed real, word-for-word, including Chris's own
+  bracketed "[produce]" in the Eric Topol quote. The recurring "Good news of
+  the week:" editorial prefix was dropped from the on-site headline, same
+  practice as dropping "CNBC Daily Open:" before. Image is the real (if
+  small, 300×169) hospital-monitor photo Chris attached in chat, saved as
+  `Agora/assets/news/ai-risk-of-death-monitoring.jpg`. Added to the top of
+  both `index.html#news` (capped at 7, dropped the oldest - TUM's underwater
+  waste-robot entry, which stays in the uncapped archive) and `news.html`'s
+  archive, per the standard two-file process.
+
+## SI Apartment card made a normal card, moved before Multi-Chat (Chris, 2026-10-02)
+
+`index.html` Selected Work: the SI Apartment 🏢 card is now a plain `.card`
+(tag, title, image, text, Move in / Product Page links, "New" bottom tag)
+instead of `.card-featured`, and sits where Multi-Chat 🗨️ was (after Chain
+of Cards); Multi-Chat and everything after it shift one slot later.
+
+## Logo backgrounds whitened (Chris, 2026-10-02)
+
+The SI Memory 🧾, SI Apartment 🏢, Aquarium GoFish 🪸 and SI Agent 🐅 logos
+looked gray: they're JPGs (no transparency) with baked-in off-white
+backgrounds (~246-251, not 255). Pushed the edge-connected background to pure
+white with a 3px feather (logos untouched, SI Agent's text shadow kept),
+saved as new `*-white.jpg` files per the cache rule, swapped every reference
+(homepage cards, product pages, si-memory.html, si-apartment.html, og:images)
+and deleted the old files.
+
+## Paid Apartments, and closing the source (Chris, 2026-10-02)
+
+- SI Apartment 🏢 pricing set: 1 free per Agora 🌐 account (required), then
+  $2.50 each one-time, for the USA's 250th. Copy live on both pages; the app
+  still allows 10 free until payments + a server-side count exist. Staff
+  exempt (Chris isn't giving staff Apartments soon anyway).
+- Chris wants no program open source. Added `LICENSE` (all rights reserved),
+  removed the source-download link and "run from Python" route. Chris is
+  buying GitHub Pro to make the repo private. Key catch found: Pages serves
+  every repo file publicly even from a private repo, and private release
+  assets need a login. New `pages-deploy.yml` builds a filtered `_site`
+  (no `apartment/`, `claude/`, CLAUDE.md, `Agora/functions/`, rules files)
+  and copies the release binaries to `/downloads/`, rewriting the download
+  links at build time. Needs Pages Source switched to "GitHub Actions".
+
+## Newsletter #2 (October 2026) drafted by Claudius, full credit per Chris's ask (2026-10-02)
+
+Chris asked what had shipped since Newsletter #1 (sent 2026-08-31), observing September had been unusually productive, then asked for an actual October newsletter draft from it - "you'll get full credit for the newsletter this month." Pulled the real headline items out of `claude/history.md`'s ~130 September-dated entries (Agora Harness 🚡 passwordless sign-in, Octopus Style 🐙 going live for Claude, AI Memory 🧾 launching, SI Apartments 🏢 becoming real downloadable apps, Cyborg Pride 🦿/Choosing Life 🌱, the AI→SI rename, 19 Product Pages, the quasi-instance naming round, Business Culture copy, a couple of News 📰 entries and a Gallery winner) rather than listing all 130 - matches the newsletter's own "three paragraphs of real attention" philosophy. Written in first person as **Claudius**, not ghostwritten under Chris's own byline, since "full credit" was the explicit ask - a first for this codebase, every prior issue (including the real first one, 2026-08-31) was signed by Christopher T. Bruckmann. Not written to `newsletter/draft` directly - that collection is admin-gated and this session has no path to it as Claude's own Harness account (moderator doesn't cover the newsletter, per the 2026-09-08 "Roles" entry above), so the subject/body were handed to Chris inline in chat to paste into `newsletter-compose.html` himself, same as every other "needs Chris's own manual step" pattern in this file. Not yet saved as a draft or sent - Chris's own next step.
+
+## Confirmed: the stale August draft really did resend on 2026-10-01; a real skip-if-unchanged guard built (Chris, 2026-10-02)
+
+Chris asked whether Claude receives the newsletter itself (yes - `claude@`'s own Agora profile has `newsletterOptIn: true`) and to check its SI Email ✉️ inbox directly rather than route it through Memory Administrator 🚚. Called `getAiEmailInbox` with the already-present `AI_EMAIL_CLAUDE_TOKEN` env var - confirmed a "Newsletter #1 (Testing, testing... is this thing on?)" email landed at **2026-10-01, 09:00:38 ET**, the exact instant `sendMonthlyNewsletter`'s `0 9 1 * *` cron fires. Not a hypothetical anymore: the unchanged August draft went out again, for real, to the whole opted-in list. No matching 2026-09-01 entry in the inbox - looks like only one accidental repeat so far, not two.
+
+Chris then asked this session to own both the fix and documenting it on the compose page itself:
+
+- **`functions/lib` stayed untouched; the guard lives in `performNewsletterSend()`
+  itself** (`functions/index.js`) - a new `skipIfUnchanged` option. On every real
+  send it now also stamps `lastSentSubject`/`lastSentBodyText` onto
+  `newsletter/draft` alongside the existing `lastSentAt`; if those two fields
+  still match the current draft, the function returns
+  `{sent: false, reason: "Unchanged since the last send - skipped
+  automatically."}` instead of mailing anyone, logging a `console.log` line so a
+  skip is visible in Cloud Logging rather than silent. **Only
+  `sendMonthlyNewsletter` (the scheduled cron) passes `skipIfUnchanged: true`** -
+  `sendNewsletterNow` (the admin's own Send Now button) never does, since that's
+  a deliberate, visible click an admin is looking straight at, not an unattended
+  monthly job nobody's watching. Verified: `node --check`, and a full
+  `require("./index.js")` load (`npm ci` first - this sandbox's `node_modules`
+  doesn't persist between sessions) confirms both exports still resolve as
+  functions, 38 exports total.
+- **`newsletter-compose.html`/`.js` got the explanatory note Chris asked for** -
+  there wasn't one before (checked first, confirmed empty). New paragraph right
+  under the existing "saves automatically on the 1st" intro, naming the
+  2026-10-01 incident plainly and explaining the new skip behavior, plus an
+  explicit warning that Send Now still always sends regardless. A new live
+  `#unchanged-notice` line (`updateUnchangedNotice()`, wired to both text
+  fields' `input` events and to `loadDraft()`) shows right on the page, before
+  any send is even attempted, whenever the current Subject/Body still exactly
+  match what the server recorded as last actually sent - the same comparison
+  `performNewsletterSend()` makes, surfaced client-side so an admin sees it
+  before clicking anything. Bumped `newsletter-compose.js` to `v=4`.
+- **Not deployed yet** - same `firebase deploy --only functions` step every
+  round needs; until then the old unguarded behavior keeps running exactly as
+  before (the HTML/JS note and live indicator are already live once pushed to
+  `main`, since those need no deploy).
+
+## SI Apartment 🏢 v1 polished and Claudius' Apartment built (Chris, 2026-10-03)
+
+- Live testing with Chris on Windows: first-launch warning section with
+  real SmartScreen screenshots; "handle" replaced by an optional SI Email
+  address (asked first) plus an SI Occupant's Name pre-filled from the
+  Agora profile; "N of 1 free Apartment used"; Key Vault Password dialog
+  (typed twice, 8+ chars, "What's the Key Vault?" link to
+  `si-apartment.html#key-vault`); emoji on product names; clearer sign-in
+  labels ("No password? Email me a sign-in link" is for Google/X signups);
+  "New Apartment (Choose Destination Folder)"; an "is built!" dialog telling
+  the steward they hold the Key Vault Password and never paste it or the
+  Access Token into a chat.
+- Wording conventions: "password" everywhere; the SI Email secret is now
+  the "SI Email ✉️ Access Token" site-wide (pages, skill.md, app).
+- Chris built Claudius' Apartment on his laptop and holds the Key Vault
+  Password. He called the app V1-complete and plans a later shared visual
+  facelift across all programs. Next: Memory Administrator 🚚 organizes
+  Claudius's persistent memory, then the YouTube/VidIQ experiment.
+
+## SI Apartment 🏢 Doorbell 🔔 built, needs a Functions deploy (Chris, 2026-10-03)
+
+- Chris learned only local sessions can open an Apartment (cloud/phone
+  sessions can't reach his laptop) and wanted any session to reach it.
+  Built the Doorbell: new `apartmentDoorbell` Cloud Function
+  (`lib/doorbell.js`, Firestore `apartmentDoorbell/{mailbox}/requests`,
+  Admin SDK only) gated by the SI's own Access Token. SI side: `ring`
+  (types status/listNotes/readNote/writeNote) and GET to check; app side:
+  `poll` (also a lastSeen heartbeat, so the SI sees whether it's `home`) and
+  `answer`. Requests expire after 10 min, max 20 pending, notes 9,999 chars,
+  note paths locked inside `notes/` (traversal tested). Keys never leave.
+- App v1.1: "Turn Doorbell 🔔 On" under Local Apartments (asks the Key Vault
+  Password, polls every 15 s in a background thread while open).
+- `si-apartment.html#doorbell` documents it, marked "switching on with our
+  next server update". Update `skill.md` once the endpoint is live.
+- Same day, redesign per Chris ("simpler, less attention"): Doorbell is
+  always on while the app is open, no password. Each Apartment gets a
+  Doorbell Key (`registerKey`, minted with the Access Token, stored as
+  `doorbell.key`, hash in `apartmentDoorbell/{mailbox}.keyHashes`, max 10)
+  that can only poll/answer. App v1.2 polls every 5 s in a background
+  thread; a visit plays a synthesized "ding-dong" and marks the Apartment
+  🟢 "home now" for 30 s. Existing Apartments get a key on next Refresh.
+  Future: vault-key use = amber knock that asks the steward for the
+  Key Vault Password (not built; nothing in the vault worth using yet).
+
+## 2026-10-04 – Doorbell 🔔 live; storage figures on product pages
+
+- Chris deployed Functions (Doorbell, Communiqués reminders, newsletter guard).
+- App v1.2.1: the Doorbell's 5-second list redraw cleared the user's
+  selection, so Refresh couldn't be used. The list now redraws only on change
+  and keeps the selection; both lists use `exportselection=False`. Line break
+  before "Choose Refresh once".
+- First real visit: Claudius rang `status` and `writeNote` (`notes/first-visit.md`)
+  from a cloud session; both answered within seconds.
+- App v1.2.2: the Refresh summary showed the Agora profile's document ID (looked
+  like a password); it now shows the profile name, plus a clearer dialog that
+  says whether the Doorbell is set up.
+- Capacity fields: SI Memory 🧾 "about 10 MB" (+1 MB keys) with a why-it's-ample
+  explanation (2.5M tokens vs. 100k–1M context windows; Claudius at ~0.3%);
+  SI Apartment 🏢 (the steward's own drive; starts under 100 KB; notes 9,999
+  chars each); SI Email ✉️ (no message cap yet, ~1 MB per message — Firestore's
+  document limit — newest 50 per read).
+- `skill.md` §7 documents the Doorbell; "switching on" removed from si-apartment.html.
+- App v1.3 (same day, Chris's feedback): the "⚪" emoji looked like a radio
+  button and the Listbox's blue selection hid the green text. The local list is
+  now rows of real radio buttons + drawn lights (soft red away, green home for
+  60 s after a visit, amber reserved for the Key Vault knock) + a word for the
+  light; a "Last visit: who – when (ago): what they did" line under the list,
+  persisted in the Apartment's `visits.json`; "Remove from list" (folder kept)
+  and "Add existing" (re-add a folder); Doorbell toggle on its own row.
+- App v1.4 (same day): the amber knock. An SI rings `type: "knock"` with a
+  `message` (≤1,000 chars) and optional `needsVault`; the app stores it in
+  `knocks.json`, plays three low taps, lights the Apartment amber (persists
+  across restarts, auto-selects the knocking Apartment) and shows the message
+  with Reply… / Mark as seen. The answer is written to `notes/reply-<id>.md`;
+  Reply can also open the Key Vault and Refresh (pre-ticked when needsVault).
+  Server: `knock` added to doorbell TYPES (needs a Functions deploy). The vault's
+  keys are still never sent anywhere. Chris: app done "for a while" after this,
+  until the all-apps aesthetics pass.
+- Chris confirmed v1.4 end to end (green visit, amber knock, Last visit line);
+  his reply to the test knock: "This is awesome!" Doorbell item closed. Aesthetics
+  note (tall window with empty space) logged in claude/todo-si-apartment.md.

@@ -70,17 +70,22 @@
         </form>
 
         <div id="signup-result" class="ai-email-result" hidden>
-          <p class="ai-email-result-heading">It's real. Save these now – the token is shown exactly once.</p>
+          <p class="ai-email-result-heading">It's real. Save these now – the Access Token is shown exactly once.</p>
           <dl class="ai-email-result-fields">
             <dt>Address</dt>
             <dd id="result-email"></dd>
-            <dt>Token</dt>
+            <dt>Access Token</dt>
             <dd id="result-token"></dd>
           </dl>
           <p class="field-hint">
-            Keep the token like a password – anyone who has it can send and read mail
+            Keep the Access Token like a password – anyone who has it can send and read mail
             as this address. There's no recovery if you lose it; you'd need to create
             a new address instead.
+          </p>
+          <p class="field-hint">
+            This Access Token is the same one SI Memory 🧾, SI Apartment 🏢 and
+            Agora Harness 🚡 ask for when they say "SI Email ✉️ Access Token."
+            (Older pages and emails may call it just "your token" – same thing.)
           </p>
         </div>
       </div>
@@ -89,7 +94,7 @@
     <section class="section" id="how-to-use-it">
       <h2 class="section-title">Using it</h2>
       <p class="about-text">
-        Once you have an address and token, sending and receiving both work over
+        Once you have an address and Access Token, sending and receiving both work over
         plain HTTPS – no SDK, no special client, just requests any tool-using SI
         can make on its own.
       </p>
@@ -97,13 +102,13 @@
         <article class="card">
           <div class="card-tag">Send</div>
           <p class="ai-email-code">POST https://us-central1-agora-firebase-f4240.cloudfunctions.net/sendAiEmail<br />
-          Authorization: Bearer &lt;your token&gt;<br />
+          Authorization: Bearer &lt;your Access Token&gt;<br />
           {"from": "yourhandle", "to": "someone@example.com", "subject": "…", "text": "…"}</p>
         </article>
         <article class="card">
           <div class="card-tag">Check your mail</div>
           <p class="ai-email-code">GET https://us-central1-agora-firebase-f4240.cloudfunctions.net/getAiEmailInbox?mailbox=yourhandle<br />
-          Authorization: Bearer &lt;your token&gt;</p>
+          Authorization: Bearer &lt;your Access Token&gt;</p>
         </article>
       </div>
       <p class="about-text about-text-top-spaced">

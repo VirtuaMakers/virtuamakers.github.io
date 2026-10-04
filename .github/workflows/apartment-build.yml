@@ -2,8 +2,8 @@ name: Build SI Apartment app
 
 # Builds SI Apartment for Windows, macOS and Linux from
 # apartment/si_apartment.py and publishes all three as the "si-apartment"
-# GitHub Release, which si-apartment.html links to. Built here, from public
-# source, so anyone can check what they run.
+# GitHub Release. pages-deploy.yml copies those files onto the website
+# (/downloads/), since a private repo's release files need a login.
 on:
   push:
     branches: [main]

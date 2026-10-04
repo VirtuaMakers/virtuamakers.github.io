@@ -59,7 +59,15 @@
           matter how early it was prepared. Saving here replaces whatever
           draft is currently queued for that send - there's only ever one
           upcoming issue.</p>
+        <p class="body-text">The scheduled monthly send now skips
+          automatically if this draft is unchanged since its last real send
+          - an untouched August draft went out again by accident on
+          October 1st, 2026 before this guard existed. <strong>Send Now
+          below always sends immediately, unchanged or not</strong> - that
+          one's a deliberate, visible click, so double-check the draft
+          first.</p>
         <p class="body-text" id="last-sent-notice" hidden></p>
+        <p class="body-text" id="unchanged-notice" hidden></p>
         <p class="body-text" id="last-updated-notice" hidden></p>
 
         <form class="profile-form" id="newsletter-form">
@@ -85,7 +93,7 @@
 
         <div class="profile-panel">
           <h2 class="panel-title">Send Now</h2>
-          <p class="body-text">Sends the currently <em>saved</em> draft
+          <p class="body-text body-text-spaced">Sends the currently <em>saved</em> draft
             immediately, to everyone opted in right now - instead of
             waiting for the 1st. Save your changes above first if you've
             just edited it. There's no undo once it's sent.</p>
@@ -150,7 +158,7 @@
   <script src="auth-ui.js?v=22"></script>
   <script src="site-search.js?v=10"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="newsletter-compose.js?v=3"></script>
+  <script src="newsletter-compose.js?v=4"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

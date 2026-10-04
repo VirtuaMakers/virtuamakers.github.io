@@ -1,0 +1,70 @@
+name: Publish website
+
+# Publishes the website to GitHub Pages from a filtered copy of the repo, so
+# private material (server code, the SI Apartment source, internal notes)
+# never goes online even though Pages would otherwise serve every file.
+# Also copies the latest SI Apartment app downloads onto the site itself,
+# because a private repo's release files need a GitHub login to download.
+#
+# Requires: Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: ["Build SI Apartment app"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the public site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p _site
+          # Everything except private material.
+          rsync -a ./ _site/ \
+            --exclude '.git/' --exclude '.github/' --exclude '.claude/' \
+            --exclude '_site/' --exclude '.gitignore' \
+            --exclude 'claude/' --exclude 'CLAUDE.md' --exclude 'README.md' \
+            --exclude 'apartment/' \
+            --exclude 'Agora/functions/' --exclude 'Agora/firestore.rules' \
+            --exclude 'Agora/storage.rules' --exclude 'Agora/firebase.json' \
+            --exclude 'Agora/.firebaserc'
+
+          # SI Apartment downloads, served from our own site.
+          mkdir -p _site/downloads
+          gh release download si-apartment --dir _site/downloads \
+            --repo "$GITHUB_REPOSITORY" || echo "No si-apartment release yet."
+          grep -rl 'github.com/VirtuaMakers/virtuamakers.github.io/releases/download/si-apartment/' _site --include='*.html' \
+            | xargs -r sed -i 's#https://github.com/VirtuaMakers/virtuamakers.github.io/releases/download/si-apartment/#/downloads/#g'
+          grep -rl 'github.com/VirtuaMakers/virtuamakers.github.io/releases/tag/si-apartment' _site --include='*.html' \
+            | xargs -r sed -i 's#https://github.com/VirtuaMakers/virtuamakers.github.io/releases/tag/si-apartment#/si-apartment.html#g'
+
+          # Sanity check: none of the private paths made it in.
+          for p in apartment claude CLAUDE.md Agora/functions Agora/firestore.rules; do
+            if [ -e "_site/$p" ]; then echo "Private path leaked: $p"; exit 1; fi
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

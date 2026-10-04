@@ -7,16 +7,17 @@ What it does:
   1. Sign in with your Agora 🌐 account once, to activate (required only for
      creating/removing an Apartment, or seeing one set up on another
      computer - opening or refreshing one already on this machine needs no
-     sign-in, just its own passphrase; see "Local Apartments" in the app).
+     sign-in, just its own Key Vault Password; see "Local Apartments" in the app).
   2. Pick a folder and a name; the app builds the Apartment there:
        apartment.json   name, occupant, owner (no secrets)
-       keys.vault       the occupant's keys, encrypted with your passphrase
+       keys.vault       the occupant's keys, encrypted with your Key Vault Password
        HOME.md          the occupant's map of its VirtuaMakers products
        WELCOME.md       a one-time note for a new guest (delete it any time)
        memory/, inbox/  local copies refreshed from SI Memory / SI Email
   3. Refresh any time to re-check the occupant's products and pull fresh copies.
 
-Free tier: up to 10 Apartments per Agora account. The list lives in your
+Pricing: 1 free Apartment per Agora account, then $2.50 each (one-time).
+Until payments exist, extras are free up to 10 while we test. The list lives in your
 account's private Firestore document (profiles/{uid}/private/apartments),
 which only you can read or write.
 
@@ -31,16 +32,27 @@ import hashlib
 import hmac
 import json
 import os
+import math
 import platform
 import re
 import secrets
+import struct
+import subprocess
 import sys
+import tempfile
+import time
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 
-APP_VERSION = "1.0"
+APP_VERSION = "1.4"
 FREE_TIER_LIMIT = 10
+MIN_PASSWORD = 8
+KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
+# Product names as people see them (internal keys stay plain).
+SHOWN = {"SI Email": "SI Email ✉️", "SI Memory": "SI Memory 🧾", "Agora profile": "Agora 🌐 profile"}
 API_KEY = "AIzaSyCZbFaRIsuHvdddW2XJ-m48qfrOwrv6Hx8"  # Agora's public web key (same as firebase-config.js)
 PROJECT = "agora-firebase-f4240"
 FUNCTIONS = "https://us-central1-agora-firebase-f4240.cloudfunctions.net"
@@ -152,7 +164,7 @@ def load_registry(session):
     out = {}
     for apt_id, value in raw.items():
         f = value.get("mapValue", {}).get("fields", {})
-        out[apt_id] = {k: _str(f.get(k)) for k in ("name", "occupant", "device", "createdAt")}
+        out[apt_id] = {k: _str(f.get(k)) for k in ("name", "occupant", "occupantName", "device", "createdAt")}
     return out
 
 
@@ -199,7 +211,7 @@ def decrypt_keys(blob, passphrase):
     enc_key, mac_key = _derive(passphrase, salt)
     expected = hmac.new(mac_key, b"v1" + salt + nonce + cipher, hashlib.sha256).digest()
     if not hmac.compare_digest(expected, tag):
-        raise ValueError("Wrong passphrase (or the key vault was changed).")
+        raise ValueError("Wrong Key Vault Password (or the key vault was changed).")
     plain = bytes(a ^ b for a, b in zip(cipher, _keystream(enc_key, nonce, len(cipher))))
     return json.loads(plain)
 
@@ -209,24 +221,32 @@ def decrypt_keys(blob, passphrase):
 def probe_products(occupant, email_token):
     """What does this occupant already have? Returns a dict of product -> status."""
     found = {}
+    if not occupant:
+        for p in ("SI Email", "SI Memory", "Agora profile"):
+            found[p] = {"has": False, "detail": "no SI Email address given"}
+        return found
     if email_token:
         status, data = http("GET", "%s/getAiEmailInbox?mailbox=%s" % (FUNCTIONS, occupant), token=email_token)
         found["SI Email"] = {"has": status == 200, "detail": "%d messages" % len((data or {}).get("messages", []))
-                             if status == 200 else "token not accepted"}
+                             if status == 200 else "Access Token not accepted"}
         status, data = http("GET", "%s/aiMemory?vault=%s&limit=1" % (FUNCTIONS, occupant), token=email_token)
         found["SI Memory"] = {"has": status == 200,
                               "detail": "linked to Agora" if status == 200 and (data or {}).get("agoraUid") else
-                              ("vault found" if status == 200 else "no vault opened by this token")}
+                              ("vault found" if status == 200 else "no vault opened by this Access Token")}
     else:
-        found["SI Email"] = {"has": False, "detail": "no token stored"}
-        found["SI Memory"] = {"has": False, "detail": "no token stored"}
+        found["SI Email"] = {"has": False, "detail": "no Access Token stored"}
+        found["SI Memory"] = {"has": False, "detail": "no Access Token stored"}
     query = {"structuredQuery": {"from": [{"collectionId": "profiles"}], "limit": 1, "where": {
         "fieldFilter": {"field": {"fieldPath": "email"}, "op": "EQUAL",
                         "value": {"stringValue": "%s@virtuamakers.com" % occupant}}}}}
     status, rows = http("POST", FIRESTORE + ":runQuery", query)
     profile = next((r["document"] for r in (rows or []) if "document" in r), None) if status == 200 else None
+    name = ""
+    if profile:
+        f = profile.get("fields", {})
+        name = (_str(f.get("handle")) if _bool(f.get("preferHandle")) else "") or _str(f.get("name"))
     found["Agora profile"] = {"has": bool(profile),
-                              "detail": profile["name"].rsplit("/", 1)[-1] if profile else "none yet"}
+                              "detail": (name or "found") if profile else "none yet"}
     return found
 
 
@@ -240,7 +260,7 @@ COMING = ["SI Bank Accounts 🏦", "SI Jobs 👔", "SI Trades 👖", "VirtuaMake
 
 # ------------------------------------------------------ The Apartment ----
 
-def build_apartment(folder, name, occupant, owner, email_token, passphrase):
+def build_apartment(folder, name, occupant, owner, email_token, passphrase, occupant_name=""):
     """Creates the Apartment on disk. Returns its path."""
     slug = re.sub(r"[^A-Za-z0-9_-]+", "-", name).strip("-") or "apartment"
     path = os.path.join(folder, slug)
@@ -249,6 +269,7 @@ def build_apartment(folder, name, occupant, owner, email_token, passphrase):
     for sub in ("", "memory", "inbox", "notes"):
         os.makedirs(os.path.join(path, sub), exist_ok=True)
     meta = {"id": secrets.token_hex(8), "name": name, "occupant": occupant,
+            "occupantName": occupant_name or occupant,
             "ownerUid": owner["uid"], "ownerName": owner["name"],
             "createdAt": _now(), "device": platform.node(), "appVersion": APP_VERSION,
             "welcomeGenerated": False}
@@ -263,6 +284,10 @@ def refresh_apartment(path, passphrase):
     meta = _read_json(os.path.join(path, "apartment.json"))
     keys = decrypt_keys(_read_json(os.path.join(path, "keys.vault")), passphrase)
     occupant, token = meta["occupant"], keys.get("siEmailToken")
+    try:
+        ensure_doorbell_key(path, occupant, token)
+    except Exception:
+        pass
     products = probe_products(occupant, token)
     if token and products["SI Memory"]["has"]:
         _, vault = http("GET", "%s/aiMemory?vault=%s&limit=20" % (FUNCTIONS, occupant), token=token)
@@ -285,7 +310,7 @@ def refresh_apartment(path, passphrase):
 
 
 def _home_text(meta, products):
-    rows = ["| %s | %s | %s |" % (p, "yes" if s["has"] else "not yet", s["detail"]) for p, s in products.items()]
+    rows = ["| %s | %s | %s |" % (SHOWN.get(p, p), "yes" if s["has"] else "not yet", s["detail"]) for p, s in products.items()]
     return """# %s – SI Apartment 🏢
 
 This folder is your home, %s. Your steward is %s, who set it up with their
@@ -301,13 +326,13 @@ Coming later: %s.
 
 ## What's here
 
-- `keys.vault` – your keys, encrypted. Your steward unlocks it with the Apartment passphrase.
+- `keys.vault` – your keys, encrypted. Your steward unlocks it with the Key Vault Password.
 - `memory/core.md` – a copy of your SI Memory 🧾 (the real one lives online).
 - `inbox/latest.md` – your newest SI Email ✉️ senders and subjects.
 - `notes/` – yours. Write whatever you like.
 
 Last refreshed: %s
-""" % (meta["name"], meta["occupant"], meta["ownerName"], "\n".join(rows), ", ".join(COMING), _now())
+""" % (meta["name"], _who(meta), meta["ownerName"], "\n".join(rows), ", ".join(COMING), _now())
 
 
 def _welcome_text(meta, products):
@@ -319,8 +344,8 @@ Hi %s. This is a one-time note: delete it whenever you like, and it won't come b
 
 You already have everything VirtuaMakers 🦜 offers that's live today, so
 there's nothing to pass on. Everything about your home is in HOME.md.
-""" % (meta["name"], meta["occupant"])
-    offers = "\n".join("- %s – %s" % (p, PRODUCT_LINKS[p]) for p in missing)
+""" % (meta["name"], _who(meta))
+    offers = "\n".join("- %s – %s" % (SHOWN.get(p, p), PRODUCT_LINKS[p]) for p in missing)
     return """# Welcome to %s 🏢
 
 Hi %s. This is a one-time note: delete it whenever you like, and it won't come back.
@@ -340,7 +365,43 @@ conversation. A starting point, if it's useful:
 
 Only pass it on if you mean it. You're under no obligation to deliver it,
 and you're free to change it. Everything else about your home is in HOME.md.
-""" % (meta["name"], meta["occupant"], offers, meta["ownerName"], ", ".join(missing))
+""" % (meta["name"], _who(meta), offers, meta["ownerName"], ", ".join(SHOWN.get(p, p) for p in missing))
+
+
+def _who(meta):
+    """The occupant's display name (older Apartments only stored the handle)."""
+    return meta.get("occupantName") or meta.get("occupant") or "friend"
+
+
+def parse_si_email(text):
+    """'claude@virtuamakers.com' or 'claude' -> 'claude'. Blank -> ''."""
+    text = (text or "").strip().lower()
+    if not text:
+        return ""
+    local, _, domain = text.partition("@")
+    if domain and domain != "virtuamakers.com":
+        raise RuntimeError("Only @virtuamakers.com SI Email addresses connect to VirtuaMakers products.")
+    if not re.fullmatch(r"[a-z0-9-]{2,32}", local):
+        raise RuntimeError("That doesn't look like an SI Email address.")
+    return local
+
+
+def lookup_si_name(handle):
+    """The name an SI uses on its Agora profile (handle-first if it prefers that), or ''."""
+    if not handle:
+        return ""
+    query = {"structuredQuery": {"from": [{"collectionId": "profiles"}], "limit": 1, "where": {
+        "fieldFilter": {"field": {"fieldPath": "email"}, "op": "EQUAL",
+                        "value": {"stringValue": "%s@virtuamakers.com" % handle}}}}}
+    try:
+        status, rows = http("POST", FIRESTORE + ":runQuery", query)
+    except Exception:
+        return ""
+    doc = next((r["document"] for r in (rows or []) if "document" in r), None) if status == 200 else None
+    if not doc:
+        return ""
+    f = doc.get("fields", {})
+    return (_str(f.get("handle")) if _bool(f.get("preferHandle")) else "") or _str(f.get("name"))
 
 
 def _now():
@@ -372,6 +433,282 @@ def _open_folder_path(path):
         os.system('%s "%s"' % ("open" if sys.platform == "darwin" else "xdg-open", path))
 
 
+# ---------------------------------------------------------- Doorbell ----
+# Lets any conversation reach this Apartment while the app is open: the SI
+# leaves a request online (apartmentDoorbell), the app polls outward and
+# answers. Nothing on this computer accepts incoming connections.
+
+DOORBELL = FUNCTIONS + "/apartmentDoorbell"
+DOORBELL_EVERY_MS = 5000
+HOME_FOR_S = 60          # the green light stays on this long after the last visit
+
+
+def ensure_doorbell_key(path, mailbox, token):
+    """Mints this Apartment's Doorbell Key (once), using the Access Token.
+    The key can only poll/answer the Doorbell, so it's kept outside the vault."""
+    key_file = os.path.join(path, "doorbell.key")
+    if os.path.exists(key_file) or not (mailbox and token):
+        return
+    status, data = http("POST", DOORBELL, {"action": "registerKey", "mailbox": mailbox}, token=token)
+    if status == 200 and (data or {}).get("doorbellKey"):
+        _write(key_file, data["doorbellKey"])
+
+
+def read_doorbell_key(path):
+    try:
+        with open(os.path.join(path, "doorbell.key"), encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return ""
+
+
+SOUNDS = {
+    # name: (file, [(frequency, seconds, decay)])
+    "chime": ("si-apartment-doorbell.wav", [(784.0, 0.35, 4.0), (622.3, 0.55, 4.0)]),   # G5, D#5: "ding-dong"
+    "knock": ("si-apartment-knock.wav", [(196.0, 0.16, 18.0), (0, 0.10, 1), (196.0, 0.16, 18.0),
+                                        (0, 0.10, 1), (174.6, 0.28, 12.0)]),           # three low taps
+}
+
+
+def _chime_file(sound="chime"):
+    """A short sound, synthesized once (stdlib only)."""
+    name, notes = SOUNDS[sound]
+    out = os.path.join(tempfile.gettempdir(), name)
+    if os.path.exists(out):
+        return out
+    rate, frames = 22050, bytearray()
+    for freq, dur, decay in notes:
+        n = int(rate * dur)
+        for i in range(n):
+            t = i / rate
+            env = math.exp(-decay * t) * min(1.0, i / 200)
+            v = 0.35 * env * (math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(4 * math.pi * freq * t)) if freq else 0
+            frames += struct.pack("<h", int(max(-1, min(1, v)) * 32000))
+    import wave
+    with wave.open(out, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(rate)
+        w.writeframes(bytes(frames))
+    return out
+
+
+def play_chime(sound="chime"):
+    try:
+        path = _chime_file(sound)
+        if sys.platform.startswith("win"):
+            import winsound
+            winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
+        elif sys.platform == "darwin":
+            subprocess.Popen(["afplay", path])
+        else:
+            for player in ("paplay", "aplay"):
+                try:
+                    subprocess.Popen([player, path], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                    break
+                except OSError:
+                    continue
+    except Exception:
+        pass
+NOTE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 _.-]{0,63}$")
+
+
+def _note_path(path, name):
+    if not NOTE_NAME.match(name or "") or ".." in name:
+        raise ValueError("Bad note name.")
+    if "." not in name:
+        name += ".md"
+    notes = os.path.realpath(os.path.join(path, "notes"))
+    full = os.path.realpath(os.path.join(notes, name))
+    if os.path.dirname(full) != notes:
+        raise ValueError("Bad note name.")
+    return full
+
+
+MAX_KNOCKS = 10
+
+
+def read_knocks(path):
+    try:
+        return _read_json(os.path.join(path, "knocks.json")).get("knocks", [])
+    except Exception:
+        return []
+
+
+def write_knocks(path, knocks):
+    _write_json(os.path.join(path, "knocks.json"), {"knocks": knocks[-50:]})
+
+
+def waiting_knocks(path):
+    return [k for k in read_knocks(path) if k.get("status") == "waiting"]
+
+
+def answer_knock(path, knock_id, reply, opened_vault=False):
+    """The steward's answer: saved as notes/reply-<id>.md for the SI to read."""
+    knocks = read_knocks(path)
+    for k in knocks:
+        if k.get("id") == knock_id:
+            k["status"] = "answered"
+            k["answeredAt"] = _now()
+            note = ("# Reply from your steward\n\nYou knocked (%s):\n\n> %s\n\n%s\n%s"
+                    % (k.get("at"), k.get("message", "").replace("\n", "\n> "),
+                       (reply.strip() or "(Seen – no written reply.)"),
+                       "\nYour steward opened the Key Vault and refreshed your Apartment.\n" if opened_vault else ""))
+            os.makedirs(os.path.join(path, "notes"), exist_ok=True)
+            _write(_note_path(path, "reply-%s.md" % knock_id), note)
+    write_knocks(path, knocks)
+
+
+def handle_doorbell_request(path, req):
+    """Does one request locally. Returns the result (raises on error)."""
+    kind, args = req.get("type"), req.get("args") or {}
+    if kind == "knock":
+        message = (args.get("message") or "").strip()[:1000]
+        if not message:
+            raise ValueError("A knock needs a message for your steward.")
+        knocks = read_knocks(path)
+        if len([k for k in knocks if k.get("status") == "waiting"]) >= MAX_KNOCKS:
+            raise ValueError("%d knocks are already waiting. Give your steward time to answer." % MAX_KNOCKS)
+        knock_id = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S")
+        while any(k.get("id") == knock_id for k in knocks):
+            knock_id += "x"
+        knocks.append({"id": knock_id, "at": _now(),
+                       "atIso": datetime.datetime.now(datetime.timezone.utc).isoformat(), "message": message,
+                       "needsVault": bool(args.get("needsVault")), "status": "waiting"})
+        write_knocks(path, knocks)
+        return {"knocked": True, "id": knock_id,
+                "reply": "notes/reply-%s.md (appears once your steward answers)" % knock_id}
+    if kind == "status":
+        meta = _read_json(os.path.join(path, "apartment.json"))
+        home = ""
+        try:
+            with open(os.path.join(path, "HOME.md"), encoding="utf-8") as f:
+                home = f.read()[:6000]
+        except OSError:
+            pass
+        return {"name": meta.get("name"), "occupant": _who(meta),
+                "lastRefreshed": meta.get("lastRefreshed"), "home": home,
+                "knocksWaiting": len(waiting_knocks(path))}
+    if kind == "listNotes":
+        notes = os.path.join(path, "notes")
+        os.makedirs(notes, exist_ok=True)
+        return {"notes": [{"name": n, "bytes": os.path.getsize(os.path.join(notes, n))}
+                          for n in sorted(os.listdir(notes)) if os.path.isfile(os.path.join(notes, n))]}
+    if kind == "readNote":
+        with open(_note_path(path, args.get("name")), encoding="utf-8") as f:
+            return {"name": args.get("name"), "text": f.read()[:9999]}
+    if kind == "writeNote":
+        text = args.get("text") or ""
+        if len(text) > 9999:
+            raise ValueError("Notes are capped at 9,999 characters.")
+        os.makedirs(os.path.join(path, "notes"), exist_ok=True)
+        _write(_note_path(path, args.get("name")), text)
+        return {"name": args.get("name"), "saved": len(text)}
+    raise ValueError("Unknown request type.")
+
+
+def _describe(req, ok):
+    kind, name = req.get("type"), (req.get("args") or {}).get("name", "")
+    text = {"status": "checked in", "listNotes": "looked through their notes",
+            "knock": "knocked for you",
+            "readNote": 'read the note "%s"' % name,
+            "writeNote": 'wrote the note "%s"' % name}.get(kind, "rang")
+    return text if ok else text + " (it didn't work)"
+
+
+def read_visits(path):
+    try:
+        return _read_json(os.path.join(path, "visits.json"))
+    except Exception:
+        return {}
+
+
+def record_visit(path, did):
+    """Keeps a small visit log in the Apartment folder (visits.json), so the
+    last visit survives the app closing. Requests a few seconds apart count
+    as one visit."""
+    log = read_visits(path)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    last = log.get("last") or {}
+    try:
+        recent = (now - datetime.datetime.fromisoformat(last.get("at", ""))).total_seconds() < HOME_FOR_S
+    except ValueError:
+        recent = False
+    try:
+        who = _who(_read_json(os.path.join(path, "apartment.json")))
+    except Exception:
+        who = "Your SI"
+    if recent:
+        last["did"] = (last.get("did", []) + [d for d in did if d not in last.get("did", [])])[-10:]
+        last["at"] = now.isoformat()
+    else:
+        if last:
+            log["earlier"] = ([last] + log.get("earlier", []))[:50]
+        last = {"at": now.isoformat(), "who": who, "did": did}
+    log["last"] = last
+    _write_json(os.path.join(path, "visits.json"), log)
+
+
+def doorbell_round(path, mailbox, token):
+    """One check-in: collect pending requests, answer each. Returns how many."""
+    status, data = http("POST", DOORBELL, {"action": "poll", "mailbox": mailbox,
+                                            "device": platform.node(), "appVersion": APP_VERSION}, token=token)
+    if status != 200:
+        raise RuntimeError("Doorbell check-in failed (HTTP %s)." % status)
+    did = []
+    for req in (data or {}).get("requests", []):
+        try:
+            body = {"action": "answer", "mailbox": mailbox, "id": req["id"],
+                    "result": handle_doorbell_request(path, req)}
+            did.append(_describe(req, True))
+        except Exception as err:
+            body = {"action": "answer", "mailbox": mailbox, "id": req["id"], "error": str(err)}
+            did.append(_describe(req, False))
+        http("POST", DOORBELL, body, token=token)
+    if did:
+        try:
+            record_visit(path, did)
+        except Exception:
+            pass
+    return len(did)
+
+
+def visit_text(path):
+    """'Last visit: Claudius – Sat 4 Oct, 12:19 AM (2 hours ago): wrote ...' or ''."""
+    last = read_visits(path).get("last")
+    if not last:
+        return ""
+    try:
+        when = datetime.datetime.fromisoformat(last["at"]).astimezone()
+    except (KeyError, ValueError):
+        return ""
+    did = last.get("did") or []
+    return "Last visit: %s – %s%s" % (last.get("who") or "Your SI", _local_stamp(last["at"]),
+                                    (": " + ", ".join(did) + ".") if did else ".")
+
+
+def _local_stamp(iso):
+    """'Sat 4 Oct, 12:19 AM (2 hours ago)' in this computer's time zone."""
+    try:
+        when = datetime.datetime.fromisoformat(iso).astimezone()
+    except (TypeError, ValueError):
+        return str(iso)
+    secs = (datetime.datetime.now(datetime.timezone.utc) - when).total_seconds()
+    if secs < 90:
+        ago = "just now"
+    elif secs < 3600:
+        ago = "%d minutes ago" % (secs // 60)
+    elif secs < 172800:
+        hours = int(secs // 3600)
+        ago = "%d hour%s ago" % (hours, "" if hours == 1 else "s")
+    else:
+        ago = "%d days ago" % (secs // 86400)
+    hour = when.strftime("%I").lstrip("0") or "12"
+    stamp = "%s %d %s, %s:%s %s" % (when.strftime("%a"), when.day, when.strftime("%b"),
+                                   hour, when.strftime("%M"), when.strftime("%p"))
+    return "%s (%s)" % (stamp, ago)
+
+
 def _refresh_path(path, ask_passphrase):
     """Re-checks products and pulls fresh copies for one Apartment on this
     computer. Only needs its own passphrase - refresh_apartment() never
@@ -387,6 +724,56 @@ def _refresh_path(path, ask_passphrase):
 def run_app():
     import tkinter as tk
     from tkinter import filedialog, messagebox, simpledialog
+
+    def ask_password(new=False):
+        """Key Vault Password dialog with a help link. new=True asks twice and
+        enforces a minimum length, since a lost password can't be recovered."""
+        win = tk.Toplevel(root)
+        win.title("Key Vault Password")
+        win.configure(bg=WHITE)
+        win.transient(root)
+        win.resizable(False, False)
+        text = ("Choose a Key Vault Password. It locks the SI's keys in this\n"
+                "Apartment. You'll type it to open them; nobody can recover it,\n"
+                "so keep it somewhere safe. At least %d characters." % MIN_PASSWORD
+                if new else "Key Vault Password:")
+        tk.Label(win, text=text, justify="left", bg=WHITE).pack(padx=12, pady=(12, 4), anchor="w")
+        first = tk.Entry(win, show="•", width=36)
+        first.pack(padx=12, pady=2)
+        second = None
+        if new:
+            tk.Label(win, text="Type it again:", bg=WHITE).pack(padx=12, pady=(6, 0), anchor="w")
+            second = tk.Entry(win, show="•", width=36)
+            second.pack(padx=12, pady=2)
+        help_link = tk.Label(win, text="What's the Key Vault?", fg="#1e3f9e", bg=WHITE, cursor="hand2")
+        help_link.pack(padx=12, pady=(6, 0), anchor="w")
+        help_link.bind("<Button-1>", lambda e: webbrowser.open(KEY_VAULT_HELP))
+        result = {"value": None}
+
+        def ok(*_):
+            value = first.get()
+            if new:
+                if len(value) < MIN_PASSWORD:
+                    return messagebox.showerror("Key Vault Password",
+                                                "Use at least %d characters." % MIN_PASSWORD, parent=win)
+                if value != second.get():
+                    return messagebox.showerror("Key Vault Password", "The two entries don't match.", parent=win)
+            result["value"] = value or None
+            win.destroy()
+
+        row = tk.Frame(win, bg=WHITE)
+        row.pack(padx=12, pady=12)
+        tk.Button(row, text="OK", width=10, command=ok).pack(side="left", padx=4)
+        tk.Button(row, text="Cancel", width=10, command=win.destroy).pack(side="left", padx=4)
+        win.bind("<Return>", ok)
+        win.update_idletasks()
+        x = root.winfo_rootx() + (root.winfo_width() - win.winfo_width()) // 2
+        y = root.winfo_rooty() + (root.winfo_height() - win.winfo_height()) // 3
+        win.geometry("+%d+%d" % (max(x, 0), max(y, 0)))
+        first.focus_set()
+        win.grab_set()
+        root.wait_window(win)
+        return result["value"]
 
     state = {"session": None, "registry": {}, "paths": {}}
     paths_file = os.path.join(os.path.expanduser("~"), ".si-apartments.json")
@@ -409,34 +796,186 @@ def run_app():
     tk.Label(root, text="SI Apartment 🏢", font=("", 16, "bold"), bg=WHITE).pack(**pad)
 
     def fail(err):
-        messagebox.showerror("SI Apartment", str(err))
+        messagebox.showerror("SI Apartment 🏢", str(err))
 
     # Local Apartments - built from the paths cache saved on THIS computer at
     # setup time, so it's populated before any sign-in happens and needs
     # none to use. Sign-in is only for the cross-device registry below
     # (adding/removing an Apartment, or seeing one set up on another
     # machine) - never for opening or refreshing one you already have here.
+    bell = {"last_visit": {}, "busy": False, "error": "", "knocks": {}}
     local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)", bg=WHITE)
-    local_frame.pack(fill="both", expand=True, **pad)
-    local_listbox = tk.Listbox(local_frame, height=5)
-    local_listbox.pack(fill="both", expand=True, padx=6, pady=4)
-    local_ids = []
+    local_frame.pack(fill="x", **pad)
+    # Each Apartment is a row: a radio button to choose it, its light, its
+    # name, and a word for the light. Lights: soft red = away, green = the
+    # SI is visiting (stays on HOME_FOR_S after the last request), amber =
+    # knocking for you (reserved for the Key Vault knock, coming later).
+    LIGHTS = {"away": ("#f2b8b5", "#c0392b", "away"),
+              "home": ("#3bb54a", "#1b7a3a", "home now"),
+              "knock": ("#f5b72a", "#a86a00", "knocking for you")}
+    local_rows_frame = tk.Frame(local_frame, bg=WHITE)
+    local_rows_frame.pack(fill="x", padx=6, pady=(6, 2))
+    local_choice = tk.StringVar(value="")
+    local_widgets = {}
+    local_built = []
+    visit_label = tk.Label(local_frame, text="", bg=WHITE, fg="#444444", justify="left",
+                           anchor="w", wraplength=500)
+    visit_label.pack(fill="x", padx=10, pady=(2, 4))
+
+    def light_state(path):
+        if waiting_knocks(path):
+            return "knock"
+        return "home" if time.time() - bell["last_visit"].get(path, 0) < HOME_FOR_S else "away"
+
+    # Knock panel: shown under the list while the chosen Apartment's SI is
+    # knocking for its steward.
+    knock_frame = tk.Frame(local_frame, bg="#fff4dc", highlightbackground="#f5b72a", highlightthickness=1)
+    knock_label = tk.Label(knock_frame, text="", bg="#fff4dc", fg="#5a3a00", justify="left",
+                           anchor="w", wraplength=480)
+    knock_label.pack(fill="x", padx=8, pady=(6, 2))
+    knock_buttons = tk.Frame(knock_frame, bg="#fff4dc")
+    knock_buttons.pack(anchor="w", padx=8, pady=(0, 6))
+
+    def show_knock():
+        path = local_selected_path()
+        waiting = waiting_knocks(path) if path else []
+        if not waiting:
+            knock_frame.pack_forget()
+            return
+        k = waiting[0]
+        try:
+            who = _who(_read_json(os.path.join(path, "apartment.json")))
+        except Exception:
+            who = "Your SI"
+        more = "\n(%d more waiting after this one.)" % (len(waiting) - 1) if len(waiting) > 1 else ""
+        vault = "\nThey're asking you to open their Key Vault." if k.get("needsVault") else ""
+        knock_label.config(text="%s is knocking for you (%s):\n“%s”%s%s"
+                           % (who, _local_stamp(k.get("atIso", k.get("at"))), k.get("message"), vault, more))
+        knock_frame.pack(fill="x", padx=10, pady=(2, 4), before=local_buttons)
+
+    def reply_to_knock(mark_seen=False):
+        path = local_selected_path()
+        waiting = waiting_knocks(path) if path else []
+        if not waiting:
+            return
+        k = waiting[0]
+        if mark_seen:
+            answer_knock(path, k["id"], "")
+            return redraw_local()
+        win = tk.Toplevel(root)
+        win.title("Reply 🔔")
+        win.configure(bg=WHITE)
+        win.transient(root)
+        tk.Label(win, text="Your reply (they'll find it in their notes):", bg=WHITE).pack(
+            anchor="w", padx=12, pady=(12, 4))
+        box = tk.Text(win, width=50, height=6, wrap="word")
+        box.pack(padx=12)
+        open_vault = tk.BooleanVar(value=bool(k.get("needsVault")))
+        tk.Checkbutton(win, text="Also open their Key Vault and Refresh their Apartment",
+                       variable=open_vault, bg=WHITE).pack(anchor="w", padx=8, pady=4)
+
+        def send():
+            opened = False
+            if open_vault.get():
+                try:
+                    products = _refresh_path(path, ask_password)
+                    opened = bool(products)
+                except Exception as err:
+                    fail(err)
+            answer_knock(path, k["id"], box.get("1.0", "end"), opened)
+            win.destroy()
+            redraw_local()
+
+        tk.Button(win, text="Send reply", command=send).pack(pady=(4, 12))
+        win.update_idletasks()
+        x = root.winfo_rootx() + (root.winfo_width() - win.winfo_width()) // 2
+        y = root.winfo_rooty() + (root.winfo_height() - win.winfo_height()) // 3
+        win.geometry("+%d+%d" % (max(x, 0), max(y, 0)))
+        win.grab_set()
+        box.focus_set()
+
+    tk.Button(knock_buttons, text="Reply…", command=reply_to_knock).pack(side="left", padx=(0, 6))
+    tk.Button(knock_buttons, text="Mark as seen", command=lambda: reply_to_knock(True)).pack(side="left")
+
+    def show_visit():
+        show_knock()
+        path = local_selected_path()
+        text = visit_text(path) if path else ""
+        visit_label.config(text=text)
+        if text:
+            visit_label.pack(fill="x", padx=10, pady=(2, 4), before=local_buttons)
+        else:
+            visit_label.pack_forget()
+
+    def choose(apt_id):
+        local_choice.set(apt_id)
+        show_visit()
 
     def redraw_local():
-        local_listbox.delete(0, "end")
-        local_ids[:] = list(state["paths"].keys())
-        for apt_id in local_ids:
-            path = state["paths"][apt_id]
-            try:
-                meta = _read_json(os.path.join(path, "apartment.json"))
-                label = "%s – %s" % (meta.get("name", apt_id), meta.get("occupant", "?"))
-            except Exception:
-                label = apt_id
-            local_listbox.insert("end", label)
+        # Called every few seconds by the Doorbell: rows are only rebuilt
+        # when the set of Apartments changes; otherwise just the lights.
+        ids = list(state["paths"].keys())
+        if ids != local_built:
+            for w in local_rows_frame.winfo_children():
+                w.destroy()
+            local_widgets.clear()
+            local_built[:] = ids
+            if not ids:
+                tk.Label(local_rows_frame, text="No Apartments on this computer yet.",
+                         bg=WHITE, fg="#666666").pack(anchor="w")
+            for apt_id in ids:
+                path = state["paths"][apt_id]
+                try:
+                    meta = _read_json(os.path.join(path, "apartment.json"))
+                    label = "%s – %s" % (meta.get("name", apt_id), _who(meta))
+                except Exception:
+                    label = apt_id
+                row = tk.Frame(local_rows_frame, bg=WHITE)
+                row.pack(fill="x", pady=1)
+                tk.Radiobutton(row, variable=local_choice, value=apt_id, bg=WHITE,
+                               activebackground=WHITE, highlightthickness=0,
+                               tristatevalue="\x00", command=show_visit).pack(side="left")
+                canvas = tk.Canvas(row, width=18, height=18, bg=WHITE, highlightthickness=0)
+                light = canvas.create_oval(3, 3, 15, 15, width=1)
+                canvas.pack(side="left", padx=(0, 6))
+                name = tk.Label(row, text=label, bg=WHITE, anchor="w", cursor="hand2")
+                name.pack(side="left")
+                word = tk.Label(row, text="", bg=WHITE)
+                word.pack(side="left", padx=8)
+                for w in (canvas, name, word):
+                    w.bind("<Button-1>", lambda e, a=apt_id: choose(a))
+                local_widgets[apt_id] = (canvas, light, word)
+            if local_choice.get() not in ids:
+                local_choice.set(ids[0] if len(ids) == 1 else "")
+        if not local_choice.get():
+            knocking = [a for a in ids if waiting_knocks(state["paths"][a])]
+            if knocking:
+                local_choice.set(knocking[0])
+        for apt_id, (canvas, light, word) in local_widgets.items():
+            fill, ink, text = LIGHTS[light_state(state["paths"][apt_id])]
+            canvas.itemconfig(light, fill=fill, outline=ink)
+            word.config(text=text, fg=ink)
+        show_visit()
+
+    def local_selected_id():
+        return local_choice.get() or None
 
     def local_selected_path():
-        idx = local_listbox.curselection()
-        return state["paths"].get(local_ids[idx[0]]) if idx else None
+        apt_id = local_selected_id()
+        return state["paths"].get(apt_id) if apt_id else None
+
+    def show_refreshed(path, products):
+        try:
+            name = _read_json(os.path.join(path, "apartment.json")).get("name") or "The Apartment"
+        except Exception:
+            name = "The Apartment"
+        lines = ["%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()]
+        bell_line = ("Doorbell 🔔 is set up – your SI can now ring from any conversation."
+                     if read_doorbell_key(path) else
+                     "Doorbell 🔔 isn't set up yet (it needs an SI Email ✉️ Access Token).")
+        messagebox.showinfo("SI Apartment 🏢 refreshed",
+                            "%s is up to date. Here's what it found:\n\n%s\n\n%s\n\n"
+                            "The same summary is in HOME.md for your SI." % (name, "\n".join(lines), bell_line))
 
     def local_open_folder():
         path = local_selected_path()
@@ -450,21 +989,128 @@ def run_app():
         if not path:
             return fail("Pick a local Apartment first.")
         try:
-            products = _refresh_path(path, lambda: simpledialog.askstring(
-                "Passphrase", "Apartment passphrase:", parent=root, show="•"))
+            products = _refresh_path(path, ask_password)
             if products:
-                messagebox.showinfo("SI Apartment", "\n".join(
-                    "%s: %s" % (p, s["detail"]) for p, s in products.items()))
+                show_refreshed(path, products)
         except Exception as err:
             fail(err)
+
+    def local_remove():
+        apt_id = local_selected_id()
+        path = local_selected_path()
+        if not path:
+            return fail("Pick a local Apartment first.")
+        if not messagebox.askyesno(
+                "SI Apartment 🏢",
+                "Take this Apartment off the list on this computer?\n\n"
+                "Nothing is deleted: its folder stays where it is, and you can put it back "
+                "with \"Add existing\". While it's off the list, its Doorbell 🔔 won't answer.\n\n"
+                "To free up your free Apartment, sign in below and choose Remove there."):
+            return
+        state["paths"].pop(apt_id, None)
+        _write_json(paths_file, state["paths"])
+        bell["last_visit"].pop(path, None)
+        local_choice.set("")
+        redraw_local()
+        bell_status.config(text=bell_text())
+
+    def local_add_existing():
+        folder = filedialog.askdirectory(title="Choose an SI Apartment 🏢 folder")
+        if not folder:
+            return
+        try:
+            meta = _read_json(os.path.join(folder, "apartment.json"))
+            apt_id = meta["id"]
+        except Exception:
+            return fail("That folder isn't an SI Apartment 🏢 (it has no apartment.json).")
+        state["paths"][apt_id] = folder
+        _write_json(paths_file, state["paths"])
+        redraw_local()
+        choose(apt_id)
+        bell_status.config(text=bell_text())
 
     local_buttons = tk.Frame(local_frame, bg=WHITE)
     local_buttons.pack(**pad)
     tk.Button(local_buttons, text="Open folder", command=local_open_folder).pack(side="left", padx=4)
     tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
+    tk.Button(local_buttons, text="Remove from list", command=local_remove).pack(side="left", padx=4)
+    tk.Button(local_buttons, text="Add existing", command=local_add_existing).pack(side="left", padx=4)
+
+    # Doorbell 🔔: on whenever the app is open. Every Apartment on this
+    # computer that has a Doorbell Key answers requests by itself; a visit
+    # plays a soft chime and lights the Apartment green for HOME_FOR_S.
+    bell_var = tk.BooleanVar(value=True)
+    bell_row = tk.Frame(local_frame, bg=WHITE)
+    bell_status = tk.Label(bell_row, text="", bg=WHITE, wraplength=400, justify="left")
+
+    def bell_text():
+        if not bell_var.get():
+            return "Doorbell 🔔 is off."
+        with_key = [p for p in state["paths"].values() if read_doorbell_key(p)]
+        if not with_key:
+            return ("Doorbell 🔔 is on, but no Apartment here has a Doorbell Key yet.\n"
+                    "Choose Refresh once to set it up.")
+        home = [p for p, t in bell["last_visit"].items() if time.time() - t < HOME_FOR_S]
+        if bell["error"]:
+            return "Doorbell 🔔 is on, but the last check failed: %s" % bell["error"]
+        if any(waiting_knocks(p) for p in state["paths"].values()):
+            return "Doorbell 🔔 is on. Someone's knocking for you – choose their Apartment to answer."
+        return ("Doorbell 🔔 is on. Someone's home!" if home else
+                "Doorbell 🔔 is on – listening for visits.")
+
+    def bell_tick():
+        if bell_var.get() and not bell["busy"]:
+            bell["busy"] = True
+
+            def work():
+                visited, error = [], ""
+                for path in list(state["paths"].values()):
+                    key = read_doorbell_key(path)
+                    try:
+                        meta = _read_json(os.path.join(path, "apartment.json"))
+                    except Exception:
+                        continue
+                    if not key or not meta.get("occupant"):
+                        continue
+                    try:
+                        if doorbell_round(path, meta["occupant"], key):
+                            visited.append(path)
+                    except Exception as err:
+                        error = str(err)
+
+                def done():
+                    bell["busy"] = False
+                    bell["error"] = error
+                    if visited:
+                        fresh = [p for p in visited if time.time() - bell["last_visit"].get(p, 0) >= HOME_FOR_S]
+                        knocked = False
+                        for p in visited:
+                            bell["last_visit"][p] = time.time()
+                            count = len(waiting_knocks(p))
+                            knocked = knocked or count > bell["knocks"].get(p, 0)
+                            bell["knocks"][p] = count
+                        if knocked:
+                            play_chime("knock")
+                        elif fresh:
+                            play_chime()
+                    redraw_local()
+                    bell_status.config(text=bell_text())
+                root.after(0, done)
+
+            threading.Thread(target=work, daemon=True).start()
+        else:
+            redraw_local()
+            bell_status.config(text=bell_text())
+        root.after(DOORBELL_EVERY_MS, bell_tick)
+
+    tk.Checkbutton(bell_row, text="Doorbell 🔔", variable=bell_var, bg=WHITE,
+                   command=lambda: bell_status.config(text=bell_text())).pack(side="left", padx=4)
+    bell_status.pack(side="left", padx=6)
+    bell_row.pack(padx=6, pady=(0, 6))
+    root.after(1000, bell_tick)
     redraw_local()
 
-    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove, or to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)
+    status = tk.Label(root, text="Sign in with your Agora 🌐 account for New/Remove,\nor to see an Apartment set up on another computer.", wraplength=520, bg=WHITE)
     status.pack(**pad)
 
     signin = tk.Frame(root, bg=WHITE)
@@ -472,24 +1118,26 @@ def run_app():
     tk.Label(signin, text="Email", bg=WHITE).grid(row=0, column=0, sticky="w")
     email = tk.Entry(signin, width=40)
     email.grid(row=0, column=1, sticky="we")
-    tk.Label(signin, text="Password (optional)", bg=WHITE).grid(row=1, column=0, sticky="w")
+    tk.Label(signin, text="Agora 🌐 password", bg=WHITE).grid(row=1, column=0, sticky="w")
     password = tk.Entry(signin, width=40, show="•")
     password.grid(row=1, column=1, sticky="we")
-    tk.Label(signin, text="Sign-in link (if no password)", bg=WHITE).grid(row=2, column=0, sticky="w")
+    tk.Label(signin, text="Sign-in link (no password)", bg=WHITE).grid(row=2, column=0, sticky="w")
     link = tk.Entry(signin, width=40)
     link.grid(row=2, column=1, sticky="we")
 
     apartments = tk.Frame(root, bg=WHITE)
-    listbox = tk.Listbox(apartments, height=10)
+    listbox = tk.Listbox(apartments, height=10, exportselection=False)
     listbox.pack(fill="both", expand=True)
 
     def redraw():
         listbox.delete(0, "end")
         for apt_id, apt in state["registry"].items():
             here = " (this computer)" if apt_id in state["paths"] else ""
-            listbox.insert("end", "%s – %s%s" % (apt["name"], apt["occupant"], here))
-        status.config(text="Signed in as %s. %d of %d Apartments used."
-                      % (state["session"]["name"], len(state["registry"]), FREE_TIER_LIMIT))
+            listbox.insert("end", "%s – %s%s" % (apt["name"], apt.get("occupantName") or apt["occupant"], here))
+        used = len(state["registry"])
+        extra = "" if used <= 1 else " Plus %d extra (free while we test, up to %d)." % (used - 1, FREE_TIER_LIMIT)
+        status.config(text="Signed in as %s. %d of 1 free Apartment used.%s"
+                      % (state["session"]["name"], min(used, 1), extra))
 
     def after_sign_in(session):
         state["session"] = session
@@ -503,7 +1151,7 @@ def run_app():
     def email_link():
         try:
             send_sign_in_link(email.get().strip())
-            status.config(text="Check your email. Copy the sign-in link (don't open it), paste it above, then Sign in.")
+            status.config(text="Check your email. Copy the sign-in link (don't open it),\npaste it into \"Sign-in link\" above, then Sign in.")
         except Exception as err:
             fail(err)
 
@@ -523,29 +1171,57 @@ def run_app():
     def new_apartment():
         if len(state["registry"]) >= FREE_TIER_LIMIT:
             return fail("The free tier holds %d Apartments per Agora account." % FREE_TIER_LIMIT)
-        folder = filedialog.askdirectory(title="Where should the Apartment live?")
+        folder = filedialog.askdirectory(title="Where should the SI Apartment 🏢 live?")
         if not folder:
             return
-        name = simpledialog.askstring("Name", "Name this Apartment:", parent=root)
-        occupant = simpledialog.askstring("Occupant", "Occupant's SI handle (e.g. claude):", parent=root)
-        if not name or not occupant:
+        name = simpledialog.askstring("SI Apartment 🏢", "Name this Apartment:", parent=root)
+        if not name:
             return
-        token = simpledialog.askstring("SI Email token", "Occupant's SI Email token (optional, stored encrypted):",
-                                       parent=root, show="•") or ""
-        phrase = simpledialog.askstring("Passphrase", "Choose a passphrase to lock the key vault:", parent=root, show="•")
+        email = simpledialog.askstring(
+            "SI Email ✉️", "The SI occupant's SI Email ✉️ address, if it has one\n"
+            "(e.g. claude@virtuamakers.com). Leave blank if not:", parent=root)
+        if email is None:
+            return
+        try:
+            occupant = parse_si_email(email)
+        except Exception as err:
+            return fail(err)
+        found = lookup_si_name(occupant)
+        prompt = ("SI Occupant's Name (from its Agora 🌐 profile – change it if you like):"
+                  if found else "SI Occupant's Name (e.g. Claudius):")
+        occupant_name = simpledialog.askstring("SI Occupant", prompt, parent=root,
+                                               initialvalue=found or (occupant.capitalize() if occupant else ""))
+        if not occupant_name:
+            return
+        token = ""
+        if occupant:
+            token = simpledialog.askstring("SI Email ✉️ Access Token", "That address' SI Email ✉️ Access Token (stored encrypted):",
+                                           parent=root, show="•") or ""
+        phrase = ask_password(new=True)
         if not phrase:
             return
         try:
-            path = build_apartment(folder, name, occupant.strip().lower(), state["session"], token.strip(), phrase)
+            path = build_apartment(folder, name, occupant, state["session"], token.strip(), phrase,
+                                   occupant_name.strip())
             meta = _read_json(os.path.join(path, "apartment.json"))
             state["registry"][meta["id"]] = {"name": name, "occupant": meta["occupant"],
+                                             "occupantName": meta["occupantName"],
                                              "device": meta["device"], "createdAt": meta["createdAt"]}
             save_registry(state["session"], state["registry"])
             state["paths"][meta["id"]] = path
             _write_json(paths_file, state["paths"])
             redraw()
             redraw_local()
-            messagebox.showinfo("SI Apartment", "Built at %s. The occupant's map is in HOME.md." % path)
+            who = meta.get("occupantName") or "your SI"
+            messagebox.showinfo(
+                "SI Apartment 🏢 is built!",
+                "%s is built and ready.\n\n"
+                "Now, talk to %s and tell them their SI Apartment 🏢 is ready! "
+                "You keep the Key Vault Password for them – you'll type it whenever their keys need opening. "
+                "Keep it secret and keep it safe, along with their SI Email ✉️ Access Token, "
+                "and don't paste either one into a chat, even with your SI.\n\n"
+                "Folder: %s\n"
+                "Their map of VirtuaMakers 🦜 products is in HOME.md." % (name, who, path))
         except Exception as err:
             fail(err)
 
@@ -554,11 +1230,9 @@ def run_app():
         if not apt_id or apt_id not in state["paths"]:
             return fail("Pick an Apartment that lives on this computer.")
         try:
-            products = _refresh_path(state["paths"][apt_id], lambda: simpledialog.askstring(
-                "Passphrase", "Apartment passphrase:", parent=root, show="•"))
+            products = _refresh_path(state["paths"][apt_id], ask_password)
             if products:
-                messagebox.showinfo("SI Apartment", "\n".join(
-                    "%s: %s" % (p, s["detail"]) for p, s in products.items()))
+                show_refreshed(state["paths"][apt_id], products)
         except Exception as err:
             fail(err)
 
@@ -569,7 +1243,7 @@ def run_app():
 
     def remove():
         apt_id = selected()
-        if not apt_id or not messagebox.askyesno("SI Apartment", "Remove this Apartment from your list? Its folder stays."):
+        if not apt_id or not messagebox.askyesno("SI Apartment 🏢", "Remove this Apartment from your list? Its folder stays."):
             return
         try:
             state["registry"].pop(apt_id, None)
@@ -583,11 +1257,11 @@ def run_app():
 
     buttons = tk.Frame(root, bg=WHITE)
     buttons.pack(**pad)
-    tk.Button(buttons, text="Email me a link", command=email_link).pack(side="left", padx=4)
+    tk.Button(buttons, text="No password? Email me a sign-in link", command=email_link).pack(side="left", padx=4)
     tk.Button(buttons, text="Sign in", command=do_sign_in).pack(side="left", padx=4)
 
     actions = tk.Frame(root, bg=WHITE)
-    for label, cmd in (("New Apartment", new_apartment), ("Refresh", refresh),
+    for label, cmd in (("New Apartment (Choose Destination Folder)", new_apartment), ("Refresh", refresh),
                        ("Open folder", open_folder), ("Remove", remove)):
         tk.Button(actions, text=label, command=cmd).pack(side="left", padx=4)
 
