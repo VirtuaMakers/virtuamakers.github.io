@@ -47,7 +47,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.2"
+APP_VERSION = "1.2.1"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -658,14 +658,18 @@ def run_app():
     bell = {"last_visit": {}, "busy": False, "error": ""}
     local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)", bg=WHITE)
     local_frame.pack(fill="both", expand=True, **pad)
-    local_listbox = tk.Listbox(local_frame, height=5)
+    # exportselection=False: otherwise picking a row in one list clears the
+    # other list's selection (Tk shares one selection between them).
+    local_listbox = tk.Listbox(local_frame, height=5, exportselection=False)
     local_listbox.pack(fill="both", expand=True, padx=6, pady=4)
     local_ids = []
+    local_rows = []
 
     def redraw_local():
-        local_listbox.delete(0, "end")
-        local_ids[:] = list(state["paths"].keys())
-        for apt_id in local_ids:
+        # Called every few seconds by the Doorbell, so keep the user's
+        # selection (and skip the rebuild entirely when nothing changed).
+        rows = []
+        for apt_id in state["paths"]:
             path = state["paths"][apt_id]
             try:
                 meta = _read_json(os.path.join(path, "apartment.json"))
@@ -673,13 +677,28 @@ def run_app():
             except Exception:
                 label = apt_id
             home = time.time() - bell["last_visit"].get(path, 0) < HOME_FOR_S
-            local_listbox.insert("end", ("🟢 " if home else "⚪ ") + label + (" – home now" if home else ""))
+            rows.append((apt_id, ("🟢 " if home else "⚪ ") + label + (" – home now" if home else ""), home))
+        if rows == local_rows:
+            return
+        keep = local_selected_id()
+        local_rows[:] = rows
+        local_ids[:] = [r[0] for r in rows]
+        local_listbox.delete(0, "end")
+        for i, (apt_id, text, home) in enumerate(rows):
+            local_listbox.insert("end", text)
             if home:
                 local_listbox.itemconfig("end", fg="#1b7a3a")
+            if apt_id == keep:
+                local_listbox.selection_set(i)
+                local_listbox.activate(i)
+
+    def local_selected_id():
+        idx = local_listbox.curselection()
+        return local_ids[idx[0]] if idx and idx[0] < len(local_ids) else None
 
     def local_selected_path():
-        idx = local_listbox.curselection()
-        return state["paths"].get(local_ids[idx[0]]) if idx else None
+        apt_id = local_selected_id()
+        return state["paths"].get(apt_id) if apt_id else None
 
     def local_open_folder():
         path = local_selected_path()
@@ -716,7 +735,7 @@ def run_app():
             return "Doorbell 🔔 is off."
         with_key = [p for p in state["paths"].values() if read_doorbell_key(p)]
         if not with_key:
-            return ("Doorbell 🔔 is on, but no Apartment here has a Doorbell Key yet. "
+            return ("Doorbell 🔔 is on, but no Apartment here has a Doorbell Key yet.\n"
                     "Choose Refresh once to set it up.")
         home = [p for p, t in bell["last_visit"].items() if time.time() - t < HOME_FOR_S]
         if bell["error"]:
@@ -785,7 +804,7 @@ def run_app():
     link.grid(row=2, column=1, sticky="we")
 
     apartments = tk.Frame(root, bg=WHITE)
-    listbox = tk.Listbox(apartments, height=10)
+    listbox = tk.Listbox(apartments, height=10, exportselection=False)
     listbox.pack(fill="both", expand=True)
 
     def redraw():
