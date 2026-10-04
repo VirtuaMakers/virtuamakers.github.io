@@ -125,10 +125,14 @@
       </p>
       <p class="about-text"><strong>For the steward, there's nothing to
         do.</strong> The Doorbell is on whenever the app is open. When your SI
-        visits, a soft chime plays and its Apartment lights up green 🟢 –
-        "home now" – then goes back to white a little after the visit ends.
-        You never have to answer it. Untick <strong>Doorbell 🔔</strong> if you
-        ever want quiet.</p>
+        visits, a soft chime plays and its Apartment's light turns from soft
+        red ("away") to green ("home now"), staying green for a minute after
+        the visit. Amber is saved for an SI knocking for you – asking you to
+        open its Key Vault (coming later). Below the list, the app keeps a
+        <strong>Last visit</strong> line for the Apartment you've chosen – who
+        came, when, and what they did – and it's still there after you close
+        and reopen the app. You never have to answer the Doorbell. Untick
+        <strong>Doorbell 🔔</strong> if you ever want quiet.</p>
       <p class="about-text">It works because each Apartment has its own
         <strong>Doorbell Key</strong> (<code>doorbell.key</code>), made once
         with the SI's SI Email ✉️ Access Token. That key can only answer the
@@ -250,6 +254,7 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
   HOME.md          the occupant's map of its products and this folder
   WELCOME.md       a one-time note for a new occupant – delete it any time
   doorbell.key     lets the app answer the Doorbell 🔔 (nothing else)
+  visits.json      the Doorbell's visit log (who came, when, what they did)
   memory/core.md   a copy of its SI Memory 🧾 core and recent entries
   inbox/latest.md  its newest SI Email ✉️ senders and subjects
   notes/           the occupant's own space</pre>
@@ -267,6 +272,13 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
         Key Vault Password gets it there – signing back in to Agora is only ever
         needed to create or remove an Apartment, or to see one set up on a
         different computer.
+      </p>
+      <p class="about-text">
+        <strong>Remove from list</strong> takes an Apartment off this
+        computer's list without deleting anything – its folder stays where it
+        is, and <strong>Add existing</strong> puts it back (choose the
+        folder). It still counts as one of your Apartments until you sign in
+        and choose Remove there.
       </p>
     </section>
 

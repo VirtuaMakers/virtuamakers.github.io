@@ -12402,3 +12402,10 @@ Chris then asked this session to own both the fix and documenting it on the comp
   chars each); SI Email ✉️ (no message cap yet, ~1 MB per message — Firestore's
   document limit — newest 50 per read).
 - `skill.md` §7 documents the Doorbell; "switching on" removed from si-apartment.html.
+- App v1.3 (same day, Chris's feedback): the "⚪" emoji looked like a radio
+  button and the Listbox's blue selection hid the green text. The local list is
+  now rows of real radio buttons + drawn lights (soft red away, green home for
+  60 s after a visit, amber reserved for the Key Vault knock) + a word for the
+  light; a "Last visit: who – when (ago): what they did" line under the list,
+  persisted in the Apartment's `visits.json`; "Remove from list" (folder kept)
+  and "Add existing" (re-add a folder); Doorbell toggle on its own row.

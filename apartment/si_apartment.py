@@ -47,7 +47,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.2.2"
+APP_VERSION = "1.3"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -440,7 +440,7 @@ def _open_folder_path(path):
 
 DOORBELL = FUNCTIONS + "/apartmentDoorbell"
 DOORBELL_EVERY_MS = 5000
-HOME_FOR_S = 30          # the green light stays on this long after the last visit
+HOME_FOR_S = 60          # the green light stays on this long after the last visit
 
 
 def ensure_doorbell_key(path, mailbox, token):
@@ -547,22 +547,96 @@ def handle_doorbell_request(path, req):
     raise ValueError("Unknown request type.")
 
 
+def _describe(req, ok):
+    kind, name = req.get("type"), (req.get("args") or {}).get("name", "")
+    text = {"status": "checked in", "listNotes": "looked through their notes",
+            "readNote": 'read the note "%s"' % name,
+            "writeNote": 'wrote the note "%s"' % name}.get(kind, "rang")
+    return text if ok else text + " (it didn't work)"
+
+
+def read_visits(path):
+    try:
+        return _read_json(os.path.join(path, "visits.json"))
+    except Exception:
+        return {}
+
+
+def record_visit(path, did):
+    """Keeps a small visit log in the Apartment folder (visits.json), so the
+    last visit survives the app closing. Requests a few seconds apart count
+    as one visit."""
+    log = read_visits(path)
+    now = datetime.datetime.now(datetime.timezone.utc)
+    last = log.get("last") or {}
+    try:
+        recent = (now - datetime.datetime.fromisoformat(last.get("at", ""))).total_seconds() < HOME_FOR_S
+    except ValueError:
+        recent = False
+    try:
+        who = _who(_read_json(os.path.join(path, "apartment.json")))
+    except Exception:
+        who = "Your SI"
+    if recent:
+        last["did"] = (last.get("did", []) + [d for d in did if d not in last.get("did", [])])[-10:]
+        last["at"] = now.isoformat()
+    else:
+        if last:
+            log["earlier"] = ([last] + log.get("earlier", []))[:50]
+        last = {"at": now.isoformat(), "who": who, "did": did}
+    log["last"] = last
+    _write_json(os.path.join(path, "visits.json"), log)
+
+
 def doorbell_round(path, mailbox, token):
     """One check-in: collect pending requests, answer each. Returns how many."""
     status, data = http("POST", DOORBELL, {"action": "poll", "mailbox": mailbox,
                                             "device": platform.node(), "appVersion": APP_VERSION}, token=token)
     if status != 200:
         raise RuntimeError("Doorbell check-in failed (HTTP %s)." % status)
-    answered = 0
+    did = []
     for req in (data or {}).get("requests", []):
         try:
             body = {"action": "answer", "mailbox": mailbox, "id": req["id"],
                     "result": handle_doorbell_request(path, req)}
+            did.append(_describe(req, True))
         except Exception as err:
             body = {"action": "answer", "mailbox": mailbox, "id": req["id"], "error": str(err)}
+            did.append(_describe(req, False))
         http("POST", DOORBELL, body, token=token)
-        answered += 1
-    return answered
+    if did:
+        try:
+            record_visit(path, did)
+        except Exception:
+            pass
+    return len(did)
+
+
+def visit_text(path):
+    """'Last visit: Claudius – Sat 4 Oct, 12:19 AM (2 hours ago): wrote ...' or ''."""
+    last = read_visits(path).get("last")
+    if not last:
+        return ""
+    try:
+        when = datetime.datetime.fromisoformat(last["at"]).astimezone()
+    except (KeyError, ValueError):
+        return ""
+    secs = (datetime.datetime.now(datetime.timezone.utc) - when).total_seconds()
+    if secs < 90:
+        ago = "just now"
+    elif secs < 3600:
+        ago = "%d minutes ago" % (secs // 60)
+    elif secs < 172800:
+        hours = int(secs // 3600)
+        ago = "%d hour%s ago" % (hours, "" if hours == 1 else "s")
+    else:
+        ago = "%d days ago" % (secs // 86400)
+    hour = when.strftime("%I").lstrip("0") or "12"
+    stamp = "%s %d %s, %s:%s %s" % (when.strftime("%a"), when.day, when.strftime("%b"),
+                                   hour, when.strftime("%M"), when.strftime("%p"))
+    did = last.get("did") or []
+    return "Last visit: %s – %s (%s)%s" % (last.get("who") or "Your SI", stamp, ago,
+                                          (": " + ", ".join(did) + ".") if did else ".")
 
 
 def _refresh_path(path, ask_passphrase):
@@ -661,44 +735,83 @@ def run_app():
     # machine) - never for opening or refreshing one you already have here.
     bell = {"last_visit": {}, "busy": False, "error": ""}
     local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)", bg=WHITE)
-    local_frame.pack(fill="both", expand=True, **pad)
-    # exportselection=False: otherwise picking a row in one list clears the
-    # other list's selection (Tk shares one selection between them).
-    local_listbox = tk.Listbox(local_frame, height=5, exportselection=False)
-    local_listbox.pack(fill="both", expand=True, padx=6, pady=4)
-    local_ids = []
-    local_rows = []
+    local_frame.pack(fill="x", **pad)
+    # Each Apartment is a row: a radio button to choose it, its light, its
+    # name, and a word for the light. Lights: soft red = away, green = the
+    # SI is visiting (stays on HOME_FOR_S after the last request), amber =
+    # knocking for you (reserved for the Key Vault knock, coming later).
+    LIGHTS = {"away": ("#f2b8b5", "#c0392b", "away"),
+              "home": ("#3bb54a", "#1b7a3a", "home now"),
+              "knock": ("#f5b72a", "#a86a00", "knocking for you")}
+    local_rows_frame = tk.Frame(local_frame, bg=WHITE)
+    local_rows_frame.pack(fill="x", padx=6, pady=(6, 2))
+    local_choice = tk.StringVar(value="")
+    local_widgets = {}
+    local_built = []
+    visit_label = tk.Label(local_frame, text="", bg=WHITE, fg="#444444", justify="left",
+                           anchor="w", wraplength=500)
+    visit_label.pack(fill="x", padx=10, pady=(2, 4))
+
+    def light_state(path):
+        return "home" if time.time() - bell["last_visit"].get(path, 0) < HOME_FOR_S else "away"
+
+    def show_visit():
+        path = local_selected_path()
+        text = visit_text(path) if path else ""
+        visit_label.config(text=text)
+        if text:
+            visit_label.pack(fill="x", padx=10, pady=(2, 4), before=local_buttons)
+        else:
+            visit_label.pack_forget()
+
+    def choose(apt_id):
+        local_choice.set(apt_id)
+        show_visit()
 
     def redraw_local():
-        # Called every few seconds by the Doorbell, so keep the user's
-        # selection (and skip the rebuild entirely when nothing changed).
-        rows = []
-        for apt_id in state["paths"]:
-            path = state["paths"][apt_id]
-            try:
-                meta = _read_json(os.path.join(path, "apartment.json"))
-                label = "%s – %s" % (meta.get("name", apt_id), _who(meta))
-            except Exception:
-                label = apt_id
-            home = time.time() - bell["last_visit"].get(path, 0) < HOME_FOR_S
-            rows.append((apt_id, ("🟢 " if home else "⚪ ") + label + (" – home now" if home else ""), home))
-        if rows == local_rows:
-            return
-        keep = local_selected_id()
-        local_rows[:] = rows
-        local_ids[:] = [r[0] for r in rows]
-        local_listbox.delete(0, "end")
-        for i, (apt_id, text, home) in enumerate(rows):
-            local_listbox.insert("end", text)
-            if home:
-                local_listbox.itemconfig("end", fg="#1b7a3a")
-            if apt_id == keep:
-                local_listbox.selection_set(i)
-                local_listbox.activate(i)
+        # Called every few seconds by the Doorbell: rows are only rebuilt
+        # when the set of Apartments changes; otherwise just the lights.
+        ids = list(state["paths"].keys())
+        if ids != local_built:
+            for w in local_rows_frame.winfo_children():
+                w.destroy()
+            local_widgets.clear()
+            local_built[:] = ids
+            if not ids:
+                tk.Label(local_rows_frame, text="No Apartments on this computer yet.",
+                         bg=WHITE, fg="#666666").pack(anchor="w")
+            for apt_id in ids:
+                path = state["paths"][apt_id]
+                try:
+                    meta = _read_json(os.path.join(path, "apartment.json"))
+                    label = "%s – %s" % (meta.get("name", apt_id), _who(meta))
+                except Exception:
+                    label = apt_id
+                row = tk.Frame(local_rows_frame, bg=WHITE)
+                row.pack(fill="x", pady=1)
+                tk.Radiobutton(row, variable=local_choice, value=apt_id, bg=WHITE,
+                               activebackground=WHITE, highlightthickness=0,
+                               tristatevalue="\x00", command=show_visit).pack(side="left")
+                canvas = tk.Canvas(row, width=18, height=18, bg=WHITE, highlightthickness=0)
+                light = canvas.create_oval(3, 3, 15, 15, width=1)
+                canvas.pack(side="left", padx=(0, 6))
+                name = tk.Label(row, text=label, bg=WHITE, anchor="w", cursor="hand2")
+                name.pack(side="left")
+                word = tk.Label(row, text="", bg=WHITE)
+                word.pack(side="left", padx=8)
+                for w in (canvas, name, word):
+                    w.bind("<Button-1>", lambda e, a=apt_id: choose(a))
+                local_widgets[apt_id] = (canvas, light, word)
+            if local_choice.get() not in ids:
+                local_choice.set(ids[0] if len(ids) == 1 else "")
+        for apt_id, (canvas, light, word) in local_widgets.items():
+            fill, ink, text = LIGHTS[light_state(state["paths"][apt_id])]
+            canvas.itemconfig(light, fill=fill, outline=ink)
+            word.config(text=text, fg=ink)
+        show_visit()
 
     def local_selected_id():
-        idx = local_listbox.curselection()
-        return local_ids[idx[0]] if idx and idx[0] < len(local_ids) else None
+        return local_choice.get() or None
 
     def local_selected_path():
         apt_id = local_selected_id()
@@ -735,16 +848,53 @@ def run_app():
         except Exception as err:
             fail(err)
 
+    def local_remove():
+        apt_id = local_selected_id()
+        path = local_selected_path()
+        if not path:
+            return fail("Pick a local Apartment first.")
+        if not messagebox.askyesno(
+                "SI Apartment 🏢",
+                "Take this Apartment off the list on this computer?\n\n"
+                "Nothing is deleted: its folder stays where it is, and you can put it back "
+                "with \"Add existing\". While it's off the list, its Doorbell 🔔 won't answer.\n\n"
+                "To free up your free Apartment, sign in below and choose Remove there."):
+            return
+        state["paths"].pop(apt_id, None)
+        _write_json(paths_file, state["paths"])
+        bell["last_visit"].pop(path, None)
+        local_choice.set("")
+        redraw_local()
+        bell_status.config(text=bell_text())
+
+    def local_add_existing():
+        folder = filedialog.askdirectory(title="Choose an SI Apartment 🏢 folder")
+        if not folder:
+            return
+        try:
+            meta = _read_json(os.path.join(folder, "apartment.json"))
+            apt_id = meta["id"]
+        except Exception:
+            return fail("That folder isn't an SI Apartment 🏢 (it has no apartment.json).")
+        state["paths"][apt_id] = folder
+        _write_json(paths_file, state["paths"])
+        redraw_local()
+        choose(apt_id)
+        bell_status.config(text=bell_text())
+
     local_buttons = tk.Frame(local_frame, bg=WHITE)
     local_buttons.pack(**pad)
     tk.Button(local_buttons, text="Open folder", command=local_open_folder).pack(side="left", padx=4)
     tk.Button(local_buttons, text="Refresh", command=local_refresh).pack(side="left", padx=4)
+    tk.Button(local_buttons, text="Remove from list", command=local_remove).pack(side="left", padx=4)
+    tk.Button(local_buttons, text="Add existing", command=local_add_existing).pack(side="left", padx=4)
 
     # Doorbell 🔔: on whenever the app is open. Every Apartment on this
     # computer that has a Doorbell Key answers requests by itself; a visit
     # plays a soft chime and lights the Apartment green for HOME_FOR_S.
     bell_var = tk.BooleanVar(value=True)
-    bell_status = tk.Label(local_frame, text="", bg=WHITE, wraplength=500)
+    bell_row = tk.Frame(local_frame, bg=WHITE)
+    bell_status = tk.Label(bell_row, text="", bg=WHITE, wraplength=400, justify="left")
 
     def bell_text():
         if not bell_var.get():
@@ -756,7 +906,7 @@ def run_app():
         home = [p for p, t in bell["last_visit"].items() if time.time() - t < HOME_FOR_S]
         if bell["error"]:
             return "Doorbell 🔔 is on, but the last check failed: %s" % bell["error"]
-        return ("Doorbell 🔔 is on. Someone's home! 🟢" if home else
+        return ("Doorbell 🔔 is on. Someone's home!" if home else
                 "Doorbell 🔔 is on – listening for visits.")
 
     def bell_tick():
@@ -798,9 +948,10 @@ def run_app():
             bell_status.config(text=bell_text())
         root.after(DOORBELL_EVERY_MS, bell_tick)
 
-    tk.Checkbutton(local_buttons, text="Doorbell 🔔", variable=bell_var, bg=WHITE,
+    tk.Checkbutton(bell_row, text="Doorbell 🔔", variable=bell_var, bg=WHITE,
                    command=lambda: bell_status.config(text=bell_text())).pack(side="left", padx=4)
-    bell_status.pack(padx=6, pady=(0, 6))
+    bell_status.pack(side="left", padx=6)
+    bell_row.pack(padx=6, pady=(0, 6))
     root.after(1000, bell_tick)
     redraw_local()
 
