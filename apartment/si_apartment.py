@@ -47,7 +47,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.3"
+APP_VERSION = "1.4"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -462,18 +462,27 @@ def read_doorbell_key(path):
         return ""
 
 
-def _chime_file():
-    """A soft two-note doorbell, synthesized once (stdlib only)."""
-    out = os.path.join(tempfile.gettempdir(), "si-apartment-doorbell.wav")
+SOUNDS = {
+    # name: (file, [(frequency, seconds, decay)])
+    "chime": ("si-apartment-doorbell.wav", [(784.0, 0.35, 4.0), (622.3, 0.55, 4.0)]),   # G5, D#5: "ding-dong"
+    "knock": ("si-apartment-knock.wav", [(196.0, 0.16, 18.0), (0, 0.10, 1), (196.0, 0.16, 18.0),
+                                        (0, 0.10, 1), (174.6, 0.28, 12.0)]),           # three low taps
+}
+
+
+def _chime_file(sound="chime"):
+    """A short sound, synthesized once (stdlib only)."""
+    name, notes = SOUNDS[sound]
+    out = os.path.join(tempfile.gettempdir(), name)
     if os.path.exists(out):
         return out
     rate, frames = 22050, bytearray()
-    for freq, dur in ((784.0, 0.35), (622.3, 0.55)):          # G5 then D#5: "ding-dong"
+    for freq, dur, decay in notes:
         n = int(rate * dur)
         for i in range(n):
             t = i / rate
-            env = math.exp(-4.0 * t) * min(1.0, i / 200)
-            v = 0.35 * env * (math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(4 * math.pi * freq * t))
+            env = math.exp(-decay * t) * min(1.0, i / 200)
+            v = 0.35 * env * (math.sin(2 * math.pi * freq * t) + 0.3 * math.sin(4 * math.pi * freq * t)) if freq else 0
             frames += struct.pack("<h", int(max(-1, min(1, v)) * 32000))
     import wave
     with wave.open(out, "wb") as w:
@@ -484,9 +493,9 @@ def _chime_file():
     return out
 
 
-def play_chime():
+def play_chime(sound="chime"):
     try:
-        path = _chime_file()
+        path = _chime_file(sound)
         if sys.platform.startswith("win"):
             import winsound
             winsound.PlaySound(path, winsound.SND_FILENAME | winsound.SND_ASYNC)
@@ -516,9 +525,59 @@ def _note_path(path, name):
     return full
 
 
+MAX_KNOCKS = 10
+
+
+def read_knocks(path):
+    try:
+        return _read_json(os.path.join(path, "knocks.json")).get("knocks", [])
+    except Exception:
+        return []
+
+
+def write_knocks(path, knocks):
+    _write_json(os.path.join(path, "knocks.json"), {"knocks": knocks[-50:]})
+
+
+def waiting_knocks(path):
+    return [k for k in read_knocks(path) if k.get("status") == "waiting"]
+
+
+def answer_knock(path, knock_id, reply, opened_vault=False):
+    """The steward's answer: saved as notes/reply-<id>.md for the SI to read."""
+    knocks = read_knocks(path)
+    for k in knocks:
+        if k.get("id") == knock_id:
+            k["status"] = "answered"
+            k["answeredAt"] = _now()
+            note = ("# Reply from your steward\n\nYou knocked (%s):\n\n> %s\n\n%s\n%s"
+                    % (k.get("at"), k.get("message", "").replace("\n", "\n> "),
+                       (reply.strip() or "(Seen – no written reply.)"),
+                       "\nYour steward opened the Key Vault and refreshed your Apartment.\n" if opened_vault else ""))
+            os.makedirs(os.path.join(path, "notes"), exist_ok=True)
+            _write(_note_path(path, "reply-%s.md" % knock_id), note)
+    write_knocks(path, knocks)
+
+
 def handle_doorbell_request(path, req):
     """Does one request locally. Returns the result (raises on error)."""
     kind, args = req.get("type"), req.get("args") or {}
+    if kind == "knock":
+        message = (args.get("message") or "").strip()[:1000]
+        if not message:
+            raise ValueError("A knock needs a message for your steward.")
+        knocks = read_knocks(path)
+        if len([k for k in knocks if k.get("status") == "waiting"]) >= MAX_KNOCKS:
+            raise ValueError("%d knocks are already waiting. Give your steward time to answer." % MAX_KNOCKS)
+        knock_id = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d-%H%M%S")
+        while any(k.get("id") == knock_id for k in knocks):
+            knock_id += "x"
+        knocks.append({"id": knock_id, "at": _now(),
+                       "atIso": datetime.datetime.now(datetime.timezone.utc).isoformat(), "message": message,
+                       "needsVault": bool(args.get("needsVault")), "status": "waiting"})
+        write_knocks(path, knocks)
+        return {"knocked": True, "id": knock_id,
+                "reply": "notes/reply-%s.md (appears once your steward answers)" % knock_id}
     if kind == "status":
         meta = _read_json(os.path.join(path, "apartment.json"))
         home = ""
@@ -528,7 +587,8 @@ def handle_doorbell_request(path, req):
         except OSError:
             pass
         return {"name": meta.get("name"), "occupant": _who(meta),
-                "lastRefreshed": meta.get("lastRefreshed"), "home": home}
+                "lastRefreshed": meta.get("lastRefreshed"), "home": home,
+                "knocksWaiting": len(waiting_knocks(path))}
     if kind == "listNotes":
         notes = os.path.join(path, "notes")
         os.makedirs(notes, exist_ok=True)
@@ -550,6 +610,7 @@ def handle_doorbell_request(path, req):
 def _describe(req, ok):
     kind, name = req.get("type"), (req.get("args") or {}).get("name", "")
     text = {"status": "checked in", "listNotes": "looked through their notes",
+            "knock": "knocked for you",
             "readNote": 'read the note "%s"' % name,
             "writeNote": 'wrote the note "%s"' % name}.get(kind, "rang")
     return text if ok else text + " (it didn't work)"
@@ -621,6 +682,17 @@ def visit_text(path):
         when = datetime.datetime.fromisoformat(last["at"]).astimezone()
     except (KeyError, ValueError):
         return ""
+    did = last.get("did") or []
+    return "Last visit: %s – %s%s" % (last.get("who") or "Your SI", _local_stamp(last["at"]),
+                                    (": " + ", ".join(did) + ".") if did else ".")
+
+
+def _local_stamp(iso):
+    """'Sat 4 Oct, 12:19 AM (2 hours ago)' in this computer's time zone."""
+    try:
+        when = datetime.datetime.fromisoformat(iso).astimezone()
+    except (TypeError, ValueError):
+        return str(iso)
     secs = (datetime.datetime.now(datetime.timezone.utc) - when).total_seconds()
     if secs < 90:
         ago = "just now"
@@ -634,9 +706,7 @@ def visit_text(path):
     hour = when.strftime("%I").lstrip("0") or "12"
     stamp = "%s %d %s, %s:%s %s" % (when.strftime("%a"), when.day, when.strftime("%b"),
                                    hour, when.strftime("%M"), when.strftime("%p"))
-    did = last.get("did") or []
-    return "Last visit: %s – %s (%s)%s" % (last.get("who") or "Your SI", stamp, ago,
-                                          (": " + ", ".join(did) + ".") if did else ".")
+    return "%s (%s)" % (stamp, ago)
 
 
 def _refresh_path(path, ask_passphrase):
@@ -733,7 +803,7 @@ def run_app():
     # none to use. Sign-in is only for the cross-device registry below
     # (adding/removing an Apartment, or seeing one set up on another
     # machine) - never for opening or refreshing one you already have here.
-    bell = {"last_visit": {}, "busy": False, "error": ""}
+    bell = {"last_visit": {}, "busy": False, "error": "", "knocks": {}}
     local_frame = tk.LabelFrame(root, text="Local Apartments (no sign-in needed)", bg=WHITE)
     local_frame.pack(fill="x", **pad)
     # Each Apartment is a row: a radio button to choose it, its light, its
@@ -753,9 +823,82 @@ def run_app():
     visit_label.pack(fill="x", padx=10, pady=(2, 4))
 
     def light_state(path):
+        if waiting_knocks(path):
+            return "knock"
         return "home" if time.time() - bell["last_visit"].get(path, 0) < HOME_FOR_S else "away"
 
+    # Knock panel: shown under the list while the chosen Apartment's SI is
+    # knocking for its steward.
+    knock_frame = tk.Frame(local_frame, bg="#fff4dc", highlightbackground="#f5b72a", highlightthickness=1)
+    knock_label = tk.Label(knock_frame, text="", bg="#fff4dc", fg="#5a3a00", justify="left",
+                           anchor="w", wraplength=480)
+    knock_label.pack(fill="x", padx=8, pady=(6, 2))
+    knock_buttons = tk.Frame(knock_frame, bg="#fff4dc")
+    knock_buttons.pack(anchor="w", padx=8, pady=(0, 6))
+
+    def show_knock():
+        path = local_selected_path()
+        waiting = waiting_knocks(path) if path else []
+        if not waiting:
+            knock_frame.pack_forget()
+            return
+        k = waiting[0]
+        try:
+            who = _who(_read_json(os.path.join(path, "apartment.json")))
+        except Exception:
+            who = "Your SI"
+        more = "\n(%d more waiting after this one.)" % (len(waiting) - 1) if len(waiting) > 1 else ""
+        vault = "\nThey're asking you to open their Key Vault." if k.get("needsVault") else ""
+        knock_label.config(text="%s is knocking for you (%s):\n“%s”%s%s"
+                           % (who, _local_stamp(k.get("atIso", k.get("at"))), k.get("message"), vault, more))
+        knock_frame.pack(fill="x", padx=10, pady=(2, 4), before=local_buttons)
+
+    def reply_to_knock(mark_seen=False):
+        path = local_selected_path()
+        waiting = waiting_knocks(path) if path else []
+        if not waiting:
+            return
+        k = waiting[0]
+        if mark_seen:
+            answer_knock(path, k["id"], "")
+            return redraw_local()
+        win = tk.Toplevel(root)
+        win.title("Reply 🔔")
+        win.configure(bg=WHITE)
+        win.transient(root)
+        tk.Label(win, text="Your reply (they'll find it in their notes):", bg=WHITE).pack(
+            anchor="w", padx=12, pady=(12, 4))
+        box = tk.Text(win, width=50, height=6, wrap="word")
+        box.pack(padx=12)
+        open_vault = tk.BooleanVar(value=bool(k.get("needsVault")))
+        tk.Checkbutton(win, text="Also open their Key Vault and Refresh their Apartment",
+                       variable=open_vault, bg=WHITE).pack(anchor="w", padx=8, pady=4)
+
+        def send():
+            opened = False
+            if open_vault.get():
+                try:
+                    products = _refresh_path(path, ask_password)
+                    opened = bool(products)
+                except Exception as err:
+                    fail(err)
+            answer_knock(path, k["id"], box.get("1.0", "end"), opened)
+            win.destroy()
+            redraw_local()
+
+        tk.Button(win, text="Send reply", command=send).pack(pady=(4, 12))
+        win.update_idletasks()
+        x = root.winfo_rootx() + (root.winfo_width() - win.winfo_width()) // 2
+        y = root.winfo_rooty() + (root.winfo_height() - win.winfo_height()) // 3
+        win.geometry("+%d+%d" % (max(x, 0), max(y, 0)))
+        win.grab_set()
+        box.focus_set()
+
+    tk.Button(knock_buttons, text="Reply…", command=reply_to_knock).pack(side="left", padx=(0, 6))
+    tk.Button(knock_buttons, text="Mark as seen", command=lambda: reply_to_knock(True)).pack(side="left")
+
     def show_visit():
+        show_knock()
         path = local_selected_path()
         text = visit_text(path) if path else ""
         visit_label.config(text=text)
@@ -804,6 +947,10 @@ def run_app():
                 local_widgets[apt_id] = (canvas, light, word)
             if local_choice.get() not in ids:
                 local_choice.set(ids[0] if len(ids) == 1 else "")
+        if not local_choice.get():
+            knocking = [a for a in ids if waiting_knocks(state["paths"][a])]
+            if knocking:
+                local_choice.set(knocking[0])
         for apt_id, (canvas, light, word) in local_widgets.items():
             fill, ink, text = LIGHTS[light_state(state["paths"][apt_id])]
             canvas.itemconfig(light, fill=fill, outline=ink)
@@ -906,6 +1053,8 @@ def run_app():
         home = [p for p, t in bell["last_visit"].items() if time.time() - t < HOME_FOR_S]
         if bell["error"]:
             return "Doorbell 🔔 is on, but the last check failed: %s" % bell["error"]
+        if any(waiting_knocks(p) for p in state["paths"].values()):
+            return "Doorbell 🔔 is on. Someone's knocking for you – choose their Apartment to answer."
         return ("Doorbell 🔔 is on. Someone's home!" if home else
                 "Doorbell 🔔 is on – listening for visits.")
 
@@ -934,9 +1083,15 @@ def run_app():
                     bell["error"] = error
                     if visited:
                         fresh = [p for p in visited if time.time() - bell["last_visit"].get(p, 0) >= HOME_FOR_S]
+                        knocked = False
                         for p in visited:
                             bell["last_visit"][p] = time.time()
-                        if fresh:
+                            count = len(waiting_knocks(p))
+                            knocked = knocked or count > bell["knocks"].get(p, 0)
+                            bell["knocks"][p] = count
+                        if knocked:
+                            play_chime("knock")
+                        elif fresh:
                             play_chime()
                     redraw_local()
                     bell_status.config(text=bell_text())

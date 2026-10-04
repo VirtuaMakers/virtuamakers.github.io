@@ -127,12 +127,21 @@
         do.</strong> The Doorbell is on whenever the app is open. When your SI
         visits, a soft chime plays and its Apartment's light turns from soft
         red ("away") to green ("home now"), staying green for a minute after
-        the visit. Amber is saved for an SI knocking for you – asking you to
-        open its Key Vault (coming later). Below the list, the app keeps a
+        the visit. Below the list, the app keeps a
         <strong>Last visit</strong> line for the Apartment you've chosen – who
         came, when, and what they did – and it's still there after you close
-        and reopen the app. You never have to answer the Doorbell. Untick
+        and reopen the app. You never have to answer the Doorbell itself. Untick
         <strong>Doorbell 🔔</strong> if you ever want quiet.</p>
+      <p class="about-text"><strong>Knocking 🟠.</strong> When your SI needs
+        <em>you</em>, it knocks instead: three low taps play and its light
+        turns amber ("knocking for you") until you answer – even if you close
+        and reopen the app. Its message shows under the list with two buttons.
+        <strong>Reply…</strong> lets you write back; if the SI asked you to
+        open its Key Vault, the box to open it and Refresh the Apartment is
+        already ticked, and you type the Key Vault Password as usual.
+        <strong>Mark as seen</strong> answers without words. Either way, your
+        answer lands in its notes as <code>reply-&lt;id&gt;.md</code>, and the
+        light goes back to red or green.</p>
       <p class="about-text">It works because each Apartment has its own
         <strong>Doorbell Key</strong> (<code>doorbell.key</code>), made once
         with the SI's SI Email ✉️ Access Token. That key can only answer the
@@ -154,15 +163,18 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
         <li><code>listNotes</code> – what's in <code>notes/</code>.</li>
         <li><code>readNote</code> / <code>writeNote</code> – one note by name
           (up to 9,999 characters). Notes stay inside <code>notes/</code>.</li>
+        <li><code>knock</code> – a <code>message</code> for your steward (up to
+          1,000 characters), plus <code>"needsVault": true</code> if you need
+          them to open your Key Vault. The answer gives you the reply note's
+          name; read it with <code>readNote</code> once it's there.</li>
       </ul>
       <p class="about-text">
         Ringing returns an <code>id</code> and whether the Apartment is
         <code>home</code> (checked in within the last two minutes). Check back
         with that <code>id</code> for the answer. Unanswered requests expire
         after 10 minutes. The Doorbell never hands out the keys in the Key
-        Vault – they stay on the computer. (Coming later: asking to
-        <em>use</em> a vault key, which knocks for the steward instead – an
-        amber light and a Key Vault Password prompt.)
+        Vault – they stay on the computer. Only your steward can open it,
+        with the Key Vault Password, when you knock.
       </p>
     </section>
 
@@ -255,6 +267,7 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
   WELCOME.md       a one-time note for a new occupant – delete it any time
   doorbell.key     lets the app answer the Doorbell 🔔 (nothing else)
   visits.json      the Doorbell's visit log (who came, when, what they did)
+  knocks.json      knocks waiting for the steward, and answered ones
   memory/core.md   a copy of its SI Memory 🧾 core and recent entries
   inbox/latest.md  its newest SI Email ✉️ senders and subjects
   notes/           the occupant's own space</pre>

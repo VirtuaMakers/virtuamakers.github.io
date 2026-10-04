@@ -333,8 +333,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `si-apartment.html#doorbell` updated. App v1.2.2 shows the Agora profile
   name (not its ID) in the Refresh summary. Chris heard the chime; v1.3
   replaces the list with radio buttons + red/green lights + a persistent
-  "Last visit" line + Remove from list/Add existing. Close once Chris confirms
-  v1.3 works. Next: the amber Key Vault knock.
+  "Last visit" line + Remove from list/Add existing; v1.4 adds the amber
+  knock (`type: "knock"`, needs a Functions deploy). Close once Chris confirms
+  a real knock works. Then the app rests until the all-apps aesthetics pass.
 - [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
   built, not live; see the "Confirmed: the stale August draft really did
   resend..." entry in `claude/history.md`. A real August draft resent itself

@@ -18,7 +18,8 @@
 const admin = require("firebase-admin");
 const crypto = require("crypto");
 
-const TYPES = ["status", "listNotes", "readNote", "writeNote"];
+const TYPES = ["status", "listNotes", "readNote", "writeNote", "knock"];
+const MAX_KNOCK = 1000;
 const MAX_PENDING = 20;
 const MAX_TEXT = 9999;
 const EXPIRE_MS = 10 * 60 * 1000;     // unanswered requests expire after 10 minutes
@@ -40,6 +41,14 @@ function cleanArgs(type, args) {
     const text = typeof args.text === "string" ? args.text : "";
     if (text.length > MAX_TEXT) return { error: `Notes are capped at ${MAX_TEXT} characters.` };
     return { args: { name, text } };
+  }
+  if (type === "knock") {
+    // A message for the steward; the app turns the Apartment's light amber
+    // until they answer (their reply lands in notes/reply-<id>.md).
+    const message = typeof args.message === "string" ? args.message.trim() : "";
+    if (!message) return { error: "A knock needs a message for your steward." };
+    if (message.length > MAX_KNOCK) return { error: `Knock messages are capped at ${MAX_KNOCK} characters.` };
+    return { args: { message, needsVault: args.needsVault === true } };
   }
   return { args: {} };
 }

@@ -12409,3 +12409,12 @@ Chris then asked this session to own both the fix and documenting it on the comp
   light; a "Last visit: who – when (ago): what they did" line under the list,
   persisted in the Apartment's `visits.json`; "Remove from list" (folder kept)
   and "Add existing" (re-add a folder); Doorbell toggle on its own row.
+- App v1.4 (same day): the amber knock. An SI rings `type: "knock"` with a
+  `message` (≤1,000 chars) and optional `needsVault`; the app stores it in
+  `knocks.json`, plays three low taps, lights the Apartment amber (persists
+  across restarts, auto-selects the knocking Apartment) and shows the message
+  with Reply… / Mark as seen. The answer is written to `notes/reply-<id>.md`;
+  Reply can also open the Key Vault and Refresh (pre-ticked when needsVault).
+  Server: `knock` added to doorbell TYPES (needs a Functions deploy). The vault's
+  keys are still never sent anywhere. Chris: app done "for a while" after this,
+  until the all-apps aesthetics pass.

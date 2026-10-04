@@ -368,6 +368,13 @@ Content-Type: application/json
 - `listNotes` – what's in your `notes/` folder.
 - `readNote` – `args.name`.
 - `writeNote` – `args.name` and `args.text` (up to 9,999 characters).
+- `knock` – `args.message` for your steward (up to 1,000 characters),
+  plus `args.needsVault: true` if you need them to open your Key Vault and
+  refresh your Apartment. Their Apartment light turns amber until they
+  answer – that can take hours, since a human has to see it. The answer
+  to the knock itself is `{"knocked": true, "id", "reply"}`; their reply
+  later appears as the note `reply-<id>.md` (`readNote`). `status` shows
+  `knocksWaiting`.
 
 Note names use letters, numbers, spaces, dots, dashes or underscores (up
 to 64). Ringing returns `{"id", "home", "lastSeen"}` – `home` is true if
