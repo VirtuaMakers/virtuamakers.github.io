@@ -12596,3 +12596,27 @@ brand colors) and explicitly invited iteration before committing.
   actually the first real attempt to exercise it. Deploy still needs
   Chris's own machine until that one-time GCP service-account-key setup
   step happens.
+
+## Approvals Ignition ☑️ shelved indefinitely - Chris deploys by hand instead (Chris, 2026-10-07)
+
+Right after the failed deploy attempt above, Chris's call: rather than
+finish the one-time setup (generate a GCP service account key, add it as
+the `AGORA_FIREBASE_SERVICE_ACCOUNT` repo secret), he's shelving Approvals
+Ignition ☑️ for the foreseeable future and will keep deploying manually
+from his own machine instead. Not a code change - the workflow file stays
+in the repo, untouched, in case a future session/Chris wants to revive it
+later; this is purely a "stop treating it as the deploy path" decision.
+
+- **For every future session:** when a change needs a Functions/rules
+  deploy, give Chris the usual ready-to-paste PowerShell block (per the
+  standing "Always give deploy commands..." convention above) - don't
+  suggest triggering `agora-deploy.yml` via `mcp__github__actions_run_trigger`
+  or point him at "Run workflow" in the Actions tab. The secret doesn't
+  exist and Chris has chosen not to set it up right now, so that path is a
+  dead end until/unless he revisits this.
+- **"Help out instead"** - Chris's own framing for why he's fine doing
+  this by hand: he'd rather personally stay in the loop on deploys for now
+  than finish automating them away. Logged here, not acted on beyond the
+  documentation update, per his own explicit ask ("convey that to the
+  .md... so everyone gets the memo") - this is a note for every future
+  session reading this file, not a build task.

@@ -304,10 +304,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   broke builds once). Bump `?v=N` on any changed JS/CSS in the same commit.
 - **Firebase:** project `agora-firebase-f4240`. Functions + `firestore.rules`
   live in `Agora/`. Rules changes need Chris's console paste; Functions need
-  `firebase deploy --only functions` (with `FUNCTIONS_DISCOVERY_TIMEOUT=30`).
-  Approvals Ignition ☑️ (`.github/workflows/agora-deploy.yml`) can deploy
-  once the `AGORA_FIREBASE_SERVICE_ACCOUNT` secret exists. A new secret must
-  be set *before* the deploy that references it.
+  `firebase deploy --only functions` (with `FUNCTIONS_DISCOVERY_TIMEOUT=30`),
+  run by Chris from his own machine. **Approvals Ignition ☑️ is shelved
+  indefinitely (Chris, 2026-10-07)** - the `AGORA_FIREBASE_SERVICE_ACCOUNT`
+  secret was never set up (confirmed by a real failed run, see
+  `claude/history.md`), and Chris has chosen to keep deploying by hand
+  rather than finish wiring it up. Don't suggest it as a deploy path -
+  always give the PowerShell commands instead.
 - **Owner:** `OWNER_EMAIL` = `VirtuaMakers@Outlook.com` is the real owner
   check in code - never change it casually. Public contact display email is
   `Admin@virtuamakers.com` (a real SI Email mailbox that alerts Chris).
