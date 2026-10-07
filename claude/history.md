@@ -12656,5 +12656,12 @@ emails this session sent (one to `admin@virtuamakers.com`, one straight to
   back to Chris as a real, fixable follow-up (skip the alert when the
   message's own sender is the owner) rather than silently building it -
   a behavior change to notification routing, not something to decide alone.
+- **Guard added same day, Chris confirmed he wants it:** `notifyOnAiEmailReceived`
+  now returns early (sends nothing) when `message.from` contains
+  `OWNER_EMAIL`, case-insensitive - matching the owner-email comparison
+  convention already established elsewhere in this codebase (the
+  2026-08-17 case-sensitivity fix). A reply Chris sends to any mailbox
+  still gets stored normally in that mailbox's inbox; only the redundant
+  "you got mail" alert about his own message is skipped.
 - **Not yet re-tested** - this fix needs the same deploy step as always;
   Chris hasn't re-sent/re-checked since it landed.

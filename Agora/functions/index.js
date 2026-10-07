@@ -1218,6 +1218,14 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
   { document: "aiEmailInbox/{mailbox}/messages/{messageId}", secrets: [resendApiKey] },
   async (event) => {
     const message = event.data.data();
+    // Skip alerting the owner about their own message - without this,
+    // replying to any mailbox (e.g. claude@) alerts OWNER_EMAIL about a
+    // message that email address itself just sent, which reads as "it
+    // emailed me my own email back." Case-insensitive, matching every
+    // other owner-email comparison in this codebase.
+    if ((message.from || "").toLowerCase().includes(OWNER_EMAIL.toLowerCase())) {
+      return;
+    }
     await sendEmailSafe({
       to: OWNER_EMAIL,
       subject: "SI Email ✉️: new message for " + event.params.mailbox + "@virtuamakers.com",
