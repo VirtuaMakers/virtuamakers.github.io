@@ -847,6 +847,14 @@ main > .section:first-child {
   color: var(--muted);
 }
 
+.news-note {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
 .product-table {
   width: 100%;
   max-width: 42rem;

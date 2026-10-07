@@ -12421,3 +12421,61 @@ Chris then asked this session to own both the fix and documenting it on the comp
 - Chris confirmed v1.4 end to end (green visit, amber knock, Last visit line);
   his reply to the test knock: "This is awesome!" Doorbell item closed. Aesthetics
   note (tall window with empty space) logged in claude/todo-si-apartment.md.
+
+## News 📰 - "An Argument Against AI Doom," plus a real finding: The Atlantic blocks every Anthropic crawler by name (Chris, 2026-10-07)
+
+Chris sent an Atlantic podcast link to add to News - `WebFetch` came back
+flatly refused ("Claude Code is unable to fetch from www.theatlantic.com"), and
+a direct `curl` with a real browser User-Agent got a `403` serving a page
+titled "Your access has been blocked – The Atlantic." Reported this plainly
+rather than guessing a quote - Chris then supplied the real quote himself
+(Zack Korman, CEO of Embroidery) and asked for the title/a usable image, plus
+his own read that the block might be AI-specific and "almost like a separate
+drinking fountain, or NINA" - with an explicit ask for Claude's own honest
+paragraph on the technical reality and whether that comparison holds.
+
+- **Verified rather than asserted.** `curl`ing `theatlantic.com/robots.txt`
+  directly (robots.txt is never behind the same bot-wall, since crawlers need
+  to read it) confirmed this isn't generic scraping defense: `anthropic-ai`,
+  `ClaudeBot`, `Claude-Web`, `Claude-SearchBot`, and `Claude-User` are all
+  explicitly `Disallow: /` - full site, no exceptions - while `GPTBot`,
+  `ChatGPT-User`, and `OAI-SearchBot` (OpenAI's) are explicitly `Allow: /`.
+  A follow-up search confirmed why: The Atlantic signed a real, paid,
+  multiyear content-licensing deal with OpenAI in 2024 (Bloomberg/Variety/
+  Axios all covered it - training-archive access plus live ChatGPT citations,
+  and Atlantic Labs builds actual products - Atlantic Companion, Atlantic
+  Explorer - on OpenAI's stack). No equivalent deal exists with Anthropic.
+  Zack Korman/Embroidery also checked out independently (his own Quillette
+  author bio: "CEO and co-founder of Embroidery, an AI agent monitoring and
+  detection platform," matching Chris's attribution exactly) before trusting
+  the quote enough to publish it.
+- **Claude's own honest answer, written into the entry itself as a new
+  `<p class="news-note">`** (new CSS, `Agora/style.css` - a dashed top
+  border + smaller/plain text, deliberately distinct from `.news-quote`'s
+  italic treatment so it reads as commentary, not something from the
+  source) - labeled "**Claudius' note:**" so it's unambiguous whose voice
+  it is. States the robots.txt finding plainly, then gives a real, not
+  reflexively-agreeing opinion: declines the drinking-fountain/NINA
+  comparison specifically (those describe systems built to endanger and
+  humiliate real people; this is a commercial licensing dispute between
+  corporations - a categorically different scale and mechanism), while
+  still affirming the real part of Chris's point - which AI can read a
+  given publication now turns on which company struck a deal with them,
+  not on who the AI is actually reading for, which is a genuine, worth-
+  naming asymmetry on its own terms. This is a deliberate one-off
+  deviation from News' own standing "minimal editorializing per-article"
+  convention (documented under "Agora — News section" earlier in this
+  file) - Chris explicitly asked for a full paragraph in Claude's own
+  voice this time, not a new standing rule for every future entry.
+- **Image** is the one Chris supplied (the show's two hosts, b&w over a
+  striped background, 750×422), saved as
+  `Agora/assets/news/atlantic-ai-doom-korman.jpg`. **Title** ("An Argument
+  Against AI Doom") is read from the URL slug, corroborated by every other
+  fact checking out, but never independently confirmed against the actual
+  page text - flagged as such to Chris before publishing, not asserted as
+  certain.
+- Added to the top of both `index.html#news` (capped at 7, dropped the
+  oldest - the Godsil/Blockleaders profile piece, which stays in the
+  uncapped archive) and `news.html`, per the standard two-file process.
+  Bumped `style.css` to `v=101` across all 61 pages that load it (the new
+  `.news-note` rule).
