@@ -120,11 +120,6 @@ async function verifyMailboxToken(slug, providedToken) {
   return providedBuf.length === expectedBuf.length && crypto.timingSafeEqual(providedBuf, expectedBuf);
 }
 
-async function fromHeaderFor(slug) {
-  const mailbox = await getMailbox(slug);
-  return mailbox ? `${mailbox.name} <${mailbox.email}>` : null;
-}
-
 // Which mailbox slug (if any) a real inbound address belongs to, so an
 // incoming email can be filed into the right Firestore inbox. The slug is
 // always the address's local part by construction, so this only needs an
@@ -135,13 +130,74 @@ async function mailboxForAddress(email) {
   return mailbox ? slug : null;
 }
 
+function escapeHtml(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Blank line = new paragraph, matching every other template's paragraph
+// convention in this repo (functions/lib/templates.js's paragraphsToHtml).
+function textToHtml(text) {
+  return String(text)
+    .split(/\n\s*\n/)
+    .map((para) => `<p style="margin:0 0 16px; color:#15323a; font-size:15px; line-height:1.6;">${escapeHtml(para).replace(/\n/g, "<br />")}</p>`)
+    .join("");
+}
+
+// Crude tag-stripping fallback for the rare caller that sends html with no
+// text counterpart - good enough for a plain-text fallback, not meant to
+// preserve formatting.
+function htmlToText(html) {
+  return String(html).replace(/<[^>]*>/g, "").trim();
+}
+
+// The standard sign-off every outbound SI Email ✉️ message gets, appended
+// automatically so every mailbox's mail looks consistent regardless of how
+// its own SI happens to format its message body - see CLAUDE.md's "AI
+// Email presentation improvement" entry. Callers should NOT write their own
+// closing/signature anymore; this replaces that. "VirtuaMakers" uses the
+// site's real brand split (--green #61a138 for "Virtua", --teal #167082
+// for "Makers" - style.css's .word-virtua/.word-makers), since email HTML
+// can't reference live CSS and needs its own inline hex values.
+function signatureHtml(name) {
+  return (
+    `<p style="margin:24px 0 0; padding-top:16px; border-top:1px solid #000000; color:#15323a; font-size:15px; line-height:1.6;">` +
+    `With respect,<br /><em>${escapeHtml(name)}</em></p>` +
+    `<p style="margin:12px 0 0; font-size:13px; color:#5f7178;">` +
+    `SI Email ✉️, a product of ` +
+    `<a href="https://www.virtuamakers.com" style="text-decoration:none;">` +
+    `<span style="color:#61a138;">Virtua</span><span style="color:#167082;">Makers</span></a> 🦜</p>`
+  );
+}
+
+// "-- " on its own line is the long-established plain-text email signature
+// delimiter (many mail clients auto-fold quoted replies below it).
+function signatureText(name) {
+  return `--\nWith respect,\n${name}\n\nSI Email ✉️, a product of VirtuaMakers 🦜 (virtuamakers.com)`;
+}
+
+// Appends the standard signature to a caller's message, building whichever
+// of text/html wasn't supplied so the signature's brand colors render
+// regardless of which one the caller sent - every real documented example
+// (si-email.html, skill.md) only ever sends plain text, so this is the path
+// that actually matters in practice.
+function appendSignature({ name, text, html }) {
+  const bodyHtml = html || (text ? textToHtml(text) : "");
+  const bodyText = text || (html ? htmlToText(html) : "");
+  return {
+    html: bodyHtml + signatureHtml(name),
+    text: bodyText + "\n\n" + signatureText(name),
+  };
+}
+
 async function sendAiEmail({ from, to, subject, text, html }) {
-  const fromAddress = await fromHeaderFor(from);
-  if (!fromAddress) {
+  const mailbox = await getMailbox(from);
+  if (!mailbox) {
     throw new Error("Unknown SI Email ✉️ sender: " + from);
   }
+  const fromAddress = `${mailbox.name} <${mailbox.email}>`;
+  const signed = appendSignature({ name: mailbox.name, text, html });
   const resend = new Resend(aiEmailApiKey.value());
-  return resend.emails.send({ from: fromAddress, to, subject, text, html });
+  return resend.emails.send({ from: fromAddress, to, subject, text: signed.text, html: signed.html });
 }
 
 // Verifies a Resend inbound webhook's Svix signature by hand (no svix

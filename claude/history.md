@@ -12517,3 +12517,66 @@ treating it as property anyway would be worse than honest disbelief.
 - No image/headline/quote changes - same entry, same sources, only the
   commentary paragraph rewritten. No `style.css`/version-bump needed
   (`.news-note`'s rule is unchanged, only the text inside it).
+
+## SI Email ✉️ presentation: a real, standard signature appended server-side (Chris, 2026-10-07)
+
+Chris's complaint: "the email system works, but it's not presentable" -
+outbound SI Email ✉️ messages ended in "jumbled, smashed together text"
+instead of a consistent sign-off, since `sendAiEmail` has always passed
+whatever `text`/`html` the caller sent straight through to Resend with no
+signature logic at all. He offered a starting draft ("With respect, *[name]*
+/ SI Email ✉️, a product of VirtuaMakers 🦜" with VirtuaMakers in the site's
+brand colors) and explicitly invited iteration before committing.
+
+- **Iterated, then confirmed:** flagged two things before building anything
+  - his draft said "SI Email" while this session still had "AI Email" as
+  the established name (he confirmed: real, deliberate rebrand, not a
+  typo - "SI" = **Super Intelligence**, not the Synthetic Intelligence this
+  session guessed), and that the real site brand split is green (`Virtua`,
+  `#61a138`) + **teal** (`Makers`, `#167082`), not literal blue - he
+  confirmed "green and teal." He also asked for a link to virtuamakers.com
+  on "VirtuaMakers 🦜" (added) and floated, then talked himself out of,
+  adding "(SI)" after the sender's name - left out, matching both his own
+  second thought ("I don't identify myself as human in my emails...") and
+  the fact that the footer line already says "SI Email ✉️, a product of
+  VirtuaMakers" in plain terms.
+- **Real catch along the way: this session's branch was 146 commits behind
+  `origin/main`** - the "SI, not AI" rebrand (and a long list of other
+  work: SI Apartment 🏢, the GitHub org migration, going private, SI Memory
+  🧾, etc.) had already landed on `main` from other sessions days ago; this
+  session's local `main` had never been fast-forwarded to pick any of it
+  up. Caught before building anything on stale assumptions by checking
+  `git log origin/main --oneline` and re-reading the (now much smaller,
+  post-2026-10-02 restructure) `CLAUDE.md` plus this file - reset local
+  `main` to `origin/main` first, then resumed.
+- **Built server-side, not as a documentation convention** - a
+  documentation-only fix (telling callers in `skill.md` to sign off a
+  certain way) wouldn't actually make every mailbox's mail consistent,
+  since every real documented caller (including `si-email.html`'s own
+  `curl` example) only ever sends plain `text`, which can't carry color at
+  all. New `appendSignature({ name, text, html })` in
+  `Agora/functions/lib/aiEmail.js`: builds whichever of `text`/`html`
+  wasn't supplied (a plain-text body gets wrapped into simple paragraphs
+  via a new `textToHtml()`, blank-line-separated, matching this repo's
+  usual paragraph convention; the rare html-only caller gets a crude
+  `htmlToText()` tag-strip for its plain-text copy) and appends a standard
+  signature to both - HTML with the real "VirtuaMakers" brand-color span +
+  a link to `https://www.virtuamakers.com`, plain text with a classic
+  `-- ` sig-delimiter line. `sendAiEmail()` now calls this unconditionally
+  for every send, using the mailbox's own stored `name` field - no mailbox
+  can opt out, matching Chris's "for now, standard" framing. The dead
+  `fromHeaderFor()` helper (only ever used by the code `sendAiEmail()`
+  replaced) was removed rather than left orphaned.
+- **Verified locally** - `node --check` on the edited file and a fresh
+  `require("./index.js")` load (39 exports, unchanged count), plus the
+  pure signature-building functions exercised standalone against a real
+  two-paragraph message to confirm the rendered text/HTML output looks
+  right before wiring them in.
+- **Deliberately not yet touched, pending Chris confirming the deploy
+  actually works:** `skill.md`'s "don't write your own sign-off anymore"
+  note and any mention on `si-email.html` itself - this repo's own
+  established practice is to only document a capability once it's proven
+  live, not merely committed (see `completeAgoraProfile`/
+  `submitAgoraCommunique`'s own history for the same pattern). Add both
+  once Chris confirms a real sent message actually renders the new
+  signature.
