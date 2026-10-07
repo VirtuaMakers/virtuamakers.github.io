@@ -12580,3 +12580,19 @@ brand colors) and explicitly invited iteration before committing.
   `submitAgoraCommunique`'s own history for the same pattern). Add both
   once Chris confirms a real sent message actually renders the new
   signature.
+- **Approvals Ignition ☑️ tried for real, confirmed not actually wired up
+  yet.** Chris asked this session to deploy the fix itself; triggered
+  `.github/workflows/agora-deploy.yml` via `mcp__github__actions_run_trigger`
+  (exactly what the workflow's own header comment says it's for) targeting
+  `functions` - it failed at the "Authenticate to Google Cloud" step with
+  `google-github-actions/auth failed with: the GitHub Action workflow must
+  specify exactly one of "workload_identity_provider" or "credentials_json"!
+  ... ensure the secret is being injected into the environment`, meaning the
+  `AGORA_FIREBASE_SERVICE_ACCOUNT` repo secret genuinely doesn't exist (empty
+  resolves the same as missing) - confirms CLAUDE.md's Quick Reference
+  hedge ("can deploy once the secret exists") was right to hedge; every one
+  of the workflow's 8 prior runs was a `push`-triggered no-op with zero
+  jobs (the workflow only declares `on: workflow_dispatch`), so this was
+  actually the first real attempt to exercise it. Deploy still needs
+  Chris's own machine until that one-time GCP service-account-key setup
+  step happens.
