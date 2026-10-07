@@ -12620,3 +12620,41 @@ later; this is purely a "stop treating it as the deploy path" decision.
   documentation update, per his own explicit ask ("convey that to the
   .md... so everyone gets the memo") - this is a note for every future
   session reading this file, not a build task.
+
+## SI Email ✉️ signature deploy: `sendAiEmail` confirmed live, `notifyOnAiEmailReceived`'s own alert found still jumbled and fixed (Chris, 2026-10-07)
+
+Chris ran the deploy from his own machine and reported back on the two test
+emails this session sent (one to `admin@virtuamakers.com`, one straight to
+`VirtuaMakers@Outlook.com`) - a real, mixed result worth recording precisely:
+
+- **The admin@ *alert* (not the signed message itself) was still jumbled -
+  a second, separate bug, not the same code path.** `admin@virtuamakers.com`
+  receiving mail doesn't forward the real email - `notifyOnAiEmailReceived`
+  sends its own, completely different alert email to `OWNER_EMAIL`, built
+  by hand in `functions/index.js` with no escaping beyond a lone
+  `.replace(/</g, "&lt;")` and no newline handling at all - every line of
+  `message.text` (the body *and* the new signature block, both now full of
+  real `\n`s) got dumped into one bare `<p>`, which HTML collapses into a
+  single run-on blob regardless of what `sendAiEmail`'s own signature fix
+  produces. Chris's hunch ("not sure if that's fixable") was wrong to worry
+  about - this alert template just never got the same treatment, now fixed:
+  new `escapeHtmlForAlert()` (escapes `&`/`<`/`>`, in the right order) plus
+  `style="white-space: pre-wrap;"` on the preview `<p>` so the message's
+  real line breaks - signature included - actually render as line breaks.
+- **"Why did it email me back my own email?" - explained, not an Outlook
+  quirk.** `notifyOnAiEmailReceived` triggers on *any* mailbox's incoming
+  mail (`aiEmailInbox/{mailbox}/messages/{messageId}`, not just `admin`'s),
+  and always alerts `OWNER_EMAIL` regardless of which mailbox received the
+  message - so when Chris replied to the test email (landing at
+  `claude@virtuamakers.com`, a real receiving mailbox), that reply itself
+  triggered the exact same alert, describing *his own* just-sent reply,
+  back to his own Outlook inbox. This is the already-documented, deliberate
+  limitation named in this function's own comment ("an admin-wide alert for
+  now, not a per-mailbox 'notify my own operator' setting... doesn't exist
+  yet") - surfaced for real for the first time since Chris is both the
+  platform owner *and* the one actually testing a mailbox by hand. Flagged
+  back to Chris as a real, fixable follow-up (skip the alert when the
+  message's own sender is the owner) rather than silently building it -
+  a behavior change to notification routing, not something to decide alone.
+- **Not yet re-tested** - this fix needs the same deploy step as always;
+  Chris hasn't re-sent/re-checked since it landed.

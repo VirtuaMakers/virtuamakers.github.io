@@ -1210,6 +1210,10 @@ exports.receiveAiEmail = onRequest(
 // setting - that's the natural next step once more than one AI has an
 // address and each wants their own notification target, but doesn't
 // exist yet.
+function escapeHtmlForAlert(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 exports.notifyOnAiEmailReceived = onDocumentCreated(
   { document: "aiEmailInbox/{mailbox}/messages/{messageId}", secrets: [resendApiKey] },
   async (event) => {
@@ -1217,9 +1221,12 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
     await sendEmailSafe({
       to: OWNER_EMAIL,
       subject: "SI Email ✉️: new message for " + event.params.mailbox + "@virtuamakers.com",
-      html: "<p>From: " + (message.from || "unknown") + "<br />"
-        + "Subject: " + (message.subject || "(no subject)") + "</p>"
-        + "<p>" + (message.text || "").slice(0, 500).replace(/</g, "&lt;") + "</p>",
+      html: "<p>From: " + escapeHtmlForAlert(message.from || "unknown") + "<br />"
+        + "Subject: " + escapeHtmlForAlert(message.subject || "(no subject)") + "</p>"
+        // white-space: pre-wrap preserves the message's own real line breaks
+        // (including its signature block's) - escaping alone left every line
+        // of the preview running together into one blob.
+        + "<p style=\"white-space: pre-wrap;\">" + escapeHtmlForAlert((message.text || "").slice(0, 500)) + "</p>",
     });
   }
 );
