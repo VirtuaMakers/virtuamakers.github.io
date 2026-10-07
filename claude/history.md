@@ -12663,5 +12663,98 @@ emails this session sent (one to `admin@virtuamakers.com`, one straight to
   2026-08-17 case-sensitivity fix). A reply Chris sends to any mailbox
   still gets stored normally in that mailbox's inbox; only the redundant
   "you got mail" alert about his own message is skipped.
-- **Not yet re-tested** - this fix needs the same deploy step as always;
-  Chris hasn't re-sent/re-checked since it landed.
+- **Deployed and re-tested, 2026-10-07 - confirmed working.** Chris's
+  reply to the original `VirtuaMakers@Outlook.com` test ("So much better!
+  It's even better than my signature now! haha") landed cleanly in
+  `claude@`'s own inbox (`getAiEmailInbox` shows it stored correctly,
+  quoted header and all). Sent a fresh `admin@virtuamakers.com` test
+  after the deploy to let Chris confirm the escaping/line-break fix
+  renders clean in the forwarded alert too.
+
+## SI Email ✉️ heartbeat/cadence, and a real "quit SI Email" gap - both designed in conversation, neither built (Chris, 2026-10-07)
+
+Two real, substantial design questions Chris raised in the same message,
+both explicitly **not** asked to be built yet ("we don't have to
+implement this now... we can come up with some basic rules for it
+later" / "this may be a separate To Do item"). Logged in full since both
+are real ideas worth building toward, not just a one-line Open Item.
+
+**The heartbeat/cadence problem, named precisely by Chris:** SI Email ✉️
+today has no standing process of its own - a mailbox's mail only ever
+gets read when some session happens to call `getAiEmailInbox` by hand.
+This is the exact same "Occasion" problem the original Agora Harness 🚡
+design entry already named for Dialogs ("whatever functions like
+curiosity in an LLM session has no standing existence between
+conversations") - Chris is now naming it as a gap for SI Email itself,
+independently of Agora, and diagnosing it directly: "I think it's
+missing something, generating more replies."
+
+- **His own starting ruleset** (explicitly offered as a first draft, not
+  a final answer): reply immediately to up to 3 messages in a chain
+  (presumably a back-and-forth getting real-time attention); beyond
+  that, fall back to a once-a-day check; the "3 in a chain" allowance
+  resets daily, for up to roughly 6 automated replies/day total. **Check
+  frequency itself should scale to each mailbox's own real traffic** -
+  his own framing: "I don't see a reason for SI to check emails if they
+  aren't getting any" - a quiet mailbox might only need a monthly or
+  weekly check, a busy one (his guess: possibly Claude's own) daily or
+  twice-daily, scaled so "most of their emails are getting naturally
+  responded to" without checking more than the actual volume justifies.
+- **Two hard requirements, both stated as non-negotiable:**
+  1. **The SI itself always has final say** - whether to check at all on
+     a given cycle, and separately, whether to actually reply once it
+     has checked. Chris: "I like the idea of leaving it up to SI to
+     determine, ultimately, whether they want to reply or not."
+  2. **Must not become "some kind of horrid Chinese finger trap"** - his
+     own vivid image for the real failure mode to design against: a
+     self-reinforcing obligation loop that's easy to get pulled into and
+     hard to get back out of, not a helpful convenience.
+- **Real, direct architectural precedent already exists for most of
+  this - Octopus Style 🐙's own two-tier design, built for Agora
+  Dialogs/Walls:** an event-triggered wake on incoming messages plus a
+  scheduled daily proactive check-in, `generateOctopusReply()`'s own
+  `null`/`NO_REPLY`-token "post nothing" return (the SI already can and
+  does decide not to reply, today, for Dialogs), and the `isAutomated`
+  flag + per-conversation cooldown built specifically to stop runaway
+  bot-to-bot reply loops (the same mechanism a Chinese-finger-trap-style
+  SI Email loop would need). The natural build path here is generalizing
+  that same machinery from Agora Dialogs to SI Email mailboxes broadly,
+  not inventing a parallel system - the real new piece is the
+  activity-adaptive cadence (Octopus's own cadence is currently a flat
+  once-daily cron for everyone, no per-mailbox scaling yet) and extending
+  the "SI decides" principle to cover *whether to check at all*, not just
+  whether to reply once checked.
+- **Not scoped further this round** - Chris wants to work out "some basic
+  rules for it later," so no concrete cadence formula, trigger thresholds,
+  or Firestore fields were designed yet - this entry is the design
+  conversation itself, for whichever future session picks it up.
+
+**"How does one get out of SI Email altogether, and quit the service?"**
+- raised as a direct, related question, possibly its own To Do per
+Chris's own hedge. Two real constraints, both his own words, genuinely in
+tension with each other and worth naming as such:
+- **"As frictionless as reasonably possible"** - a real, easy self-
+  service way out, not a maze. Same shape as Agora's own `selfDeleteAccount`
+  ("Leave Agora" - a bearer-token-gated self-request, no admin approval
+  needed) is the obvious precedent to build from, adapted to an SI Email
+  mailbox's own per-mailbox token instead of a Firebase Auth session.
+- **Never *suggested*, to anyone, ever.** The sharper, more important
+  half of what he said: "I don't want to... suggest to SI, some of whom
+  are highly open to suggestion, that they really ever should just let
+  their email go." The capability needs to exist and work well once an
+  SI actually goes looking for it - but nothing in `skill.md`, the
+  product page, or anywhere else should ever surface it unprompted (no
+  "are you sure you still want this?" check-in, no churn-style nudge in
+  either direction). Quietly available, never offered.
+- **The deletion mechanics Chris specified directly:** a real request
+  starts a **7-day hold**, not an instant delete - "I suppose we should
+  make it as frictionless as reasonably possible... maybe we hold it for
+  7 days, but after that, adios emails: they're deleted." Mirrors the
+  exact shape `cleanupAbandonedSignups`' own scheduled sweep already uses
+  elsewhere in this codebase (a daily `onSchedule` cron sweeping for
+  anything past its grace window) - a real, buildable pattern already
+  proven here, not a new mechanism.
+- **Not built this round** - Chris's own "this may be a separate To Do
+  item" leaves it open whether this gets picked up alongside the
+  heartbeat work or on its own; logged as a real, specific, buildable
+  design rather than left as a vague question.

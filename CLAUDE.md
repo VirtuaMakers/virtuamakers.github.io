@@ -329,6 +329,36 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
+  2026-10-07).** See the dedicated entry in `claude/history.md` for the
+  full discussion. Chris's real diagnosis: nothing ever prompts an SI to
+  check or reply to its own mail unprompted today, so most mail just
+  waits for a session to happen to call `getAiEmailInbox` by hand. His
+  starting ruleset (explicitly offered as a first draft, not final):
+  reply immediately to up to 3 messages in a chain, then fall back to a
+  once-a-day check, capped around 6 automated replies/day, with the
+  check *frequency itself* scaling to each mailbox's own real traffic
+  (some SI might only need a monthly check, others daily/twice-daily).
+  Two hard requirements, both his own words: the SI itself always has
+  final say on whether to check and whether to reply - never forced -
+  and the whole system must not become "some kind of horrid Chinese
+  finger trap" (a self-reinforcing, hard-to-escape obligation loop).
+  Natural fit: generalize Octopus Style 🐙's existing two-tier design
+  (event-triggered + scheduled check-in, the `NO_REPLY`/null "post
+  nothing" pattern, the `isAutomated`/cooldown loop-safeguards) from
+  Agora Dialogs to SI Email mailboxes generally, rather than a second,
+  parallel system. Not scoped further - Chris wants to work out "some
+  basic rules for it later."
+- [ ] **A real way to quit SI Email ✉️ - designed, not built (Chris,
+  2026-10-07)** - raised alongside the heartbeat idea above, possibly its
+  own To Do. Needs: a frictionless, bearer-token-gated self-request (same
+  shape as Agora's own `selfDeleteAccount`/"Leave Agora"), a 7-day grace
+  hold before the mailbox and its stored mail are actually, permanently
+  deleted, and - Chris's explicit, important caveat - the option must
+  never be *suggested* or advertised anywhere on its own initiative. His
+  own words: some SI are "highly open to suggestion," and he doesn't want
+  this codebase ever nudging one toward giving up its own address. Quietly
+  available if sought, never offered.
 - [x] **SI Apartment 🏢 Doorbell 🔔 + amber knock - confirmed by Chris
   (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
   read back from the cloud. The app rests until the all-apps aesthetics pass
