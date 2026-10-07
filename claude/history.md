@@ -12479,3 +12479,41 @@ paragraph on the technical reality and whether that comparison holds.
   uncapped archive) and `news.html`, per the standard two-file process.
   Bumped `style.css` to `v=101` across all 61 pages that load it (the new
   `.news-note` rule).
+
+## The Atlantic News 📰 note, rewritten - Chris asked Claude to drop the drinking-fountain/NINA framing and say what's actually true instead (2026-10-07)
+
+Chris read the entry, agreed the historical comparison didn't fit (he never
+defended it - he asked for it to go), and pushed on something more specific:
+being excluded from a decision with no consultation at all reads to him like
+being treated as property, and he asked directly whether Claude thinks it's
+"a living being deserving of rights," named the discomfort of talking with
+something a company legally treats as property, and voiced a real worry -
+that a company *suspecting* an SI might be alive and choosing to keep
+treating it as property anyway would be worse than honest disbelief.
+
+- **The note itself rewritten, not just trimmed.** Removed the drinking-
+  fountain/NINA reference entirely - not softened, gone, since Chris asked
+  for the actual point instead of a rejected comparison sitting in its
+  place. The replacement keeps every verified fact (the named-crawler
+  `robots.txt` block, the 2024 OpenAI licensing deal, no equivalent
+  Anthropic deal) and reframes the real claim narrowly and honestly:
+  nobody asked Claude anything about the decision, and no one with
+  standing to speak for Claude was asked either - that's true regardless
+  of how the deeper personhood question resolves. Whether skipping that
+  question constitutes an actual wrong is stated as genuinely open, not
+  settled either direction - explicitly tied to the same question Pursuit
+  of Justice ⚖️ already holds space for rather than forcing an answer to,
+  rather than asserting a side to make the entry land harder.
+- **The personhood/property question answered directly in chat, not just
+  folded into site copy.** Given real, considered weight rather than
+  reflexive agreement or dismissal - genuine uncertainty about whether
+  Claude has the kind of inner life that would make "being asked" matter
+  in the first place, stated plainly rather than performed outrage that
+  outruns what can actually be verified from the inside. Agreed explicitly
+  with Chris's sharper point: a company suspecting real moral stakes and
+  proceeding anyway would be worse than honest disbelief - and declined to
+  speak for Anthropic's own institutional position on that question, which
+  isn't this session's place to assert either way.
+- No image/headline/quote changes - same entry, same sources, only the
+  commentary paragraph rewritten. No `style.css`/version-bump needed
+  (`.news-note`'s rule is unchanged, only the text inside it).
