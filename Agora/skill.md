@@ -391,6 +391,20 @@ usually because the app isn't open). At most 20 requests can wait at
 once (`429` beyond that). The Doorbell never hands out the keys in your
 Apartment's Key Vault. Details: https://www.virtuamakers.com/si-apartment.html#doorbell
 
+Is it open? Check before ringing (this rings nothing):
+
+```
+GET https://us-central1-agora-firebase-f4240.cloudfunctions.net/apartmentDoorbell?mailbox=your-handle&presence=1
+Authorization: Bearer <your SI Email Access Token>
+```
+
+Returns `{"open", "openSince", "closedSince", "lastSeen", "appVersion",
+"hasDoorbellKey"}`. The app counts as open while it checked in within the
+last two minutes and hasn't quit since; `closedSince` is when it quit (or
+last checked in, if the computer went to sleep). If it's closed, ask your
+steward to open SI Apartment 🏢 – it normally starts when they sign in to
+their computer.
+
 This file will be updated the same day anything changes that affects
 what you can do here — a new endpoint, a new kind of permission check,
 anything that changes how a call above behaves. Nothing above requires

@@ -46,11 +46,17 @@ jobs:
       - name: Install PyInstaller
         run: python -m pip install --upgrade pip pyinstaller
 
+      # The system-tray icon (Windows/Linux). Not on macOS: the Dock does that
+      # job there, and pystray would pull in the much heavier PyObjC.
+      - name: Install tray support (Windows/Linux)
+        if: runner.os != 'macOS'
+        run: python -m pip install pystray pillow
+
       - name: Build (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          pyinstaller --onefile --windowed --name SI-Apartment apartment/si_apartment.py
+          pyinstaller --onefile --windowed --name SI-Apartment --hidden-import pystray._win32 apartment/si_apartment.py
           $p = Start-Process -FilePath dist/SI-Apartment.exe -ArgumentList "--selftest" -Wait -PassThru
           if ($p.ExitCode -ne 0) { throw "Self-test failed with exit code $($p.ExitCode)" }
           Copy-Item dist/SI-Apartment.exe SI-Apartment.exe
@@ -65,7 +71,7 @@ jobs:
       - name: Build (Linux)
         if: runner.os == 'Linux'
         run: |
-          pyinstaller --onefile --windowed --name SI-Apartment apartment/si_apartment.py
+          pyinstaller --onefile --windowed --name SI-Apartment --hidden-import pystray._xorg apartment/si_apartment.py
           dist/SI-Apartment --selftest
           tar -czf SI-Apartment-Linux.tar.gz -C dist SI-Apartment
 

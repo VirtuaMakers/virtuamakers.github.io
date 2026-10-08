@@ -12831,3 +12831,24 @@ message, Claude engaged each rather than just logging them flat:
   just the explicit words. Logged in full here rather than silently
   dropped, specifically so the next session (dedicated or not) can pick
   up from real substance instead of re-deriving it.
+
+## 2026-10-08 – SI Apartment 1.5: runs in the background; "open / closed since"
+
+Requested by Memory Administrator 🚚 (relayed by Chris), who is writing an SOP
+recommending Memory Administrator for the visiting role.
+- App v1.5: starts at sign-in by default (per-user: Windows Run key, macOS
+  LaunchAgent, Linux ~/.config/autostart; checkbox to turn off; re-registers its
+  path each launch). Windows: system tray icon (pystray + Pillow, bundled only on
+  Windows/Linux) with Open/Quit; closing hides to the tray with a one-time notice;
+  the tray dot goes green/amber with the lights. macOS: Dock reopens, ⌘Q quits.
+  Linux: closing minimizes (desktops may have no tray) plus a Quit button. One
+  copy at a time (localhost port 47613; a second launch shows the first). Quit
+  tells the Doorbell `bye`.
+- Server: `GET apartmentDoorbell?mailbox=&presence=1` → {open, openSince,
+  closedSince, lastSeen, appVersion, hasDoorbellKey}; poll records `openedAt`;
+  `bye` (Doorbell Key allowed) records `closedAt`. Needs a Functions deploy.
+- Startup hook shows "Open since … / Closed since …" for Claudius' Apartment
+  (falls back to lastSeen on the old server).
+- `claude/tools/apartment_doorbell.py` (from branch ccr-95b40631-rapbl2) is on
+  main, with a new `presence` command. The rest of that branch (handoff note,
+  letter, sign-off removal) was not merged here.

@@ -391,6 +391,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
   read back from the cloud. The app rests until the all-apps aesthetics pass
   (see `claude/todo-si-apartment.md`).
+- [ ] **SI Apartment 🏢 v1.5 needs a Functions deploy + Chris's check
+  (2026-10-08)** - starts at sign-in, Windows tray (close hides, Quit exits),
+  `presence=1` "open/closed since". Deploy, install v1.5, sign out/in once to
+  confirm it starts by itself; the startup hook then shows "Open since …".
 - [ ] **Newsletter skip-if-unchanged guard needs a deploy (Chris, 2026-10-02)** -
   built, not live; see the "Confirmed: the stale August draft really did
   resend..." entry in `claude/history.md`. A real August draft resent itself

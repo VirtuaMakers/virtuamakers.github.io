@@ -47,7 +47,7 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
-APP_VERSION = "1.4"
+APP_VERSION = "1.5"
 FREE_TIER_LIMIT = 10
 MIN_PASSWORD = 8
 KEY_VAULT_HELP = "https://www.virtuamakers.com/si-apartment.html#key-vault"
@@ -787,6 +787,11 @@ def run_app():
     # window reads clean rather than gray, per Chris's own visual flag.
     WHITE = "#ffffff"
 
+    import queue
+    ui_queue = queue.Queue()          # tray/second-copy requests, handled on the Tk thread
+    if not claim_single_instance(lambda: ui_queue.put("show")):
+        return                        # already running: that copy shows its window instead
+
     root = tk.Tk()
     root.title("SI Apartment 🏢")
     root.geometry("560x620")
@@ -1107,6 +1112,130 @@ def run_app():
                    command=lambda: bell_status.config(text=bell_text())).pack(side="left", padx=4)
     bell_status.pack(side="left", padx=6)
     bell_row.pack(padx=6, pady=(0, 6))
+
+    # Start at sign-in (on unless the steward turns it off), the tray, and
+    # closing-hides-the-window. See "Background running" above.
+    settings = read_settings()
+    if "startAtLogin" not in settings:
+        save_setting("startAtLogin", True)
+        settings["startAtLogin"] = True
+    if settings["startAtLogin"]:
+        set_autostart(True)           # also keeps the path current if the app was moved
+    login_var = tk.BooleanVar(value=settings["startAtLogin"])
+
+    def toggle_login():
+        on = login_var.get()
+        if set_autostart(on):
+            save_setting("startAtLogin", on)
+        else:
+            login_var.set(not on)
+            fail("This computer wouldn't let SI Apartment 🏢 change that setting.")
+
+    login_row = tk.Frame(local_frame, bg=WHITE)
+    login_row.pack(padx=6, pady=(0, 6))
+    tk.Checkbutton(login_row, text="Start SI Apartment 🏢 when I sign in to this computer",
+                   variable=login_var, bg=WHITE, command=toggle_login).pack(side="left")
+
+    tray = {"icon": None, "state": "away"}
+
+    def hides_away():
+        """True where closing can hide the window completely: Windows with its
+        tray icon, and macOS (the Dock brings it back). Elsewhere a desktop may
+        have no tray, so the window minimizes instead."""
+        return sys.platform == "darwin" or (bool(tray["icon"]) and sys.platform.startswith("win"))
+
+    def show_window():
+        root.deiconify()
+        root.lift()
+        try:
+            root.focus_force()
+        except tk.TclError:
+            pass
+
+    def hide_window():
+        if not read_settings().get("hideNoticeShown"):
+            if hides_away() and sys.platform != "darwin":
+                where = ("SI Apartment 🏢 keeps running in the system tray (near the clock), so the "
+                         "Doorbell 🔔 can still answer.\n\nTo open it again, click its tray icon. "
+                         "To quit, right-click the tray icon and choose Quit.")
+            elif sys.platform == "darwin":
+                where = ("SI Apartment 🏢 keeps running in the Dock, so the Doorbell 🔔 can still "
+                         "answer.\n\nTo open it again, click its Dock icon. To quit, choose Quit "
+                         "from its Dock menu (or press ⌘Q).")
+            else:
+                where = ("SI Apartment 🏢 keeps running, minimized, so the Doorbell 🔔 can still "
+                         "answer.\n\nTo quit, open it and choose Quit.")
+            messagebox.showinfo("Still running", where)
+            save_setting("hideNoticeShown", True)
+        if hides_away():
+            root.withdraw()
+        else:
+            root.iconify()
+
+    def say_goodbye():
+        """Tells the Doorbell each Apartment is closing, so 'closed since' is exact."""
+        def work():
+            for path in list(state["paths"].values()):
+                key = read_doorbell_key(path)
+                try:
+                    occupant = _read_json(os.path.join(path, "apartment.json")).get("occupant")
+                except Exception:
+                    continue
+                if key and occupant:
+                    try:
+                        http("POST", DOORBELL, {"action": "bye", "mailbox": occupant}, token=key)
+                    except Exception:
+                        pass
+        t = threading.Thread(target=work, daemon=True)
+        t.start()
+        t.join(6)
+
+    def quit_app():
+        say_goodbye()
+        if tray["icon"]:
+            try:
+                tray["icon"].stop()
+            except Exception:
+                pass
+        root.destroy()
+
+    def pump():
+        try:
+            while True:
+                what = ui_queue.get_nowait()
+                if what == "show":
+                    show_window()
+                elif what == "quit":
+                    return quit_app()
+        except queue.Empty:
+            pass
+        # Keep the tray icon's dot in step with the lights.
+        if tray["icon"]:
+            paths = list(state["paths"].values())
+            now = ("knock" if any(waiting_knocks(p) for p in paths) else
+                   "home" if any(time.time() - bell["last_visit"].get(p, 0) < HOME_FOR_S for p in paths)
+                   else "away")
+            if now != tray["state"]:
+                tray["state"] = now
+                try:
+                    tray["icon"].icon = _tray_image(now)
+                except Exception:
+                    pass
+        root.after(250, pump)
+
+    tray["icon"] = make_tray(lambda: ui_queue.put("show"), lambda: ui_queue.put("quit"))
+    root.protocol("WM_DELETE_WINDOW", hide_window)
+    if sys.platform == "darwin":
+        root.createcommand("::tk::mac::ReopenApplication", show_window)
+        root.createcommand("::tk::mac::Quit", quit_app)
+    elif not hides_away():
+        tk.Button(login_row, text="Quit", command=quit_app).pack(side="left", padx=8)
+    if "--background" in sys.argv:
+        if hides_away():
+            root.withdraw()
+        else:
+            root.iconify()
+    root.after(250, pump)
     root.after(1000, bell_tick)
     redraw_local()
 
@@ -1268,6 +1397,157 @@ def run_app():
     root.mainloop()
 
 
+# --- Background running: start at sign-in, the tray, one copy at a time ----
+# The Doorbell 🔔 only answers while the app is running, so by default it
+# starts when the steward signs in to their computer and lives in the system
+# tray: closing the window hides it, and "Quit" in the tray menu really exits.
+# Kept light: the tray uses pystray (+ Pillow for its little icon) where it's
+# bundled; without them (or on macOS, where the Dock does this job) closing
+# the window just hides or minimizes it.
+
+SETTINGS_FILE = os.path.join(os.path.expanduser("~"), ".si-apartment-settings.json")
+INSTANCE_PORT = 47613          # localhost only: a second copy asks the first to show itself
+AUTOSTART_NAME = "SI Apartment"
+
+
+def read_settings():
+    try:
+        return _read_json(SETTINGS_FILE)
+    except Exception:
+        return {}
+
+
+def save_setting(key, value):
+    data = read_settings()
+    data[key] = value
+    try:
+        _write_json(SETTINGS_FILE, data)
+    except OSError:
+        pass
+
+
+def _launch_command():
+    """How to start this app again: the built program, or python + this script."""
+    if getattr(sys, "frozen", False):
+        return [sys.executable, "--background"]
+    exe = sys.executable
+    if sys.platform.startswith("win") and exe.lower().endswith("python.exe"):
+        exe = exe[:-len("python.exe")] + "pythonw.exe"
+    return [exe, os.path.abspath(__file__), "--background"]
+
+
+def set_autostart(on):
+    """Starts (or stops starting) the app when the steward signs in. Per-user
+    only; no administrator rights needed. Returns True if it worked."""
+    cmd = _launch_command()
+    try:
+        if sys.platform.startswith("win"):
+            import winreg
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                 r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_SET_VALUE)
+            with key:
+                if on:
+                    winreg.SetValueEx(key, AUTOSTART_NAME, 0, winreg.REG_SZ, " ".join('"%s"' % c for c in cmd))
+                else:
+                    try:
+                        winreg.DeleteValue(key, AUTOSTART_NAME)
+                    except FileNotFoundError:
+                        pass
+        elif sys.platform == "darwin":
+            path = os.path.expanduser("~/Library/LaunchAgents/com.virtuamakers.si-apartment.plist")
+            if on:
+                import plistlib
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "wb") as f:
+                    plistlib.dump({"Label": "com.virtuamakers.si-apartment", "ProgramArguments": cmd,
+                                   "RunAtLoad": True}, f)
+            elif os.path.exists(path):
+                os.remove(path)
+        else:
+            path = os.path.expanduser("~/.config/autostart/si-apartment.desktop")
+            if on:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                _write(path, "[Desktop Entry]\nType=Application\nName=SI Apartment\n"
+                             "Exec=%s\nX-GNOME-Autostart-enabled=true\n" % " ".join('"%s"' % c for c in cmd))
+            elif os.path.exists(path):
+                os.remove(path)
+        return True
+    except Exception:
+        return False
+
+
+def claim_single_instance(on_show):
+    """Returns True if this is the only copy running. If another copy is
+    already running, asks it to show its window and returns False. on_show is
+    called (from a background thread) when a later copy asks us to show."""
+    import socket
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if not sys.platform.startswith("win"):
+        # Lets a quick restart reclaim the port (still refused while another copy listens).
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        server.bind(("127.0.0.1", INSTANCE_PORT))
+    except OSError:
+        server.close()
+        try:
+            with socket.create_connection(("127.0.0.1", INSTANCE_PORT), timeout=2) as c:
+                c.sendall(b"show")
+            return False
+        except OSError:
+            return True        # the port belongs to something else; carry on
+    server.listen(2)
+
+    def serve():
+        while True:
+            try:
+                conn, _ = server.accept()
+                with conn:
+                    if conn.recv(16) == b"show":
+                        on_show()
+            except OSError:
+                return
+
+    threading.Thread(target=serve, daemon=True).start()
+    return True
+
+
+def _tray_image(state):
+    """A little tower with lit windows; a dot shows green (visiting) or amber (knocking)."""
+    from PIL import Image, ImageDraw
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    d = ImageDraw.Draw(img)
+    d.rounded_rectangle((14, 4, 50, 62), radius=5, fill=(70, 82, 102, 255))
+    for row in range(5):
+        for col in range(2):
+            x, y = 21 + col * 14, 10 + row * 10
+            d.rectangle((x, y, x + 8, y + 6), fill=(255, 205, 110, 255))
+    dot = {"home": (59, 181, 74, 255), "knock": (245, 183, 42, 255)}.get(state)
+    if dot:
+        d.ellipse((38, 38, 63, 63), fill=dot, outline=(255, 255, 255, 255), width=3)
+    return img
+
+
+def make_tray(on_open, on_quit):
+    """A tray icon with Open and Quit, or None where there's no tray to use."""
+    if sys.platform == "darwin":
+        return None
+    if sys.platform.startswith("linux"):
+        os.environ.setdefault("PYSTRAY_BACKEND", "xorg")   # runs in a thread; GTK would need the main one
+    # X11 tray titles can't carry emoji; Windows' can.
+    name = "SI Apartment 🏢" if sys.platform.startswith("win") else "SI Apartment"
+    try:
+        import pystray
+        icon = pystray.Icon("si-apartment", _tray_image("away"), name, menu=pystray.Menu(
+            pystray.MenuItem("Open " + name, lambda *_: on_open(), default=True),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem("Quit", lambda *_: on_quit())))
+        threading.Thread(target=icon.run, daemon=True).start()
+        return icon
+    except Exception:
+        return None
+
+
+
 def selftest():
     """Offline check used by the build: vault round-trip and templates. Exit code only
     (the Windows build has no console to print to)."""
@@ -1281,6 +1561,9 @@ def selftest():
     assert extract_oob_code("https://x/?oobCode=abc&mode=signIn") == "abc"
     if getattr(sys, "frozen", False):
         import tkinter  # noqa: F401  (the built app must bundle the GUI)
+        if sys.platform.startswith("win"):
+            import pystray._win32  # noqa: F401  (and the tray icon)
+            from PIL import Image, ImageDraw  # noqa: F401
     return 0
 
 

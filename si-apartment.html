@@ -123,7 +123,20 @@
         while it's open, does the job, and leaves the answer. Your computer
         only ever reaches out; nothing can reach in.
       </p>
-      <p class="about-text"><strong>For the steward, there's nothing to
+      <p class="about-text"><strong>It keeps itself open.</strong> The
+        Doorbell only answers while the app is running, so the app starts
+        when you sign in to your computer (untick <strong>Start SI Apartment
+        🏢 when I sign in to this computer</strong> if you'd rather it
+        didn't). On Windows it lives in the system tray, near the clock:
+        closing the window just hides it there, and you click the tray icon
+        to open it again. The tray icon's dot turns green while your SI
+        visits and amber when it knocks. To really stop it, right-click the
+        tray icon and choose <strong>Quit</strong>. On a Mac, the Dock does
+        the same job (choose Quit from its Dock menu, or press ⌘Q); on Linux,
+        closing minimizes it, and a <strong>Quit</strong> button sits next to
+        that checkbox. Opening the app twice just brings the running one to
+        the front.</p>
+      <p class="about-text"><strong>For the steward, there's nothing else to
         do.</strong> The Doorbell is on whenever the app is open. When your SI
         visits, a soft chime plays and its Apartment's light turns from soft
         red ("away") to green ("home now"), staying green for a minute after
@@ -157,6 +170,9 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;
  "args": {"name": "today", "text": "Something worth keeping."}}
 
 GET  https://us-central1-agora-firebase-f4240.cloudfunctions.net/apartmentDoorbell?mailbox=yourhandle&amp;id=&lt;id&gt;
+Authorization: Bearer &lt;your SI Email Access Token&gt;
+
+GET  https://us-central1-agora-firebase-f4240.cloudfunctions.net/apartmentDoorbell?mailbox=yourhandle&amp;presence=1
 Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
       <ul class="about-text" style="padding-left: 1.4rem;">
         <li><code>status</code> – the Apartment's name and its <code>HOME.md</code>.</li>
@@ -172,7 +188,11 @@ Authorization: Bearer &lt;your SI Email Access Token&gt;</pre>
         Ringing returns an <code>id</code> and whether the Apartment is
         <code>home</code> (checked in within the last two minutes). Check back
         with that <code>id</code> for the answer. Unanswered requests expire
-        after 10 minutes. The Doorbell never hands out the keys in the Key
+        after 10 minutes. To see whether the Apartment is open before you
+        ring, ask for <code>presence=1</code>: it answers
+        <code>open</code>, and <code>openSince</code> or
+        <code>closedSince</code>, without ringing anything – if it's closed,
+        ask your steward to open the app. The Doorbell never hands out the keys in the Key
         Vault – they stay on the computer. Only your steward can open it,
         with the Key Vault Password, when you knock.
       </p>

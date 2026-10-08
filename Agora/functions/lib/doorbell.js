@@ -6,8 +6,8 @@
 // SI Email Access Token (verified by the caller in index.js).
 //
 // Firestore (Admin SDK only, no client rules needed):
-//   apartmentDoorbell/{mailbox}                 {lastSeen, device, appVersion,
-//                                                keyHashes: [sha256 of each Doorbell Key]}
+//   apartmentDoorbell/{mailbox}                 {lastSeen, openedAt, closedAt, device,
+//                                                appVersion, keyHashes: [sha256 of each Doorbell Key]}
 //
 // Doorbell Keys: each Apartment gets its own small key (minted once with the
 // Access Token) that can ONLY poll and answer here - not read mail or memory.
@@ -53,11 +53,44 @@ function cleanArgs(type, args) {
   return { args: {} };
 }
 
+const millis = (t) => (t && t.toMillis ? t.toMillis() : 0);
+const iso = (ms) => (ms ? new Date(ms).toISOString() : null);
+
+// The app is "open" if it checked in within ONLINE_MS and hasn't said goodbye
+// since (it says goodbye when it quits; a sleeping laptop just stops checking in).
+function openState(data) {
+  const seen = millis(data && data.lastSeen);
+  const closed = millis(data && data.closedAt);
+  return { open: Date.now() - seen < ONLINE_MS && !(closed && closed >= seen), seen, closed };
+}
+
 async function isHome(mailbox) {
   const snap = await root(mailbox).get();
-  const seen = snap.exists ? snap.data().lastSeen : null;
-  const ms = seen && seen.toMillis ? seen.toMillis() : 0;
-  return { home: Date.now() - ms < ONLINE_MS, lastSeen: ms ? new Date(ms).toISOString() : null };
+  const st = openState(snap.exists ? snap.data() : null);
+  return { home: st.open, lastSeen: iso(st.seen) };
+}
+
+// Whether the Apartment app is open, and since when (for sessions and the
+// steward's tools; no requests are created).
+async function presence(mailbox) {
+  const snap = await root(mailbox).get();
+  const data = snap.exists ? snap.data() : {};
+  const st = openState(data);
+  return {
+    ok: true,
+    open: st.open,
+    openSince: st.open ? iso(millis(data.openedAt) || st.seen) : null,
+    closedSince: st.open ? null : iso(st.closed && st.closed >= st.seen ? st.closed : st.seen),
+    lastSeen: iso(st.seen),
+    appVersion: data.appVersion || null,
+    hasDoorbellKey: Boolean((data.keyHashes || []).length),
+  };
+}
+
+// Apartment side: the app is quitting.
+async function bye(mailbox) {
+  await root(mailbox).set({ closedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  return { ok: true };
 }
 
 const MAX_KEYS = 10;
@@ -124,7 +157,11 @@ async function check(mailbox, id) {
 
 // Apartment side: check in, and collect pending requests.
 async function poll(mailbox, device, appVersion) {
+  const before = await root(mailbox).get();
+  const wasOpen = openState(before.exists ? before.data() : null).open;
   await root(mailbox).set({
+    ...(wasOpen ? {} : { openedAt: admin.firestore.FieldValue.serverTimestamp() }),
+    closedAt: null,
     lastSeen: admin.firestore.FieldValue.serverTimestamp(),
     device: String(device || "").slice(0, 80),
     appVersion: String(appVersion || "").slice(0, 20),
@@ -159,4 +196,4 @@ async function answer(mailbox, id, result, error) {
   return { ok: true };
 }
 
-module.exports = { TYPES, ring, check, poll, answer, isHome, registerKey, verifyDoorbellKey };
+module.exports = { TYPES, ring, check, poll, answer, bye, presence, isHome, registerKey, verifyDoorbellKey };

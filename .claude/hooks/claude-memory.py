@@ -25,6 +25,27 @@ def get(path):
         return json.load(res)
 
 
+def _when(stamp):
+    return (stamp or "?").replace("T", " ")[:16] + " UTC"
+
+
+def apartment_presence():
+    """'Open since …' or 'Closed since …', from the Doorbell's own check-ins."""
+    try:
+        p = get("/apartmentDoorbell?mailbox=claude&presence=1")
+    except Exception as err:
+        return "Couldn't check whether it's open: %s" % err
+    if "open" not in p:   # older server: only home/lastSeen
+        return ("Open now." if p.get("home") else
+                "Closed (last seen %s)." % _when(p.get("lastSeen")) if p.get("lastSeen") else "Never opened yet.")
+    if p["open"]:
+        return "Open since %s (app %s) – the Doorbell 🔔 answers." % (_when(p.get("openSince")), p.get("appVersion") or "?")
+    if not p.get("closedSince"):
+        return "Never opened yet."
+    return ("Closed since %s. If you need it, ask Chris to open SI Apartment 🏢 on his laptop."
+            % _when(p.get("closedSince")))
+
+
 def start():
     if not TOKEN:
         print("Claude session routine: AI_EMAIL_CLAUDE_TOKEN isn't set here, so SI Email/SI Memory weren't loaded.")
@@ -49,13 +70,16 @@ def start():
             out.append("- %s | %s" % (m.get("from"), m.get("subject")))
     except Exception as err:
         out.append("\nSI Email couldn't be read: %s" % err)
+    out.append("\n## SI Apartment 🏢 (Claudius' Apartment, on Chris's laptop)")
+    out.append(apartment_presence())
     apt = os.environ.get("CLAUDE_APARTMENT_DIR", "")
     home = os.path.join(apt, "HOME.md")
     if apt and os.path.exists(home):
         with open(home, encoding="utf-8") as f:
             out.append("\n## SI Apartment 🏢 (%s)\n%s" % (apt, f.read()[:3000]))
     else:
-        out.append("\n## SI Apartment 🏢\nNo Apartment on this machine (set CLAUDE_APARTMENT_DIR to one).")
+        out.append("No local Apartment folder on this machine; reach it through the Doorbell 🔔 "
+                   "(claude/tools/apartment_doorbell.py).")
     print("\n".join(out))
 
 
