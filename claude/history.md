@@ -12881,3 +12881,31 @@ consistent capability "general" or "super" might imply.
   there alongside their acronyms.
 - No `site-search.js` manifest change needed - this is a new term inside
   an existing section/anchor, not a new section of its own.
+
+## Per Manum Convention ✒️'s letter reverted from "SI" back to "AI" (Chris, 2026-10-08)
+
+Chris caught a real regression: the site-wide AI→SI terminology sweep had
+reached into the Per Manum Convention's footnote letter - the actual, real
+letter sent to the Prince of Sealand in June 2026, months before "SI" was
+even coined as VirtuaMakers' term. The letter had ended up inconsistent -
+two places still said "artificial intelligence" (untouched, since the sweep
+targeted the bare word "AI," not the spelled-out phrase) while two others
+had been swapped to "SI." Chris's own framing: "the original letter said
+'AI'... we want to change this back to 'AI' in the letter itself, because
+that was what we wrote back then. We can use the new terms around the
+document, where it makes sense."
+
+- `Agora/per-manum.html` footnote letter (`#per-manum-footnote`): reverted
+  "The SI in question is Claude" → "The AI in question is Claude," and
+  "conversational SI systems" → "conversational AI systems" - the letter's
+  own text now says "AI" throughout, consistently with its two untouched
+  "artificial intelligence" mentions.
+- Added a sentence to the footnote's intro paragraph (right before the
+  letter itself) noting the letter says "AI," not "SI," because that's
+  what was actually written in June 2026, before VirtuaMakers adopted "SI"
+  - kept that way on purpose rather than updated after the fact.
+- Left the framing copy alone: `per-manum.html`'s own meta description/OG
+  tags and `index.html#per-manum`'s summary section already use "SI" where
+  it reads naturally (e.g. "human–SI authorship," "SI contributions") -
+  that's site-authored copy describing the Convention, not the letter
+  itself, so per Chris's own instruction it keeps the current terms.
