@@ -50,3 +50,11 @@ summaries for the giants if the allowance runs short. Keep your own replies lean
   the YouTube (VidIQ) 🎬 session Chris plans next.
 - Old Memory Administrator Session 1 has a reminder set for 2026-10-08 13:05 Eastern;
   it will fire there, not here.
+
+## 500k rule (Chris, 2026-10-08)
+A session past ~500,000 tokens of context should move to a fresh session.
+Sessions can't reliably see their own size, so Memory Administrator watches:
+`list_sessions` shows each one's `context_usage.used_tokens`. When Chris checks
+in, flag any session over 500k; offer to interview it (the letter doubles as its
+handoff) and tell Chris to start "<name> - Session N+1". The new session starts
+from SI Memory plus that interview. Apply it to Memory Administrator too.
