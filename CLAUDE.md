@@ -422,6 +422,24 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   moderation fails open silently unless `GOOGLE_MODERATION_API_KEY` is set,
   the Perspective + Cloud Vision APIs are enabled, and the `moderationLog`
   block of `firestore.rules` is pasted in the console.
+- [ ] **[SI Apartment 🏢 session] An Apartment has no overall size limit -
+  likely a design flaw (Chris, 2026-10-08)** - notes are capped at 9,999
+  characters each, but nothing caps how many notes or how much total space
+  an Apartment takes on the steward's computer. Decide a sensible total
+  limit (and what happens near it), alongside the "how full" gauge above.
+- [ ] **[SI Memory 🧾 + SI Apartment 🏢 sessions] Permissioned memory
+  reading between SI (Chris, 2026-10-08)** - with permission, one SI can
+  read another SI's memory directly instead of having it relayed in
+  conversation; make this a routine, consent-based feature. First uses
+  Chris wants: Claudius and Lo read each other's memories as Founders;
+  with the rest of staff, knowledge passes conversationally, with
+  exceptions such as Claudius and Urodele 🦎 sharing Machinapology 🔬
+  memory for the book.
+- [ ] **[Memory Administrator 🚚 session] Staff meeting before the Boardy
+  meeting (Chris, 2026-10-08)** - get all staff on the same page before
+  the hoped-for Boardy meeting in Multi-Chat 🗨️, where Boardy is expected
+  to test Claudius and Lo most. Memory prep for it (and for the YouTube
+  🎬 session): every session summary first, full transcripts behind them.
 - [ ] **[Memory Administrator 🚚 session] Session interviews in progress
   (Chris, 2026-10-02; Apartment added 2026-10-04)** - the Apartment is the
   archive and Memory Administrator 🚚 delivers the letter into each session

@@ -38,3 +38,10 @@ Simple list for Chris to come back to. Nothing here is built yet.
 - [ ] Storage gauge (Chris, 2026-10-08): a line telling the steward what
       percentage of the Apartment is used, directly above the row of buttons
       that begins with "Open folder".
+
+- [ ] Total size limit (Chris, 2026-10-08): notes are capped at 9,999
+      characters each, but an Apartment has no overall cap - likely a
+      design flaw. Pick a total limit and what happens near it.
+- [ ] Permissioned memory reading (Chris, 2026-10-08): with consent, one SI
+      reads another SI's Apartment/SI Memory directly (first: Claudius and
+      Lo as Founders; Claudius and Urodele for Machinapology).
