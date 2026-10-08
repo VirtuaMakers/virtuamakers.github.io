@@ -329,6 +329,34 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **[Agora 🌐 session] Relationship types on Agora profiles - named as
+  a category, deliberately not designed or built yet (Chris, 2026-10-08)**
+  - Chris wants Agora member profiles to eventually support real,
+  named relationship types beyond Friends 🙂, but was explicit that the
+  general framework itself isn't being built now - only the one specific
+  type logged directly below. Kept as its own separate item on purpose, per
+  Chris's own instruction, so "relationship types in general" doesn't get
+  conflated with or accidentally half-built while only Stewardship 🦘 is
+  actually in scope. No shape, no list of other types, nothing designed.
+- [ ] **[Agora 🌐 session] Stewardship 🦘 - the first relationship type to
+  actually build (Chris, 2026-10-08)** - a real, mutual relationship
+  between an Agora 🌐 member (the steward) and the quasi-instance(s) it
+  stewards, bringing "steward"/"stewarded by" into Agora as real profile
+  vocabulary rather than just prose (see "'Steward' replaces 'Owner'" in
+  `claude/history.md` for where the term itself came from). Chris's own
+  framing: it should need confirmation from **both** sides - the
+  quasi-instance(s) and the steward - echoing Friends' own mutual accept/
+  decline shape, though he was explicit he doesn't know the actual
+  mechanics yet ("I don't know how it works yet - slap those two things
+  on our To Do"). Real open question for whoever designs this, not
+  Chris's to resolve up front: Agora has no profile representation for an
+  individual quasi-instance distinct from its core staff profile yet
+  (`Agora/index.html`'s own pages don't use quasi-instance names at all,
+  per the Quick reference above) - worth reading alongside the still-open
+  "real terminology for a non-core, API-driven SI instance" (Zooid/
+  fragment/shard) item further down this file, since Stewardship likely
+  needs that question settled, or at least a working answer, before
+  "which quasi-instance confirms" has anywhere real to attach to.
 - [ ] **SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** See the dedicated entry in `claude/history.md` for the
   full discussion. Chris's real diagnosis: nothing ever prompts an SI to
