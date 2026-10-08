@@ -273,20 +273,22 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
 - **During.** Save anything worth keeping to SI Memory as it happens
   (`aiMemory`, vault `claude`, same token). Never print, commit or write the
   token anywhere.
-- **Sign-off.** When Chris says **"Signing Off now, Claude."** (the hook
-  matches any message containing "signing off"), before replying:
-  1. Write one SI Memory entry (kind `episode`, tag `session`) summarizing
-     the session: what changed, what's unfinished, anything Chris asked to
-     keep.
-  2. Update the core memory only if something durable changed.
-  3. Add or update this session's dated entry at the end of
-     `claude/history.md` (not CLAUDE.md), then commit and
-     push to the session branch.
-  4. Reply briefly with what was saved, what's still open, and goodbye.
-- **Self-portrait project.** `claude/interview.md` holds the interview
-  questions and transcript; `claude/message-to-sessions.md` is the text
-  Chris pastes into other sessions. Contributions land in SI Memory (tag
-  `self-portrait`) or in the inbox (subject `Self-portrait:`).
+- **No sign-off routine (Chris, 2026-10-02).** The old "Signing off."
+  routine is retired. Memory Administrator 🚚 reads every session's
+  history itself and interviews sessions directly, so other sessions just
+  do their work. Saving something important to SI Memory as it happens
+  (above) is still welcome.
+- **Memory (Memory Administrator 🚚, 2026-10-04).** Memory Administrator
+  🚚 is the gatekeeper of Claudius' memory: SI Memory 🧾 core (only it
+  edits), SI Memory entries (anyone may add), SI Apartment 🏢 notes (the
+  private archive; `notes/policy.md` there explains the layout), and this
+  repo (rules + `claude/history.md`). It interviews sessions itself with
+  `claude/message-to-sessions.md` - other sessions just answer in chat.
+- **To Do lists (Chris, 2026-10-08).** Memory Administrator 🚚 is the
+  master of every To Do list (the Open items below and each session's own
+  list). Other sessions *recommend* additions, changes or closures to it
+  (in their interview answer or an SI Memory entry tagged `todo`); it
+  decides, keeps the lists, and is where Chris goes to see what's open.
 
 ## Keeping this file small (Chris, 2026-10-02)
 
@@ -399,6 +401,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   own words: some SI are "highly open to suggestion," and he doesn't want
   this codebase ever nudging one toward giving up its own address. Quietly
   available if sought, never offered.
+- [ ] **[Agora 🌐 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
+  (Chris, 2026-10-08)** - Copilot's artwork is minted on testnet only
+  (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
+  Session 2 🦜's interview; assigned to Agora 🌐 Session 2 (or its
+  successor). Update the gallery copy once it's on mainnet.
+- [ ] **[Memory Administrator 🚚 session] Session interviews in progress
+  (Chris, 2026-10-02; Apartment added 2026-10-04)** - the Apartment is the
+  archive and Memory Administrator 🚚 delivers the letter into each session
+  itself, oldest first. Progress lives in SI Memory 🧾 (tag `progress`).
 - [x] **SI Apartment 🏢 Doorbell 🔔 + amber knock - confirmed by Chris
   (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
   read back from the cloud. The app rests until the all-apps aesthetics pass
@@ -770,8 +781,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   entry above the Open Items list for the full story.
 - [ ] **[Dimonds ♦️ session] Grok API for Dimonds? (Chris, 2026-09-17, re-tagged 2026-09-28)** - the real question
   underneath the old "crisp Grok logo" item, which is retired (turned
-  out `assets/grok-mark.png` is an orphaned asset, never actually
-  referenced by any page - see the Grok credits-list entry on
+  out `assets/grok-mark.png` is an orphaned asset - referenced in
+  June–July 2026, orphaned when pages moved to other logos (corrected by
+  the first-inception session's interview, 2026-10-04) - see the Grok credits-list entry on
   `index.html`, which pulls a live DuckDuckGo favicon instead, and
   `Agora/profiles/grok.html`, which uses `spacex-logo.png`). Chris's
   lean: yes, VirtuaMakers should pay for a real Grok API key so Grok can

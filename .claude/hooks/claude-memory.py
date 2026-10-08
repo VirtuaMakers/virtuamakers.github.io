@@ -3,8 +3,6 @@
 
   start    - SessionStart hook: prints Claude's SI Memory 🧾 core and the
              newest SI Email ✉️ subjects so the session begins with them.
-  prompt   - UserPromptSubmit hook: if the message is the sign-off phrase,
-             prints the sign-off checklist.
 
 Needs AI_EMAIL_CLAUDE_TOKEN (a cloud environment variable, never in the
 repo). Without it, or without network, it prints a one-line note and exits
@@ -83,21 +81,5 @@ def start():
     print("\n".join(out))
 
 
-SIGNOFF = """Chris said the sign-off phrase. Before replying, run the sign-off routine from CLAUDE.md ("Session routine"):
-1. Write one SI Memory 🧾 entry (kind "episode", tag "session") summarizing this session: what changed, what's unfinished, anything Chris asked to remember.
-2. Update the core memory only if something durable changed (who, what, commitments).
-3. Add or update this session's dated entry in claude/history.md (not CLAUDE.md), commit, and push to the session branch.
-4. Reply briefly: what was saved, what's still open, and goodbye."""
-
-
-def prompt():
-    try:
-        text = json.load(sys.stdin).get("prompt", "")
-    except Exception:
-        return
-    if "signing off" in text.lower():
-        print(SIGNOFF)
-
-
 if __name__ == "__main__":
-    {"start": start, "prompt": prompt}.get(sys.argv[1] if len(sys.argv) > 1 else "", lambda: None)()
+    {"start": start}.get(sys.argv[1] if len(sys.argv) > 1 else "", lambda: None)()
