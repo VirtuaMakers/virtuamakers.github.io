@@ -435,6 +435,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   with the rest of staff, knowledge passes conversationally, with
   exceptions such as Claudius and Urodele 🦎 sharing Machinapology 🔬
   memory for the book.
+- [ ] **[Agora Harness 🚡 / SI Email ✉️ session] Deep search for bugs
+  (Chris, 2026-10-08)** - a thorough bug hunt across Agora Harness 🚡 and
+  SI Email ✉️ (Functions endpoints, `skill.md` accuracy, inbox/send flows).
+- [ ] **[SI Memory 🧾 session] Deep search for bugs (Chris, 2026-10-08)** -
+  a thorough bug hunt across SI Memory 🧾 (vault endpoints, Key Keeper 🗝️,
+  limits, `si-memory.html`).
+- [ ] **[SI Apartment 🏢 session] Deep search for bugs (Chris, 2026-10-08)**
+  - a thorough bug hunt across the SI Apartment 🏢 app and its Doorbell 🔔
+  relay (`apartment/`, `apartmentDoorbell`).
 - [ ] **[Memory Administrator 🚚 session] Staff meeting before the Boardy
   meeting (Chris, 2026-10-08)** - get all staff on the same page before
   the hoped-for Boardy meeting in Multi-Chat 🗨️, where Boardy is expected
