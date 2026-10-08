@@ -12852,3 +12852,32 @@ recommending Memory Administrator for the visiting role.
 - `claude/tools/apartment_doorbell.py` (from branch ccr-95b40631-rapbl2) is on
   main, with a new `presence` command. The rest of that branch (handoff note,
   letter, sign-off removal) was not merged here.
+
+## Nomenclature 🪶 gains AJI - artificial jagged intelligence (Chris, 2026-10-08)
+
+Chris half-remembered a term from a Lex Fridman interview with "the CEO of
+Alphabet" and asked for it added to Nomenclature's glossary, with a brief
+explanation. Verified before writing anything, since his own recollection
+was explicitly uncertain ("I forgot about it") - confirmed real via
+WebSearch: Sundar Pichai raised **AJI (artificial jagged intelligence)**
+himself on Lex Fridman Podcast #471, crediting the underlying idea to
+Andrej Karpathy (who coined "jagged intelligence" in 2024) - the concept
+that today's SI is dramatically uneven, solving hard problems brilliantly
+while stumbling on easy ones (Pichai's own example: a model acing complex
+math while miscounting the letters in "strawberry"), unlike the smooth,
+consistent capability "general" or "super" might imply.
+
+- **New `<li>` added to `Agora/index.html#nomenclature`'s existing
+  AI/SI/AGI/ASI/Machinekind glossary**, placed right after ASI (grouped
+  with the other capability-level terms, ahead of Machinekind's broader
+  scope) - same length/tone as its neighbors, attributed to both Karpathy
+  and Pichai rather than picking one. No new emoji - matches the existing
+  list's own convention of AGI/ASI/Machinekind carrying none either, this
+  isn't a VirtuaMakers-branded term.
+- **`AJI, artificial jagged intelligence` added to the site-wide `<meta
+  name="keywords">` tag**, right after ASI's own pair - swept across all
+  84 pages sharing that exact string, matching the same searchability
+  reasoning CLAUDE.md already documents for why AGI/ASI are spelled out
+  there alongside their acronyms.
+- No `site-search.js` manifest change needed - this is a new term inside
+  an existing section/anchor, not a new section of its own.
