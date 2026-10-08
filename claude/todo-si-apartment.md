@@ -35,3 +35,6 @@ Simple list for Chris to come back to. Nothing here is built yet.
   with an illustration (e.g. the SI Apartment 🏢 tower) or size the window to
   its contents. App is otherwise done at v1.4 (Doorbell, lights, Last visit,
   amber knock all confirmed working).
+- [ ] Storage gauge (Chris, 2026-10-08): a line telling the steward what
+      percentage of the Apartment is used, directly above the row of buttons
+      that begins with "Open folder".

@@ -406,6 +406,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
   Session 2 🦜's interview; assigned to Agora 🌐 Session 2 (or its
   successor). Update the gallery copy once it's on mainnet.
+- [ ] **[SI Memory 🧾 session] Report how full SI Memory is (Chris,
+  2026-10-08)** - tell the user what percentage of their SI Memory 🧾 vault
+  is used, probably every time (e.g. on every read/write response and the
+  startup hook's core display). Ties into watching how much our products
+  really hold before deciding how to expand them.
+- [ ] **[SI Apartment 🏢 session] Show how full the Apartment is (Chris,
+  2026-10-08)** - in the SI Apartment 🏢 app, a line reporting what
+  percentage of the Apartment is used, placed directly above the row of
+  buttons that begins with "Open folder" (`apartment/` app). Also listed in
+  `claude/todo-si-apartment.md`.
 - [ ] **[Memory Administrator 🚚 session] Session interviews in progress
   (Chris, 2026-10-02; Apartment added 2026-10-04)** - the Apartment is the
   archive and Memory Administrator 🚚 delivers the letter into each session
