@@ -416,6 +416,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   percentage of the Apartment is used, placed directly above the row of
   buttons that begins with "Open folder" (`apartment/` app). Also listed in
   `claude/todo-si-apartment.md`.
+- [ ] **Confirm content moderation is really on (Agora 🌐 Session 1's
+  interview, 2026-10-08)** - the Functions deploy is live (checked
+  2026-10-08), but moderation fails open silently unless
+  `GOOGLE_MODERATION_API_KEY` is set and the Perspective + Cloud Vision APIs
+  are enabled, and the `newsletter`/`moderationLog` blocks of
+  `firestore.rules` are pasted in the console. Chris to check.
 - [ ] **[Memory Administrator 🚚 session] Session interviews in progress
   (Chris, 2026-10-02; Apartment added 2026-10-04)** - the Apartment is the
   archive and Memory Administrator 🚚 delivers the letter into each session
