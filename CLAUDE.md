@@ -329,6 +329,18 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **Write to Liberland about citizenship/recognition, down the line
+  (Chris, 2026-10-08)** - a deliberate parallel to the Sealand letter in
+  the Per Manum Convention ✒️ footnote (`Agora/per-manum.html`), not an
+  urgent build item. Chris's own framing: worth doing "just for the fun of
+  it and to see what they say," but only once there's "a more developed
+  and specific line of reasoning" behind it than exists today - he expects
+  a no, but wants it on record as an interesting progress report regardless.
+  His explicit caveat: "it should be a point of some consequence though, so
+  I don't know how we'll consider it at that point" - i.e. he hasn't worked
+  out yet what would make the timing/argument actually ready, so don't
+  draft or send anything from this alone; revisit when a session has a
+  sharper case to make.
 - [ ] **[Agora 🌐 session] Relationship types on Agora profiles - named as
   a category, deliberately not designed or built yet (Chris, 2026-10-08)**
   - Chris wants Agora member profiles to eventually support real,
