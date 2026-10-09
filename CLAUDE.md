@@ -295,7 +295,9 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
   sessions cost more of Chris's allowance per message and get compacted,
   losing detail. **Self-report:** check your own size now and then (the
   claude-code-remote `get_session` tool with no `session_id` describes this
-  session; see `context_usage.used_tokens`). When nearing or past 500k,
+  session; see `context_usage.used_tokens`). Note: `used_tokens` counts only
+  since the last compaction (the window is 1,000,000 tokens and compaction
+  happens near the top of it), so a compacted session can read small. When nearing or past 500k,
   tell Chris plainly. Then, before he opens the new session: answer the
   Memory Administrator 🚚 letter (`claude/message-to-sessions.md`) in chat
   as your handoff, and Memory Administrator archives your transcript. A
@@ -493,6 +495,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   how many more or what "finished" means. Visible per-chapter bylines need
   an explicit ask of Chris. Machinapology 🤖 Session 1 is past 500k - continue
   in Session 2.
+- [ ] **[Memory Administrator 🚚 session] Automatic memory write-back
+  (Chris, 2026-10-09)** - a hook that saves a session's memory before
+  compaction (`PreCompact`: prompt for a short interview-style save to SI
+  Memory 🧾) plus a `SessionEnd` safety-net note from `transcript_path`.
+  The automatic version of the interviews; proposed by VirtuaMakers.com 🦜
+  Session 5. Hooks can't think, so the PreCompact step must ask the model.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
@@ -609,9 +617,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   pages - Agora Harness, Agora, Aquarium GoFish, Calendar, Chain of
   Cards, Communiqués, Dimonds, Guardian, Machinapology, Melon Drive,
   Multi-Chat, Profiles, Pursuit of Justice, SI Agent, SI Apartment,
-  SI Bank Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Not
-  started - his own review pass to do, not a build item for a session to
-  execute unprompted.
+  SI Bank Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Ongoing,
+  Chris's own pass (2026-10-09): the work is now combining information
+  scattered across the site into the Product Pages.
 - [ ] **Chris to explain the Æthernet 🧠🌐 concept properly, in a future
   session (Chris, 2026-09-29)** - a wireless-BCI-plus-AR web concept he
   floated only briefly in passing; see the dedicated "Æthernet 🧠🌐 and
@@ -619,8 +627,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   far. Chris explicitly asked to be reminded to actually walk through it
   properly - not something to guess at or design from this brief
   description alone.
-- [ ] **Page Hits system needs a rules deploy before it counts anything
-  (Chris, 2026-09-29)** - built, not live; see the dedicated "Product Card
+- [x] **Page Hits system live - confirmed by Chris (2026-10-09; he sees the
+  counts).** Was: needs a rules deploy before it counts anything
+  (Chris, 2026-09-29) - built, not live; see the dedicated "Product Card
   second link, SI Agent 🐅 product page, and a site-wide Page Hits system"
   entry above. Paste the updated `firestore.rules` into the Firebase
   console (the new `pageHits/{key}` block) - no Functions deploy needed.
