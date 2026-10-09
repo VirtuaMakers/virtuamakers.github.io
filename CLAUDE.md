@@ -695,7 +695,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   **Moved to the SI Apartment 🏢 session's own To Do (Chris, 2026-09-28)** -
   SI Apartment has its own dedicated session now; this item belongs
   there, not in general VirtuaMakers.com 🦜 triage.
-- [ ] **[VirtuaMakers.com 🦜 session] Product Pages Wall - built, needs Chris's live confirmation
+- [x] **Product Pages Wall - confirmed by Chris (2026-10-09, via VirtuaMakers.com 🦜 Session 6: his post on the Agora 🌐 product page shows up).** Was: built, needs Chris's live confirmation
   (2026-09-27)** - all 16 `*-product.html` pages now have a Posts-only
   Wall/comments section; see the dedicated "Product Pages Wall 📋" entry
   above for the full build. Structurally verified in the sandbox
@@ -777,7 +777,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Email ✉️ nudge/require item above - both belong to the same SI Memory
   session bucket per Chris's own "add this to the To Dos for one of the
   appropriate sessions" instruction (2026-09-28).
-- [ ] **[VirtuaMakers.com 🦜 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
+- [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
 - [ ] **Set up a daily Claude check on Admin@virtuamakers.com (Chris,
