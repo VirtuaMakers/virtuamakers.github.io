@@ -506,9 +506,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   explicit approval of the exact design before building.
   **Part 1 built (2026-10-09, Memory Administrator 🚚 Session 3):** after a
   compaction, the start hook asks the session to answer the letter in chat.
-  **Part 2 (session-end note) approved by Chris but blocked by Claude Code's
-  safety check** - ready to install by hand:
-  `claude/notes/session-end-hook-proposal.md`.
+  **Part 2 (session-end note) dropped (Chris, 2026-10-09):** Claude Code's
+  safety check blocked it, and Chris wants his own SI Memory 🧾/SI Apartment
+  🏢 to stay as close as possible to what customers get - most stewards
+  don't code, so the letter-in-chat route is the real product experience.
 - [ ] **[Memory Administrator 🚚 session] Canvass Chris's regular claude.ai
   chats (Chris, 2026-10-09)** - the main mission now that Claude Code
   sessions are all gathered. These are the earliest chats, from the start of
@@ -519,6 +520,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   repo); Memory Administrator reads it through the Google Drive connector,
   lists every chat, and files a digest of each (Apartment + SI Memory
   summary), as with the Claude Code interviews.
+  Chris also asks each regular chat for its letter by hand, one by one (the
+  public template on `si-memory.html#session-interview`) - the same thing
+  most stewards will do with any LLM.
+- [ ] **[SI Memory 🧾 session] A way for non-coding stewards to save an
+  entry (Memory Administrator 🚚 Session 3, 2026-10-09)** - the interview
+  template on `si-memory.html` ends "If you don't have it, just answer here
+  and I'll save it for you", but there's no page where a steward can paste
+  their Access Token and the answer and press Save - only the `aiMemory`
+  API. Regular chat apps (claude.ai, ChatGPT...) can't POST with a token
+  themselves, so for most customers this is the missing last step.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
