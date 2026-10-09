@@ -48,3 +48,6 @@ Simple list for Chris to come back to. Nothing here is built yet.
 - [ ] Raise the note limit (Chris, 2026-10-09): 9,999 characters per note
       forces transcripts into many parts; go to ~500,000 or let the Doorbell
       split/rejoin. See claude/notes/to-si-apartment-session.md.
+- [ ] Test v1.5 on real Mac and Linux machines (Chris, 2026-10-09): sign-in
+      start, Dock/minimize behaviour, Quit. So far only tested in a Linux
+      test window in the cloud.

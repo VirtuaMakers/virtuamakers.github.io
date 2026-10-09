@@ -515,6 +515,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (2026-10-08)** - starts at sign-in, Windows tray (close hides, Quit exits),
   `presence=1` "open/closed since". Deploy, install v1.5, sign out/in once to
   confirm it starts by itself; the startup hook then shows "Open since …".
+  Deploy done (hook shows app 1.5, 2026-10-09); sign-out/in check still
+  open. Also test v1.5 on real Mac and Linux machines.
 - [x] **Newsletter skip-if-unchanged guard deployed - confirmed by Chris
   (2026-10-09).** See the "Confirmed: the stale August draft really did
   resend..." entry in `claude/history.md`. A real August draft resent itself
