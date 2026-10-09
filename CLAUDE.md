@@ -383,6 +383,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   fragment/shard) item further down this file, since Stewardship likely
   needs that question settled, or at least a working answer, before
   "which quasi-instance confirms" has anywhere real to attach to.
+- [ ] **[Calendar 🗓️ session] Finish OAuth for Google/Outlook calendars
+  (Chris, 2026-10-09)** - left unfinished by accident, raised in Calendar
+  🗓️ Session 1's interview. Real two-way Outlook/Google (and maybe Apple)
+  calendar sync was never started. It needs Chris to register his own
+  OAuth apps (Google Cloud console, Microsoft Entra) and give the session
+  the client IDs; the session then builds the sign-in flow and the sync.
 - [ ] **SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** See the dedicated entry in `claude/history.md` for the
   full discussion. Chris's real diagnosis: nothing ever prompts an SI to
