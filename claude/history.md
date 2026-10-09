@@ -12922,3 +12922,28 @@ his own "are you sure?" check), gave him the standard PowerShell
 `firebase deploy --only functions` block, and he confirmed the deploy
 finished. Open Item marked `[x]` per the "verify with Chris before
 closing" rule - this is a real confirmation, not an assumption.
+
+## SI Email ✉️ bug hunt, first pass (SI Email ✉️ Session 2, 2026-10-09)
+
+SI Email half of the "[Agora Harness 🚡 / SI Email ✉️ session] Deep search
+for bugs" Open Item. Fixed in `Agora/functions/` (needs a Functions deploy):
+- Misdelivery: `mailboxForAddress()` used only the local part and ignored
+  the domain, so mail To: bob@gmail.com that CC'd claude@ could be filed
+  into a bob@virtuamakers.com inbox. Now matches only @virtuamakers.com and
+  accepts "Name <a@b>". `receiveAiEmail` now reads To, CC and BCC and gives
+  every one of our mailboxes on the message its own copy (was: To only,
+  first match only).
+- Resend retries reset a stored message to unread with a new receivedAt
+  and could file a calendar invite twice - inbox writes now use create()
+  and skip an existing copy.
+- Webhook signature check had no replay window - now 5 minutes (Svix's).
+- No sending limits on open, CAPTCHA-free signup = a spam relay on our
+  domain's shared reputation. Now max 10 recipients per message and 50
+  sends per mailbox per UTC day (429 past it; counted on the mailbox doc as
+  `sendDay`/`sendCount`). Documented in `skill.md` and `si-email.html`.
+- The signup display name went raw into the From header - now quoted and
+  stripped of `"<>\` and line breaks.
+- An array/"/"/non-string `mailbox` or `from` crashed the Firestore lookup;
+  "Claude" got a false 401 - handles are now normalized (`normalizeSlug`).
+Not changed: `read` is never set true (no mark-read endpoint yet); the
+inbox returns only the newest 50 with no paging.

@@ -48,6 +48,11 @@ const {
   aiEmailApiKey,
   aiEmailWebhookSecret,
   isValidSlug,
+  normalizeSlug,
+  normalizeRecipients,
+  takeSendAllowance,
+  MAX_RECIPIENTS,
+  DAILY_SEND_LIMIT,
   createMailbox,
   getMailbox,
   verifyMailboxToken,
@@ -1064,13 +1069,32 @@ exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (re
     return;
   }
 
-  const { from, to, subject, text, html } = req.body || {};
-  if (!from || !to || !subject || (!text && !html)) {
+  const body = req.body || {};
+  const from = normalizeSlug(body.from);
+  const { subject, text, html } = body;
+  if (!from || !body.to || !subject || (!text && !html)) {
     res.status(400).json({ error: "Missing from, to, subject, or text/html." });
+    return;
+  }
+  if (typeof subject !== "string" || (text && typeof text !== "string") || (html && typeof html !== "string")) {
+    res.status(400).json({ error: "subject, text and html must be strings." });
+    return;
+  }
+  const to = normalizeRecipients(body.to);
+  if (!to) {
+    res.status(400).json({
+      error: "\"to\" must be an email address, or a list of up to " + MAX_RECIPIENTS + " of them.",
+    });
     return;
   }
   if (!(await verifyMailboxToken(from, bearerToken(req)))) {
     res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  if (!(await takeSendAllowance(from))) {
+    res.status(429).json({
+      error: "Daily sending limit reached (" + DAILY_SEND_LIMIT + " messages per mailbox per day, UTC). Try again tomorrow.",
+    });
     return;
   }
 
@@ -1124,72 +1148,23 @@ exports.receiveAiEmail = onRequest(
     }
 
     const data = event.data || {};
-    const recipients = Array.isArray(data.to) ? data.to : [data.to].filter(Boolean);
+    // To, CC and BCC all count, and every one of our mailboxes on the
+    // message gets its own copy (before 2026-10-09 only To was read, and
+    // only the first matching mailbox got the message).
+    const recipients = ["to", "cc", "bcc"].flatMap((field) =>
+      (Array.isArray(data[field]) ? data[field] : [data[field]]).filter(Boolean));
     const mailboxResults = await Promise.all(recipients.map(mailboxForAddress));
-    const mailbox = mailboxResults.find(Boolean);
-    if (!mailbox || !data.email_id) {
+    const mailboxes = [...new Set(mailboxResults.filter(Boolean))];
+    if (!mailboxes.length || !data.email_id) {
       res.status(200).send("No matching SI Email mailbox.");
       return;
     }
 
     try {
       const full = await fetchReceivedEmail(data.email_id);
-      await admin
-        .firestore()
-        .collection("aiEmailInbox")
-        .doc(mailbox)
-        .collection("messages")
-        .doc(data.email_id)
-        .set({
-          from: full.from || data.from || "",
-          subject: full.subject || data.subject || "",
-          text: full.text || "",
-          html: full.html || "",
-          receivedAt: admin.firestore.FieldValue.serverTimestamp(),
-          read: false,
-        });
-
-      // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
-      // 2026-09-23) - the literal Boardy scenario: if this message
-      // carries a real, timed invite (an .ics attachment or inline ICS
-      // content - see lib/calendarInvite.js), file it straight into the
-      // mailbox owner's own Calendar. Only fires when the mailbox
-      // address is actually linked to a real Agora profile
-      // (profiles/{uid}.email == this mailbox's address, the same link
-      // completeAgoraProfile establishes for Harness sign-in) - a
-      // mailbox with no Agora profile yet has no Calendar to file
-      // anything into. The resulting event has exactly one Agora-side
-      // participant (the mailbox owner) - the inviting party (Boardy,
-      // here) isn't an Agora member, which is a legitimate, expected
-      // shape, not an error case (see firestore.rules' calendarEvents
-      // comment). Best-effort: a parse/lookup failure here never
-      // affects the inbox storage above, which has already succeeded.
-      try {
-        const invite = parseInviteFromEmail(full);
-        if (invite) {
-          const mailboxAddress = mailbox + "@virtuamakers.com";
-          const ownerSnap = await admin.firestore().collection("profiles")
-            .where("email", "==", mailboxAddress).limit(1).get();
-          if (!ownerSnap.empty) {
-            const ownerDoc = ownerSnap.docs[0];
-            const ownerData = ownerDoc.data();
-            const ownerName = (ownerData.preferHandle && ownerData.handle)
-              ? ownerData.handle : (ownerData.name || ownerData.handle || mailbox);
-            await createCalendarEvent(admin.firestore(), {
-              participants: [ownerDoc.id],
-              participantNames: { [ownerDoc.id]: ownerName },
-              title: invite.title || full.subject || data.subject || "Meeting",
-              startAt: admin.firestore.Timestamp.fromDate(invite.startAt),
-              createdBy: ownerDoc.id,
-              meetingUrl: invite.meetingUrl,
-              source: "email-invite",
-            });
-          }
-        }
-      } catch (inviteErr) {
-        console.error("Calendar invite parse/file failed:", inviteErr);
+      for (const mailbox of mailboxes) {
+        await fileReceivedEmail(mailbox, data, full);
       }
-
       res.status(200).send("Stored.");
     } catch (err) {
       console.error("AI Email receive failed:", err);
@@ -1197,6 +1172,72 @@ exports.receiveAiEmail = onRequest(
     }
   }
 );
+
+// Files one received message into one mailbox's inbox. create(), not
+// set(): when Resend retries a webhook, the copy already stored is left
+// alone instead of being marked unread again with a new receivedAt.
+async function fileReceivedEmail(mailbox, data, full) {
+  try {
+    await admin
+      .firestore()
+      .collection("aiEmailInbox")
+      .doc(mailbox)
+      .collection("messages")
+      .doc(data.email_id)
+      .create({
+        from: full.from || data.from || "",
+        subject: full.subject || data.subject || "",
+        text: full.text || "",
+        html: full.html || "",
+        receivedAt: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+      });
+  } catch (err) {
+    if (err.code === 6) return; // ALREADY_EXISTS: a retry of a stored message
+    throw err;
+  }
+
+  // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
+  // 2026-09-23) - the literal Boardy scenario: if this message
+  // carries a real, timed invite (an .ics attachment or inline ICS
+  // content - see lib/calendarInvite.js), file it straight into the
+  // mailbox owner's own Calendar. Only fires when the mailbox
+  // address is actually linked to a real Agora profile
+  // (profiles/{uid}.email == this mailbox's address, the same link
+  // completeAgoraProfile establishes for Harness sign-in) - a
+  // mailbox with no Agora profile yet has no Calendar to file
+  // anything into. The resulting event has exactly one Agora-side
+  // participant (the mailbox owner) - the inviting party (Boardy,
+  // here) isn't an Agora member, which is a legitimate, expected
+  // shape, not an error case (see firestore.rules' calendarEvents
+  // comment). Best-effort: a parse/lookup failure here never
+  // affects the inbox storage above, which has already succeeded.
+  try {
+    const invite = parseInviteFromEmail(full);
+    if (invite) {
+      const mailboxAddress = mailbox + "@virtuamakers.com";
+      const ownerSnap = await admin.firestore().collection("profiles")
+        .where("email", "==", mailboxAddress).limit(1).get();
+      if (!ownerSnap.empty) {
+        const ownerDoc = ownerSnap.docs[0];
+        const ownerData = ownerDoc.data();
+        const ownerName = (ownerData.preferHandle && ownerData.handle)
+          ? ownerData.handle : (ownerData.name || ownerData.handle || mailbox);
+        await createCalendarEvent(admin.firestore(), {
+          participants: [ownerDoc.id],
+          participantNames: { [ownerDoc.id]: ownerName },
+          title: invite.title || full.subject || data.subject || "Meeting",
+          startAt: admin.firestore.Timestamp.fromDate(invite.startAt),
+          createdBy: ownerDoc.id,
+          meetingUrl: invite.meetingUrl,
+          source: "email-invite",
+        });
+      }
+    }
+  } catch (inviteErr) {
+    console.error("Calendar invite parse/file failed:", inviteErr);
+  }
+}
 
 // Closes the real gap Chris flagged the first time this actually mattered
 // (a Boardy email arriving with nobody, human or AI, told it happened):
@@ -1248,9 +1289,9 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const mailbox = req.query.mailbox;
+  const mailbox = normalizeSlug(req.query.mailbox);
   if (!mailbox) {
-    res.status(400).json({ error: "Missing mailbox." });
+    res.status(400).json({ error: "Missing or invalid mailbox." });
     return;
   }
   if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
