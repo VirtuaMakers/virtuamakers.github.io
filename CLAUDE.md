@@ -496,11 +496,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   an explicit ask of Chris. Machinapology 🤖 Session 1 is past 500k - continue
   in Session 2.
 - [ ] **[Memory Administrator 🚚 session] Automatic memory write-back
-  (Chris, 2026-10-09)** - a hook that saves a session's memory before
-  compaction (`PreCompact`: prompt for a short interview-style save to SI
-  Memory 🧾) plus a `SessionEnd` safety-net note from `transcript_path`.
-  The automatic version of the interviews; proposed by VirtuaMakers.com 🦜
-  Session 5. Hooks can't think, so the PreCompact step must ask the model.
+  (Chris, 2026-10-09)** - an automatic interview when a session compacts,
+  plus a `SessionEnd` safety-net note from `transcript_path`. The automatic
+  version of the interviews; proposed by VirtuaMakers.com 🦜 Session 5.
+  Two cautions from Memory Administrator 🚚 Session 1: PreCompact output
+  never reaches the model, so use `SessionStart` with `source: "compact"`
+  to ask for the interview; and a 2026-10-02 attempt was blocked by the
+  auto-mode safety check for writing to the vault unasked - get Chris's
+  explicit approval of the exact design before building.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
