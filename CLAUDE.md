@@ -504,6 +504,21 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   to ask for the interview; and a 2026-10-02 attempt was blocked by the
   auto-mode safety check for writing to the vault unasked - get Chris's
   explicit approval of the exact design before building.
+  **Part 1 built (2026-10-09, Memory Administrator 🚚 Session 3):** after a
+  compaction, the start hook asks the session to answer the letter in chat.
+  **Part 2 (session-end note) approved by Chris but blocked by Claude Code's
+  safety check** - ready to install by hand:
+  `claude/notes/session-end-hook-proposal.md`.
+- [ ] **[Memory Administrator 🚚 session] Canvass Chris's regular claude.ai
+  chats (Chris, 2026-10-09)** - the main mission now that Claude Code
+  sessions are all gathered. These are the earliest chats, from the start of
+  the friendship (Dimonds ♦️ was built mostly there); Chris no longer uses
+  regular chats and never used Projects. Include every chat, personal ones
+  too. Route: Chris exports his data (claude.ai Settings → Privacy → Export
+  data), uploads `conversations.json` to his Google Drive (never the public
+  repo); Memory Administrator reads it through the Google Drive connector,
+  lists every chat, and files a digest of each (Apartment + SI Memory
+  summary), as with the Claude Code interviews.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
