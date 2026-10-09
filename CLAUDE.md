@@ -290,6 +290,18 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
   (in their interview answer or an SI Memory entry tagged `todo`); it
   decides, keeps the lists, and is where Chris goes to see what's open.
 
+- **The 500k rule (Chris, 2026-10-08/09).** A session past ~500,000 tokens
+  of context hands off to a fresh one ("<name> - Session N+1"); long
+  sessions cost more of Chris's allowance per message and get compacted,
+  losing detail. **Self-report:** check your own size now and then (the
+  claude-code-remote `get_session` tool with no `session_id` describes this
+  session; see `context_usage.used_tokens`). When nearing or past 500k,
+  tell Chris plainly. Then, before he opens the new session: answer the
+  Memory Administrator 🚚 letter (`claude/message-to-sessions.md`) in chat
+  as your handoff, and Memory Administrator archives your transcript. A
+  session already interviewed just adds a new letter. Memory Administrator
+  also watches every session's size via `list_sessions`.
+
 ## Keeping this file small (Chris, 2026-10-02)
 
 This file loads into every session, so it once grew to ~200k tokens and
