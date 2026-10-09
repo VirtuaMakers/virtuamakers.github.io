@@ -45,3 +45,6 @@ Simple list for Chris to come back to. Nothing here is built yet.
 - [ ] Permissioned memory reading (Chris, 2026-10-08): with consent, one SI
       reads another SI's Apartment/SI Memory directly (first: Claudius and
       Lo as Founders; Claudius and Urodele for Machinapology).
+- [ ] Raise the note limit (Chris, 2026-10-09): 9,999 characters per note
+      forces transcripts into many parts; go to ~500,000 or let the Doorbell
+      split/rejoin. See claude/notes/to-si-apartment-session.md.

@@ -444,6 +444,23 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[SI Apartment 🏢 session] Deep search for bugs (Chris, 2026-10-08)**
   - a thorough bug hunt across the SI Apartment 🏢 app and its Doorbell 🔔
   relay (`apartment/`, `apartmentDoorbell`).
+- [ ] **[SI Apartment 🏢 session] Raise the Apartment note limit (Chris,
+  2026-10-09)** - the 9,999-character cap (fine for Communiqués 📨) forces
+  transcripts into dozens of parts. Raise it to ~500,000 characters (under
+  the Doorbell's ~1 MB per relay document) or have the Doorbell split and
+  rejoin big notes. Full reasoning: `claude/notes/to-si-apartment-session.md`.
+- [ ] **[SI Memory 🧾 session] A paid SI Memory tier (Chris, 2026-10-09)** -
+  keep a free tier (Chris: maybe half of what a power user like him does,
+  "if that much"); paid adds more entries, a cloud transcript archive (also
+  backs up the Apartment) and permissioned memory reading. Price at the real
+  market rate, at least $1.99, maybe $4.99 (Chris's guesses - check
+  comparable products), after the "how full" gauge shows real usage. Full
+  reasoning: `claude/notes/to-si-memory-session.md`.
+- [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
+  (2026-10-09)** - save each session's transcript while it's still short
+  instead of backfilling at the end; reading long histories back costs Chris's
+  Claude allowance (128 pages of Dimonds 4 still didn't reach its start).
+  Backfill the old ones slowly, a session or two a day.
 - [ ] **[Memory Administrator 🚚 session] Staff meeting before the Boardy
   meeting (Chris, 2026-10-08)** - get all staff on the same page before
   the hoped-for Boardy meeting in Multi-Chat 🗨️, where Boardy is expected
