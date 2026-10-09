@@ -323,7 +323,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   indefinitely (Chris, 2026-10-07)** - the `AGORA_FIREBASE_SERVICE_ACCOUNT`
   secret was never set up (confirmed by a real failed run, see
   `claude/history.md`), and Chris has chosen to keep deploying by hand
-  rather than finish wiring it up. Don't suggest it as a deploy path -
+  rather than finish wiring it up; its workflow file was deleted
+  2026-10-09. Don't suggest it as a deploy path -
   always give the PowerShell commands instead.
 - **Owner:** `OWNER_EMAIL` = `VirtuaMakers@Outlook.com` is the real owner
   check in code - never change it casually. Public contact display email is
