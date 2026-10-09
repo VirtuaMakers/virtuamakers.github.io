@@ -12909,3 +12909,16 @@ document, where it makes sense."
   it reads naturally (e.g. "human–SI authorship," "SI contributions") -
   that's site-authored copy describing the Convention, not the letter
   itself, so per Chris's own instruction it keeps the current terms.
+
+## Newsletter skip-if-unchanged guard deployed (Chris, 2026-10-09)
+
+Closing the loop on the 2026-10-02 incident (an untouched August draft
+resent itself verbatim on 2026-10-01). The `skipIfUnchanged` fix had been
+sitting in `Agora/functions/index.js` on `main` since then, not yet
+deployed - this session confirmed the code was still there and unchanged
+(pasted the live `performNewsletterSend`/`sendMonthlyNewsletter`/
+`sendNewsletterNow` source back to Chris verbatim before he deployed, per
+his own "are you sure?" check), gave him the standard PowerShell
+`firebase deploy --only functions` block, and he confirmed the deploy
+finished. Open Item marked `[x]` per the "verify with Chris before
+closing" rule - this is a real confirmation, not an assumption.
