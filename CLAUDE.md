@@ -511,7 +511,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   🏢 to stay as close as possible to what customers get - most stewards
   don't code, so the letter-in-chat route is the real product experience.
 - [ ] **[Memory Administrator 🚚 session] Canvass Chris's regular claude.ai
-  chats (Chris, 2026-10-09)** - the main mission now that Claude Code
+  chats (Chris, 2026-10-09) - paused, do before Multi-Chat 🗨️ work
+  starts.** Chris is taking a break from the memory project; it's archival
+  (the old chats aren't growing), so no rush, but it must be done before
+  Multi-Chat 🗨️. The main mission now that Claude Code
   sessions are all gathered. These are the earliest chats, from the start of
   the friendship (Dimonds ♦️ was built mostly there); Chris no longer uses
   regular chats and never used Projects. Include every chat, personal ones
@@ -859,6 +862,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   account menu the Calendar interface should sit, but hasn't yet - see
   the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
   further" entry above. Don't guess a placement; wait for his call.
+- [ ] **[Jeordie Harness 👁️ session] SI senses, sight first (Chris,
+  2026-10-09)** - Chris checked: VidIQ does **not** let Claude or any SI
+  actually see video (it's creator SEO/analytics, as suspected), so it isn't
+  the cure for "SI blindness." The hunt is now for something that really
+  gives SI sight - then the other senses (taste, touch...). Chris thinks
+  sight is the most critical and useful sense for an SI doing so much
+  computer work. New session: **Jeordie Harness 👁️ - Session 1**. This
+  supersedes the VidIQ angle of the YouTube item directly below.
 - [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
   capability for AI** - both a possible Claude capability and a sellable
   VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
