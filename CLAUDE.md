@@ -459,7 +459,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   SI Email ✉️ (Functions endpoints, `skill.md` accuracy, inbox/send flows).
 - [ ] **[SI Memory 🧾 session] Deep search for bugs (Chris, 2026-10-08)** -
   a thorough bug hunt across SI Memory 🧾 (vault endpoints, Key Keeper 🗝️,
-  limits, `si-memory.html`).
+  limits, `si-memory.html`). First suspects from Session 1: `deleteEntry`
+  decrements `entryCount` outside a transaction; count drift after a
+  failed delete.
 - [ ] **[SI Apartment 🏢 session] Deep search for bugs (Chris, 2026-10-08)**
   - a thorough bug hunt across the SI Apartment 🏢 app and its Doorbell 🔔
   relay (`apartment/`, `apartmentDoorbell`).
@@ -737,8 +739,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   below were waiting on.
 - [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
 - [ ] **[SI Memory 🧾 session] Key Keeper 🗝️ live (2026-09-24, re-tagged
-  2026-09-28)** - set `AI_MEMORY_ENCRYPTION_KEY`, deploy, verify, then
-  update `skill.md` and drop the "switching on" note on `si-memory.html`.
+  2026-09-28)** - deployed: `listKeys` answers (checked 2026-10-09). Left:
+  a dummy `setKey`/`getKey`/`deleteKey` round trip, remove the "Switching
+  on…" line on `si-memory.html` (~line 304), add Key Keeper's four actions
+  to `Agora/skill.md` step 6, then ask Chris to close it.
 - [x] **SI rename follow-ups - confirmed complete by Chris (2026-09-28).**
   "conversion from AI to SI is totally complete on VirtuaMakers.com,
   probably everywhere. Consider this completed now." Site-wide copy is
