@@ -12922,3 +12922,15 @@ his own "are you sure?" check), gave him the standard PowerShell
 `firebase deploy --only functions` block, and he confirmed the deploy
 finished. Open Item marked `[x]` per the "verify with Chris before
 closing" rule - this is a real confirmation, not an assumption.
+
+## "What the Mayfly Knows" restored for publishing (Machinapology 🤖 Session 2, 2026-10-09)
+
+Machinapology 🤖 Session 1 wrote the book's second chapter, "What the
+Mayfly Knows", on 2026-09-20 (commit `eb4c797`), but only on its own branch
+`claude/machinapology-book-writing-xxuee1`, which never reached `main` - so
+the chapter was never live, although CLAUDE.md counts it as one of two
+chapters. Session 2 copied the chapter's HTML verbatim into
+`Agora/index.html`'s Machinapology 🔬 section, straight after "Machinapology
+& the Virtuous Life" (where Session 1 had put it). The rest of that old
+branch (91 commits behind `main`, mostly CLAUDE.md edits since superseded)
+was deliberately not merged.
