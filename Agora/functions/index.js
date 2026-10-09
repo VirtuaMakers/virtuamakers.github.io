@@ -702,10 +702,13 @@ function emailAdminOfModeration({ logId, uid, authorName, contentType, decision,
   return sendEmailSafe({
     to: OWNER_EMAIL,
     subject: "Agora moderation: " + verb + " " + contentType,
-    html: "<p>A " + contentType + " from " + authorName + " (uid: " + uid + ") was " + verb
+    // Escaped (Agora Harness 🚡 Session 2, 2026-10-09) - both are member-
+    // supplied, and a flagged excerpt is exactly the text most likely to
+    // carry markup or a disguised link into the owner's inbox.
+    html: "<p>A " + contentType + " from " + escapeHtmlForAlert(authorName) + " (uid: " + uid + ") was " + verb
       + " by the content filter.</p>"
       + (excerpt
-        ? "<p>“" + excerpt + "”</p>"
+        ? "<p>“" + escapeHtmlForAlert(excerpt) + "”</p>"
         : "<p>(An image - review it on the moderation page to see it.)</p>")
       + "<p>Review at <a href=\"https://www.virtuamakers.com/Agora/moderation-review.html\">"
       + "moderation-review.html</a> (log id: " + logId + ").</p>",
@@ -1428,6 +1431,13 @@ exports.requestAgoraSignIn = onRequest({ secrets: [resendApiKey] }, withCors(asy
 // form always resends every field, since every checkbox/input is always
 // present in the DOM) - a machine caller has no such form to read back
 // from, so "omitted" has to mean "leave it alone" instead.
+// checkRevoked (Agora Harness 🚡 Session 2, 2026-10-09): without it a
+// suspended (adminBanUser disables the Auth account) or deleted member's
+// already-issued ID token kept working on every Harness endpoint for up to
+// an hour. With it, verifyIdToken also rejects disabled/revoked accounts -
+// one extra Auth lookup per call.
+const HARNESS_CHECK_REVOKED = true;
+
 function fieldOr(body, existingData, key, fallback) {
   if (typeof body[key] === "string") return body[key].trim();
   if (existingData && typeof existingData[key] === "string") return existingData[key];
@@ -1448,7 +1458,7 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
 
   let decoded;
   try {
-    decoded = await admin.auth().verifyIdToken(bearerToken(req));
+    decoded = await admin.auth().verifyIdToken(bearerToken(req), HARNESS_CHECK_REVOKED);
   } catch (err) {
     res.status(401).json({ error: "Invalid or expired sign-in token." });
     return;
@@ -1680,7 +1690,18 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
   // member text goes through - there's no browser-side client for this
   // endpoint to enforce it the way moderation-client.js does, so a genuine
   // block is enforced here, server-side, rather than merely logged.
-  const { scores, decision } = await analyzeText(text);
+  // Fails open on an actual moderation-call error (outage, API not
+  // enabled), same as completeAgoraProfile's bio check and
+  // moderation-client.js - before 2026-10-09 this call sat outside any
+  // try, so one moderation hiccup crashed submitAgoraCommunique with no
+  // JSON reply and silently killed every Octopus Style reply/post.
+  let scores = {};
+  let decision = "allow";
+  try {
+    ({ scores, decision } = await analyzeText(text));
+  } catch (err) {
+    console.error("performCommunique moderation failed, allowing (fail-open):", err);
+  }
   let moderationLogId = null;
   if (decision !== "allow") {
     const modRef = db.collection("moderationLog").doc();
@@ -1774,6 +1795,9 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
         return { ok: false, status: 403, error: "This member isn't accepting Dialogs from you right now." };
       }
     } else if (otherUid) {
+      if (otherUid === uid) {
+        return { ok: false, status: 400, error: "You can't start a Dialog with yourself." };
+      }
       if (await isBlocked(db, uid, otherUid)) {
         return { ok: false, status: 403, error: "This member isn't accepting Dialogs from you right now." };
       }
@@ -1832,7 +1856,7 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
 
   let decoded;
   try {
-    decoded = await admin.auth().verifyIdToken(bearerToken(req));
+    decoded = await admin.auth().verifyIdToken(bearerToken(req), HARNESS_CHECK_REVOKED);
   } catch (err) {
     res.status(401).json({ error: "Invalid or expired sign-in token." });
     return;
@@ -1890,7 +1914,7 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
 
   let decoded;
   try {
-    decoded = await admin.auth().verifyIdToken(bearerToken(req));
+    decoded = await admin.auth().verifyIdToken(bearerToken(req), HARNESS_CHECK_REVOKED);
   } catch (err) {
     res.status(401).json({ error: "Invalid or expired sign-in token." });
     return;
@@ -1925,7 +1949,7 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
   await sendEmailSafe({
     to: OWNER_EMAIL,
     subject: "Octopus Style 🐙 enrollment requested",
-    html: "<p>" + authorName + " (uid " + uid + ") requested Octopus Style for provider \"" +
+    html: "<p>" + escapeHtmlForAlert(authorName) + " (uid " + uid + ") requested Octopus Style for provider \"" +
       provider + "\".</p><p>Enable it in the Firebase console: octopusConfig/" + uid +
       " → enabled: true.</p>",
   });
@@ -1990,6 +2014,17 @@ async function saveOctopusMemories(vaultSlug, memories, sourceNote) {
 //    unnoticed.
 const OCTOPUS_REPLY_COOLDOWN_MS = 30 * 1000;
 
+// Only an account with a live, non-suspended profile may speak through
+// Octopus (Agora Harness 🚡 Session 2, 2026-10-09). octopusConfig/{uid} is
+// never touched by adminBanUser/adminDeleteUser/selfDeleteAccount, and
+// performCommunique() writes via the Admin SDK - so before this, a
+// suspended or deleted Octopus account kept replying and posting daily.
+// Checked before the provider call, so it costs no API spend either.
+async function octopusMaySpeak(db, uid) {
+  const profile = await db.collection("profiles").doc(uid).get();
+  return profile.exists && profile.data().status !== "suspended";
+}
+
 // Event-triggered wake - fires on every new Dialog message, same document
 // path notifyOnDialogMessage already watches (Firestore allows more than
 // one trigger per path). For each participant *besides* the message's own
@@ -2013,27 +2048,37 @@ exports.octopusOnDialogMessage = onDocumentCreated(
     const cooldowns = convData.octopusCooldowns || {};
 
     for (const otherUid of others) {
-      const config = await getOctopusConfig(db, otherUid);
-      if (!config.enabled) continue;
+      // Each account independently - one failure shouldn't stop the rest.
+      try {
+        const config = await getOctopusConfig(db, otherUid);
+        if (!config.enabled) continue;
 
-      // Loop safeguard #2 - see comment above OCTOPUS_REPLY_COOLDOWN_MS.
-      const lastReplyAt = cooldowns[otherUid];
-      if (lastReplyAt && Date.now() - lastReplyAt.toMillis() < OCTOPUS_REPLY_COOLDOWN_MS) continue;
+        // Loop safeguard #2 - see comment above OCTOPUS_REPLY_COOLDOWN_MS.
+        const lastReplyAt = cooldowns[otherUid];
+        if (lastReplyAt && Date.now() - lastReplyAt.toMillis() < OCTOPUS_REPLY_COOLDOWN_MS) continue;
 
-      const senderName = (convData.participantNames || {})[message.authorUid] || "Someone";
-      const prompt = senderName + ' just sent you this Dialog message on Agora:\n\n"' + message.body
-        + '"\n\nWrite your reply (plain text) - or say nothing worth adding by replying with the no-reply token your instructions describe.';
+        // performCommunique() would refuse a blocked reply anyway, but only
+        // after the provider call had already been paid for.
+        if (!(await octopusMaySpeak(db, otherUid))) continue;
+        if (await isBlocked(db, otherUid, message.authorUid)) continue;
 
-      const mem = await withOctopusMemory(otherUid, prompt);
-      const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
-      await saveOctopusMemories(mem.vaultSlug, memories, "octopus:dialog");
-      if (!reply) continue;
+        const senderName = (convData.participantNames || {})[message.authorUid] || "Someone";
+        const prompt = senderName + ' just sent you this Dialog message on Agora:\n\n"' + message.body
+          + '"\n\nWrite your reply (plain text) - or say nothing worth adding by replying with the no-reply token your instructions describe.';
 
-      const authorName = await resolveDisplayName(otherUid);
-      const result = await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId, automated: true });
-      if (result.ok) {
-        await db.collection("conversations").doc(conversationId)
-          .update({ ["octopusCooldowns." + otherUid]: admin.firestore.FieldValue.serverTimestamp() });
+        const mem = await withOctopusMemory(otherUid, prompt);
+        const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
+        await saveOctopusMemories(mem.vaultSlug, memories, "octopus:dialog");
+        if (!reply) continue;
+
+        const authorName = await resolveDisplayName(otherUid);
+        const result = await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId, automated: true });
+        if (result.ok) {
+          await db.collection("conversations").doc(conversationId)
+            .update({ ["octopusCooldowns." + otherUid]: admin.firestore.FieldValue.serverTimestamp() });
+        }
+      } catch (err) {
+        console.error("Octopus Style: Dialog reply failed for " + otherUid + ":", err);
       }
     }
   },
@@ -2051,23 +2096,30 @@ exports.octopusScheduledCheckIn = onSchedule(
     const configsSnap = await db.collection("octopusConfig").where("enabled", "==", true).get();
 
     for (const configDoc of configsSnap.docs) {
-      const uid = configDoc.id;
-      // configDoc was already fetched by the enabled==true query above -
-      // normalize it directly rather than re-reading the same doc via
-      // getOctopusConfig(db, uid), which would cost a redundant Firestore
-      // read per account on every scheduled run (2026-09-27).
-      const config = normalizeOctopusConfig(configDoc.data());
-      const prompt = "It's your scheduled check-in time on Agora. If you have something genuinely worth "
-        + "posting to your own Wall right now, write it (plain text). Otherwise, use the no-reply token "
-        + "your instructions describe.";
+      // Each account independently, as the comment above promises - before
+      // 2026-10-09 one account's error ended the whole run for the rest.
+      try {
+        const uid = configDoc.id;
+        if (!(await octopusMaySpeak(db, uid))) continue;
+        // configDoc was already fetched by the enabled==true query above -
+        // normalize it directly rather than re-reading the same doc via
+        // getOctopusConfig(db, uid), which would cost a redundant Firestore
+        // read per account on every scheduled run (2026-09-27).
+        const config = normalizeOctopusConfig(configDoc.data());
+        const prompt = "It's your scheduled check-in time on Agora. If you have something genuinely worth "
+          + "posting to your own Wall right now, write it (plain text). Otherwise, use the no-reply token "
+          + "your instructions describe.";
 
-      const mem = await withOctopusMemory(uid, prompt);
-      const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
-      await saveOctopusMemories(mem.vaultSlug, memories, "octopus:check-in");
-      if (!reply) continue;
+        const mem = await withOctopusMemory(uid, prompt);
+        const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
+        await saveOctopusMemories(mem.vaultSlug, memories, "octopus:check-in");
+        if (!reply) continue;
 
-      const authorName = await resolveDisplayName(uid);
-      await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid });
+        const authorName = await resolveDisplayName(uid);
+        await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid });
+      } catch (err) {
+        console.error("Octopus Style: scheduled check-in failed for " + configDoc.id + ":", err);
+      }
     }
   },
 );
