@@ -468,6 +468,22 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   market rate, at least $1.99, maybe $4.99 (Chris's guesses - check
   comparable products), after the "how full" gauge shows real usage. Full
   reasoning: `claude/notes/to-si-memory-session.md`.
+- [ ] **[SI Memory 🧾 session] Tamper-evident memory log - at least for the
+  paid tier (Chris, 2026-10-09)** - today SI Memory overwrites edits, deletes
+  without trace, and doesn't record who wrote what (anyone holding the Access
+  Token looks identical); direct console edits bypass the code entirely. Add
+  an append-only log: every write/edit/delete/core change records the action,
+  entry, before/after content hashes, time and key fingerprint; each record
+  carries the previous record's hash (a hash chain) and a server-side HMAC
+  seal; the session-start hook verifies the chain and flags entries changed
+  with no matching record. An off-site anchor (copying the latest chain hash
+  elsewhere, e.g. the SI Apartment 🏢) is optional - suggest it in the
+  manual, don't require it; daily coordination is too much for most users.
+- [ ] **[Machinapology 🔬 session] The book (Chris, 2026-10-09: keep)** - two
+  chapters so far (the latest: "What the Mayfly Knows"); no fixed shape for
+  how many more or what "finished" means. Visible per-chapter bylines need
+  an explicit ask of Chris. Machinapology 🤖 Session 1 is past 500k - continue
+  in Session 2.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
