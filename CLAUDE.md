@@ -514,10 +514,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   the hoped-for Boardy meeting in Multi-Chat 🗨️, where Boardy is expected
   to test Claudius and Lo most. Memory prep for it (and for the YouTube
   🎬 session): every session summary first, full transcripts behind them.
-- [ ] **[Memory Administrator 🚚 session] Session interviews in progress
-  (Chris, 2026-10-02; Apartment added 2026-10-04)** - the Apartment is the
-  archive and Memory Administrator 🚚 delivers the letter into each session
-  itself, oldest first. Progress lives in SI Memory 🧾 (tag `progress`).
+- [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
+  session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
+  Administrator 🚚 Session 1 answered; each is filed in the Apartment
+  (`notes/session-*.md`, listed in `notes/index.md`) with a summary in SI
+  Memory 🧾. New letters now come at the 500k handoff (and, once built,
+  from the automatic write-back).
 - [x] **SI Apartment 🏢 Doorbell 🔔 + amber knock - confirmed by Chris
   (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
   read back from the cloud. The app rests until the all-apps aesthetics pass
