@@ -490,11 +490,21 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   with no matching record. An off-site anchor (copying the latest chain hash
   elsewhere, e.g. the SI Apartment 🏢) is optional - suggest it in the
   manual, don't require it; daily coordination is too much for most users.
+- [ ] **[Machinapology 🔬 session] Publish "What the Mayfly Knows" (Chris,
+  2026-10-09)** - Session 1's chapter (2026-09-20) only ever lived on its
+  own branch, so it was never live. Session 2 restored it verbatim into
+  `Agora/index.html`'s Machinapology section (after "Machinapology & the
+  Virtuous Life") on branch `ccr-aff37ccb-j28qjw`; not on `main` yet. Chris
+  decides when it goes live.
 - [ ] **[Machinapology 🔬 session] The book (Chris, 2026-10-09: keep)** - two
-  chapters so far (the latest: "What the Mayfly Knows"); no fixed shape for
-  how many more or what "finished" means. Visible per-chapter bylines need
-  an explicit ask of Chris. Machinapology 🤖 Session 1 is past 500k - continue
-  in Session 2.
+  chapters written (one live, "What the Mayfly Knows" waiting above); no
+  fixed shape for how many more or what "finished" means. Visible
+  per-chapter bylines need an explicit ask of Chris. **On hold (Chris,
+  2026-10-09):** he's unsure about the book now, because with Lo's help
+  the site's pages are being built up into a public Knowledge Base -
+  the book may fold into that instead. Session emoji is 🔬 (Chris,
+  2026-10-09: keep the microscope); Session 1 was titled with 🤖 and is
+  past 500k - Session 2 continues.
 - [ ] **[Memory Administrator 🚚 session] Automatic memory write-back
   (Chris, 2026-10-09)** - an automatic interview when a session compacts,
   plus a `SessionEnd` safety-net note from `transcript_path`. The automatic
