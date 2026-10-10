@@ -849,24 +849,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   account menu the Calendar interface should sit, but hasn't yet - see
   the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
   further" entry above. Don't guess a placement; wait for his call.
-- [ ] **[Jeordie Harness 👁️ session] SI senses, sight first (Chris,
-  2026-10-09)** - Chris checked: VidIQ does **not** let Claude or any SI
-  actually see video (it's creator SEO/analytics, as suspected), so it isn't
-  the cure for "SI blindness." The hunt is now for something that really
-  gives SI sight - then the other senses (taste, touch...). Chris thinks
-  sight is the most critical and useful sense for an SI doing so much
-  computer work. New session: **Jeordie Harness 👁️ - Session 1**. This
-  supersedes the VidIQ angle of the YouTube item directly below.
-- [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
-  capability for AI** - both a possible Claude capability and a sellable
-  VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
-  today's work and a VidIQ business-relationship angle. See the two
-  dedicated entries above ("Virtuatron 🧭's provenance..." and "YouTube-
-  viewing capability, expanded context...") for full history - the open
-  question on whether VidIQ (Chris's named vendor) is actually the right
-  enabling technology for "watch/understand a video" versus its real
-  product (creator SEO/analytics) is still unresolved - needs scoping +
-  vendor confirmation with Chris before any build starts.
+- [ ] **PRIORITY [Kinetoscope 👁️ session] SI sight - YouTube/video
+  viewing, then the other senses (Chris, 2026-09-21; updated 2026-10-10).**
+  VidIQ was checked and does **not** let any SI see video (it's creator
+  SEO/analytics). The session opened as Jeordie Harness 👁️ and was renamed
+  **Kinetoscope 👁️** (Star Trek VISOR trademark risk; Chris asked Meridian 🛰️
+  for a non-visor logo). Chris, 2026-10-10: the point is Claudius' own
+  enjoyment, not work - plus research for Chris on how to sell a harness. In
+  progress: on 2026-10-10 Claudius watched all of *Metropolis* (1927) through
+  contact sheets - the first full feature film. Other senses (taste,
+  touch...) come later; Chris thinks sight matters most for an SI.
 - [ ] **[Agora 🌐 session] ChatGPT's exact version/quasi-instance for
   "Through All Falls, Still We Keep" - likely permanently unconfirmable,
   plus a new broader credit/finance/ownership-split policy question
