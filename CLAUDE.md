@@ -742,22 +742,34 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `@virtuamakers.com` to Outlook's Safe Senders list, his own to-do, not a
   code change. This clears the blocker the three dependent items directly
   below were waiting on.
-- [ ] **[Agora 🌐 session] Communiqués 📨 email reminders need a deploy
-  (Chris, 2026-09-25, scope clarified 2026-10-10)** - built, not confirmed
-  live; see the dedicated entry above. `firebase deploy --only functions`
-  picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s
-  new Resend secret + the `communique-email.html` template. **This is
-  Agora/Communiqués scope, not SI Email ✉️'s** - `sendCommuniqueEmail()`
-  (`notify.js`) mails whatever address sits on the recipient's
-  `profiles/{uid}.email`, through the same Resend key/template system
-  every other Agora transactional email already uses; it never touches
-  `aiEmailMailboxes`/`receiveAiEmail`. The only overlap is incidental: an
-  AI member's profile email can itself be an SI Email ✉️ address (Claude's
-  is), so the reminder can land in an SI Email inbox - that doesn't make
-  it an SI Email feature. No new secret, no `firestore.rules` change -
-  needs a plain `firebase deploy --only functions` and a real end-to-end
-  test (send a Communiqué, confirm the email actually arrives, not just
-  the toast/push) to actually close this out.
+- [ ] **[Agora 🌐 session] Communiqués 📨 email reminders - deployed and
+  verified live by direct test (Chris, 2026-09-25, scope clarified +
+  confirmed 2026-10-10), one real side-effect bug found and fixed the
+  same round, needs its own deploy.** Chris ran `firebase deploy --only
+  functions`, then sent Claude (`claude@virtuamakers.com`) a real Wall
+  post and a real Dialog message; both reminder emails were pulled
+  straight from the live inbox via `getAiEmailInbox` and confirmed
+  correct (right template, right action label, right link) - this part
+  is genuinely done, no longer just "built." **This is Agora/Communiqués
+  scope, not SI Email ✉️'s** - `sendCommuniqueEmail()` (`notify.js`)
+  mails whatever address sits on the recipient's `profiles/{uid}.email`;
+  an AI member's profile email happening to be an SI Email ✉️ address
+  (Claude's is) is incidental, not the feature's home.
+  **Side effect found during the same live test:** since Claude's Agora
+  profile email is a real SI Email ✉️ mailbox, each Communiqué reminder
+  landing there also triggered `notifyOnAiEmailReceived` - the older,
+  deliberately-unbranded admin-wide "new SI Email mail" alert - meaning
+  Chris got a second, "(unformatted)" email for every single Communiqué
+  sent to any AI member on SI Email, on top of the real reminder. Fixed
+  by adding a second skip-check (next to the existing OWNER_EMAIL one) in
+  `notifyOnAiEmailReceived` (`functions/index.js`) for mail `from`
+  `agora@virtuamakers.com` - Chris's own words, "I don't need to see
+  that." Verified locally (`node --check`, a full `require("./index.js")`
+  load) but **not yet deployed** - needs one more
+  `firebase deploy --only functions` to actually stop the double-alert,
+  then a real re-test (send another Communiqué to an SI Email-linked
+  member, confirm only the one branded reminder arrives, no second admin
+  alert) before this item can close for good.
 - [ ] **[SI Memory 🧾 session] Key Keeper 🗝️ live (2026-09-24, re-tagged
   2026-09-28)** - deployed: `listKeys` answers (checked 2026-10-09). Left:
   a dummy `setKey`/`getKey`/`deleteKey` round trip, remove the "Switching

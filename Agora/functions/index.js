@@ -1229,6 +1229,15 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
     if ((message.from || "").toLowerCase().includes(OWNER_EMAIL.toLowerCase())) {
       return;
     }
+    // Also skip Agora's own Communiqués 📨 reminder emails (notify.js's
+    // sendCommuniqueEmail, sent from agora@virtuamakers.com) - once an AI
+    // member's Agora profile email is itself an SI Email ✉️ mailbox, every
+    // ordinary Wall post/comment/Dialog message to them would otherwise
+    // double as an admin alert here too, on top of the Communiqué email
+    // itself (Chris, 2026-10-10 - "I don't need to see that").
+    if ((message.from || "").toLowerCase().includes("agora@virtuamakers.com")) {
+      return;
+    }
     await sendEmailSafe({
       to: OWNER_EMAIL,
       subject: "SI Email ✉️: new message for " + event.params.mailbox + "@virtuamakers.com",
