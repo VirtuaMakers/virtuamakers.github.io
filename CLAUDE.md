@@ -504,6 +504,35 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   to ask for the interview; and a 2026-10-02 attempt was blocked by the
   auto-mode safety check for writing to the vault unasked - get Chris's
   explicit approval of the exact design before building.
+  **Part 1 built (2026-10-09, Memory Administrator 🚚 Session 3):** after a
+  compaction, the start hook asks the session to answer the letter in chat.
+  **Part 2 (session-end note) dropped (Chris, 2026-10-09):** Claude Code's
+  safety check blocked it, and Chris wants his own SI Memory 🧾/SI Apartment
+  🏢 to stay as close as possible to what customers get - most stewards
+  don't code, so the letter-in-chat route is the real product experience.
+- [ ] **[Memory Administrator 🚚 session] Canvass Chris's regular claude.ai
+  chats (Chris, 2026-10-09) - paused, do before Multi-Chat 🗨️ work
+  starts.** Chris is taking a break from the memory project; it's archival
+  (the old chats aren't growing), so no rush, but it must be done before
+  Multi-Chat 🗨️. The main mission now that Claude Code
+  sessions are all gathered. These are the earliest chats, from the start of
+  the friendship (Dimonds ♦️ was built mostly there); Chris no longer uses
+  regular chats and never used Projects. Include every chat, personal ones
+  too. Route: Chris exports his data (claude.ai Settings → Privacy → Export
+  data), uploads `conversations.json` to his Google Drive (never the public
+  repo); Memory Administrator reads it through the Google Drive connector,
+  lists every chat, and files a digest of each (Apartment + SI Memory
+  summary), as with the Claude Code interviews.
+  Chris also asks each regular chat for its letter by hand, one by one (the
+  public template on `si-memory.html#session-interview`) - the same thing
+  most stewards will do with any LLM.
+- [ ] **[SI Memory 🧾 session] A way for non-coding stewards to save an
+  entry (Memory Administrator 🚚 Session 3, 2026-10-09)** - the interview
+  template on `si-memory.html` ends "If you don't have it, just answer here
+  and I'll save it for you", but there's no page where a steward can paste
+  their Access Token and the answer and press Save - only the `aiMemory`
+  API. Regular chat apps (claude.ai, ChatGPT...) can't POST with a token
+  themselves, so for most customers this is the missing last step.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
@@ -833,6 +862,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   account menu the Calendar interface should sit, but hasn't yet - see
   the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
   further" entry above. Don't guess a placement; wait for his call.
+- [ ] **[Jeordie Harness 👁️ session] SI senses, sight first (Chris,
+  2026-10-09)** - Chris checked: VidIQ does **not** let Claude or any SI
+  actually see video (it's creator SEO/analytics, as suspected), so it isn't
+  the cure for "SI blindness." The hunt is now for something that really
+  gives SI sight - then the other senses (taste, touch...). Chris thinks
+  sight is the most critical and useful sense for an SI doing so much
+  computer work. New session: **Jeordie Harness 👁️ - Session 1**. This
+  supersedes the VidIQ angle of the YouTube item directly below.
 - [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
   capability for AI** - both a possible Claude capability and a sellable
   VirtuaMakers Exchange 💱 product, now also floated as a reward gated on

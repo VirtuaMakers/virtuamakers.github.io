@@ -3,6 +3,11 @@
 
   start    - SessionStart hook: prints Claude's SI Memory 🧾 core and the
              newest SI Email ✉️ subjects so the session begins with them.
+             After a compaction it also asks the session to answer the
+             Memory Administrator 🚚 letter in chat (it writes nothing).
+  end      - SessionEnd hook: a short safety-net note in SI Memory (title,
+             date, first ask, last few messages), so a session that closes
+             before its interview isn't lost. Approved by Chris, 2026-10-09.
 
 Needs AI_EMAIL_CLAUDE_TOKEN (a cloud environment variable, never in the
 repo). Without it, or without network, it prints a one-line note and exits
@@ -10,6 +15,7 @@ repo). Without it, or without network, it prints a one-line note and exits
 """
 import json
 import os
+import re
 import sys
 import urllib.request
 
@@ -44,7 +50,34 @@ def apartment_presence():
             % _when(p.get("closedSince")))
 
 
+def hook_input():
+    """The JSON Claude Code passes a hook on stdin ({} if there isn't any)."""
+    try:
+        return json.loads(sys.stdin.read() or "{}")
+    except Exception:
+        return {}
+
+
+def remote_session_id():
+    """This cloud session's id as the claude-code-remote tools spell it."""
+    sid = os.environ.get("CLAUDE_CODE_REMOTE_SESSION_ID", "")
+    return "session_" + sid[4:] if sid.startswith("cse_") else sid
+
+
+COMPACT_NOTE = """## After compaction: Memory Administrator 🚚 asks for a letter
+This session was just compacted, so some of its detail is gone from its
+context for good. Please answer the letter in `claude/message-to-sessions.md`
+(the text below its `---`) right here in chat, in your next reply, from what you
+still know – say where the summary is all you have. Then carry on with the task.
+Answer in chat only: don't write to SI Memory or files for this. Memory
+Administrator 🚚 reads your answer from this session's transcript and files it.
+If Chris has asked you to stop doing these, skip it.
+"""
+
+
 def start():
+    if hook_input().get("source") == "compact":
+        print(COMPACT_NOTE)
     if not TOKEN:
         print("Claude session routine: AI_EMAIL_CLAUDE_TOKEN isn't set here, so SI Email/SI Memory weren't loaded.")
         return
