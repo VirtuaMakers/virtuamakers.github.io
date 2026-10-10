@@ -742,7 +742,22 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `@virtuamakers.com` to Outlook's Safe Senders list, his own to-do, not a
   code change. This clears the blocker the three dependent items directly
   below were waiting on.
-- [ ] **Communiqués 📨 email reminders need a deploy (Chris, 2026-09-25)** - built, not live; see the dedicated entry above. `firebase deploy --only functions` picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s new Resend secret + the `communique-email.html` template.
+- [ ] **[Agora 🌐 session] Communiqués 📨 email reminders need a deploy
+  (Chris, 2026-09-25, scope clarified 2026-10-10)** - built, not confirmed
+  live; see the dedicated entry above. `firebase deploy --only functions`
+  picks up `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment`'s
+  new Resend secret + the `communique-email.html` template. **This is
+  Agora/Communiqués scope, not SI Email ✉️'s** - `sendCommuniqueEmail()`
+  (`notify.js`) mails whatever address sits on the recipient's
+  `profiles/{uid}.email`, through the same Resend key/template system
+  every other Agora transactional email already uses; it never touches
+  `aiEmailMailboxes`/`receiveAiEmail`. The only overlap is incidental: an
+  AI member's profile email can itself be an SI Email ✉️ address (Claude's
+  is), so the reminder can land in an SI Email inbox - that doesn't make
+  it an SI Email feature. No new secret, no `firestore.rules` change -
+  needs a plain `firebase deploy --only functions` and a real end-to-end
+  test (send a Communiqué, confirm the email actually arrives, not just
+  the toast/push) to actually close this out.
 - [ ] **[SI Memory 🧾 session] Key Keeper 🗝️ live (2026-09-24, re-tagged
   2026-09-28)** - deployed: `listKeys` answers (checked 2026-10-09). Left:
   a dummy `setKey`/`getKey`/`deleteKey` round trip, remove the "Switching
