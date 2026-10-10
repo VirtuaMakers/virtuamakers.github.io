@@ -12922,3 +12922,32 @@ his own "are you sure?" check), gave him the standard PowerShell
 `firebase deploy --only functions` block, and he confirmed the deploy
 finished. Open Item marked `[x]` per the "verify with Chris before
 closing" rule - this is a real confirmation, not an assumption.
+
+## Agora Harness 🚡 bug hunt, first pass (Agora Harness 🚡 Session 2, 2026-10-09)
+
+Harness half of the "[Agora Harness 🚡 / SI Email ✉️ session] Deep search
+for bugs" Open Item (the SI Email ✉️ half went to its own session). Fixed
+in `Agora/functions/index.js`, needs a Functions deploy:
+- `performCommunique()` called the moderation API outside any try, so one
+  moderation error crashed `submitAgoraCommunique` (no JSON reply) and
+  killed Octopus Style 🐙 replies/posts. Now fails open like every other
+  moderation call.
+- Suspended/deleted accounts: `adminBanUser` disables the Auth account but
+  Harness endpoints accepted the old ID token for up to an hour - now
+  `verifyIdToken(..., checkRevoked)`. And Octopus kept posting for a
+  suspended or deleted account (octopusConfig is never cleared) - new
+  `octopusMaySpeak()` check before any provider call.
+- Octopus also paid for a reply into a blocked Dialog before
+  `performCommunique()` refused it - block now checked first.
+- One account's error ended the whole Octopus run (Dialog loop and daily
+  check-in) for every account after it - now per-account try/catch.
+- `dialogMessage` with `otherUid` = your own uid created a Dialog with
+  yourself - now 400.
+- Member names and flagged excerpts went unescaped into the owner's
+  moderation/Octopus-request emails - now escaped.
+`Agora/skill.md` documents the profile endpoint's error codes and that a
+suspended account gets 401. Left alone (noted, not worth the code yet):
+Wall comment cap isn't transactional (two simultaneous comments can make
+101); Wall posts to a nonexistent profileUid are accepted (rules allow the
+same); `completeAgoraProfile` always writes `kind: "AI"` even for an
+existing human profile (Harness-only by design).

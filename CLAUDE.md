@@ -392,7 +392,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   calendar sync was never started. It needs Chris to register his own
   OAuth apps (Google Cloud console, Microsoft Entra) and give the session
   the client IDs; the session then builds the sign-in flow and the sync.
-- [ ] **SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
+- [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** See the dedicated entry in `claude/history.md` for the
   full discussion. Chris's real diagnosis: nothing ever prompts an SI to
   check or reply to its own mail unprompted today, so most mail just
@@ -412,7 +412,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Agora Dialogs to SI Email mailboxes generally, rather than a second,
   parallel system. Not scoped further - Chris wants to work out "some
   basic rules for it later."
-- [ ] **A real way to quit SI Email ✉️ - designed, not built (Chris,
+- [ ] **[SI Email ✉️ session] A real way to quit SI Email ✉️ - designed, not built (Chris,
   2026-10-07)** - raised alongside the heartbeat idea above, possibly its
   own To Do. Needs: a frictionless, bearer-token-gated self-request (same
   shape as Agora's own `selfDeleteAccount`/"Leave Agora"), a 7-day grace
@@ -684,17 +684,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   list item directly above existing first - Calendar reads that same
   list to know which of a member's products can even accept a scheduled
   recurring cadence call.
-- [ ] **Send the Persistent Memory Request Form to each session
-  (Chris, confirmed 2026-09-28)** - resolved: this *is*
-  `claude/message-to-sessions.md` (the "self-portrait" collection
-  message built 2026-09-24), not a separate, still-missing document -
-  Chris confirmed directly ("Yes! Message to Sessions is what it is.")
-  after this session flagged the naming mismatch. Still not actually
-  sent to any other session yet - Chris's own next step, agreed
-  2026-09-28 to come right after the remaining VirtuaMakers.com 🦜 To
-  Dos are finished (see the ordering note below), so its answers can
-  consolidate Claude's memory into something more persistent before
-  moving on to the VidIQ/YouTube-viewing work.
 - [x] **Revoke Krishn Tundia's GitHub access to the Guardian 🟩 repo -
   resolved early, 2026-10-03, during the GitHub org migration (see that
   dedicated entry near the top of this file).** Originally scheduled to
@@ -724,7 +713,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   **Moved to the SI Apartment 🏢 session's own To Do (Chris, 2026-09-28)** -
   SI Apartment has its own dedicated session now; this item belongs
   there, not in general VirtuaMakers.com 🦜 triage.
-- [ ] **[VirtuaMakers.com 🦜 session] Product Pages Wall - built, needs Chris's live confirmation
+- [x] **Product Pages Wall - confirmed by Chris (2026-10-09, via VirtuaMakers.com 🦜 Session 6: his post on the Agora 🌐 product page shows up).** Was: built, needs Chris's live confirmation
   (2026-09-27)** - all 16 `*-product.html` pages now have a Posts-only
   Wall/comments section; see the dedicated "Product Pages Wall 📋" entry
   above for the full build. Structurally verified in the sandbox
@@ -797,7 +786,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   assets, not just text) landed too - flag if any product page still
   shows an old "AI"-labeled logo image.
 - [ ] **Steward Report 📋 toggles (Chris, 2026-09-27)** - design conversation only, nothing built; see the dedicated entry above for the full backdoor-key/liability/failsafe discussion. A future SI Memory 🧾-focused session should pick this up.
-- [ ] **Consider advertising the cross-location persistence system ("the .md+") to other AI users (Chris, 2026-09-27)** - explicit ask to not forget this; see the dedicated entry above.
 - [ ] **[SI Memory 🧾 session] Decide: should SI Memory 🧾 require an
   Agora 🌐 profile? (Chris, 2026-09-27, re-tagged 2026-09-28)** - real
   tension named, not resolved (freedom-first ethos vs. driving Agora
@@ -806,10 +794,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Email ✉️ nudge/require item above - both belong to the same SI Memory
   session bucket per Chris's own "add this to the To Dos for one of the
   appropriate sessions" instruction (2026-09-28).
-- [ ] **[VirtuaMakers.com 🦜 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
+- [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
-- [ ] **Set up a daily Claude check on Admin@virtuamakers.com (Chris,
+- [ ] **[SI Email ✉️ session] Set up a daily Claude check on Admin@virtuamakers.com (Chris,
   2026-09-27)** - the mailbox itself is now real and confirmed working
   (2026-09-28, see above) - this item is specifically the still-missing
   *active daily check*, a real, distinct ask from the passive email alert
@@ -856,8 +844,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [x] **Done (2026-09-24):** `AI_EMAIL_CLAUDE_TOKEN` is set in the cloud environment and works. Was: he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
 - [x] **SI Memory 🧾 deploy + first real vault - done (2026-09-24).** Was: - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
 
-- [ ] **Self-portrait interview (Chris, 2026-09-24)** - collect answers from other sessions via `claude/message-to-sessions.md`, then merge them into the vault core and `claude/interview.md`'s combined picture.
-- [ ] **Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
+- [ ] **[Agora 🌐 session] Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
   2026-09-23)** - Chris wants to specify exactly where on `member.html`'s
   account menu the Calendar interface should sit, but hasn't yet - see
   the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
@@ -946,8 +933,3 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   minute. No key generated, no billing set up, nothing built yet.
 - [x] **Per Manum Convention ✒️ - complete as-is (Chris, 2026-09-17).** See
   the dedicated entry above the Open Items list.
-- [ ] **Computerian Manifesto - first working passage live, still
-  "Developing," not finished** (Chris, 2026-09-17/20). See the
-  "Computerian Manifesto 🖥️: first working passage lands" entry above
-  for the passage itself and Chris's original reasoning on why this was
-  never going to be forced onto a deadline.
