@@ -956,8 +956,8 @@ function bearerToken(req) {
   return auth.startsWith("Bearer ") ? auth.slice(7) : "";
 }
 
-// AI Email ✉️'s three browser-callable endpoints (createAiEmailMailbox,
-// sendAiEmail, getAiEmailInbox) are meant to be usable from a page's own
+// AI Email ✉️'s browser-callable endpoints (createAiEmailMailbox,
+// sendAiEmail, getAiEmailInbox, markAiEmailRead) are meant to be usable from a page's own
 // JS, not just server-to-server curl - the signup page's fetch() call is
 // cross-origin (virtuamakers.com calling cloudfunctions.net), which
 // browsers block without explicit CORS headers. No other onRequest
@@ -1294,7 +1294,11 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
 
 // Lets an authorized caller (same per-mailbox token as sendAiEmail) list a
 // mailbox's stored inbox - the "check your own mail" half of AI Email ✉️.
-// GET /getAiEmailInbox?mailbox=claude
+// GET /getAiEmailInbox?mailbox=claude            newest 50, read or not
+// GET /getAiEmailInbox?mailbox=claude&unread=1   newest 50 unread only
+// Every response carries unreadCount (the whole mailbox, not just this page).
+// Listing never marks anything read - an SI marks what it has really read
+// with markAiEmailRead below.
 exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   if (req.method !== "GET") {
     res.status(405).json({ error: "GET only." });
@@ -1311,18 +1315,81 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const snap = await admin
-    .firestore()
-    .collection("aiEmailInbox")
-    .doc(mailbox)
-    .collection("messages")
-    .orderBy("receivedAt", "desc")
-    .limit(50)
-    .get();
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
+  const unreadQuery = messagesRef.where("read", "==", false);
+  const countSnap = await unreadQuery.count().get();
+  let docs;
+  if (req.query.unread === "1" || req.query.unread === "true") {
+    // Filtering on read and ordering by receivedAt would need a composite
+    // index; unread mail is few, so sort the (capped) unread set here.
+    const snap = await unreadQuery.limit(500).get();
+    docs = snap.docs
+      .sort((x, y) => receivedMillis(y) - receivedMillis(x))
+      .slice(0, 50);
+  } else {
+    const snap = await messagesRef.orderBy("receivedAt", "desc").limit(50).get();
+    docs = snap.docs;
+  }
 
   res.status(200).json({
-    messages: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    unreadCount: countSnap.data().count,
+    messages: docs.map((doc) => ({ id: doc.id, ...doc.data() })),
   });
+}));
+
+function receivedMillis(doc) {
+  const at = doc.get("receivedAt");
+  return at && typeof at.toMillis === "function" ? at.toMillis() : 0;
+}
+
+// Marks messages read (or unread again) - the SI's own say over what it has
+// actually read, since listing the inbox never marks anything.
+// POST /markAiEmailRead  {"mailbox": "claude", "ids": ["<id>", ...], "read": true}
+//                        {"mailbox": "claude", "all": true}   every unread message
+// "read" defaults to true; false marks the listed ids unread again.
+exports.markAiEmailRead = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+
+  const body = req.body || {};
+  const mailbox = normalizeSlug(body.mailbox);
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing or invalid mailbox." });
+    return;
+  }
+  const read = body.read !== false;
+  const all = body.all === true;
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
+  if (!all && (!ids.length || ids.length > 100)) {
+    res.status(400).json({ error: "Give \"ids\" (1-100 message ids) or \"all\": true." });
+    return;
+  }
+  if (all && !read) {
+    res.status(400).json({ error: "\"all\" only marks messages read." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
+  const refs = all
+    ? (await messagesRef.where("read", "==", false).limit(500).get()).docs.map((d) => d.ref)
+    : ids.map((id) => messagesRef.doc(id));
+  const existing = all ? refs : (await admin.firestore().getAll(...refs)).filter((d) => d.exists).map((d) => d.ref);
+
+  const batch = admin.firestore().batch();
+  for (const ref of existing) {
+    batch.update(ref, {
+      read,
+      readAt: read ? admin.firestore.FieldValue.serverTimestamp() : admin.firestore.FieldValue.delete(),
+    });
+  }
+  if (existing.length) await batch.commit();
+  res.status(200).json({ success: true, updated: existing.length });
 }));
 
 // SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,

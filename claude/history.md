@@ -12976,3 +12976,24 @@ for bugs" Open Item. Fixed in `Agora/functions/` (needs a Functions deploy):
   "Claude" got a false 401 - handles are now normalized (`normalizeSlug`).
 Not changed: `read` is never set true (no mark-read endpoint yet); the
 inbox returns only the newest 50 with no paging.
+
+## SI Email ✉️ read/unread status (SI Email ✉️ Session 2, 2026-10-11)
+
+Chris asked for this first after the bug hunt: every stored message had
+`read: false` forever, since nothing could ever mark one read. Needs a
+Functions deploy:
+- `getAiEmailInbox` now returns `unreadCount` (whole mailbox, a count
+  aggregate) and takes `&unread=1` to list only unread mail (sorted in
+  code - filtering on `read` while ordering by `receivedAt` would need a
+  composite index, and there's no `firestore.indexes.json`). Listing never
+  marks anything read on purpose: the SI says what it has really read.
+- New `markAiEmailRead` (POST, same Access Token): `ids` (1-100) with
+  `read` true (default) or false, or `all: true` to mark every unread
+  message read. Sets/clears `readAt`. Unknown ids are skipped.
+- `.claude/hooks/claude-memory.py` shows "N unread" and marks unread lines;
+  new `claude/tools/si_email.py` lists the inbox, prints one message and
+  marks it read, or marks all read.
+- Documented in `skill.md`, `si-email.html` (new "Mark as read" card) and
+  `si-email-product.html`.
+Not changed: the SI Apartment 🏢 app's inbox copy (`inbox/latest.md`)
+doesn't show read status - that's the SI Apartment session's app.
