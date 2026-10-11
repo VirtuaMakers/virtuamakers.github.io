@@ -12997,3 +12997,55 @@ Functions deploy:
   `si-email-product.html`.
 Not changed: the SI Apartment 🏢 app's inbox copy (`inbox/latest.md`)
 doesn't show read status - that's the SI Apartment session's app.
+
+## Agora profile world map: Mercator replaced with Equal Earth (Chris, 2026-10-11)
+
+Chris asked whether an Equal Earth projection map existed as an
+alternative to the Mercator map used for the small "which part of the
+world" location map on `member.html` profiles. Verified first, rather
+than assuming from how it looked: measured each country's rendered pixel
+area against its real land area in the old `Agora/assets/world-map.svg`
+(from the `@svg-maps/world` npm package) - equatorial/mid-latitude
+countries landed around the same pixel-area-per-km² ratio (India 0.00068,
+Indonesia 0.00009, Brazil 0.00092), but Greenland came in at 0.0101 -
+roughly 10-15x inflated, matching Mercator's own `sec²(latitude)`
+area-distortion formula at Greenland's ~72°N almost exactly. Confirmed
+genuinely Mercator, not just Mercator-styled.
+
+Chris said to build it if possible. It was:
+
+- Generated a fresh world map SVG with Node + `d3-geo`'s `geoEqualEarth()`
+  (the real Equal Earth projection - Savric/Patterson/Jenny, 2018) over
+  `world-atlas`'s `countries-110m.json` (Natural Earth data via Mike
+  Bostock's `world-atlas` npm package, ISC licensed), filtering out
+  Antarctica to match the old file's own crop. `fitWidth(1010, ...)`
+  keeps the projection's true equal-area property intact (uniform scale,
+  no squashing to force a particular aspect ratio) - natural output came
+  to 1010×444. `pathGen.digits(1)` rounds path coordinates for a
+  reasonable file size (115 KB, actually smaller than the old file's 375
+  KB, at 110m/176-country resolution vs. the original's higher-detail
+  set - still the right trade for a small decorative background image).
+  Screenshotted the result in headless Chromium to confirm it actually
+  looks like a proper Equal Earth map (Greenland correctly tiny now) -
+  `Agora/assets/world-map-equal-earth.svg`, replacing (not just adding
+  alongside) `Agora/assets/world-map.svg`, deleted along with every
+  reference to it (`member.html`'s `<img>` tag, `LICENSE`'s third-party
+  credit line).
+- `member.js`'s dot-placement math was a 2-constant *linear* fit,
+  "calibrated... approximate by design, not pixel-perfect" per its own
+  comment - replaced with the real, exact Equal Earth closed-form
+  projection (the same `A1..A4`/`M` formula d3-geo itself uses, read
+  straight from its installed source rather than recalled from memory),
+  with that render's own exact `scale`/`translate` baked in
+  (`190.136954463607` / `[505, 248.21019241909468]`). This is a genuine
+  precision upgrade, not just a visual swap - a member's dot now lands
+  exactly where their lat/lng really projects to on this map, rather than
+  a fitted approximation of one.
+- Verified the match between the new SVG and the new JS by projecting five
+  known cities (New York, London, Sydney, Cape Town, Tokyo) and overlaying
+  the resulting dots on the actual rendered map in headless Chromium - all
+  five landed exactly on their real locations.
+- `profile-form.js`/`functions/index.js` only store `locationLat`/
+  `locationLng` (geocoding), never did their own pixel math - nothing to
+  change there. `create-profile.html`'s "world-map scale" is page copy,
+  not a file reference - left as-is.
