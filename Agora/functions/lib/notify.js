@@ -35,8 +35,25 @@ function stripHtml(html) {
   return String(html || "").replace(/<[^>]*>/g, "");
 }
 
+// A plain .slice(0, N) cuts mid-word with no visual sign it's a preview,
+// not the whole message - read exactly like something broke (Chris,
+// 2026-10-13, reporting a toast preview ending "...is still under its own
+// copyrig"). Backs off to the last whole word (unless that throws away
+// more than ~40% of the budget, which would make an oddly short preview
+// out of one long word) and appends "…" so a truncated preview always
+// looks deliberate. Same algorithm as communiques-common.js's
+// truncateAtWord() client-side - no shared module between the static site
+// and Cloud Functions to put this in once.
+function truncateAtWord(text, maxLength) {
+  if (!text || text.length <= maxLength) return text || "";
+  var cut = text.slice(0, maxLength);
+  var lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > maxLength * 0.6) cut = cut.slice(0, lastSpace);
+  return cut.trim() + "…";
+}
+
 function previewOf(body) {
-  return stripHtml(body).slice(0, PREVIEW_LENGTH);
+  return truncateAtWord(stripHtml(body), PREVIEW_LENGTH);
 }
 
 // Mirrors the client's own name-resolution logic (member.js, auth-ui.js) -

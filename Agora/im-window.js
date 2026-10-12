@@ -107,6 +107,24 @@
     });
   }
 
+  // Lets notification-toast.js stack a new toast above the row of windows
+  // resting in the same bottom-right corner, instead of rendering directly
+  // on top of them (Chris, 2026-10-13). Only counts windows actually
+  // sitting in that shared corner right now - a dragged window has moved
+  // elsewhere, and a maximized one already covers most of the viewport, so
+  // neither should push the toast up. All undragged windows share one
+  // `bottom` anchor (relayout() staggers them horizontally, not
+  // vertically), so the tallest one is the real height of that row.
+  function occupiedCornerHeight() {
+    var tallest = 0;
+    windowOrder.forEach(function (uid) {
+      var win = windows[uid];
+      if (!win || win.dragged || win.maximized) return;
+      tallest = Math.max(tallest, win.el.offsetHeight);
+    });
+    return tallest;
+  }
+
   function wireDrag(win) {
     var dragging = false;
     var startX, startY, startLeft, startTop;
@@ -432,5 +450,5 @@
     relayout();
   });
 
-  global.AgoraIMWindow = { open: openWindow, isOpenFor: isOpenFor };
+  global.AgoraIMWindow = { open: openWindow, isOpenFor: isOpenFor, occupiedCornerHeight: occupiedCornerHeight };
 })(window);

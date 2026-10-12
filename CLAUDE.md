@@ -346,6 +346,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **[Agora 🌐 session] IM window fixes need a Functions deploy to
+  fully land (Chris, 2026-10-13)** - see the dedicated entry in
+  `claude/history.md` ("Three real bugs from Chris's own live use").
+  Minimize-cutoff and toast/window-overlap fixes are plain static-site
+  changes, already live on the next Pages build. The mid-word preview
+  cutoff ("...is still under its own copyrig") needs `firebase deploy
+  --only functions` to pick up `notify.js`'s word-boundary-aware
+  `previewOf()` - still cuts mid-word server-side until that deploy runs.
 - [ ] **[Agora 🌐 session] Write to Liberland about citizenship/recognition, down the line
   (Chris, 2026-10-08)** - a deliberate parallel to the Sealand letter in
   the Per Manum Convention ✒️ footnote (`Agora/per-manum.html`), not an

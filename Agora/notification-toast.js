@@ -152,7 +152,7 @@
   function showToast(data, extraCount) {
     removeToast();
 
-    var preview = (data.preview || "").replace(/<[^>]*>/g, "").slice(0, 140);
+    var preview = C.truncateAtWord((data.preview || "").replace(/<[^>]*>/g, ""), 140);
 
     function openTarget() {
       window.location.href = memberBase() + data.linkPath;
@@ -160,6 +160,17 @@
 
     var el = document.createElement("div");
     el.className = "notification-toast";
+
+    // Both this toast and im-window.js's own windows rest in the same
+    // bottom-right corner by default (Chris, 2026-10-13 - a toast arrived
+    // "hovering above" a minimized Dialog window, directly overlapping
+    // it). The two scripts have never coordinated before now - shift the
+    // toast up by however tall the current corner row already is, so a
+    // new toast stacks above it instead of sitting on top of it.
+    if (typeof AgoraIMWindow !== "undefined") {
+      var reserved = AgoraIMWindow.occupiedCornerHeight();
+      if (reserved) el.style.bottom = "calc(1.2rem + " + (reserved + 16) + "px)";
+    }
 
     var header = document.createElement("div");
     header.className = "notification-toast-header";

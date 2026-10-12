@@ -33,6 +33,23 @@
     return timestamp.toDate().toLocaleString(undefined, opts);
   }
 
+  // A plain .slice(0, N) cuts mid-word with no visual sign it's a preview,
+  // not the whole message - reads exactly like something broke (Chris,
+  // 2026-10-13, reporting a toast preview ending "...is still under its
+  // own copyrig"). Backs off to the last whole word (as long as that
+  // doesn't throw away more than ~40% of the budget, which would make an
+  // oddly short preview out of one long word) and appends "…" so a
+  // truncated preview always looks deliberate. Mirrors the same algorithm
+  // functions/lib/notify.js uses server-side, since there's no shared
+  // module between the static site and Cloud Functions to put this in once.
+  function truncateAtWord(text, maxLength) {
+    if (!text || text.length <= maxLength) return text || "";
+    var cut = text.slice(0, maxLength);
+    var lastSpace = cut.lastIndexOf(" ");
+    if (lastSpace > maxLength * 0.6) cut = cut.slice(0, lastSpace);
+    return cut.trim() + "…";
+  }
+
   function openSignInModal() {
     var btn = document.getElementById("agora-signin-btn");
     if (btn) btn.click();
@@ -859,6 +876,7 @@
     EDIT_WINDOW_MS: EDIT_WINDOW_MS,
     getDisplayName: getDisplayName,
     formatDate: formatDate,
+    truncateAtWord: truncateAtWord,
     openSignInModal: openSignInModal,
     otherParticipantsLabel: otherParticipantsLabel,
     conversationIdFor: conversationIdFor,

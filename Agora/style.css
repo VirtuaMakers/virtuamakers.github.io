@@ -2702,6 +2702,12 @@ button.dm-item {
   opacity: 0;
   transform: translateY(1.2rem);
   transition: opacity 0.25s ease, transform 0.25s ease;
+  /* .notification-toast already has this; .im-window never did, which is
+     exactly the gap behind the minimize cutoff bug below - .im-window-header
+     rounds only its own top corners, so collapsing down to just the header
+     (minimized) left its square bottom corners sticking out past the
+     parent's rounded ones with nothing clipping them (Chris, 2026-10-13). */
+  overflow: hidden;
 }
 
 .im-window.open {

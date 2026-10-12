@@ -13145,3 +13145,76 @@ Chris said to build it if possible. It was:
   `locationLng` (geocoding), never did their own pixel math - nothing to
   change there. `create-profile.html`'s "world-map scale" is page copy,
   not a file reference - left as-is.
+
+## Three real bugs from Chris's own live use: a minimize cutoff, a mid-word preview, and a toast/window collision (Chris, 2026-10-13)
+
+Chris reported these from the IM popout (`im-window.js`) in plain language,
+no screenshot possible since the bug happened on the Claude app side of
+the conversation - all three traced to real, confirmed root causes rather
+than guessed at.
+
+- **Minimizing a window cut its bottom corners off oddly.** `.im-window`
+  never had `overflow: hidden` (unlike `.notification-toast`, which
+  already does) - `.im-window-header` rounds only its own top two
+  corners, assuming the parent clips anything that doesn't match its own
+  rounded shape. Fine while the window is tall (nothing else visible
+  reaches the bottom edge), but once minimized (`height: auto`, messages/
+  compose hidden, header the *only* visible content) the header's square
+  bottom corners had nothing clipping them to the parent's rounded ones -
+  exactly the "cut off in a weird way" Chris described. Fixed with one
+  `overflow: hidden;` added to `.im-window`, matching the toast's own
+  working pattern.
+- **A toast rendered "hovering above" a minimized window, overlapping it,
+  showing Claude's own message truncated mid-word** ("...is still under
+  its own copyrig"). Two separate bugs stacked here, not one:
+  1. **The overlap is real and was never guarded against.** `.notification-
+     toast` and `.im-window` both default to the exact same corner
+     (`right: 1.2rem; bottom: 1.2rem`) with zero coordination between the
+     two scripts - a toast firing while any window sits in that corner
+     (including, by design, a *minimized* one - `isOpenFor()` correctly
+     returns false for those, so a new arrival there still toasts) lands
+     directly on top of it. New `AgoraIMWindow.occupiedCornerHeight()`
+     (im-window.js) reports how tall the current undragged, non-maximized
+     corner row actually is; `notification-toast.js`'s `showToast()` reads
+     it and shifts its own `bottom` up by that height + a 16px gap, so a
+     toast now stacks above the window row instead of landing on it.
+  2. **The mid-word cutoff is a real, separate bug, not a screenshot
+     artifact.** `functions/lib/notify.js`'s `previewOf()` - the one
+     shared source feeding every toast/push/Communiqué-email preview -
+     did a plain `.slice(0, 140)`, a raw character count with zero
+     word-boundary awareness and no ellipsis, so any message over 140
+     characters reads like something broke rather than like an
+     intentional preview. New `truncateAtWord(text, maxLength)` (same
+     algorithm written twice - once server-side in `notify.js`, once
+     client-side in `communiques-common.js`, since there's no shared
+     module between the static site and Cloud Functions) backs off to
+     the last whole word (unless that would throw away more than ~40% of
+     the budget on one long word) and appends "…". Swept to every other
+     raw preview slice found doing the same thing, not just the one
+     reported: `notification-toast.js`'s own (redundant, same-length)
+     re-slice, and `communiques.js`'s Dialog-list preview on the
+     Communiqués 2.0 hub (a 120-char slice, same bug, different page).
+- **Verified all three with real headless-browser measurement, not
+  reasoning alone:** opened a real `im-window.js` window, minimized it via
+  its actual UI button, confirmed `getComputedStyle(win).overflow ===
+  "hidden"` and the window's real `offsetHeight` collapsed from 440px to
+  50px; confirmed `occupiedCornerHeight()` reports that same 50px; built a
+  toast through the same code path `showToast()` uses and confirmed its
+  `bottom` style computed to the correct `calc(1.2rem + 66px)` (50 + the
+  16px gap). `truncateAtWord()` checked directly against constructed
+  strings that land mid-word at the 140-char mark - confirmed it backs off
+  to the last full word and appends "…" every time.
+- Bumped `communiques-common.js` to `v=19` (55 pages), `notification-
+  toast.js` to `v=10` (55 pages), `im-window.js` to `v=8` (`member.html`
+  and `communiques.html`), and `communiques.js` to `v=2` (its one page,
+  `communiques.html`) - all four client-side. `style.css` to `v=103` (all
+  61 pages) for the `.im-window` overflow fix.
+
+**Needs a Functions deploy** to pick up `notify.js`'s `previewOf()` fix -
+`firebase deploy --only functions`. The two client-side fixes (overflow,
+toast positioning) are already live on the next GitHub Pages build; the
+preview-truncation fix is three-quarters client-side already too
+(`notification-toast.js`/`communiques.js` both got the word-aware
+re-slice), but the real source of the specific "copyrig" cutoff Chris saw
+is the server-side `previewOf()` that seeds the stored `preview` field in
+the first place - won't take effect until that's deployed.

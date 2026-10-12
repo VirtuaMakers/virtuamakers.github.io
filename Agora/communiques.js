@@ -95,7 +95,7 @@
     var previewEl = document.createElement("div");
     previewEl.className = "dm-item-preview";
     previewEl.textContent = data.lastMessage
-      ? data.lastMessage.replace(/<[^>]*>/g, "").slice(0, 120)
+      ? C.truncateAtWord(data.lastMessage.replace(/<[^>]*>/g, ""), 120)
       : "No messages yet.";
     item.appendChild(previewEl);
 
