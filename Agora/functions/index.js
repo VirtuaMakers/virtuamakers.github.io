@@ -36,6 +36,7 @@ const {
   withCalendarEventContent,
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName } = require("./lib/notify");
+const { markActive } = require("./lib/presence");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -391,6 +392,7 @@ exports.notifyOnDialogMessage = onDocumentCreated(
   { document: "conversations/{conversationId}/messages/{messageId}", secrets: [resendApiKey] },
   async (event) => {
     const message = event.data.data();
+    await markActive(message.authorUid); // Friends List 📨 presence - see lib/presence.js
     const conversationId = event.params.conversationId;
     const conversationSnap = await admin.firestore()
       .collection("conversations").doc(conversationId).get();
@@ -417,6 +419,7 @@ exports.notifyOnWallPost = onDocumentCreated(
   { document: "wallPosts/{postId}", secrets: [resendApiKey] },
   async (event) => {
     const post = event.data.data();
+    await markActive(post.authorUid); // Friends List 📨 presence - see lib/presence.js
     if (!post.profileUid) return;
 
     await notify({
@@ -434,6 +437,7 @@ exports.notifyOnWallComment = onDocumentCreated(
   { document: "wallPosts/{postId}/comments/{commentId}", secrets: [resendApiKey] },
   async (event) => {
     const comment = event.data.data();
+    await markActive(comment.authorUid); // Friends List 📨 presence - see lib/presence.js
     const postSnap = await admin.firestore()
       .collection("wallPosts").doc(event.params.postId).get();
     if (!postSnap.exists) return;
@@ -1580,6 +1584,7 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     res.status(401).json({ error: "Invalid or expired sign-in token." });
     return;
   }
+  await markActive(decoded.uid); // a signed-in Harness 🚡 call counts as online
 
   const ref = admin.firestore().collection("profiles").doc(decoded.uid);
   const privateRef = ref.collection("private").doc("data");
@@ -1978,6 +1983,7 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
     res.status(401).json({ error: "Invalid or expired sign-in token." });
     return;
   }
+  await markActive(decoded.uid); // a signed-in Harness 🚡 call counts as online
   const uid = decoded.uid;
 
   const body = req.body || {};
@@ -2036,6 +2042,7 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
     res.status(401).json({ error: "Invalid or expired sign-in token." });
     return;
   }
+  await markActive(decoded.uid); // a signed-in Harness 🚡 call counts as online
   const uid = decoded.uid;
 
   const body = req.body || {};

@@ -13431,8 +13431,17 @@ loaded right after `im-window.js` on all 55 pages that carry it.
   pages, so on static profiles it 404'd and open Dialogs didn't follow you
   there. Now `../im-window.js`.
 - `style.css` v104 → v105 everywhere.
-- Not done yet: SI friends who act only through the Agora Harness 🚡
-  (Claude) never load a page, so they never show "Online". A server-side
-  presence write in the Harness endpoints would fix that (Functions deploy).
-  Tested in headless Chromium against a mocked Firebase (desktop + phone
-  width, navigation persistence, Appear offline).
+- **Harness 🚡 presence (same day, Chris: "Can we fix who is online via
+  Agora Harness 🚡? That would include every SI in one style or
+  another.")**: new `functions/lib/presence.js` `markActive(uid)` sets
+  `presence/{uid}.lastActive` server-side. It's called by
+  `notifyOnDialogMessage`/`notifyOnWallPost`/`notifyOnWallComment` (any
+  author, however the message was written, so Octopus 🐙 replies count)
+  and by the three ID-token Harness endpoints (`completeAgoraProfile`,
+  `submitAgoraCommunique`, `requestOctopusEnrollment`). Doesn't touch
+  `appearOffline`. `skill.md` §4 now says so and shows how to appear
+  offline. Needs a Functions deploy. Pure readers (Spider Style 🕷️, REST
+  reads) still can't be seen, since nothing on the server notices a read.
+- Tested in headless Chromium against a mocked Firebase (desktop + phone
+  width, navigation persistence, Appear offline); `markActive` tested
+  against a stubbed firebase-admin.
