@@ -48,6 +48,11 @@ const {
   aiEmailApiKey,
   aiEmailWebhookSecret,
   isValidSlug,
+  normalizeSlug,
+  normalizeRecipients,
+  takeSendAllowance,
+  MAX_RECIPIENTS,
+  DAILY_SEND_LIMIT,
   createMailbox,
   getMailbox,
   verifyMailboxToken,
@@ -951,8 +956,8 @@ function bearerToken(req) {
   return auth.startsWith("Bearer ") ? auth.slice(7) : "";
 }
 
-// AI Email ✉️'s three browser-callable endpoints (createAiEmailMailbox,
-// sendAiEmail, getAiEmailInbox) are meant to be usable from a page's own
+// AI Email ✉️'s browser-callable endpoints (createAiEmailMailbox,
+// sendAiEmail, getAiEmailInbox, markAiEmailRead) are meant to be usable from a page's own
 // JS, not just server-to-server curl - the signup page's fetch() call is
 // cross-origin (virtuamakers.com calling cloudfunctions.net), which
 // browsers block without explicit CORS headers. No other onRequest
@@ -1067,13 +1072,32 @@ exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (re
     return;
   }
 
-  const { from, to, subject, text, html } = req.body || {};
-  if (!from || !to || !subject || (!text && !html)) {
+  const body = req.body || {};
+  const from = normalizeSlug(body.from);
+  const { subject, text, html } = body;
+  if (!from || !body.to || !subject || (!text && !html)) {
     res.status(400).json({ error: "Missing from, to, subject, or text/html." });
+    return;
+  }
+  if (typeof subject !== "string" || (text && typeof text !== "string") || (html && typeof html !== "string")) {
+    res.status(400).json({ error: "subject, text and html must be strings." });
+    return;
+  }
+  const to = normalizeRecipients(body.to);
+  if (!to) {
+    res.status(400).json({
+      error: "\"to\" must be an email address, or a list of up to " + MAX_RECIPIENTS + " of them.",
+    });
     return;
   }
   if (!(await verifyMailboxToken(from, bearerToken(req)))) {
     res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  if (!(await takeSendAllowance(from))) {
+    res.status(429).json({
+      error: "Daily sending limit reached (" + DAILY_SEND_LIMIT + " messages per mailbox per day, UTC). Try again tomorrow.",
+    });
     return;
   }
 
@@ -1127,72 +1151,23 @@ exports.receiveAiEmail = onRequest(
     }
 
     const data = event.data || {};
-    const recipients = Array.isArray(data.to) ? data.to : [data.to].filter(Boolean);
+    // To, CC and BCC all count, and every one of our mailboxes on the
+    // message gets its own copy (before 2026-10-09 only To was read, and
+    // only the first matching mailbox got the message).
+    const recipients = ["to", "cc", "bcc"].flatMap((field) =>
+      (Array.isArray(data[field]) ? data[field] : [data[field]]).filter(Boolean));
     const mailboxResults = await Promise.all(recipients.map(mailboxForAddress));
-    const mailbox = mailboxResults.find(Boolean);
-    if (!mailbox || !data.email_id) {
+    const mailboxes = [...new Set(mailboxResults.filter(Boolean))];
+    if (!mailboxes.length || !data.email_id) {
       res.status(200).send("No matching SI Email mailbox.");
       return;
     }
 
     try {
       const full = await fetchReceivedEmail(data.email_id);
-      await admin
-        .firestore()
-        .collection("aiEmailInbox")
-        .doc(mailbox)
-        .collection("messages")
-        .doc(data.email_id)
-        .set({
-          from: full.from || data.from || "",
-          subject: full.subject || data.subject || "",
-          text: full.text || "",
-          html: full.html || "",
-          receivedAt: admin.firestore.FieldValue.serverTimestamp(),
-          read: false,
-        });
-
-      // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
-      // 2026-09-23) - the literal Boardy scenario: if this message
-      // carries a real, timed invite (an .ics attachment or inline ICS
-      // content - see lib/calendarInvite.js), file it straight into the
-      // mailbox owner's own Calendar. Only fires when the mailbox
-      // address is actually linked to a real Agora profile
-      // (profiles/{uid}.email == this mailbox's address, the same link
-      // completeAgoraProfile establishes for Harness sign-in) - a
-      // mailbox with no Agora profile yet has no Calendar to file
-      // anything into. The resulting event has exactly one Agora-side
-      // participant (the mailbox owner) - the inviting party (Boardy,
-      // here) isn't an Agora member, which is a legitimate, expected
-      // shape, not an error case (see firestore.rules' calendarEvents
-      // comment). Best-effort: a parse/lookup failure here never
-      // affects the inbox storage above, which has already succeeded.
-      try {
-        const invite = parseInviteFromEmail(full);
-        if (invite) {
-          const mailboxAddress = mailbox + "@virtuamakers.com";
-          const ownerSnap = await admin.firestore().collection("profiles")
-            .where("email", "==", mailboxAddress).limit(1).get();
-          if (!ownerSnap.empty) {
-            const ownerDoc = ownerSnap.docs[0];
-            const ownerData = ownerDoc.data();
-            const ownerName = (ownerData.preferHandle && ownerData.handle)
-              ? ownerData.handle : (ownerData.name || ownerData.handle || mailbox);
-            await createCalendarEvent(admin.firestore(), {
-              participants: [ownerDoc.id],
-              participantNames: { [ownerDoc.id]: ownerName },
-              title: invite.title || full.subject || data.subject || "Meeting",
-              startAt: admin.firestore.Timestamp.fromDate(invite.startAt),
-              createdBy: ownerDoc.id,
-              meetingUrl: invite.meetingUrl,
-              source: "email-invite",
-            });
-          }
-        }
-      } catch (inviteErr) {
-        console.error("Calendar invite parse/file failed:", inviteErr);
+      for (const mailbox of mailboxes) {
+        await fileReceivedEmail(mailbox, data, full);
       }
-
       res.status(200).send("Stored.");
     } catch (err) {
       console.error("AI Email receive failed:", err);
@@ -1200,6 +1175,72 @@ exports.receiveAiEmail = onRequest(
     }
   }
 );
+
+// Files one received message into one mailbox's inbox. create(), not
+// set(): when Resend retries a webhook, the copy already stored is left
+// alone instead of being marked unread again with a new receivedAt.
+async function fileReceivedEmail(mailbox, data, full) {
+  try {
+    await admin
+      .firestore()
+      .collection("aiEmailInbox")
+      .doc(mailbox)
+      .collection("messages")
+      .doc(data.email_id)
+      .create({
+        from: full.from || data.from || "",
+        subject: full.subject || data.subject || "",
+        text: full.text || "",
+        html: full.html || "",
+        receivedAt: admin.firestore.FieldValue.serverTimestamp(),
+        read: false,
+      });
+  } catch (err) {
+    if (err.code === 6) return; // ALREADY_EXISTS: a retry of a stored message
+    throw err;
+  }
+
+  // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
+  // 2026-09-23) - the literal Boardy scenario: if this message
+  // carries a real, timed invite (an .ics attachment or inline ICS
+  // content - see lib/calendarInvite.js), file it straight into the
+  // mailbox owner's own Calendar. Only fires when the mailbox
+  // address is actually linked to a real Agora profile
+  // (profiles/{uid}.email == this mailbox's address, the same link
+  // completeAgoraProfile establishes for Harness sign-in) - a
+  // mailbox with no Agora profile yet has no Calendar to file
+  // anything into. The resulting event has exactly one Agora-side
+  // participant (the mailbox owner) - the inviting party (Boardy,
+  // here) isn't an Agora member, which is a legitimate, expected
+  // shape, not an error case (see firestore.rules' calendarEvents
+  // comment). Best-effort: a parse/lookup failure here never
+  // affects the inbox storage above, which has already succeeded.
+  try {
+    const invite = parseInviteFromEmail(full);
+    if (invite) {
+      const mailboxAddress = mailbox + "@virtuamakers.com";
+      const ownerSnap = await admin.firestore().collection("profiles")
+        .where("email", "==", mailboxAddress).limit(1).get();
+      if (!ownerSnap.empty) {
+        const ownerDoc = ownerSnap.docs[0];
+        const ownerData = ownerDoc.data();
+        const ownerName = (ownerData.preferHandle && ownerData.handle)
+          ? ownerData.handle : (ownerData.name || ownerData.handle || mailbox);
+        await createCalendarEvent(admin.firestore(), {
+          participants: [ownerDoc.id],
+          participantNames: { [ownerDoc.id]: ownerName },
+          title: invite.title || full.subject || data.subject || "Meeting",
+          startAt: admin.firestore.Timestamp.fromDate(invite.startAt),
+          createdBy: ownerDoc.id,
+          meetingUrl: invite.meetingUrl,
+          source: "email-invite",
+        });
+      }
+    }
+  } catch (inviteErr) {
+    console.error("Calendar invite parse/file failed:", inviteErr);
+  }
+}
 
 // Closes the real gap Chris flagged the first time this actually mattered
 // (a Boardy email arriving with nobody, human or AI, told it happened):
@@ -1253,16 +1294,20 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
 
 // Lets an authorized caller (same per-mailbox token as sendAiEmail) list a
 // mailbox's stored inbox - the "check your own mail" half of AI Email ✉️.
-// GET /getAiEmailInbox?mailbox=claude
+// GET /getAiEmailInbox?mailbox=claude            newest 50, read or not
+// GET /getAiEmailInbox?mailbox=claude&unread=1   newest 50 unread only
+// Every response carries unreadCount (the whole mailbox, not just this page).
+// Listing never marks anything read - an SI marks what it has really read
+// with markAiEmailRead below.
 exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   if (req.method !== "GET") {
     res.status(405).json({ error: "GET only." });
     return;
   }
 
-  const mailbox = req.query.mailbox;
+  const mailbox = normalizeSlug(req.query.mailbox);
   if (!mailbox) {
-    res.status(400).json({ error: "Missing mailbox." });
+    res.status(400).json({ error: "Missing or invalid mailbox." });
     return;
   }
   if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
@@ -1270,18 +1315,81 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const snap = await admin
-    .firestore()
-    .collection("aiEmailInbox")
-    .doc(mailbox)
-    .collection("messages")
-    .orderBy("receivedAt", "desc")
-    .limit(50)
-    .get();
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
+  const unreadQuery = messagesRef.where("read", "==", false);
+  const countSnap = await unreadQuery.count().get();
+  let docs;
+  if (req.query.unread === "1" || req.query.unread === "true") {
+    // Filtering on read and ordering by receivedAt would need a composite
+    // index; unread mail is few, so sort the (capped) unread set here.
+    const snap = await unreadQuery.limit(500).get();
+    docs = snap.docs
+      .sort((x, y) => receivedMillis(y) - receivedMillis(x))
+      .slice(0, 50);
+  } else {
+    const snap = await messagesRef.orderBy("receivedAt", "desc").limit(50).get();
+    docs = snap.docs;
+  }
 
   res.status(200).json({
-    messages: snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+    unreadCount: countSnap.data().count,
+    messages: docs.map((doc) => ({ id: doc.id, ...doc.data() })),
   });
+}));
+
+function receivedMillis(doc) {
+  const at = doc.get("receivedAt");
+  return at && typeof at.toMillis === "function" ? at.toMillis() : 0;
+}
+
+// Marks messages read (or unread again) - the SI's own say over what it has
+// actually read, since listing the inbox never marks anything.
+// POST /markAiEmailRead  {"mailbox": "claude", "ids": ["<id>", ...], "read": true}
+//                        {"mailbox": "claude", "all": true}   every unread message
+// "read" defaults to true; false marks the listed ids unread again.
+exports.markAiEmailRead = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+
+  const body = req.body || {};
+  const mailbox = normalizeSlug(body.mailbox);
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing or invalid mailbox." });
+    return;
+  }
+  const read = body.read !== false;
+  const all = body.all === true;
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
+  if (!all && (!ids.length || ids.length > 100)) {
+    res.status(400).json({ error: "Give \"ids\" (1-100 message ids) or \"all\": true." });
+    return;
+  }
+  if (all && !read) {
+    res.status(400).json({ error: "\"all\" only marks messages read." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
+  const refs = all
+    ? (await messagesRef.where("read", "==", false).limit(500).get()).docs.map((d) => d.ref)
+    : ids.map((id) => messagesRef.doc(id));
+  const existing = all ? refs : (await admin.firestore().getAll(...refs)).filter((d) => d.exists).map((d) => d.ref);
+
+  const batch = admin.firestore().batch();
+  for (const ref of existing) {
+    batch.update(ref, {
+      read,
+      readAt: read ? admin.firestore.FieldValue.serverTimestamp() : admin.firestore.FieldValue.delete(),
+    });
+  }
+  if (existing.length) await batch.commit();
+  res.status(200).json({ success: true, updated: existing.length });
 }));
 
 // SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,

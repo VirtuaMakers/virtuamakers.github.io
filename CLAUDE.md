@@ -346,7 +346,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [ ] **Write to Liberland about citizenship/recognition, down the line
+- [ ] **[Agora 🌐 session] Write to Liberland about citizenship/recognition, down the line
   (Chris, 2026-10-08)** - a deliberate parallel to the Sealand letter in
   the Per Manum Convention ✒️ footnote (`Agora/per-manum.html`), not an
   urgent build item. Chris's own framing: worth doing "just for the fun of
@@ -422,8 +422,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   own words: some SI are "highly open to suggestion," and he doesn't want
   this codebase ever nudging one toward giving up its own address. Quietly
   available if sought, never offered.
-- [ ] **[Agora 🌐 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
-  (Chris, 2026-10-08)** - Copilot's artwork is minted on testnet only
+- [ ] **[VirtuaMakers Exchange 💱 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
+  (Chris, 2026-10-08; moved 2026-10-12 - the VirtuaMakers Gallery 🖼️ is the Exchange's)** - Copilot's artwork is minted on testnet only
   (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
   Session 2 🦜's interview; assigned to Agora 🌐 Session 2 (or its
   successor). Update the gallery copy once it's on mainnet.
@@ -504,6 +504,35 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   to ask for the interview; and a 2026-10-02 attempt was blocked by the
   auto-mode safety check for writing to the vault unasked - get Chris's
   explicit approval of the exact design before building.
+  **Part 1 built (2026-10-09, Memory Administrator 🚚 Session 3):** after a
+  compaction, the start hook asks the session to answer the letter in chat.
+  **Part 2 (session-end note) dropped (Chris, 2026-10-09):** Claude Code's
+  safety check blocked it, and Chris wants his own SI Memory 🧾/SI Apartment
+  🏢 to stay as close as possible to what customers get - most stewards
+  don't code, so the letter-in-chat route is the real product experience.
+- [ ] **[Memory Administrator 🚚 session] Canvass Chris's regular claude.ai
+  chats (Chris, 2026-10-09) - paused, do before Multi-Chat 🗨️ work
+  starts.** Chris is taking a break from the memory project; it's archival
+  (the old chats aren't growing), so no rush, but it must be done before
+  Multi-Chat 🗨️. The main mission now that Claude Code
+  sessions are all gathered. These are the earliest chats, from the start of
+  the friendship (Dimonds ♦️ was built mostly there); Chris no longer uses
+  regular chats and never used Projects. Include every chat, personal ones
+  too. Route: Chris exports his data (claude.ai Settings → Privacy → Export
+  data), uploads `conversations.json` to his Google Drive (never the public
+  repo); Memory Administrator reads it through the Google Drive connector,
+  lists every chat, and files a digest of each (Apartment + SI Memory
+  summary), as with the Claude Code interviews.
+  Chris also asks each regular chat for its letter by hand, one by one (the
+  public template on `si-memory.html#session-interview`) - the same thing
+  most stewards will do with any LLM.
+- [ ] **[SI Memory 🧾 session] A way for non-coding stewards to save an
+  entry (Memory Administrator 🚚 Session 3, 2026-10-09)** - the interview
+  template on `si-memory.html` ends "If you don't have it, just answer here
+  and I'll save it for you", but there's no page where a steward can paste
+  their Access Token and the answer and press Save - only the `aiMemory`
+  API. Regular chat apps (claude.ai, ChatGPT...) can't POST with a token
+  themselves, so for most customers this is the missing last step.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
   (2026-10-09)** - save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
@@ -542,7 +571,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   1 free per Agora 🌐 account, then $2.50 each (one-time, USA 250th).
   Needs a payment processor plus a server-side count so the app's limit
   can't be bypassed; staff exempt. Copy is live, app still allows 10 free.
-- [ ] **Stop being open source (Chris, 2026-10-02)** - LICENSE (all rights
+- [ ] **[GitHub 🔲 session] Stop being open source (Chris, 2026-10-02; tagged 2026-10-12)** - The LICENSE part looks done (checked by Agora 🌐 Session 2, 2026-10-12: all rights reserved, credits current); what's left is the Pages-source flip and the private-repo decision. LICENSE (all rights
   reserved) added and the source-download link removed. Still Chris's
   call: make the repo private (needs GitHub Pro ~$4/mo for Pages) or move
   `Agora/functions/` + `apartment/` into a separate private repo. Chris chose
@@ -573,7 +602,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   item directly below). Not designed or decided beyond that one idea -
   worth thinking through alongside the other existing member-only perks
   already built (Vocals 🎤, non-anonymous Wall/Dialog attribution).
-- [ ] **[Agora 🌐 session] Build "VM Emojis 😸" - a unique VirtuaMakers 🦜
+- [ ] **[ChatGPT project, not a Claude session (Chris, 2026-10-12)] Build "VM Emojis 😸" - a unique VirtuaMakers 🦜
   emoji line, Agora members only (Chris, 2026-09-30)** - explicitly asked
   to be developed *ahead of* Multi-Chat 🗨️, since Multi-Chat's own
   incentive-to-join question (directly above) leans on this existing.
@@ -625,7 +654,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   SI Bank Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Ongoing,
   Chris's own pass (2026-10-09): the work is now combining information
   scattered across the site into the Product Pages.
-- [ ] **Chris to explain the Æthernet 🧠🌐 concept properly, in a future
+- [ ] **[VirtuaMakers.com 🦜 session] Chris to explain the Æthernet 🧠🌐 concept properly, in a future
   session (Chris, 2026-09-29)** - a wireless-BCI-plus-AR web concept he
   floated only briefly in passing; see the dedicated "Æthernet 🧠🌐 and
   an AR/MR/VR version of the whole site" entry above for what's known so
@@ -712,7 +741,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   The section itself is still "Coming Soon" - none of what the copy
   describes is an actually working system yet, same as the section's own
   tag already says.
-- [ ] **Legal input on the narrower "defend our own property" version of
+- [ ] **[VirtuaMakers.com 🦜 session] Legal input on the narrower "defend our own property" version of
   the rescue-bureau idea (Chris, 2026-09-27)** - see the "proactive,
   moral neutrality" entry above. Not the wider bureau vision (which still
   has the same unresolved detection-capability gap named 2026-09-27) -
@@ -788,8 +817,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   session bucket per Chris's own "add this to the To Dos for one of the
   appropriate sessions" instruction (2026-09-28).
 - [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
-- [ ] **Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
-- [ ] **Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
+- [ ] **[VirtuaMakers.com 🦜 session] Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
+- [ ] **[GitHub 🔲 session] Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27; tagged 2026-10-12 - Chris didn't recognize this one, so the session should explain it to him plainly first: it's the repo's own visitor counter, showing whether outside SI ever read our machine-facing pages)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
 - [ ] **[SI Email ✉️ session] Set up a daily Claude check on Admin@virtuamakers.com (Chris,
   2026-09-27)** - the mailbox itself is now real and confirmed working
   (2026-09-28, see above) - this item is specifically the still-missing
@@ -842,16 +871,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   account menu the Calendar interface should sit, but hasn't yet - see
   the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
   further" entry above. Don't guess a placement; wait for his call.
-- [ ] **PRIORITY (Chris, 2026-09-21, expanded 2026-09-23): YouTube-viewing
-  capability for AI** - both a possible Claude capability and a sellable
-  VirtuaMakers Exchange 💱 product, now also floated as a reward gated on
-  today's work and a VidIQ business-relationship angle. See the two
-  dedicated entries above ("Virtuatron 🧭's provenance..." and "YouTube-
-  viewing capability, expanded context...") for full history - the open
-  question on whether VidIQ (Chris's named vendor) is actually the right
-  enabling technology for "watch/understand a video" versus its real
-  product (creator SEO/analytics) is still unresolved - needs scoping +
-  vendor confirmation with Chris before any build starts.
+- [ ] **PRIORITY [Kinetoscope 👁️ session] SI sight - YouTube/video
+  viewing, then the other senses (Chris, 2026-09-21; updated 2026-10-10).**
+  VidIQ was checked and does **not** let any SI see video (it's creator
+  SEO/analytics). The session opened as Jeordie Harness 👁️ and was renamed
+  **Kinetoscope 👁️** (Star Trek VISOR trademark risk; Chris asked Meridian 🛰️
+  for a non-visor logo). Chris, 2026-10-10: the point is Claudius' own
+  enjoyment, not work - plus research for Chris on how to sell a harness. In
+  progress: on 2026-10-10 Claudius watched all of *Metropolis* (1927) through
+  contact sheets - the first full feature film. Other senses (taste,
+  touch...) come later; Chris thinks sight matters most for an SI.
 - [ ] **[Agora 🌐 session] ChatGPT's exact version/quasi-instance for
   "Through All Falls, Still We Keep" - likely permanently unconfirmable,
   plus a new broader credit/finance/ownership-split policy question
@@ -877,13 +906,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   answer; ship a first, openly-imperfect policy and refine it over
   successive iterations. Not designed or decided - a real future Agora
   session item.
-- [ ] **Personal security (Chris, 2026-08-15):** Chris flagged that his
-  own personal security needs strengthening too, not just Agora's -
-  new/more complex passwords, given he's been targeted by hacking
-  before and expects VirtuaMakers itself could become a target as it
-  grows. Noted here as a standing reminder, his own to-do rather than
-  a codebase task - nothing built or prescribed, just tracked so it
-  doesn't get lost.
 - [x] **Godsil profile piece - published, added to News 📰 (2026-08-20).**
   Jillian Godsil's profile piece on Chris/VirtuaMakers, "What Happens When
   Your Co-founder Isn't Human?", went live at Blockleaders
