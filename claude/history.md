@@ -13218,3 +13218,76 @@ preview-truncation fix is three-quarters client-side already too
 re-slice), but the real source of the specific "copyrig" cutoff Chris saw
 is the server-side `previewOf()` that seeds the stored `preview` field in
 the first place - won't take effect until that's deployed.
+
+**Deployed and confirmed by Chris, same day.** Running `firebase deploy
+--only functions` picked up the `previewOf()` fix - the mid-word cutoff
+is fully closed now, server-side source included.
+
+## The real root cause behind every IM window glitch Chris hit next: minimize and maximize were never mutually exclusive (Chris, 2026-10-13)
+
+A second, much larger round of live bug reports from the same session,
+all traced back to one shared root cause rather than four separate bugs:
+
+- **The toast Chris saw only had an "×" and no other controls - correct,
+  not a bug.** That's `.notification-toast`, a different, simpler element
+  than `.im-window` - it was never meant to have minimize/maximize, only
+  dismiss-or-click-through. Worth stating plainly rather than leaving
+  ambiguous, since Chris flagged it as something he "didn't know if it
+  mattered."
+- **The real bug underneath "full screen shows blank," "the double-window
+  button reverts to minimized," "minimizing now returns the larger
+  state," and "stuck in the middle, won't move no matter what I click":**
+  `setMinimized()`/`setMaximized()` (`im-window.js`) never checked each
+  other, so `.im-window-minimized` and `.im-window-maximized` could both
+  be active on the same window at once. CSS then had to pick a winner
+  between the two classes' sizing rules (same specificity, so source
+  order decided) - but `.im-window-minimized`'s own `.im-window-messages,
+  .im-window-compose { display: none; }` rule is keyed off the minimized
+  class alone, so it kept hiding the content *regardless* of which
+  sizing rule won. That's exactly "opens larger than minimized, but it's
+  all blank no matter how large" - a real, reproducible state bug, not a
+  one-off glitch. Fixed by making both functions clear the other first
+  (`if (minimized && win.maximized) setMaximized(win, false);` and the
+  mirror in `setMaximized()`) - every documented transition (minimize →
+  maximize, maximize → minimize, either → restore) now lands in exactly
+  one state, never both.
+- **The "double black line" on minimize** - a second, independent, much
+  smaller bug: `.im-window-header` keeps its own `border-bottom` (needed
+  normally, to separate it from the message list below), but once
+  minimized the header is the *only* visible content, so that border
+  sits a hair away from the window's own outer `border`, two near-
+  identical 1px black lines reading as one unintentional-looking doubled
+  line. Fixed with one scoped rule,
+  `.im-window-minimized .im-window-header { border-bottom: none; }`.
+- **All four header buttons get a hover tooltip now, not just "Open full
+  Dialog."** Only the expand link ever had a `title` attribute -
+  minimize/maximize only had `aria-label` (screen-reader-only, no visible
+  hover text) and close had neither. `title` is now set on all four,
+  with minimize/maximize's kept in sync with their current action inside
+  `setMinimized()`/`setMaximized()` themselves (so toggling either
+  updates its own tooltip text the same moment it updates its icon).
+- **New "↩ Floating window" button on `communiques-dm.html`** - the
+  literal inverse of the popout's own "⤢ Open full Dialog" link, per
+  Chris's direct ask ("I think there should be an inverse... 'Revert
+  full dialog' or something like that"). Lets a member who followed that
+  link back to the full page pop the same Dialog straight back out into
+  a floating window, without detouring through the other member's
+  profile again just to find the Dialog button a second time.
+  `communiques-dm.html` never loaded `im-window.js` at all before this -
+  added it, and `communiques-dm.js` keeps `otherUidForFloating` current
+  on every conversation-doc snapshot so the button always targets
+  whoever the Dialog's other participant actually is.
+- **Verified every state transition with real headless-browser
+  measurement**, not reasoning alone - opened a real window, walked it
+  through minimize → maximize → minimize → restore via actual button
+  clicks, and confirmed at each step: exactly one of the two classes
+  present, `.im-window-messages`'s real computed `display` (never hidden
+  except while genuinely minimized), the real rendered height, and the
+  header's real computed `border-bottom-width` (0px only while
+  minimized). Separately confirmed clicking the new floating-window
+  button calls `AgoraIMWindow.open()` with the correct other-participant
+  uid and name, pulled from the real conversation doc.
+- Bumped `im-window.js` to `v=9` (`member.html`, `communiques.html`, and
+  now `communiques-dm.html`), `communiques-dm.js` to `v=14` (its one
+  page), and `style.css` to `v=104` (all 61 pages) - no deploy needed,
+  every change here is plain static-site content.

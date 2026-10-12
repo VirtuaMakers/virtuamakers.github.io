@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=103" />
+  <link rel="stylesheet" href="style.css?v=104" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -50,6 +50,8 @@
 
       <div id="dm-content" hidden>
         <h1 id="dm-other-name"></h1>
+
+        <button type="button" class="btn btn-sm" id="dm-floating-btn" title="Open this Dialog as a floating window">↩ Floating window</button>
 
         <p class="intro" id="dm-readonly-notice" hidden>You're viewing this Dialog as a
           fellow member – only its participants can send messages here.</p>
@@ -132,7 +134,8 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="communiques-common.js?v=19"></script>
   <script src="notification-toast.js?v=10"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="communiques-dm.js?v=13"></script>
+  <script src="im-window.js?v=9"></script>
+  <script src="communiques-dm.js?v=14"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

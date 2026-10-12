@@ -346,14 +346,18 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [ ] **[Agora 🌐 session] IM window fixes need a Functions deploy to
-  fully land (Chris, 2026-10-13)** - see the dedicated entry in
-  `claude/history.md` ("Three real bugs from Chris's own live use").
-  Minimize-cutoff and toast/window-overlap fixes are plain static-site
-  changes, already live on the next Pages build. The mid-word preview
-  cutoff ("...is still under its own copyrig") needs `firebase deploy
-  --only functions` to pick up `notify.js`'s word-boundary-aware
-  `previewOf()` - still cuts mid-word server-side until that deploy runs.
+- [x] **IM window fixes, round 1 - deployed and confirmed by Chris
+  (2026-10-13).** Minimize-cutoff, toast/window-overlap, and the
+  mid-word preview cutoff all fixed; see the dedicated entries in
+  `claude/history.md` ("Three real bugs from Chris's own live use") -
+  the Functions deploy picking up `previewOf()`'s word-boundary fix is
+  done. **A second, larger round of live bugs followed the same day**
+  (minimize/maximize never being mutually exclusive, the double black
+  line, missing button tooltips, no way back to the floating window from
+  the full Dialog page) - see "The real root cause behind every IM
+  window glitch Chris hit next" in `claude/history.md`. All static-site,
+  no deploy needed - **not yet confirmed by Chris**, flag here until he's
+  tried the new behavior live.
 - [ ] **[Agora 🌐 session] Completely Appify Communiqués 📨 (except on
   Agora 🌐) - the AIM spiritual-successor app, deferred on purpose (Chris,
   2026-10-13).** Not started. Chris's own sequencing: finish fixing up

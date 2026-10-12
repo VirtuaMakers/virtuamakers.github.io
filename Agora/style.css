@@ -2728,6 +2728,15 @@ button.dm-item {
   display: none;
 }
 
+/* The header's own border-bottom (needed normally, to separate it from
+   the message list below) sits directly against the window's own outer
+   border once minimized, with nothing between them - two 1px black lines
+   a hair apart read as "a double black line," not a single clean one
+   (Chris, 2026-10-13). Collapse it away in this one state only. */
+.im-window-minimized .im-window-header {
+  border-bottom: none;
+}
+
 /* Fullscreen: fills most of the viewport, overriding any dragged
    left/top position or the resting right/bottom corner anchor. */
 .im-window.im-window-maximized {

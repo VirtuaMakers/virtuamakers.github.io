@@ -162,6 +162,22 @@
 
   C.attachPerManumButton(document.getElementById("dm-compose-per-manum"), document.getElementById("dm-compose-body"));
 
+  // The inverse of the floating window's own "⤢ Open full Dialog" link
+  // (Chris, 2026-10-13) - lets a member who followed that link back to
+  // this full page pop the same Dialog back out into a floating window,
+  // without having to find the other member's profile again just to
+  // click Dialog a second time. Kept in sync with the conversation's own
+  // other participant on every snapshot fire, same as the page title.
+  var otherUidForFloating = null;
+  var floatingBtn = document.getElementById("dm-floating-btn");
+  if (floatingBtn) {
+    floatingBtn.addEventListener("click", function () {
+      if (typeof AgoraIMWindow === "undefined" || !otherUidForFloating) return;
+      var label = document.getElementById("dm-other-name").textContent;
+      AgoraIMWindow.open(currentUser, otherUidForFloating, label);
+    });
+  }
+
   function loadConversation() {
     if (!conversationId) {
       showNotice("No Dialog specified.");
@@ -181,6 +197,7 @@
       var otherNameEl = document.getElementById("dm-other-name");
       otherNameEl.textContent = C.otherParticipantsLabel(participants, participantNames, currentUser.uid, 5);
       var otherUid = participants.filter(function (uid) { return uid !== currentUser.uid; })[0];
+      otherUidForFloating = otherUid;
       C.tagIfDeletedProfile(otherNameEl, otherUid);
 
       isParticipant = participants.indexOf(currentUser.uid) !== -1;

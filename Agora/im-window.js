@@ -75,18 +75,36 @@
     relayout();
   }
 
+  // Minimized and maximized are mutually exclusive states - neither
+  // function used to check the other (Chris, 2026-10-13: a window stuck
+  // rendering blank at the "wrong" size, or reverting to the minimized
+  // view when restoring from fullscreen), so both classes could end up
+  // active on the same window at once. CSS then had to pick a winner
+  // between .im-window-minimized's bare `height: auto` and
+  // .im-window-maximized's full top/right/bottom/left/width/height
+  // sizing - whichever won, the minimized rule's own `.im-window-messages,
+  // .im-window-compose { display: none; }` still applied regardless,
+  // since that's keyed off the minimized class alone - producing exactly
+  // "opens larger than minimized, but still blank." Setting one now
+  // always clears the other first.
   function setMinimized(win, minimized) {
+    if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
     win.el.classList.toggle("im-window-minimized", minimized);
+    var label = minimized ? "Restore" : "Minimize";
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
-    win.minimizeBtn.setAttribute("aria-label", minimized ? "Restore" : "Minimize");
+    win.minimizeBtn.setAttribute("aria-label", label);
+    win.minimizeBtn.title = label;
   }
 
   function setMaximized(win, maximized) {
+    if (maximized && win.minimized) setMinimized(win, false);
     win.maximized = maximized;
     win.el.classList.toggle("im-window-maximized", maximized);
+    var label = maximized ? "Restore" : "Fullscreen";
     win.maximizeBtn.textContent = maximized ? "🗗" : "⛶";
-    win.maximizeBtn.setAttribute("aria-label", maximized ? "Restore" : "Fullscreen");
+    win.maximizeBtn.setAttribute("aria-label", label);
+    win.maximizeBtn.title = label;
     if (maximized) {
       win.el.style.left = "";
       win.el.style.top = "";
@@ -269,10 +287,16 @@
     var actions = document.createElement("div");
     actions.className = "im-window-header-actions";
 
+    // Every header button gets a hover tooltip now (Chris, 2026-10-13) -
+    // only the expand link ever had one before. minimize/maximize's
+    // titles are kept in sync with their current action by
+    // setMinimized()/setMaximized() themselves (set once more here just
+    // for the very first render, before either has ever been toggled).
     var minimizeBtn = document.createElement("button");
     minimizeBtn.type = "button";
     minimizeBtn.className = "im-window-minimize";
     minimizeBtn.setAttribute("aria-label", "Minimize");
+    minimizeBtn.title = "Minimize";
     minimizeBtn.textContent = "−";
     minimizeBtn.addEventListener("click", function () { setMinimized(win, !win.minimized); });
     win.minimizeBtn = minimizeBtn;
@@ -282,6 +306,7 @@
     maximizeBtn.type = "button";
     maximizeBtn.className = "im-window-maximize";
     maximizeBtn.setAttribute("aria-label", "Fullscreen");
+    maximizeBtn.title = "Fullscreen";
     maximizeBtn.textContent = "⛶";
     maximizeBtn.addEventListener("click", function () { setMaximized(win, !win.maximized); });
     win.maximizeBtn = maximizeBtn;
@@ -298,6 +323,7 @@
     closeBtn.type = "button";
     closeBtn.className = "im-window-close";
     closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.title = "Close";
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", function () { closeWindowFor(otherUid); });
     actions.appendChild(closeBtn);
