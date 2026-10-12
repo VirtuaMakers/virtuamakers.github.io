@@ -2373,6 +2373,15 @@ button.dm-item {
   margin-bottom: 0.2rem;
 }
 
+.message-sender a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.message-sender a:hover {
+  text-decoration: underline;
+}
+
 .message-body {
   white-space: pre-wrap;
 }
@@ -2381,6 +2390,21 @@ button.dm-item {
   font-size: 0.75rem;
   color: var(--muted);
   margin-top: 0.25rem;
+}
+
+/* Colors a Dialog message's own info line (sender name + date/views) by
+   which of the two participants wrote it - independent of the
+   message-own/message-other bubble color above, since both bubbles in a
+   Dialog you're not part of render "other" (white). The two colors are
+   VirtuaMakers' own established split, same as .word-virtua/.word-makers
+   elsewhere (Chris, 2026-10-12). Declared after .message-sender/
+   .message-time on purpose so they win the tie on specificity. */
+.interlocutor-a {
+  color: var(--teal);
+}
+
+.interlocutor-b {
+  color: var(--green);
 }
 
 /* Inline editing - Wall posts/comments, Dialog messages */

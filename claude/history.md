@@ -12951,3 +12951,99 @@ Wall comment cap isn't transactional (two simultaneous comments can make
 101); Wall posts to a nonexistent profileUid are accepted (rules allow the
 same); `completeAgoraProfile` always writes `kind: "AI"` even for an
 existing human profile (Harness-only by design).
+
+## Dialog messages always show their author now, colored per speaker (Chris, 2026-10-12)
+
+Chris's real, hands-on discovery while writing test Dialogs to Lore (our
+only Cyborg member): every message bubble already carries a date, a view
+count, and an own-vs-other background color, but a Dialog's sender name
+was only ever shown on the *other* participant's messages - your own
+messages have always rendered with no author line at all, since "own vs.
+other" alone used to be enough to tell speakers apart. That assumption
+breaks down completely the moment every message in a Dialog shares one
+author - exactly what happens writing to a member with no login of their
+own yet, so Chris ended up, his own words, "pathetically... replying to
+myself" with no visual way to tell which "role" a given message was
+written as.
+
+- **The author name is never suppressed now, own messages included** -
+  `communiques-dm.js`'s `buildMessageBubble()` and `im-window.js`'s
+  `buildBubble()` both always render the `.message-sender` line. It's
+  now a real link (`member.html?uid=<authorUid>`), not plain text -
+  Chris's own stated reasoning for this, almost verbatim: a handle can be
+  changed and changed again, but it's always "connected... to the name"
+  through the one thing that can't change, the profile's own uid - a
+  shit-posting spree under one handle, followed by a rename and another
+  spree under a new one, still resolves to the exact same clickable
+  profile either way. The display text itself is still whatever name/
+  handle was captured in the conversation doc's own `participantNames`
+  map at Dialog-creation time (unchanged, pre-existing behavior, same
+  "captured at write time" convention every other Communiqué already
+  uses) - the link's `href` is what's actually new and load-bearing here,
+  since it's keyed on the stable `authorUid`, not the possibly-stale
+  display text.
+- **New `interlocutorColorClass(participants, authorUid)`** (shared,
+  `communiques-common.js`) colors a message's whole info line (sender
+  name + date/views) by which of the Dialog's exactly-two participants
+  wrote it - independent of the existing message-own/message-other
+  *bubble* color, which only reflects whether a message is *this
+  viewer's own*. Chris's own example of why that distinction matters: a
+  third party reading someone else's Dialog sees both bubbles render
+  "other" (white), so bubble color alone gives no way to tell the two
+  speakers apart at all - the new info-line color is what actually does
+  that job, for a participant and a third-party reader alike. Assignment
+  is deterministic and stable everywhere the same Dialog renders:
+  whichever of the two participant uids sorts first (the exact same
+  `.sort()` order `conversationIdFor()`/`startOrOpenDialog()` already
+  store the `participants` array in) gets `.interlocutor-a`, the other
+  `.interlocutor-b` - the same person is always the same color on
+  `communiques-dm.html` and in the `im-window.js` popout alike, regardless
+  of who's viewing.
+- **The two colors are VirtuaMakers' own existing brand split, per
+  Chris's explicit ask** ("make Colors X/Y the two colors in
+  'VirtuaMakers', how we have it colored on most pages of the site") -
+  `--teal` and `--green`, the same two CSS variables `.word-virtua`/
+  `.word-makers` already use for the wordmark elsewhere on the site, not
+  a new coral/teal pairing he'd floated first before settling on this.
+  New `.interlocutor-a`/`.interlocutor-b` rules in `style.css`, declared
+  right after `.message-sender`/`.message-time` so they win the
+  same-specificity tie against those classes' own `var(--muted)`.
+- **Bubble background itself needed no change at all** - `.message-own`
+  (light `--accent-soft` teal tint) vs. `.message-other` (white
+  `--surface`) was already exactly the "light blue if it's from you,
+  white if it's from anyone else" split Chris asked for; this round only
+  ever touches the info-line color, a separate dimension.
+- **`im-window.js` needed a real structural change to get there, not
+  just a template tweak** - unlike `communiques-dm.js` (which already
+  reads the conversation doc's own `participants`/`participantNames` for
+  its header), the IM popout never fetched the conversation doc at all,
+  only ever using the one `otherName` passed in at open time (sufficient
+  back when only the *other* person's name was ever shown). Added a
+  one-time `conversationRef.get()` right after `startOrOpenDialog()`
+  resolves, storing `win.participants`/`win.participantNames` before the
+  messages listener is ever attached (sequenced, not parallel, so no
+  message can render before real participant data exists) - `win`
+  starts with a reasonable fallback (`[currentUser.uid, otherUid]` plus
+  the one name already known) in case anything reads it before that
+  first fetch lands.
+- **Verified with two real headless-browser tests** (Playwright, against
+  the actual unmodified `communiques-common.js`/`communiques-dm.js`/
+  `im-window.js`, Firestore mocked) - a two-person Dialog where one
+  participant's uid sorts first: confirmed their messages get
+  `message-own`/`interlocutor-a` and the link `member.html?uid=
+  uid-chris-zzz`, the other participant's message gets `message-other`/
+  `interlocutor-b` and its own correct link, on *both* surfaces
+  (`communiques-dm.html` and the `im-window.js` popout) - zero console
+  errors on either test. `interlocutorColorClass()` itself also checked
+  directly for order-independence (same two uids, reversed array order,
+  identical result).
+- Bumped `communiques-common.js` to `v=18` (55 pages), `communiques-dm.js`
+  to `v=13` (its one page), `im-window.js` to `v=7` (`member.html` and
+  `communiques.html` - this also fixed a pre-existing drift bug, the two
+  pages had silently fallen out of sync at `v=5`/`v=6` from an earlier
+  round that only bumped one of them), and `style.css` to `v=102` (all 61
+  pages).
+
+**No deploy needed** - every change here is plain static HTML/CSS/JS,
+no Cloud Functions or `firestore.rules` touched. Live on the next GitHub
+Pages build once pushed.

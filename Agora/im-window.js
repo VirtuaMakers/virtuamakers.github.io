@@ -155,13 +155,21 @@
     var isOwn = data.authorUid === win.currentUser.uid;
     var bubble = document.createElement("div");
     bubble.className = "message-bubble " + (isOwn ? "message-own" : "message-other");
+    var colorClass = C.interlocutorColorClass(win.participants, data.authorUid);
 
-    if (!isOwn) {
-      var sender = document.createElement("p");
-      sender.className = "message-sender";
-      sender.textContent = win.otherName;
-      bubble.appendChild(sender);
-    }
+    // Always shown now, own messages included - matches the same fix in
+    // communiques-dm.js's buildMessageBubble() (Chris, 2026-10-12), same
+    // reasoning: "own vs. other" alone stops telling speakers apart once
+    // every message in a Dialog shares one author. Linked to the real
+    // profile by authorUid, same as there.
+    var sender = document.createElement("p");
+    sender.className = "message-sender " + colorClass;
+    var senderLink = document.createElement("a");
+    senderLink.href = "member.html?uid=" + encodeURIComponent(data.authorUid);
+    senderLink.textContent = (win.participantNames && win.participantNames[data.authorUid]) || "Member";
+    sender.appendChild(senderLink);
+    bubble.appendChild(sender);
+    C.tagIfDeletedProfile(senderLink, data.authorUid);
 
     var body = document.createElement("p");
     body.className = "message-body";
@@ -169,7 +177,7 @@
     bubble.appendChild(body);
 
     var time = document.createElement("p");
-    time.className = "message-time";
+    time.className = "message-time " + colorClass;
     time.textContent = C.formatDate(data.createdAt, true);
     bubble.appendChild(time);
 
@@ -207,6 +215,15 @@
       otherName: otherName,
       currentUser: currentUser,
       conversationId: null,
+      // Filled in once the conversation doc itself resolves below - a
+      // reasonable fallback in the meantime (correct participants, the
+      // one name already known) rather than leaving these undefined.
+      participants: [currentUser.uid, otherUid],
+      participantNames: (function () {
+        var names = {};
+        names[otherUid] = otherName;
+        return names;
+      })(),
       unsubscribeMessages: null,
       viewedMessageIds: {},
       minimized: false,
@@ -371,22 +388,35 @@
 
       var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
 
-      win.unsubscribeMessages = conversationRef.collection("messages")
-        .orderBy("createdAt", "desc")
-        .limit(RECENT_MESSAGE_LIMIT)
-        .onSnapshot(function (snap) {
-          messages.textContent = "";
-          if (!snap.docs.length) {
-            messages.textContent = "No messages yet - say hello!";
-            return;
-          }
-          snap.docs.slice().reverse().forEach(function (doc) {
-            messages.appendChild(buildBubble(win, doc));
-          });
-          messages.scrollTop = messages.scrollHeight;
-        });
+      // Read the conversation doc's own participants/participantNames
+      // once before rendering any message - buildBubble() needs both to
+      // know who's who and what color each speaker gets (same sorted-
+      // participants order communiques-dm.html uses), and resolving this
+      // first (rather than in parallel with the messages listener) avoids
+      // a brief window where a bubble would render with no real name.
+      conversationRef.get().then(function (doc) {
+        if (windows[otherUid] !== win) return;
+        var data = doc.data() || {};
+        win.participants = data.participants || win.participants;
+        win.participantNames = data.participantNames || win.participantNames;
 
-      textarea.focus();
+        win.unsubscribeMessages = conversationRef.collection("messages")
+          .orderBy("createdAt", "desc")
+          .limit(RECENT_MESSAGE_LIMIT)
+          .onSnapshot(function (snap) {
+            messages.textContent = "";
+            if (!snap.docs.length) {
+              messages.textContent = "No messages yet - say hello!";
+              return;
+            }
+            snap.docs.slice().reverse().forEach(function (doc) {
+              messages.appendChild(buildBubble(win, doc));
+            });
+            messages.scrollTop = messages.scrollHeight;
+          });
+
+        textarea.focus();
+      });
     }).catch(function (err) {
       if (windows[otherUid] !== win) return;
       messages.textContent = err.message || "Couldn't open this Dialog.";

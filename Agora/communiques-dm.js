@@ -60,14 +60,26 @@
     var isOwn = data.authorUid === currentUser.uid;
     var bubble = document.createElement("div");
     bubble.className = "message-bubble " + (isOwn ? "message-own" : "message-other");
+    var colorClass = C.interlocutorColorClass(participants, data.authorUid);
 
-    if (!isOwn) {
-      var sender = document.createElement("p");
-      sender.className = "message-sender";
-      sender.textContent = participantNames[data.authorUid] || "Member";
-      bubble.appendChild(sender);
-      C.tagIfDeletedProfile(sender, data.authorUid);
-    }
+    // Always shown now, own messages included (Chris, 2026-10-12) -
+    // suppressing your own name used to be fine when "own vs. other" was
+    // the only thing distinguishing speakers, but it breaks down the
+    // moment every message in a Dialog shares the same author (e.g.
+    // replying on behalf of a Cyborg/AI member with no login of their
+    // own yet) - there's then nothing left to tell the two sides apart at
+    // all. Linked to the real profile by authorUid (stable identity, not
+    // a display name that can change) rather than a plain label - a
+    // handle can be swapped, but it always points back to the same
+    // profile either way.
+    var sender = document.createElement("p");
+    sender.className = "message-sender " + colorClass;
+    var senderLink = document.createElement("a");
+    senderLink.href = "member.html?uid=" + encodeURIComponent(data.authorUid);
+    senderLink.textContent = participantNames[data.authorUid] || "Member";
+    sender.appendChild(senderLink);
+    bubble.appendChild(sender);
+    C.tagIfDeletedProfile(senderLink, data.authorUid);
 
     var body = document.createElement("p");
     body.className = "message-body";
@@ -75,7 +87,7 @@
     bubble.appendChild(body);
 
     var time = document.createElement("p");
-    time.className = "message-time";
+    time.className = "message-time " + colorClass;
     time.textContent = C.formatDate(data.createdAt, true) +
       " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
     bubble.appendChild(time);

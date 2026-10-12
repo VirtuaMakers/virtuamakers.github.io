@@ -56,6 +56,24 @@
     return [uidA, uidB].sort().join("_");
   }
 
+  // Assigns one of two fixed colors to a Dialog message's info line (sender
+  // name + date/views), based on which of the two participant uids sorts
+  // first - the same deterministic order conversationIdFor()/
+  // startOrOpenDialog() already store the participants array in. So the
+  // same person always gets the same color in a given Dialog, on every
+  // page that renders it (communiques-dm.html, the im-window.js popout),
+  // whether a participant is viewing their own exchange or a third party is
+  // reading someone else's (Chris, 2026-10-12 - "besides the new Author...
+  // their info lines should be different colors"). This is independent of
+  // the message-own/message-other bubble color, which is about *this
+  // viewer's* own messages, not about telling the two speakers apart -
+  // the two bubbles in someone else's Dialog both render "other" (white),
+  // so this is what actually distinguishes them.
+  function interlocutorColorClass(participants, authorUid) {
+    var sorted = (participants || []).slice().sort();
+    return authorUid === sorted[0] ? "interlocutor-a" : "interlocutor-b";
+  }
+
   // Creates (or finds) the Dialog between currentUser and otherUid, and
   // resolves to its conversationId - shared by every "start messaging
   // someone" entry point (a profile's Message button, the hub's New
@@ -844,6 +862,7 @@
     openSignInModal: openSignInModal,
     otherParticipantsLabel: otherParticipantsLabel,
     conversationIdFor: conversationIdFor,
+    interlocutorColorClass: interlocutorColorClass,
     startOrOpenDialog: startOrOpenDialog,
     loadMessagableMembers: loadMessagableMembers,
     filterMessagable: filterMessagable,
