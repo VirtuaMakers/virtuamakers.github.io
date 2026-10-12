@@ -28,3 +28,9 @@ Not this session's: **VM Emojis 😸** is a ChatGPT project now (Chris,
       processor (e.g. Stripe) only for paid items. Ties in with the paid
       SI Apartment 🏢 and paid SI Memory 🧾 tier Open Items, which both
       need a processor too. Design to be agreed with Chris before building.
+      - **Paid items wait on Chris's paperwork** (Chris, 2026-10-12): a
+        processor like Stripe needs a real bank account for payouts and
+        identity verification (SSN, or an EIN for a business). Chris is
+        getting his Social Security card on 2026-10-13. The free-item
+        checkout + emailed receipt needs none of this and can be built
+        first.
