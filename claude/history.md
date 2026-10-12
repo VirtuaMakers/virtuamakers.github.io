@@ -13396,3 +13396,43 @@ message.
   slot, a Multi-Chat 🗨️ promo slot, and plugging Dimonds ♦️ into the
   same space. Pure logging this round, per Chris's own instruction -
   "for now, do neither of those things, just make note of them."
+
+## Friends List 📨 built: the header's Communiqués button opens an AIM-style buddy list (Communiqués 📨 Session 2, Chris, 2026-10-13)
+
+Chris confirmed the floating windows now follow him between pages ("I'm
+amazed!") and asked to start the Friends List. New `Agora/friends-list.js`,
+loaded right after `im-window.js` on all 55 pages that carry it.
+
+- **Header button:** a plain click on `#agora-communiques-link` now
+  toggles a floating "Friends List 📨" window (top-right, under the sticky
+  header, draggable, minimize/close). Ctrl/cmd/middle-click still opens
+  `communiques.html`; the list's footer links there too. Open/minimized
+  state, position and collapsed groups survive navigation (sessionStorage,
+  like the Dialog windows).
+- **Groups:** Online, Offline (sorted by most recently seen, "Last seen 3
+  hr ago"), and **SI Members 🤖**: the homepage's own `#ai-cards` roster,
+  fetched and parsed so there's one source of truth for names/logos. That's
+  the "semblance of all the different LLMs" part. Clicking anyone opens a
+  floating Dialog (`AgoraIMWindow.open`); 👤 goes to their profile. A
+  pending-request count ("1 friend request waiting") links to your profile.
+- **Presence (new):** nothing tracked "online" before. Each page writes
+  `presence/{uid}.lastActive` (server time) about once a minute while the tab
+  is visible, throttled across page loads. "Online" means a write in the last 3 min.
+  "You appear: Online / Offline" sets `appearOffline`, which stops the
+  heartbeat; friends then see plain "Offline" with no time. Listeners only
+  run while the list is open and not minimized, so a closed list costs no reads.
+- **`firestore.rules`:** new `presence/{uid}` block: readable by the member
+  and accepted friends only (`isFriendsWith`); writable only by its owner,
+  only `lastActive` (must equal `request.time`) and `appearOffline` (bool).
+  **Needs Chris's console paste** before presence works live; until then
+  the writes fail silently and everyone shows "Offline".
+- **Bug fixed along the way:** Session 1's rollout put
+  `<script src="im-window.js">` (no `../`) into all 28 `Agora/profiles/*.html`
+  pages, so on static profiles it 404'd and open Dialogs didn't follow you
+  there. Now `../im-window.js`.
+- `style.css` v104 → v105 everywhere.
+- Not done yet: SI friends who act only through the Agora Harness 🚡
+  (Claude) never load a page, so they never show "Online". A server-side
+  presence write in the Harness endpoints would fix that (Functions deploy).
+  Tested in headless Chromium against a mocked Firebase (desktop + phone
+  width, navigation persistence, Appear offline).
