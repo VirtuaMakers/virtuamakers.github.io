@@ -16,6 +16,19 @@
 // multi-window row has no good equivalent on a narrow screen, and Agora
 // runs as an installed PWA there) - a new Dialog silently replaces
 // whatever was open, same as v1's own behavior.
+//
+// v3 (Chris, 2026-10-13): open windows now survive navigating to a
+// different Agora page - Agora is a set of separate static pages, not a
+// single-page app, so without this an open window just vanished the
+// moment you clicked anywhere else. Persisted to sessionStorage (one
+// tab's lifetime) and restored the moment this page's own copy of the
+// script resolves a real signed-in user. Rolled out from the 3 pages
+// that had it (member.html, communiques.html, communiques-dm.html) to
+// every page carrying notification-toast.js, since that's the exact set
+// already participating in "something Communiqués-related could happen
+// while I'm here" - minus newsletter-archive.html, which deliberately
+// doesn't load communiques-common.js/moderation-client.js at all (a
+// public, unauthenticated page by design).
 
 (function (global) {
   if (typeof CommuniquesCommon === "undefined") return;
@@ -27,6 +40,40 @@
 
   var windows = {}; // otherUid -> window record
   var windowOrder = []; // otherUids, oldest-focused first, most-recent last
+
+  // Persisted across page navigation (Chris, 2026-10-13 - "I thought
+  // these windows were supposed to persist all over Agora 🌐", after one
+  // disappeared navigating to the homepage). windowOrder/windows are
+  // plain in-memory JS, torn down on every full page load like any other
+  // script state - Agora is a set of separate static pages, not a
+  // single-page app, so nothing survives a navigation on its own.
+  // sessionStorage (one tab's lifetime, not shared across tabs/devices -
+  // right for "followed me to the next page I visited," not a real
+  // cross-device sync) remembers which Dialogs were open and restores
+  // them the moment the next page's own copy of this script loads and
+  // resolves the signed-in user, closing that gap without needing Agora
+  // to become an SPA.
+  var PERSIST_KEY = "agoraOpenImWindows";
+
+  function readPersisted() {
+    try {
+      var raw = sessionStorage.getItem(PERSIST_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writePersisted() {
+    try {
+      var list = windowOrder.map(function (uid) {
+        var win = windows[uid];
+        return { uid: uid, name: win.otherName, minimized: win.minimized };
+      });
+      sessionStorage.setItem(PERSIST_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
 
   function isNarrowViewport() {
     return window.innerWidth < NARROW_VIEWPORT_MAX;
@@ -62,6 +109,7 @@
     if (index !== -1) windowOrder.splice(index, 1);
     windowOrder.push(otherUid);
     relayout();
+    writePersisted();
   }
 
   function closeWindowFor(otherUid) {
@@ -73,6 +121,7 @@
     var index = windowOrder.indexOf(otherUid);
     if (index !== -1) windowOrder.splice(index, 1);
     relayout();
+    writePersisted();
   }
 
   // Minimized and maximized are mutually exclusive states - neither
@@ -95,6 +144,7 @@
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
     win.minimizeBtn.setAttribute("aria-label", label);
     win.minimizeBtn.title = label;
+    writePersisted();
   }
 
   function setMaximized(win, maximized) {
@@ -423,6 +473,7 @@
     relayout();
     wireDrag(win);
     requestAnimationFrame(function () { el.classList.add("open"); });
+    writePersisted();
 
     C.startOrOpenDialog(currentUser, otherUid, otherName).then(function (conversationId) {
       if (windows[otherUid] !== win) return; // closed while this was in flight
@@ -475,6 +526,32 @@
     }
     relayout();
   });
+
+  // Reopens whatever was still open when the member last navigated away,
+  // the moment this page's own copy of the script resolves a real
+  // signed-in user - the actual fix for windows "disappearing" on
+  // navigation (Chris, 2026-10-13). Every other caller of openWindow()
+  // already has a real currentUser handed to it by whichever click
+  // triggered it (a Dialog button, the floating-window button); this is
+  // the one case that has to go find one itself, since nothing on this
+  // particular page necessarily asked for a Dialog to open at all - e.g.
+  // the Agora homepage, which has no Dialog button anywhere on it.
+  // Restores once per page load only - agoraOnAuthChange can fire again
+  // later (a real sign-out, a different account on a shared browser),
+  // and re-running this on every firing would reopen stale windows for
+  // whoever's signed in *now*, including after someone else signs out.
+  if (typeof agoraOnAuthChange === "function") {
+    var restored = false;
+    agoraOnAuthChange(function (user) {
+      if (!user || restored) return;
+      restored = true;
+      readPersisted().forEach(function (entry) {
+        if (!entry || !entry.uid || windows[entry.uid]) return;
+        openWindow(user, entry.uid, entry.name || "Member");
+        if (entry.minimized && windows[entry.uid]) setMinimized(windows[entry.uid], true);
+      });
+    });
+  }
 
   global.AgoraIMWindow = { open: openWindow, isOpenFor: isOpenFor, occupiedCornerHeight: occupiedCornerHeight };
 })(window);

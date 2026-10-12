@@ -13291,3 +13291,65 @@ all traced back to one shared root cause rather than four separate bugs:
   now `communiques-dm.html`), `communiques-dm.js` to `v=14` (its one
   page), and `style.css` to `v=104` (all 61 pages) - no deploy needed,
   every change here is plain static-site content.
+- **This session is Communiqués 📨 Session 1, not Agora 🌐 Session 2
+  (Chris, 2026-10-13)** - a correction, not a rename; a different,
+  already-existing session already holds the Agora 🌐 name. Re-tagged
+  this session's own two most recent Open Items from `[Agora 🌐
+  session]` to `[Communiqués 📨 session]` directly, and logged a memory
+  entry for Memory Administrator 🚚 so the master list stays consistent.
+
+## Floating windows now survive navigating to a different Agora page (Chris, 2026-10-13)
+
+Chris picked "↩ Floating window" on the full Dialog page (confirming the
+round-2 fix above works), then clicked through to the Agora homepage and
+the window vanished entirely - "I thought these windows were supposed to
+persist all over Agora 🌐." They never actually did before this; worth
+being upfront that this was a real gap, not a regression - `im-window.js`
+was only ever wired into `member.html`/`communiques.html`/
+`communiques-dm.html`, and even there its state (`windows`/`windowOrder`)
+is plain in-memory JS, torn down on every full page load like anything
+else - Agora is a set of separate static pages, not a single-page app,
+so nothing about a window's open-ness could have survived a navigation
+on its own.
+
+- **New persistence layer in `im-window.js` (v3)** - `writePersisted()`
+  saves `{uid, name, minimized}` for every currently-open window to
+  `sessionStorage` (one tab's lifetime - not shared across tabs/devices,
+  which is the right scope for "followed me to the next page," not a
+  real cross-device sync) on every state change that matters: opening a
+  window, closing one, reordering the corner stack, and toggling
+  minimized. A new top-level `agoraOnAuthChange` subscription - the one
+  case where this script needs to go find a signed-in user itself,
+  rather than being handed one by whatever click triggered `open()` -
+  reads that list back the moment the *next* page's own copy of the
+  script resolves a real user, and silently reopens each one (restoring
+  its minimized state too) before the member has done anything on the
+  new page at all. Guarded to run only once per page load - `
+  agoraOnAuthChange` can fire again later (a real sign-out, a different
+  account on a shared browser), and re-running the restore on every
+  firing would reopen stale windows for whoever's signed in *now*.
+  Maximized/dragged state is deliberately *not* persisted - a dragged
+  pixel position from one page's layout has no obvious correct meaning
+  on a different page, so a restored window always lands at the normal
+  resting corner (or minimized there, if that's how it was left).
+- **Rolled out from 3 pages to all 55 that carry `notification-toast.js`**
+  - the exact set already participating in "something Communiqués-
+  related could happen while I'm on this page," so this was the natural
+  existing boundary to match rather than inventing a new one. The one
+  exception, `newsletter-archive.html`, was excluded on purpose - it
+  deliberately doesn't load `communiques-common.js`/`moderation-
+  client.js` at all, being the one public, unauthenticated page in
+  Agora by design (see its own entry earlier in this file). Confirmed
+  by grep before touching anything: every one of the 55 target pages
+  already carries both of `im-window.js`'s hard dependencies, so nothing
+  needed adding alongside it.
+- **Verified with a real two-page navigation, not a simulated state
+  change** - opened a window on a mocked "Page A," minimized it,
+  confirmed the exact `sessionStorage` payload, then did a genuine
+  `page.goto()` to a completely different mocked "Page B" (a fresh
+  script execution, same as a real link click) with no explicit
+  `open()` call made there at all - the window reappeared on its own,
+  still minimized, correct title, zero console errors.
+- Bumped `im-window.js` to `v=10` (all 55 pages, in one pass, since the
+  file's content changed twice in the same round - once for the rollout
+  itself, once more for this fix).

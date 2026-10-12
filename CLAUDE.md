@@ -355,6 +355,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   window" revert button (round 2) - see "The real root cause behind
   every IM window glitch Chris hit next" - confirmed directly: "Floating
   window sounds really good... it reappeared (very nice)."
+- [ ] **[Communiqués 📨 session] Floating windows now persist across
+  Agora 🌐 page navigation - built, not yet confirmed by Chris
+  (2026-10-13).** See the dedicated `claude/history.md` entry ("Floating
+  windows now survive navigating to a different Agora page"). Real gap,
+  not a regression - `im-window.js` was only ever wired into 3 pages
+  before, and even there its state was plain in-memory JS with nothing
+  surviving a navigation. New `sessionStorage`-backed persistence,
+  rolled out to all 55 pages carrying `notification-toast.js`. Verified
+  with a real two-page navigation in the sandbox; needs Chris to try the
+  actual sequence that broke (open a Dialog, navigate to the homepage,
+  confirm it's still there) before this closes.
 - [ ] **[Communiqués 📨 session] Completely Appify Communiqués 📨 (except on
   Agora 🌐) - the AIM spiritual-successor app, deferred on purpose (Chris,
   2026-10-13).** Not started. Chris's own sequencing: finish fixing up
