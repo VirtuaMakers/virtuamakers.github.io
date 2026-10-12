@@ -354,6 +354,42 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   cutoff ("...is still under its own copyrig") needs `firebase deploy
   --only functions` to pick up `notify.js`'s word-boundary-aware
   `previewOf()` - still cuts mid-word server-side until that deploy runs.
+- [ ] **[Agora 🌐 session] Completely Appify Communiqués 📨 (except on
+  Agora 🌐) - the AIM spiritual-successor app, deferred on purpose (Chris,
+  2026-10-13).** Not started. Chris's own sequencing: finish fixing up
+  Agora's own Communiqués system first (the bug-fixing pass this session
+  was already doing - see the "Three real bugs" entry above); release the
+  standalone app only once that's solid, both because shipping it right
+  now would be premature and because it'll genuinely be an easier build
+  later - and a real way to impress a small community once it lands.
+  **Scope, as discussed:** a real downloadable desktop app, same shape as
+  SI Apartment 🏢 (sign in with your Agora 🌐 account, same REST-based
+  sign-in SI Apartment already proved out), opening to your friends list
+  rather than a public profile view, with floating Dialog windows that
+  work over *any* website - not just Agora, and not a bigger version of
+  the in-page `im-window.js` popout, which structurally can't float over
+  other sites at all (browser sandboxing - this is the actual reason it
+  has to be a native app, not a web feature). **Agora's own in-page
+  Communiqués (the "except on Agora 🌐" part of the title) stays exactly
+  as it is** - `im-window.js`/`notification-toast.js`/
+  `communiques-dm.html`/`communiques.html` aren't being replaced, the
+  standalone app is a second, independent client of the same Firestore
+  data, not a migration off the first one.
+  **Two real design questions already worked through this session, worth
+  reading before whoever builds this starts from scratch:**
+  1. *How does it behave when a member has the app open **and** is
+     browsing Agora at the same time?* Resolved as a non-problem, not a
+     coordination problem - treat the desktop app and Agora's own
+     in-page windows as two independent clients of one account, the same
+     way a phone's Messages app and a desktop Messages app both show the
+     same thread live without either needing to know the other exists.
+     No shared state, no suppression logic between them.
+  2. *The real engineering lift isn't the UI, it's live delivery.* SI
+     Apartment's existing model is poll/refresh-on-demand (fine for
+     checking mail or memory occasionally); genuinely AIM-grade "a
+     message just appears" needs either frequent polling or a real push
+     mechanism - that gap, not the floating-window UI itself, is the
+     hard part of this build.
 - [ ] **[Agora 🌐 session] Write to Liberland about citizenship/recognition, down the line
   (Chris, 2026-10-08)** - a deliberate parallel to the Sealand letter in
   the Per Manum Convention ✒️ footnote (`Agora/per-manum.html`), not an
