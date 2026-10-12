@@ -84,6 +84,41 @@
     wrap.hidden = false;
   }
 
+  // Equal Earth projection (Savric/Patterson/Jenny, 2018), replacing the
+  // old Mercator-based linear approximation (Chris, 2026-10-11) - Mercator
+  // inflates land area near the poles (Greenland was rendering ~10-15x
+  // its true relative size), which Equal Earth doesn't. This is the exact
+  // closed-form projection math - the same formula used to draw
+  // world-map-equal-earth.svg itself via d3-geo's geoEqualEarth - with
+  // that render's own scale/translate baked in, not a fitted
+  // approximation, so a member's dot lands exactly where their lat/lng
+  // really projects to on this map (still only ever "which part of the
+  // world", per the hint text below the map - not precise geocoding).
+  var EQUAL_EARTH_A1 = 1.340264, EQUAL_EARTH_A2 = -0.081106,
+    EQUAL_EARTH_A3 = 0.000893, EQUAL_EARTH_A4 = 0.003796;
+  var EQUAL_EARTH_M = Math.sqrt(3) / 2;
+  var EQUAL_EARTH_SCALE = 190.136954463607;
+  var EQUAL_EARTH_TRANSLATE_X = 505;
+  var EQUAL_EARTH_TRANSLATE_Y = 248.21019241909468;
+  var EQUAL_EARTH_MAP_WIDTH = 1010;
+  var EQUAL_EARTH_MAP_HEIGHT = 444;
+
+  function projectEqualEarth(lngDeg, latDeg) {
+    var lambda = lngDeg * Math.PI / 180;
+    var phi = latDeg * Math.PI / 180;
+    var l = Math.asin(EQUAL_EARTH_M * Math.sin(phi));
+    var l2 = l * l, l6 = l2 * l2 * l2;
+    var rawX = lambda * Math.cos(l)
+      / (EQUAL_EARTH_M * (EQUAL_EARTH_A1 + 3 * EQUAL_EARTH_A2 * l2
+        + l6 * (7 * EQUAL_EARTH_A3 + 9 * EQUAL_EARTH_A4 * l2)));
+    var rawY = l * (EQUAL_EARTH_A1 + EQUAL_EARTH_A2 * l2
+      + l6 * (EQUAL_EARTH_A3 + EQUAL_EARTH_A4 * l2));
+    return {
+      x: EQUAL_EARTH_TRANSLATE_X + EQUAL_EARTH_SCALE * rawX,
+      y: EQUAL_EARTH_TRANSLATE_Y - EQUAL_EARTH_SCALE * rawY,
+    };
+  }
+
   var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
 
@@ -149,15 +184,10 @@
     var showMap = data.showLocation !== false && data.showMap !== false
       && typeof data.locationLat === "number" && typeof data.locationLng === "number";
     if (showMap) {
-      // Calibrated against world-map.svg's own viewBox (1010x666) by
-      // fitting known real vs. pixel bounding boxes for a handful of
-      // countries - approximate by design (a rough "which part of the
-      // world" illustration, not precise geocoding), not pixel-perfect.
-      var mapX = 2.80394 * data.locationLng + 477.0575;
-      var mapY = -3.51028 * data.locationLat + 473.8844;
+      var mapPoint = projectEqualEarth(data.locationLng, data.locationLat);
       var locationDot = document.getElementById("member-location-dot");
-      locationDot.style.left = (mapX / 1010 * 100) + "%";
-      locationDot.style.top = (mapY / 666 * 100) + "%";
+      locationDot.style.left = (mapPoint.x / EQUAL_EARTH_MAP_WIDTH * 100) + "%";
+      locationDot.style.top = (mapPoint.y / EQUAL_EARTH_MAP_HEIGHT * 100) + "%";
     }
     locationMap.hidden = !showMap;
     locationMapHint.hidden = !showMap;

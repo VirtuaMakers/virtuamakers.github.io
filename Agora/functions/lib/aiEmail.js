@@ -61,7 +61,17 @@ function mailboxRef(slug) {
   return admin.firestore().collection("aiEmailMailboxes").doc(slug);
 }
 
+// Normalizes a caller-supplied handle (query string or JSON body) to a slug,
+// or "" if it can't be one. Without this, an array (?mailbox=a&mailbox=b),
+// a "/" or a non-string crashed the Firestore doc lookup, and "Claude"
+// missed the "claude" mailbox and looked like a bad Access Token.
+function normalizeSlug(value) {
+  const slug = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return SLUG_PATTERN.test(slug) ? slug : "";
+}
+
 async function getMailbox(slug) {
+  slug = normalizeSlug(slug);
   if (!slug) return null;
   const snap = await mailboxRef(slug).get();
   return snap.exists ? snap.data() : null;
@@ -114,7 +124,7 @@ async function createMailbox({ slug, name, about, allowReserved = false, source 
 
 async function verifyMailboxToken(slug, providedToken) {
   const mailbox = await getMailbox(slug);
-  if (!mailbox || !providedToken) return false;
+  if (!mailbox || !mailbox.tokenHash || typeof providedToken !== "string" || !providedToken) return false;
   const providedBuf = Buffer.from(hashToken(providedToken));
   const expectedBuf = Buffer.from(mailbox.tokenHash);
   return providedBuf.length === expectedBuf.length && crypto.timingSafeEqual(providedBuf, expectedBuf);
@@ -123,9 +133,16 @@ async function verifyMailboxToken(slug, providedToken) {
 // Which mailbox slug (if any) a real inbound address belongs to, so an
 // incoming email can be filed into the right Firestore inbox. The slug is
 // always the address's local part by construction, so this only needs an
-// existence check, not a query.
+// existence check, not a query. Accepts "Name <a@b>" as well as "a@b", and
+// only ever matches @virtuamakers.com - before 2026-10-09 the domain was
+// ignored, so mail To: bob@gmail.com that CC'd claude@ could be filed into
+// a bob@virtuamakers.com inbox.
 async function mailboxForAddress(email) {
-  const slug = (email || "").split("@")[0].toLowerCase();
+  const match = String(email || "").match(/<([^>]*)>/);
+  const address = (match ? match[1] : String(email || "")).trim().toLowerCase();
+  const at = address.lastIndexOf("@");
+  if (at < 1 || address.slice(at + 1) !== "virtuamakers.com") return null;
+  const slug = normalizeSlug(address.slice(0, at));
   const mailbox = await getMailbox(slug);
   return mailbox ? slug : null;
 }
@@ -189,12 +206,51 @@ function appendSignature({ name, text, html }) {
   };
 }
 
+// Sending limits (2026-10-09). Signup is open and needs no CAPTCHA, so
+// without these one script could mint mailboxes and send unlimited mail
+// from virtuamakers.com, and the domain's sending reputation (which every
+// mailbox shares, admin@ included) would pay for it.
+const MAX_RECIPIENTS = 10;
+const DAILY_SEND_LIMIT = 50;
+
+// Returns a clean list of recipient addresses, or null if `to` isn't a
+// string or array of plausible addresses within MAX_RECIPIENTS.
+function normalizeRecipients(to) {
+  const list = (Array.isArray(to) ? to : [to]).map((t) => (typeof t === "string" ? t.trim() : ""));
+  if (!list.length || list.length > MAX_RECIPIENTS) return null;
+  const ok = list.every((t) => t.length <= 320 && /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(
+    (t.match(/<([^>]*)>\s*$/) || [null, t])[1].trim()));
+  return ok ? list : null;
+}
+
+// Counts one send against the mailbox's daily limit (UTC day). Returns
+// false, counting nothing, once the limit is reached.
+async function takeSendAllowance(slug) {
+  const ref = mailboxRef(slug);
+  const today = new Date().toISOString().slice(0, 10);
+  return admin.firestore().runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.data() || {};
+    const count = data.sendDay === today ? (data.sendCount || 0) : 0;
+    if (count >= DAILY_SEND_LIMIT) return false;
+    tx.update(ref, { sendDay: today, sendCount: count + 1 });
+    return true;
+  });
+}
+
+// A display name is free text from signup; quote it and drop characters
+// that could break or add to the From header.
+function fromHeader(name, email) {
+  const clean = String(name || "").replace(/[\r\n"<>\\]/g, "").trim().slice(0, 100);
+  return clean ? `"${clean}" <${email}>` : email;
+}
+
 async function sendAiEmail({ from, to, subject, text, html }) {
   const mailbox = await getMailbox(from);
   if (!mailbox) {
     throw new Error("Unknown SI Email ✉️ sender: " + from);
   }
-  const fromAddress = `${mailbox.name} <${mailbox.email}>`;
+  const fromAddress = fromHeader(mailbox.name, mailbox.email);
   const signed = appendSignature({ name: mailbox.name, text, html });
   const resend = new Resend(aiEmailApiKey.value());
   return resend.emails.send({ from: fromAddress, to, subject, text: signed.text, html: signed.html });
@@ -209,6 +265,10 @@ async function sendAiEmail({ from, to, subject, text, html }) {
 // change byte-for-byte formatting and silently break every signature.
 function verifyResendWebhookSignature({ id, timestamp, signatureHeader, rawBody, secret }) {
   if (!id || !timestamp || !signatureHeader) return false;
+  // Svix's own replay window: refuse a signed request more than 5 minutes
+  // from now, so a captured webhook can't be replayed later.
+  const sentAt = Number(timestamp);
+  if (!Number.isFinite(sentAt) || Math.abs(Date.now() / 1000 - sentAt) > 300) return false;
   const secretBytes = Buffer.from(secret.split("_")[1], "base64");
   const signedContent = `${id}.${timestamp}.${rawBody}`;
   const expected = crypto.createHmac("sha256", secretBytes).update(signedContent).digest("base64");
@@ -239,6 +299,11 @@ module.exports = {
   aiEmailApiKey,
   aiEmailWebhookSecret,
   isValidSlug,
+  normalizeSlug,
+  normalizeRecipients,
+  takeSendAllowance,
+  MAX_RECIPIENTS,
+  DAILY_SEND_LIMIT,
   createMailbox,
   getMailbox,
   verifyMailboxToken,
