@@ -13353,3 +13353,46 @@ on its own.
 - Bumped `im-window.js` to `v=10` (all 55 pages, in one pass, since the
   file's content changed twice in the same round - once for the rollout
   itself, once more for this fix).
+
+## A line-space fix, an "Install Communiqués" clarification, and a Friends List vision logged (Chris, 2026-10-13)
+
+Chris visited `communiques.html` directly and raised three things in one
+message.
+
+- **Spacing fix:** added the existing `.body-text-spaced` utility class
+  (already used elsewhere for exactly this - a margin-bottom breather
+  before the next element) to the paragraph right above the "Install
+  Communiqués 📨" button, giving it a line of space before the button
+  instead of butting up against it. No new CSS needed - reused the
+  established class rather than inventing one. No version bump needed
+  (`style.css` itself didn't change, just which class an element in
+  `communiques.html` carries).
+- **"What does this button do, and doesn't it duplicate the app idea?"**
+  - a real, direct question, answered here for the record: the "Install
+  Communiqués" button (built 2026-09-25, part of the original
+  Communiqués 2.0 hub) is the **PWA install prompt** - it captures the
+  browser's native `beforeinstallprompt` event and calls `.prompt()`,
+  letting a member pin `communiques.html` as its own app-like window via
+  `communiques-manifest.json` (a separate manifest `id`/`start_url` from
+  Agora's own, sharing the one `sw.js` service worker). This is **not**
+  the same thing as the newly-logged "Completely Appify Communiqués 📨"
+  Open Item (the standalone native desktop app, AIM-spiritual-successor,
+  deliberately deferred) - that's a real separate downloadable app with
+  its own sign-in and cross-site floating windows; this button just
+  wraps the existing web page in an installable shell, using a standard
+  browser feature that already shipped. The two don't conflict: the PWA
+  install button can stay exactly as it is regardless of whether/when
+  the standalone app ever gets built - they're different products at
+  different layers, not two attempts at the same thing.
+- **New Open Item logged (not built):** reimagining the header's
+  "Communiqués 📨" nav link as an AIM-style Friends List (online-now vs.
+  last-seen, scoped to a member's friends, meant to "encourage people to
+  keep their friends on Agora 🌐" and let Communiqués compete with
+  Messenger "if it really does feel inspired by, yet sufficiently
+  different from AIM *and* contains some semblance of all the different
+  LLMs of the world, plus your friends") - see the dedicated Open Item
+  in CLAUDE.md for the full ask, including three explicitly-logged-only
+  future ideas Chris asked not to be built yet: an outside-advertiser
+  slot, a Multi-Chat 🗨️ promo slot, and plugging Dimonds ♦️ into the
+  same space. Pure logging this round, per Chris's own instruction -
+  "for now, do neither of those things, just make note of them."

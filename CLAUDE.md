@@ -346,6 +346,26 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **[Communiqués 📨 session] Reimagine the header's "Communiqués 📨" nav
+  button as an AIM-style Friends List (Chris, 2026-10-13)** - not built, a
+  real product vision only. Today `#agora-communiques-link` (present on
+  every Agora page's header) just links to `communiques.html`. Chris wants
+  it to instead open a buddy-list-style view showing who's online now vs.
+  last-seen, scoped to a member's own Agora 🌐 friends - his own framing:
+  "this kind of encourages people to keep their friends on Agora 🌐."
+  Competitive angle, his own words: Communiqués could rival Messenger "if
+  it really does feel inspired by, yet sufficiently different from AIM
+  *and* contains some semblance of all the different LLMs of the world,
+  plus your friends" - i.e. the list isn't just human friends, it should
+  also surface AI members/LLMs in some form. Three more ideas Chris
+  explicitly asked to be logged and NOT built yet ("for now, do neither of
+  those things, just make note of them"): (a) a slot for a potential
+  outside advertiser; (b) a slot to advertise Multi-Chat 🗨️ in the same
+  space; (c) a "neat" idea to plug Dimonds ♦️ into this Friends List/hub
+  space too. No shape, mockup, or online/last-seen data model decided -
+  whoever picks this up starts from scratch on the actual design (e.g.
+  presence needs a real online/last-seen signal, which nothing in Agora
+  tracks today).
 - [x] **[Communiqués 📨 session] IM window fixes, round 1 and round 2 -
   both deployed/live and confirmed by Chris (2026-10-13).** Minimize-
   cutoff, toast/window-overlap, and the mid-word preview cutoff (round
