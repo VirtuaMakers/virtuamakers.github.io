@@ -346,19 +346,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [x] **IM window fixes, round 1 - deployed and confirmed by Chris
-  (2026-10-13).** Minimize-cutoff, toast/window-overlap, and the
-  mid-word preview cutoff all fixed; see the dedicated entries in
-  `claude/history.md` ("Three real bugs from Chris's own live use") -
-  the Functions deploy picking up `previewOf()`'s word-boundary fix is
-  done. **A second, larger round of live bugs followed the same day**
-  (minimize/maximize never being mutually exclusive, the double black
-  line, missing button tooltips, no way back to the floating window from
-  the full Dialog page) - see "The real root cause behind every IM
-  window glitch Chris hit next" in `claude/history.md`. All static-site,
-  no deploy needed - **not yet confirmed by Chris**, flag here until he's
-  tried the new behavior live.
-- [ ] **[Agora 🌐 session] Completely Appify Communiqués 📨 (except on
+- [x] **[Communiqués 📨 session] IM window fixes, round 1 and round 2 -
+  both deployed/live and confirmed by Chris (2026-10-13).** Minimize-
+  cutoff, toast/window-overlap, and the mid-word preview cutoff (round
+  1) all fixed and deployed; see `claude/history.md` ("Three real bugs
+  from Chris's own live use"). The minimize/maximize mutual-exclusivity
+  bug, double black line, missing tooltips, and the new "↩ Floating
+  window" revert button (round 2) - see "The real root cause behind
+  every IM window glitch Chris hit next" - confirmed directly: "Floating
+  window sounds really good... it reappeared (very nice)."
+- [ ] **[Communiqués 📨 session] Completely Appify Communiqués 📨 (except on
   Agora 🌐) - the AIM spiritual-successor app, deferred on purpose (Chris,
   2026-10-13).** Not started. Chris's own sequencing: finish fixing up
   Agora's own Communiqués system first (the bug-fixing pass this session
