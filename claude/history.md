@@ -13452,3 +13452,12 @@ loaded right after `im-window.js` on all 55 pages that carry it.
   name (linked to their profile) with its own Accept/Decline buttons. They
   make the same writes as `member.js` (`status: "accepted"` + `respondedAt`,
   or delete). `friends-list.js` v2, `style.css` v106.
+- **Friend requests now send an email (same day, Chris: "Yes, let's add an
+  email there for that, for sure").** Before this, friend requests only
+  got the in-tab toast, so KY's request sat unseen until the Friends List
+  surfaced it. New `sendFriendRequestEmail()` in `functions/lib/notify.js`,
+  called from `notify()` for `type: "friend_request"`. It uses new
+  `friend-request-email.html` (in both `functions/templates/` and
+  `Agora/emails/`): the Communiqué letterhead with a 🙂 heading, an
+  "Accept or decline on Agora 🌐 →" link to the requester's profile, and
+  its own footer line. Needs a Functions deploy.

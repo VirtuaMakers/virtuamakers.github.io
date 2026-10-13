@@ -128,6 +128,28 @@ async function sendCommuniqueEmail(recipientUid, actorName, type, preview, linkP
   await sendEmailSafe({ to: email, subject: actorName + " " + actionLabel, html });
 }
 
+// Friend requests aren't Communiqués, so they never got the reminder email
+// above - which meant a request could sit unseen for weeks unless the
+// recipient happened to be on Agora when its toast fired (Chris,
+// 2026-10-13, finding a request from KY only once the Friends List 📨
+// showed it). Same branded look, its own template and footer wording.
+// linkPath is the requester's profile, where Accept/Decline live (the
+// Friends List 📨 has them too).
+async function sendFriendRequestEmail(recipientUid, actorName, linkPath) {
+  const profileDoc = await admin.firestore().collection("profiles").doc(recipientUid).get();
+  const email = profileDoc.exists && profileDoc.data().email;
+  if (!email) return;
+
+  const actionLabel = "sent you a friend request";
+  const html = withCommuniqueContent(
+    loadTemplate("friend-request-email.html"), actorName, actionLabel,
+    "Visit their profile to accept or decline – or open the Friends List 📨 from the Communiqués 📨 button at the top of any Agora 🌐 page.",
+    "https://www.virtuamakers.com/Agora/" + linkPath
+  );
+
+  await sendEmailSafe({ to: email, subject: actorName + " " + actionLabel + " on Agora 🌐", html });
+}
+
 // type is one of "dialog_message" | "wall_post" | "wall_comment" |
 // "friend_request" | "friend_special_day" - the client's
 // notification-toast.js switches its chime/click-through on this.
@@ -154,6 +176,7 @@ async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTit
 
   if (!automated) {
     await sendCommuniqueEmail(recipientUid, actorName, type, preview, linkPath);
+    if (type === "friend_request") await sendFriendRequestEmail(recipientUid, actorName, linkPath);
   }
 }
 
