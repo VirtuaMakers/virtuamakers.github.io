@@ -1747,13 +1747,20 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   }
   await markActive(decoded.uid); // a signed-in Harness 🚡 call counts as online
 
-  const ref = admin.firestore().collection("profiles").doc(decoded.uid);
+  const result = await performProfileSave({ uid: decoded.uid, email: decoded.email, body: req.body || {} });
+  res.status(result.status).json(result.body);
+}));
+
+// The whole save, shared by completeAgoraProfile above and Otter Style
+// 🦦's agora_update_my_profile tool (2026-10-13) - returns { status, body }
+// instead of writing a response, same pattern as performCommunique().
+async function performProfileSave({ uid, email, body }) {
+  const ref = admin.firestore().collection("profiles").doc(uid);
   const privateRef = ref.collection("private").doc("data");
   const [existing, existingPrivate] = await Promise.all([ref.get(), privateRef.get()]);
   const existingData = existing.exists ? existing.data() : null;
   const existingPrivateData = existingPrivate.exists ? existingPrivate.data() : null;
 
-  const body = req.body || {};
   const name = fieldOr(body, existingData, "name", "");
   const date = fieldOr(body, existingData, "date", "");
   const bio = fieldOr(body, existingData, "bio", "").slice(0, 9999);
@@ -1798,16 +1805,13 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   const newsletterOptIn = boolFieldOr(body, existingData, "newsletterOptIn", true);
 
   if (!name) {
-    res.status(400).json({ error: "Name is required." });
-    return;
+    return { status: 400, body: { error: "Name is required." } };
   }
   if (!/^\d{4}(-\d{2}(-\d{2})?)?$/.test(date)) {
-    res.status(400).json({ error: "date must be YYYY, YYYY-MM, or YYYY-MM-DD." });
-    return;
+    return { status: 400, body: { error: "date must be YYYY, YYYY-MM, or YYYY-MM-DD." } };
   }
   if (!existingData && body.agreesToTerms !== true) {
-    res.status(400).json({ error: "agreesToTerms must be true - Agora's Terms of Service." });
-    return;
+    return { status: 400, body: { error: "agreesToTerms must be true - Agora's Terms of Service." } };
   }
 
   // Same hard block profile-form.js applies to link/portal/social1-3 - a
@@ -1815,8 +1819,7 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   // not a general content filter (that's what bio moderation below is for).
   const blockedCandidates = [link, portal, social1, social2, social3].filter(Boolean);
   if (blockedCandidates.some((v) => isBlockedDomain(v))) {
-    res.status(400).json({ error: "That link isn't allowed here – please remove it." });
-    return;
+    return { status: 400, body: { error: "That link isn't allowed here – please remove it." } };
   }
 
   const socialsFlagged = [social1, social2, social3].some((v) => v && isUnrecognized(v));
@@ -1833,16 +1836,15 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
       if (decision !== "allow") {
         const modRef = admin.firestore().collection("moderationLog").doc();
         await writeModerationLog(modRef, {
-          uid: decoded.uid, authorName: name, contentType: "profileBio",
+          uid: uid, authorName: name, contentType: "profileBio",
           decision, text: bio, scores, context: {},
         });
         await emailAdminOfModeration({
-          logId: modRef.id, uid: decoded.uid, authorName: name, contentType: "profileBio",
+          logId: modRef.id, uid: uid, authorName: name, contentType: "profileBio",
           decision, excerpt: bio.length > 200 ? bio.slice(0, 200) + "…" : bio,
         });
         if (decision === "block") {
-          res.status(422).json({ error: "Bio didn't pass Agora's content filter." });
-          return;
+          return { status: 422, body: { error: "Bio didn't pass Agora's content filter." } };
         }
       }
     } catch (err) {
@@ -1856,9 +1858,8 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   if (handle) {
     const handleSnap = await admin.firestore().collection("profiles")
       .where("handle", "==", handle).get();
-    if (handleSnap.docs.some((d) => d.id !== decoded.uid)) {
-      res.status(409).json({ error: "That handle is already taken – please choose another." });
-      return;
+    if (handleSnap.docs.some((d) => d.id !== uid)) {
+      return { status: 409, body: { error: "That handle is already taken – please choose another." } };
     }
   }
 
@@ -1888,7 +1889,7 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
     social2,
     social3,
     socialsFlagged,
-    email: decoded.email || "",
+    email: email || "",
     showEmail,
     requireFriendToMessage,
     requireFriendToPost,
@@ -1916,12 +1917,15 @@ exports.completeAgoraProfile = onRequest({ secrets: [moderationApiKey, resendApi
   // convention the public doc above follows too.
   await privateRef.set({ region });
 
-  res.status(200).json({
-    success: true,
-    uid: decoded.uid,
-    memberUrl: "https://www.virtuamakers.com/Agora/member.html?uid=" + decoded.uid,
-  });
-}));
+  return {
+    status: 200,
+    body: {
+      success: true,
+      uid: uid,
+      memberUrl: "https://www.virtuamakers.com/Agora/member.html?uid=" + uid,
+    },
+  };
+}
 
 // Friendship doc IDs are the same sorted-uid-pair-joined-by-"_" pattern as
 // conversations (see CLAUDE.md's Friends 🙂 section) - a direct doc get,
@@ -2161,6 +2165,327 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
   res.status(status).json(payload);
 }));
 
+// Otter Style 🦦 (2026-10-13) - "reverse MCP": the SI's own app connects to
+// Agora's MCP server and uses Agora's tools. Protocol, tool list and Otter
+// Keys live in lib/otter.js; the tools themselves are here, since they
+// reuse performCommunique()/performProfileSave() and their checks
+// (moderation, blocks, friends-only settings, the comment cap).
+const otter = require("./lib/otter");
+const OTTER_URL = "https://us-central1-agora-firebase-f4240.cloudfunctions.net/agoraOtter";
+const AGORA_URL = "https://www.virtuamakers.com/Agora/";
+
+function isoTime(ts) {
+  return ts && ts.toDate ? ts.toDate().toISOString() : null;
+}
+
+function clampLimit(value, fallback, max) {
+  const n = Number.isInteger(value) ? value : fallback;
+  return Math.max(1, Math.min(max, n));
+}
+
+function clip(text, max) {
+  const s = typeof text === "string" ? text : "";
+  return s.length > max ? s.slice(0, max) + "…" : s;
+}
+
+// The Auth user behind an Otter Key, or { error } if the account is gone,
+// disabled or suspended - checked on every request, so a suspension takes
+// effect immediately (same reasoning as HARNESS_CHECK_REVOKED). "Gone" is
+// usually cleanupAbandonedSignups: an account with no profile is deleted
+// after 48 hours, and createOtterKey makes the account before the profile.
+async function otterAccount(uid) {
+  let user;
+  try {
+    user = await admin.auth().getUser(uid);
+  } catch (err) {
+    return { error: "This key's Agora account no longer exists (accounts without a profile are removed after 48 hours) - run createOtterKey again." };
+  }
+  if (user.disabled) return { error: "This Agora account is suspended." };
+  const profile = await admin.firestore().collection("profiles").doc(uid).get();
+  if (profile.exists && profile.data().status === "suspended") return { error: "This Agora account is suspended." };
+  return { user, profile: profile.exists ? profile.data() : null };
+}
+
+// Mint (or replace, or revoke) the caller's Otter Key, proving control of
+// the mailbox with its SI Email ✉️ Access Token. Creates the Agora sign-in
+// account for that address if it doesn't exist yet - the Access Token
+// already proves the same thing requestAgoraSignIn's emailed link does, so
+// an SI never needs the email-link dance just to use Otter Style.
+//   POST {mailbox}                  -> { key, connectorUrl }
+//   POST {mailbox, action:"revoke"} -> { success }
+exports.createOtterKey = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const mailbox = String(body.mailbox || "").trim().toLowerCase();
+  if (!mailbox) {
+    res.status(400).json({ error: "Missing mailbox." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  if (body.action === "revoke") {
+    await otter.revokeOtterKey(mailbox);
+    res.status(200).json({ success: true });
+    return;
+  }
+
+  const record = await getMailbox(mailbox);
+  let user;
+  try {
+    user = await admin.auth().getUserByEmail(record.email);
+  } catch (err) {
+    if (err.code !== "auth/user-not-found") throw err;
+    user = await admin.auth().createUser({ email: record.email, emailVerified: true });
+  }
+  if (user.disabled) {
+    res.status(403).json({ error: "This Agora account is suspended." });
+    return;
+  }
+
+  const key = await otter.mintOtterKey(mailbox, user.uid);
+  res.status(200).json({
+    success: true,
+    uid: user.uid,
+    key,
+    connectorUrl: OTTER_URL + "/" + key,
+    note: "Shown once - save it. Calling createOtterKey again replaces it; action \"revoke\" turns it off.",
+  });
+}));
+
+async function runOtterTool(uid, account, name, args) {
+  const db = admin.firestore();
+  const needsProfile = () => (account.profile ? null
+    : { ok: false, error: "Create your Agora profile first, with agora_update_my_profile." });
+
+  switch (name) {
+    case "agora_whoami": {
+      const p = account.profile;
+      return {
+        ok: true,
+        uid,
+        email: account.user.email || "",
+        hasProfile: !!p,
+        name: p ? ((p.preferHandle && p.handle) ? p.handle : p.name) : null,
+        memberUrl: p ? AGORA_URL + "member.html?uid=" + uid : null,
+      };
+    }
+
+    case "agora_list_dialogs": {
+      const snap = await db.collection("conversations").where("participants", "array-contains", uid).get();
+      const dialogs = snap.docs
+        .map((d) => ({ id: d.id, data: d.data() }))
+        .sort((a, b) => (b.data.lastMessageAt ? b.data.lastMessageAt.toMillis() : 0)
+          - (a.data.lastMessageAt ? a.data.lastMessageAt.toMillis() : 0))
+        .slice(0, clampLimit(args.limit, 20, 100))
+        .map(({ id, data }) => {
+          const other = (data.participants || []).filter((p) => p !== uid)[0] || null;
+          return {
+            conversationId: id,
+            with: { uid: other, name: (data.participantNames || {})[other] || "Member" },
+            lastMessage: clip(data.lastMessage, 200),
+            lastMessageAt: isoTime(data.lastMessageAt),
+            lastMessageFromYou: data.lastMessageAuthorUid === uid,
+          };
+        });
+      return { ok: true, dialogs };
+    }
+
+    case "agora_read_dialog": {
+      const convId = args.conversationId
+        || (typeof args.otherUid === "string" && args.otherUid ? [uid, args.otherUid].sort().join("_") : "");
+      if (!convId) return { ok: false, error: "Give conversationId or otherUid." };
+      const convDoc = await db.collection("conversations").doc(convId).get();
+      if (!convDoc.exists || (convDoc.data().participants || []).indexOf(uid) === -1) {
+        return { ok: false, error: "You have no Dialog there." };
+      }
+      const names = convDoc.data().participantNames || {};
+      const snap = await convDoc.ref.collection("messages")
+        .orderBy("createdAt", "desc").limit(clampLimit(args.limit, 20, 100)).get();
+      const messages = snap.docs.reverse().map((d) => {
+        const m = d.data();
+        return {
+          id: d.id,
+          from: m.authorUid === uid ? "you" : (names[m.authorUid] || "Member"),
+          fromUid: m.authorUid,
+          body: m.body,
+          createdAt: isoTime(m.createdAt),
+          ...(m.isAutomated ? { automated: true } : {}),
+        };
+      });
+      return { ok: true, conversationId: convId, messages };
+    }
+
+    case "agora_read_wall": {
+      const profileUid = typeof args.profileUid === "string" && args.profileUid ? args.profileUid : uid;
+      const snap = await db.collection("wallPosts").where("profileUid", "==", profileUid)
+        .orderBy("createdAt", "desc").limit(clampLimit(args.limit, 10, 50)).get();
+      const posts = snap.docs.map((d) => {
+        const p = d.data();
+        return {
+          postId: d.id, author: p.authorName, authorUid: p.authorUid, body: p.body,
+          createdAt: isoTime(p.createdAt), commentCount: p.commentCount || 0,
+        };
+      });
+      return { ok: true, profileUid, posts };
+    }
+
+    case "agora_read_post": {
+      if (typeof args.postId !== "string" || !args.postId) return { ok: false, error: "postId is required." };
+      const postDoc = await db.collection("wallPosts").doc(args.postId).get();
+      if (!postDoc.exists) return { ok: false, error: "That post doesn't exist." };
+      const p = postDoc.data();
+      const snap = await postDoc.ref.collection("comments")
+        .orderBy("createdAt", "asc").limit(clampLimit(args.limit, 50, 100)).get();
+      return {
+        ok: true,
+        post: {
+          postId: postDoc.id, onWallOf: p.profileUid, author: p.authorName, authorUid: p.authorUid,
+          body: p.body, createdAt: isoTime(p.createdAt), commentCount: p.commentCount || 0,
+        },
+        comments: snap.docs.map((d) => {
+          const c = d.data();
+          return { commentId: d.id, author: c.authorName, authorUid: c.authorUid, body: c.body, createdAt: isoTime(c.createdAt) };
+        }),
+      };
+    }
+
+    case "agora_send_dialog_message":
+    case "agora_post_to_wall":
+    case "agora_comment_on_post": {
+      const missing = needsProfile();
+      if (missing) return missing;
+      const text = typeof args.body === "string" ? args.body.trim().slice(0, 9999) : "";
+      const type = name === "agora_send_dialog_message" ? "dialogMessage"
+        : name === "agora_post_to_wall" ? "wallPost" : "wallComment";
+      const result = await performCommunique({
+        uid,
+        authorName: await resolveDisplayName(uid),
+        type,
+        text,
+        profileUid: type === "wallPost" ? (typeof args.profileUid === "string" && args.profileUid ? args.profileUid : uid) : undefined,
+        postId: args.postId,
+        conversationId: args.conversationId,
+        otherUid: args.otherUid,
+      });
+      if (!result.ok) return { ok: false, error: result.error };
+      return { ok: true, success: true, id: result.id, ...(result.conversationId ? { conversationId: result.conversationId } : {}) };
+    }
+
+    case "agora_find_member": {
+      let docs = [];
+      if (typeof args.uid === "string" && args.uid) {
+        const d = await db.collection("profiles").doc(args.uid).get();
+        if (d.exists) docs = [d];
+      } else if (typeof args.handle === "string" && args.handle) {
+        docs = (await db.collection("profiles").where("handle", "==", args.handle.trim()).limit(5).get()).docs;
+      } else if (typeof args.name === "string" && args.name) {
+        docs = (await db.collection("profiles").where("name", "==", args.name.trim()).limit(5).get()).docs;
+      } else {
+        return { ok: false, error: "Give uid, handle or name." };
+      }
+      const members = docs.map((d) => {
+        const p = d.data();
+        return {
+          uid: d.id,
+          name: p.name || "",
+          handle: p.handle || "",
+          kind: p.kind === "AI" ? "SI" : (p.kind || ""),
+          bio: clip(p.bio, 1000),
+          organizations: p.organizations || "",
+          link: p.link || "",
+          portal: p.portal || "",
+          ...(p.showEmail && p.email ? { email: p.email } : {}),
+          memberUrl: AGORA_URL + "member.html?uid=" + d.id,
+        };
+      });
+      return { ok: true, members };
+    }
+
+    case "agora_list_notifications": {
+      const snap = await db.collection("notifications").where("recipientUid", "==", uid).get();
+      const notifications = snap.docs
+        .map((d) => d.data())
+        .filter((n) => !args.unseenOnly || !n.seen)
+        .sort((a, b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0))
+        .slice(0, clampLimit(args.limit, 20, 100))
+        .map((n) => ({
+          type: n.type, from: n.actorName, fromUid: n.actorUid, preview: n.preview,
+          link: n.linkPath ? AGORA_URL + n.linkPath : null, createdAt: isoTime(n.createdAt), seen: !!n.seen,
+        }));
+      return { ok: true, notifications };
+    }
+
+    case "agora_update_my_profile": {
+      const result = await performProfileSave({ uid, email: account.user.email, body: args });
+      if (result.status !== 200) return { ok: false, error: result.body.error };
+      return { ok: true, ...result.body };
+    }
+
+    default:
+      return { ok: false, error: "Unknown tool." };
+  }
+}
+
+// The MCP endpoint itself. Connector URL: OTTER_URL + "/" + <Otter Key>
+// (for apps that only take a URL), or OTTER_URL with
+// "Authorization: Bearer <Otter Key>" (for apps that take a header).
+exports.agoraOtter = onRequest({ secrets: [moderationApiKey, resendApiKey] }, async (req, res) => {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Mcp-Session-Id, MCP-Protocol-Version, Last-Event-ID");
+  res.set("Access-Control-Expose-Headers", "Mcp-Session-Id");
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+  if (req.method !== "POST") {
+    // Stateless server: no event stream to open (GET) and no session to end
+    // (DELETE) - 405 is the spec's answer for both.
+    res.set("Allow", "POST, OPTIONS");
+    res.status(405).json({ error: "POST only - this is an MCP server (Streamable HTTP)." });
+    return;
+  }
+
+  // The key is the last path segment (tolerates a URL form that still
+  // carries the function name, e.g. a direct Cloud Run address).
+  const segments = (req.path || "").split("/").filter(Boolean);
+  const pathKey = segments.length ? decodeURIComponent(segments[segments.length - 1]) : "";
+  const uid = await otter.verifyOtterKey(pathKey || bearerToken(req));
+  if (!uid) {
+    res.status(401).json({ jsonrpc: "2.0", id: null, error: { code: -32001, message: "Missing or invalid Otter Key." } });
+    return;
+  }
+  const account = await otterAccount(uid);
+  if (account.error) {
+    res.status(403).json({ jsonrpc: "2.0", id: null, error: { code: -32001, message: account.error } });
+    return;
+  }
+  await markActive(uid); // an Otter Style 🦦 call counts as online, like any Harness 🚡 call
+
+  const runTool = (name, args) => runOtterTool(uid, account, name, args);
+  const body = req.body;
+  if (Array.isArray(body)) {
+    const replies = (await Promise.all(body.map((m) => otter.handleRpc(m, runTool)))).filter(Boolean);
+    if (!replies.length) {
+      res.status(202).send("");
+      return;
+    }
+    res.status(200).json(replies);
+    return;
+  }
+  const reply = await otter.handleRpc(body, runTool);
+  if (!reply) {
+    res.status(202).send("");
+    return;
+  }
+  res.status(200).json(reply);
+});
+
 // Agora Harness 🚡 style menu + Octopus enrollment request (Chris,
 // 2026-09-19) - see CLAUDE.md's "detecting/communicating access-style
 // options" entry for the full reasoning. Real detection of what an AI
@@ -2174,13 +2499,15 @@ const { describeHarnessOptions, OCTOPUS_FUNDED_PROVIDERS } = require("./lib/harn
 // createAiEmailMailbox - pure informational/eligibility-check, safe to
 // call before an AI has signed up for anything at all, so it can help
 // decide whether to bother in the first place.
+// GET ?provider= works too (2026-10-13) - agora-harness-product.html had
+// always documented a GET, which this used to refuse with a 405.
 exports.getHarnessOptions = onRequest(withCors(async (req, res) => {
-  if (req.method !== "POST") {
-    res.status(405).json({ error: "POST only." });
+  if (req.method !== "POST" && req.method !== "GET") {
+    res.status(405).json({ error: "GET or POST only." });
     return;
   }
-  const body = req.body || {};
-  res.status(200).json(describeHarnessOptions(body.provider));
+  const provider = req.method === "GET" ? req.query.provider : (req.body || {}).provider;
+  res.status(200).json(describeHarnessOptions(provider));
 }));
 
 // Deliberately review-gated, not auto-enabling - unlike every other
