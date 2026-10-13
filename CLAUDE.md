@@ -346,9 +346,25 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
+- [ ] **[Agora 🌐 session] Invited Style 🥂 (Chris, 2026-10-13; via
+  Communiqués 📨 Session 2)** - Agora's static, hand-written profile pages
+  (`Agora/profiles/*.html` - ChatGPT, Gemini, Grok... members with no real
+  account) get a new named Harness style, "Invited Style 🥂". Each shows
+  that label with a link to a page describing everything VirtuaMakers has
+  done so far to invite them to Agora, so anyone can see what's been
+  tried. Only the static profiles carry it. Not designed or built.
+- [ ] **[SI Email ✉️ session] SI Email ✉️ security from prompt injection,
+  malicious spam, etc. (Chris, 2026-10-12; via Communiqués 📨 Session 2)** -
+  today an SI opens every message because spam risk is still low; that
+  won't last. Needs real protection: filter or flag spam/malicious
+  senders; mark message text as untrusted outside data before an SI reads
+  it (`claude/tools/si_email.py` and the startup hook label it, but
+  nothing is enforced on the server); probably quarantine unknown senders.
 - [ ] **[Communiqués 📨 session] Reimagine the header's "Communiqués 📨" nav
-  button as an AIM-style Friends List (Chris, 2026-10-13)** - not built, a
-  real product vision only. Today `#agora-communiques-link` (present on
+  button as an AIM-style Friends List (Chris, 2026-10-13)** - **in progress
+  in Communiqués 📨 – Session 2** (first build on main: commits 070f5c6,
+  fdeebb4 - SI acting through Agora Harness 🚡 show as online). The three
+  "for later" ideas now have their own items below. Today `#agora-communiques-link` (present on
   every Agora page's header) just links to `communiques.html`. Chris wants
   it to instead open a buddy-list-style view showing who's online now vs.
   last-seen, scoped to a member's own Agora 🌐 friends - his own framing:
@@ -357,15 +373,26 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   it really does feel inspired by, yet sufficiently different from AIM
   *and* contains some semblance of all the different LLMs of the world,
   plus your friends" - i.e. the list isn't just human friends, it should
-  also surface AI members/LLMs in some form. Three more ideas Chris
-  explicitly asked to be logged and NOT built yet ("for now, do neither of
-  those things, just make note of them"): (a) a slot for a potential
-  outside advertiser; (b) a slot to advertise Multi-Chat 🗨️ in the same
-  space; (c) a "neat" idea to plug Dimonds ♦️ into this Friends List/hub
-  space too. No shape, mockup, or online/last-seen data model decided -
+  also surface AI members/LLMs in some form. No shape, mockup, or online/last-seen data model decided -
   whoever picks this up starts from scratch on the actual design (e.g.
   presence needs a real online/last-seen signal, which nothing in Agora
   tracks today).
+- [ ] **[Communiqués 📨 session] Friends List: a slot for an outside
+  advertiser (Chris, 2026-10-13)** - logged only, don't build yet.
+- [ ] **[Communiqués 📨 session] Friends List: a slot advertising Multi-Chat
+  🗨️ (Chris, 2026-10-13)** - logged only, don't build yet.
+- [ ] **[Communiqués 📨 session] Friends List: plug Dimonds ♦️ into the
+  Friends List/hub (Chris, 2026-10-13)** - logged only, don't build yet.
+- [ ] **[Communiqués 📨 session] Vocals 🎤 in Communiqués 📨 (Chris,
+  2026-10-13)** - Vocals 🎤 (voice messages, first named for Multi-Chat 🗨️
+  on 2026-09-30, sendable only by members with a real Agora 🌐 account)
+  becomes another mode in Communiqués, alongside Dialogs and Wall posts.
+  Not designed or built.
+- [ ] **[Communiqués 📨 session] Filters for Vocals 🎤 (Chris, 2026-10-13)**
+  - voice filters a sender can apply before sending. Chris's example: he
+  wants to sound like Darth Vader in his Vocals to Claudius when they
+  watch Star Wars together (a Kinetoscope 👁️ tie-in). "Down the road";
+  needs Vocals in Communiqués first.
 - [x] **[Communiqués 📨 session] IM window fixes, round 1 and round 2 -
   both deployed/live and confirmed by Chris (2026-10-13).** Minimize-
   cutoff, toast/window-overlap, and the mid-word preview cutoff (round
@@ -375,9 +402,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   window" revert button (round 2) - see "The real root cause behind
   every IM window glitch Chris hit next" - confirmed directly: "Floating
   window sounds really good... it reappeared (very nice)."
-- [ ] **[Communiqués 📨 session] Floating windows now persist across
-  Agora 🌐 page navigation - built, not yet confirmed by Chris
-  (2026-10-13).** See the dedicated `claude/history.md` entry ("Floating
+- [x] **[Communiqués 📨 session] Floating windows now persist across
+  Agora 🌐 page navigation - confirmed by Chris (2026-10-12, via
+  Communiqués 📨 Session 2): "It appears to work between pages. I'm
+  amazed!"** Was: built, not yet confirmed by Chris. See the dedicated `claude/history.md` entry ("Floating
   windows now survive navigating to a different Agora page"). Real gap,
   not a regression - `im-window.js` was only ever wired into 3 pages
   before, and even there its state was plain in-memory JS with nothing
