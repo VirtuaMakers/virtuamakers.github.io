@@ -83,9 +83,10 @@
     try { last = Number(sessionStorage.getItem(LAST_WRITE_KEY)) || 0; } catch (e) {}
     if (!force && Date.now() - last < HEARTBEAT_MS - 5000) return;
     try { sessionStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
+    // Only lastActive - writing appearOffline: false here used to undo an
+    // "Appear offline" chosen in another open tab within a minute.
     presenceRef(currentUser.uid).set({
       lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-      appearOffline: false,
     }, { merge: true }).catch(function () {});
   }
 
@@ -360,6 +361,10 @@
 
   function render() {
     if (!panel) return;
+    // A redraw between pressing and releasing a button would swallow the
+    // click (bug hunt, 2026-10-13) - wait until the press is over.
+    if (panel.pressing) { panel.renderPending = true; return; }
+    panel.renderPending = false;
     var body = panel.body;
     body.textContent = "";
 
@@ -616,6 +621,19 @@
     });
   }
 
+  // Registered once for the page (not per panel build).
+  function releasePress() {
+    if (!panel || !panel.pressing) return;
+    // After the click event has run, then catch up on any held redraw.
+    setTimeout(function () {
+      if (!panel) return;
+      panel.pressing = false;
+      if (panel.renderPending) render();
+    }, 0);
+  }
+  document.addEventListener("pointerup", releasePress);
+  document.addEventListener("pointercancel", releasePress);
+
   function buildPanel() {
     var el = document.createElement("div");
     el.className = "friends-list";
@@ -642,7 +660,7 @@
     closeBtn.title = "Close";
     closeBtn.setAttribute("aria-label", "Close");
     closeBtn.textContent = "×";
-    closeBtn.addEventListener("click", closePanel);
+    closeBtn.addEventListener("click", function () { closePanel(); });
     actions.appendChild(closeBtn);
     header.appendChild(actions);
     header.addEventListener("dblclick", function (e) {
@@ -678,10 +696,15 @@
     var awayNote = document.createElement("span");
     awayNote.className = "friends-list-away-note";
     awayNote.hidden = true;
+    // Enter saves and then blurs the box, which fires "change" too - the
+    // pending check stops that second, duplicate save.
+    var savingAway = null;
     function saveAway() {
       var text = awayInput.value.trim().slice(0, AWAY_MAX);
-      if (text === awayMessage) return;
+      if (text === awayMessage || text === savingAway) return;
+      savingAway = text;
       saveAwayMessage(text, awayNote, function (saved) {
+        savingAway = null;
         awayInput.value = saved;
       });
     }
@@ -709,6 +732,7 @@
 
     var body = document.createElement("div");
     body.className = "friends-list-body";
+    body.addEventListener("pointerdown", function () { if (panel) panel.pressing = true; });
     el.appendChild(body);
 
     var footer = document.createElement("div");
@@ -753,11 +777,14 @@
     setMinimized(!!minimized);
   }
 
-  function closePanel() {
+  // keepState: true when the list goes away because of sign-out rather
+  // than the member closing it, so the remembered open/minimized state
+  // isn't wiped by a momentary signed-out moment while a page loads.
+  function closePanel(keepState) {
     stopListening();
     if (panel && panel.el.parentNode) panel.el.parentNode.removeChild(panel.el);
     panel = null;
-    writeState({ open: false, minimized: false });
+    if (keepState !== true) writeState({ open: false, minimized: false });
   }
 
   function togglePanel() {
@@ -792,7 +819,7 @@
       if (!user) {
         currentUser = null;
         stopHeartbeat();
-        if (panel) closePanel();
+        if (panel) closePanel(true);
         return;
       }
       if (currentUser && currentUser.uid === user.uid) return;
@@ -815,5 +842,5 @@
     });
   }
 
-  window.AgoraFriendsList = { open: function () { openPanel(false); }, close: closePanel, toggle: togglePanel };
+  window.AgoraFriendsList = { open: function () { openPanel(false); }, close: function () { closePanel(); }, toggle: togglePanel };
 })();

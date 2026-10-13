@@ -308,6 +308,43 @@
   // Both Edit and Delete are only offered within the 10-minute window
   // (callers gate attachInlineEdit itself on isWithinEditWindow), matching
   // Chris's rule that content is otherwise permanent.
+  // Bug hunt (Chris, 2026-10-13): what kind of content a docRef is, from
+  // its path - wallPosts/{id}, wallPosts/{id}/comments/{id} or
+  // conversations/{id}/messages/{id}.
+  function contentTypeOf(docRef) {
+    var parent = docRef.parent && docRef.parent.id;
+    if (parent === "comments") return "wallComment";
+    if (parent === "messages") return "dialogMessage";
+    return "wallPost";
+  }
+
+  // A Dialog's list preview (lastMessage/lastMessageAt/lastMessageAuthorUid)
+  // must follow edits and deletions of its newest message - otherwise
+  // deleted words kept showing in every Dialog list and the Friends List.
+  function refreshConversationPreview(conversationRef) {
+    return conversationRef.collection("messages").orderBy("createdAt", "desc").limit(1).get()
+      .then(function (snap) {
+        var newest = snap.docs[0];
+        return conversationRef.update(newest ? {
+          lastMessage: newest.data().body || "",
+          lastMessageAt: newest.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+          lastMessageAuthorUid: newest.data().authorUid,
+        } : { lastMessage: "" });
+      }).catch(function () {});
+  }
+
+  // After a successful edit or delete, keep the parent in step: a comment's
+  // post keeps an accurate commentCount; a message's Dialog keeps an
+  // accurate preview.
+  function afterContentChange(docRef, deleted) {
+    var type = contentTypeOf(docRef);
+    if (type === "wallComment" && deleted) {
+      docRef.parent.parent.update({ commentCount: firebase.firestore.FieldValue.increment(-1) }).catch(function () {});
+    } else if (type === "dialogMessage") {
+      refreshConversationPreview(docRef.parent.parent);
+    }
+  }
+
   function attachInlineEdit(container, docRef, data, bodyEl) {
     var toggle = document.createElement("button");
     toggle.type = "button";
@@ -323,6 +360,7 @@
       if (!window.confirm("Delete this permanently? This can't be undone.")) return;
       docRef.delete().then(function () {
         container.remove();
+        afterContentChange(docRef, true);
       }).catch(function (err) {
         window.alert(err.message);
       });
@@ -372,12 +410,29 @@
       e.preventDefault();
       var newBody = textarea.value.trim();
       if (!newBody) return;
-      docRef.update({ body: newBody }).then(function () {
-        data.body = newBody;
-        sanitizeBody(bodyEl, newBody);
-        form.hidden = true;
-        toggle.hidden = false;
+      error.hidden = true;
+      saveBtn.disabled = true;
+      // Edits go through moderation too - before this (bug hunt, Chris,
+      // 2026-10-13) anything could be edited in after a clean first post.
+      var check = typeof AgoraModeration !== "undefined"
+        ? AgoraModeration.checkText(newBody, contentTypeOf(docRef), { edit: true })
+        : Promise.resolve({ decision: "allow" });
+      check.then(function (result) {
+        if (result && result.decision === "block") {
+          saveBtn.disabled = false;
+          AgoraModeration.showBlocked(error, result.logId);
+          return;
+        }
+        return docRef.update({ body: newBody }).then(function () {
+          saveBtn.disabled = false;
+          data.body = newBody;
+          sanitizeBody(bodyEl, newBody);
+          form.hidden = true;
+          toggle.hidden = false;
+          afterContentChange(docRef, false);
+        });
       }).catch(function (err) {
+        saveBtn.disabled = false;
         error.textContent = err.message;
         error.hidden = false;
       });

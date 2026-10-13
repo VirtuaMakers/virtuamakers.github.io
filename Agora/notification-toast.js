@@ -289,9 +289,20 @@
   function startListening() {
     var caughtUp = false;
 
+    // Only unseen notifications (Chris, 2026-10-13 bug hunt): this used to
+    // download every notification the member had ever received on every
+    // page load, a list that only ever grows. Two equality filters need no
+    // composite index. Older notifications from before `seen` existed don't
+    // match, and that's fine - they're long past.
     unsubscribe = AgoraDB.collection("notifications")
       .where("recipientUid", "==", currentUser.uid)
+      .where("seen", "==", false)
       .onSnapshot(function (snap) {
+        // With the local cache on (firebase-config.js), the first snapshot
+        // can come from cache; anything the cache lacked would then arrive
+        // as "added" and chime as if brand new. Do the catch-up only on
+        // the server's own answer.
+        if (!caughtUp && snap.metadata && snap.metadata.fromCache) return;
         if (!caughtUp) {
           caughtUp = true;
 
@@ -320,10 +331,12 @@
         }
 
         var newlyAdded = [];
+        var seenLocallyNow = readSeenCache();
         snap.docChanges().forEach(function (change) {
           if (change.type !== "added") return;
-          newlyAdded.push(change.doc);
           var data = change.doc.data();
+          if (data.seen === true || seenLocallyNow.indexOf(change.doc.id) !== -1) return;
+          newlyAdded.push(change.doc);
           if (isViewingLinkPath(data.linkPath)) return;
 
           playChime(data.type);

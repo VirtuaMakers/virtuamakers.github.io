@@ -69,7 +69,7 @@
     try {
       var list = windowOrder.map(function (uid) {
         var win = windows[uid];
-        return { uid: uid, name: win.otherName, minimized: win.minimized };
+        return { uid: uid, name: win.otherName, minimized: win.minimized, owner: win.currentUser.uid };
       });
       sessionStorage.setItem(PERSIST_KEY, JSON.stringify(list));
     } catch (e) {}
@@ -559,13 +559,28 @@
   // later (a real sign-out, a different account on a shared browser),
   // and re-running this on every firing would reopen stale windows for
   // whoever's signed in *now*, including after someone else signs out.
+  //
+  // Bug hunt (Chris, 2026-10-13): saved windows now record whose they are
+  // (`owner`). Before, if one member signed out and another signed in on
+  // the same tab, the first member's windows reopened for the second - and
+  // reopening a window *creates* the Dialog, so it silently started new
+  // conversations with the first member's contacts. A real sign-out now
+  // also closes every open window (which clears the saved list).
   if (typeof agoraOnAuthChange === "function") {
     var restored = false;
+    var signedInUid = null;
     agoraOnAuthChange(function (user) {
-      if (!user || restored) return;
+      if (!user) {
+        if (signedInUid) windowOrder.slice().forEach(closeWindowFor);
+        signedInUid = null;
+        return;
+      }
+      if (signedInUid && signedInUid !== user.uid) windowOrder.slice().forEach(closeWindowFor);
+      signedInUid = user.uid;
+      if (restored) return;
       restored = true;
       readPersisted().forEach(function (entry) {
-        if (!entry || !entry.uid || windows[entry.uid]) return;
+        if (!entry || !entry.uid || windows[entry.uid] || entry.owner !== user.uid) return;
         openWindow(user, entry.uid, entry.name || "Member");
         if (entry.minimized && windows[entry.uid]) setMinimized(windows[entry.uid], true);
       });

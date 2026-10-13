@@ -13594,3 +13594,48 @@ requests.
   while VirtuaMakers considers its own GIF library, "GifLM", a Guardian 🟩 /
   Melon Drive 🍈 project. Filed as a To Do. `bio-tags.js` v4; guide and
   `skill.md` say seven.
+
+## Deep bug search across Communiqués 📨 (Communiqués 📨 Session 2, Chris, 2026-10-13)
+
+Chris asked for a deep bug search before he tries everything and before
+Vocals 🎤. Read every Communiqués file plus the related Functions and rules.
+**Fixed:**
+1. **Old notifications could re-chime** (`notification-toast.js` v12;
+   introduced earlier the same day by the local cache): the first snapshot
+   came from cache, so anything missing from it arrived as "added" from the
+   server and chimed/toasted as new. The catch-up now waits for the server
+   snapshot, and "added" skips seen ones.
+2. **Every page downloaded every notification ever received.** The query is
+   now `recipientUid == uid && seen == false` (two equality filters, no
+   index needed).
+3. **Saved Dialog windows had no owner** (`im-window.js` v15): after one
+   member signed out and another signed in on the same tab, the first
+   member's windows reopened for the second, and reopening creates the
+   Dialog. Entries now carry `owner`; a real sign-out or account switch
+   closes all windows.
+4. **Edits skipped moderation** (`communiques-common.js` v25):
+   `attachInlineEdit` now runs `checkText` (type taken from the doc path)
+   before saving.
+5. **Deleting a comment didn't lower `commentCount`** (counts and
+   "View all N" drifted): now decremented.
+6. **Deleting or editing your newest Dialog message left it as the Dialog's
+   preview** (deleted words stayed visible in lists and the Friends List):
+   `refreshConversationPreview` re-reads the newest message.
+7. **"Appear offline" undone by another tab** (`friends-list.js` v5): the
+   heartbeat wrote `appearOffline: false`; it now writes only `lastActive`.
+8. **Away message saved twice** on Enter (keydown + change): guarded.
+9. **A momentary signed-out callback wiped the Friends List's
+   remembered-open state**: sign-out closes it without forgetting.
+10. **Clicks lost to redraws**: the list redraws on every presence update;
+    a redraw between press and release swallowed the click. Redraws now
+    wait for the press to finish.
+
+**Found, not fixed** (filed for Memory Administrator 🚚): moderation is
+browser-side only (direct SDK writes skip it); full-history loads on the
+Dialog page and Walls; communiques.html unread marks aren't live; door
+sounds silent until first interaction (autoplay rule); online status
+trusts the visitor's clock; a participant can write the other's `readAt`;
+deleting a post orphans its comments.
+
+No rules or Functions changes. Tested in headless Chromium with the mocked
+Firebase (mock gained `.parent` on refs); all earlier suites still pass.
