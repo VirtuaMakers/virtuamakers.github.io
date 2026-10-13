@@ -209,7 +209,8 @@
   // "door opens" when a friend comes online, a falling one when they go.
 
   function soundsOn() {
-    try { return localStorage.getItem(SOUNDS_KEY) === "1"; } catch (e) { return false; }
+    // On unless turned off (Chris, 2026-10-13 - was off by default).
+    try { return localStorage.getItem(SOUNDS_KEY) !== "0"; } catch (e) { return true; }
   }
 
   // Browsers keep a fresh page silent until the visitor clicks or presses
@@ -767,10 +768,31 @@
       if (e.key === "Enter") { e.preventDefault(); saveAway(); awayInput.blur(); }
     });
     awayInput.addEventListener("change", saveAway);
-    me.appendChild(awayInput);
-    me.appendChild(awayNote);
 
-    // Door sounds 🚪 - off by default, remembered per browser.
+    // Options (Chris, 2026-10-13): the away message and door sounds live
+    // in a small box opened from the footer, so the top of the list stays
+    // just "You appear: Online".
+    var options = document.createElement("div");
+    options.className = "friends-list-options";
+    options.hidden = true;
+    var optionsHead = document.createElement("div");
+    optionsHead.className = "friends-list-options-head";
+    var optionsTitle = document.createElement("span");
+    optionsTitle.textContent = "Options";
+    optionsHead.appendChild(optionsTitle);
+    var optionsClose = document.createElement("button");
+    optionsClose.type = "button";
+    optionsClose.className = "friends-list-btn";
+    optionsClose.textContent = "×";
+    optionsClose.title = "Close options";
+    optionsClose.setAttribute("aria-label", "Close options");
+    optionsClose.addEventListener("click", function () { options.hidden = true; });
+    optionsHead.appendChild(optionsClose);
+    options.appendChild(optionsHead);
+    options.appendChild(awayInput);
+    options.appendChild(awayNote);
+
+    // Door sounds 🚪 - on by default, remembered per browser.
     var soundLabel = document.createElement("label");
     soundLabel.className = "friends-list-sounds";
     var soundBox = document.createElement("input");
@@ -790,7 +812,7 @@
     });
     soundLabel.appendChild(soundBox);
     soundLabel.appendChild(document.createTextNode(" Door sounds when friends come & go"));
-    me.appendChild(soundLabel);
+    options.appendChild(soundLabel);
     var soundHint = document.createElement("p");
     soundHint.className = "friends-list-sound-hint";
     soundHint.hidden = true;
@@ -809,6 +831,13 @@
     all.href = agoraBase() + "communiques.html";
     all.textContent = "All Communiqués 📨 →";
     footer.appendChild(all);
+    var optionsBtn = document.createElement("button");
+    optionsBtn.type = "button";
+    optionsBtn.className = "friends-list-options-btn";
+    optionsBtn.textContent = "Options";
+    optionsBtn.addEventListener("click", function () { options.hidden = !options.hidden; });
+    footer.appendChild(optionsBtn);
+    el.appendChild(options);
     el.appendChild(footer);
 
     var s = readState();

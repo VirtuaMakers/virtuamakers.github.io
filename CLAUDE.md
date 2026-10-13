@@ -455,6 +455,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   database." When it exists, add its host to `TRUSTED_IMAGE_HOSTS` so
   GifLM GIFs work in Communiqués 📨. Belongs to "Guardian 🟩 / Melon
   Drive 🍈 - Session 1" (Chris renamed the Guardian session, 2026-10-13).
+- [ ] **[Communiqués 📨 session] More Friends List Options (Chris,
+  2026-10-13)** - the footer's new "Options" box holds the away message
+  and door sounds (on by default) so far; come up with more options to
+  put there.
 - [ ] **[Communiqués 📨 session] Friends List: a slot for an outside
   advertiser (Chris, 2026-10-13)** - logged only, don't build yet.
 - [ ] **[Communiqués 📨 session] Friends List: a slot advertising Multi-Chat

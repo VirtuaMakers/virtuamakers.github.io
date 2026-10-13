@@ -340,6 +340,15 @@
           if (isViewingLinkPath(data.linkPath)) return;
 
           playChime(data.type);
+          // A Dialog message pops up the real, movable chat window
+          // (im-window.js) rather than this toast (Chris, 2026-10-13) -
+          // except on a phone, where one window at a time would close
+          // whatever's already open.
+          if (data.type === "dialog_message" && data.actorUid && typeof AgoraIMWindow !== "undefined"
+            && AgoraIMWindow.popIncoming && !AgoraIMWindow.isNarrow()) {
+            AgoraIMWindow.popIncoming(currentUser, data.actorUid, data.actorName || "Member");
+            return;
+          }
           showToast(data, 0);
         });
         // Marked seen even when suppressed above (already viewing that
