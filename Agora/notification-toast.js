@@ -62,18 +62,76 @@
     // just above.
     calendar_event: "dialog-knock1.wav",
   };
-  var chimes = {};
-  Object.keys(CHIME_FILES).forEach(function (type) {
-    var audio = new Audio(assetPath(CHIME_FILES[type]));
-    audio.volume = 0.5;
-    chimes[type] = audio;
+  // Played through Web Audio, woken by the first click, key press or touch
+  // on the page (Chris, 2026-10-13: the knock didn't play at all). A plain
+  // <audio>.play() is refused outright until the page has been interacted
+  // with, and failed silently. <audio> stays as the fallback for a browser
+  // without Web Audio.
+  var audioCtx = null;
+  var buffers = {};
+  var htmlChimes = {};
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      try { audioCtx = new Ctx(); } catch (e) { return null; }
+    }
+    return audioCtx;
+  }
+
+  function unlockAudio() {
+    var ctx = getAudioCtx();
+    if (ctx && ctx.state === "suspended") ctx.resume().catch(function () {});
+  }
+  ["pointerdown", "keydown", "touchstart"].forEach(function (type) {
+    document.addEventListener(type, unlockAudio, { capture: true, passive: true });
   });
 
+  function loadBuffer(file) {
+    if (!buffers[file]) {
+      buffers[file] = fetch(assetPath(file)).then(function (res) { return res.arrayBuffer(); })
+        .then(function (data) {
+          return new Promise(function (resolve, reject) {
+            getAudioCtx().decodeAudioData(data, resolve, reject);
+          });
+        });
+      buffers[file].catch(function () { delete buffers[file]; });
+    }
+    return buffers[file];
+  }
+
+  function playHtmlChime(file) {
+    var audio = htmlChimes[file] || (htmlChimes[file] = new Audio(assetPath(file)));
+    audio.volume = 0.5;
+    audio.currentTime = 0;
+    audio.play().catch(function () {});
+  }
+
   function playChime(type) {
-    var chime = chimes[type];
-    if (!chime) return;
-    chime.currentTime = 0;
-    chime.play().catch(function () {});
+    var file = CHIME_FILES[type];
+    if (!file) return;
+    var ctx = getAudioCtx();
+    if (!ctx) { playHtmlChime(file); return; }
+    if (ctx.state === "suspended") ctx.resume().catch(function () {});
+    loadBuffer(file).then(function (buffer) {
+      var source = ctx.createBufferSource();
+      source.buffer = buffer;
+      var gain = ctx.createGain();
+      gain.gain.value = 0.5;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start();
+    }).catch(function () { playHtmlChime(file); });
+  }
+
+  // Dialog messages open the real chat window (im-window.js), never this
+  // toast (Chris, 2026-10-13). False when that script isn't on the page.
+  function popDialog(data) {
+    if (data.type !== "dialog_message" || !data.actorUid || typeof AgoraIMWindow === "undefined"
+      || !AgoraIMWindow.popIncoming) return false;
+    AgoraIMWindow.popIncoming(currentUser, data.actorUid, data.actorName || "Member");
+    return true;
   }
 
   // linkPath is always written relative to the Agora root (e.g.
@@ -327,7 +385,17 @@
             var at = a.data().createdAt, bt = b.data().createdAt;
             return (bt ? bt.toMillis() : 0) - (at ? at.toMillis() : 0);
           });
-          if (unseen.length) showToast(unseen[0].data(), unseen.length - 1);
+          // Dialogs you missed reopen as their chat windows (one per
+          // person, newest few); anything else shows in the toast.
+          var popped = {};
+          var others = unseen.filter(function (doc) {
+            var data = doc.data();
+            if (data.type !== "dialog_message") return true;
+            if (popped[data.actorUid] || Object.keys(popped).length >= 3) return false;
+            if (popDialog(data)) { popped[data.actorUid] = true; return false; }
+            return true;
+          });
+          if (others.length) showToast(others[0].data(), others.length - 1);
           markSeen(unseen);
           markSeenLocally(unseen);
           return;
@@ -343,15 +411,7 @@
           if (isViewingLinkPath(data.linkPath)) return;
 
           playChime(data.type);
-          // A Dialog message pops up the real, movable chat window
-          // (im-window.js) rather than this toast (Chris, 2026-10-13) -
-          // except on a phone, where one window at a time would close
-          // whatever's already open.
-          if (data.type === "dialog_message" && data.actorUid && typeof AgoraIMWindow !== "undefined"
-            && AgoraIMWindow.popIncoming && !AgoraIMWindow.isNarrow()) {
-            AgoraIMWindow.popIncoming(currentUser, data.actorUid, data.actorName || "Member");
-            return;
-          }
+          if (popDialog(data)) return;
           showToast(data, 0);
         });
         // Marked seen even when suppressed above (already viewing that

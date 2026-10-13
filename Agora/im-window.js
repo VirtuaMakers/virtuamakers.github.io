@@ -490,6 +490,18 @@
     }
     win.newestId = newestId;
 
+    // "New since you last read" (Chris, 2026-10-13): your own readAt as
+    // it stood when this window opened, read once before the window can
+    // mark the Dialog read itself. A thin gray line then separates the
+    // earlier chat from the messages that came in since. null = no line
+    // (nothing read yet, or a Dialog from before read tracking).
+    win.readBefore = null;
+    conversationRef.get().then(function (doc) {
+      var readAt = doc.exists && doc.data().readAt && doc.data().readAt[currentUser.uid];
+      win.readBefore = readAt && readAt.toMillis ? readAt.toMillis() : null;
+      renderMessages();
+    }).catch(function () {});
+
     function renderMessages() {
       if (!lastSnap || windows[otherUid] !== win) return;
       messages.textContent = "";
@@ -497,7 +509,19 @@
         messages.textContent = "No messages yet - say hello!";
         return;
       }
-      lastSnap.docs.slice().reverse().forEach(function (doc) {
+      var dividerShown = false;
+      lastSnap.docs.slice().reverse().forEach(function (doc, index) {
+        var d = doc.data();
+        var at = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : Infinity;
+        if (!dividerShown && index > 0 && win.readBefore !== null
+          && d.authorUid !== currentUser.uid && at > win.readBefore) {
+          dividerShown = true;
+          var divider = document.createElement("div");
+          divider.className = "im-window-divider";
+          divider.setAttribute("role", "separator");
+          divider.title = "New since you last read";
+          messages.appendChild(divider);
+        }
         messages.appendChild(buildBubble(win, doc));
       });
       messages.scrollTop = messages.scrollHeight;
