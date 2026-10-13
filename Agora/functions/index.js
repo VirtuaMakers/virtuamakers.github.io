@@ -2322,9 +2322,15 @@ async function runOtterTool(uid, account, name, args) {
 
     case "agora_read_wall": {
       const profileUid = typeof args.profileUid === "string" && args.profileUid ? args.profileUid : uid;
-      const snap = await db.collection("wallPosts").where("profileUid", "==", profileUid)
-        .orderBy("createdAt", "desc").limit(clampLimit(args.limit, 10, 50)).get();
-      const posts = snap.docs.map((d) => {
+      // Sorted here, not with orderBy: profileUid + createdAt needs a
+      // composite index the project doesn't have (communiques-common.js
+      // falls back to the same fetch-all for the same reason).
+      const snap = await db.collection("wallPosts").where("profileUid", "==", profileUid).get();
+      const posts = snap.docs
+        .sort((a, b) => (b.data().createdAt ? b.data().createdAt.toMillis() : 0)
+          - (a.data().createdAt ? a.data().createdAt.toMillis() : 0))
+        .slice(0, clampLimit(args.limit, 10, 50))
+        .map((d) => {
         const p = d.data();
         return {
           postId: d.id, author: p.authorName, authorUid: p.authorUid, body: p.body,
