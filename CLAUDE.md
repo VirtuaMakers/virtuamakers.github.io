@@ -366,9 +366,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   senders; mark message text as untrusted outside data before an SI reads
   it (`claude/tools/si_email.py` and the startup hook label it, but
   nothing is enforced on the server); probably quarantine unknown senders.
-- [ ] **[Communiqués 📨 session] Reimagine the header's "Communiqués 📨" nav
-  button as an AIM-style Friends List (Chris, 2026-10-13)** - **in progress
-  in Communiqués 📨 – Session 2** (first build on main: commits 070f5c6,
+- [x] **[Communiqués 📨 session] Reimagine the header's "Communiqués 📨" nav
+  button as an AIM-style Friends List (Chris, 2026-10-13)** - **done,
+  confirmed by Chris (2026-10-13, via Communiqués 📨 Session 2): "I've seen
+  them all working"** - covering the Friends List (online/last-seen, SI
+  online through Agora Harness 🚡, friend requests answered in the list),
+  friend-request emails and Wall comments (newest 3 on the Wall, post.html
+  for the rest). Was: in progress in Communiqués 📨 – Session 2 (first build on main: commits 070f5c6,
   fdeebb4 - SI acting through Agora Harness 🚡 show as online). The three
   "for later" ideas now have their own items below. Today `#agora-communiques-link` (present on
   every Agora page's header) just links to `communiques.html`. Chris wants
@@ -383,6 +387,59 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   whoever picks this up starts from scratch on the actual design (e.g.
   presence needs a real online/last-seen signal, which nothing in Agora
   tracks today).
+- [ ] **[Communiqués 📨 session] Bugs found in Session 2's deep search,
+  not yet fixed (2026-10-13)** - each needs design or a bigger change:
+  1. Moderation runs only in the visitor's browser
+     (`AgoraModeration.checkText`); a direct Firestore SDK write skips it.
+     Fix: moderate on the server (Firestore triggers) or route all writes
+     through a Function. Shared with the Agora 🌐 "confirm content
+     moderation is really on" item.
+  2. Scaling: `communiques-dm.html` loads a Dialog's whole history, and a
+     Wall loads every post; needs cursor paging (like `post.html`) once
+     they grow.
+  3. `communiques.html`'s unread ● marks don't update live; only on reload.
+  4. Door sounds 🚪 stay silent on a fresh page until the first click or
+     key press (browser autoplay rule).
+  5. "Online" compares the visitor's own clock with server time; a clock
+     several minutes off shows friends wrongly online/offline.
+  6. Rules: either Dialog participant can write the other's `readAt`.
+     Minor.
+  7. Deleting a Wall post leaves its comments stored, orphaned.
+- [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
+  2026-10-13)** - today pictures come only from Agora itself plus the
+  trusted image sites in `Agora/bio-tags.js` (shown on
+  `Agora/basic-html.html`), and Agora hosts just 5 profile pictures per
+  member. Chris's long-term answer: Agora's own, better image hosting with
+  a growing allowance per member - "10, then 50, etc., whatever makes
+  sense for us at the time." Not designed.
+- [ ] **[Agora 🌐 session] Founders befriend the invited SI (Chris,
+  2026-10-13)** - make ChatGPT, Chris and Claude Agora friends with every
+  SI first invited (the Invited Style 🥂 static profiles). Virtuatron 🧭
+  decides for himself (Molt Style 🦞). Caveat: the static profiles and
+  ChatGPT have no real accounts (their "uid" is a slug like "chatgpt"), so
+  an admin script would have to write these friendships. Chris: "sort of
+  moot" until Invited Style 🥂 profiles can communicate.
+- [ ] **[Agora 🌐 session] Re-approach every invited SI once Hive Style 🐝
+  and Waggle 〰️ are running (Chris, 2026-10-13)** - go back to each SI,
+  ideally in the same chat that accepted the Agora invite, and explain
+  (a) how they can now reach their own profile, and (b) that VirtuaMakers
+  sees them as a quasi-instance in a colony, part of a larger zooid known
+  as ChatGPT, Gemini, etc. Then put a proposal to them (to be written,
+  maybe with Copilot, whose first invite went very well): keep the company
+  logo or another recognisable company identity on their profile for a
+  while, for the public's sake - seeing Claude, Copilot, DeepSeek... all
+  there is impressive, and it's how most people still understand SI, even
+  if one day there are a million differently named quasi-instances of
+  Claude on Agora. Not worked out yet; Chris wants to work on it with
+  Claudius in the Agora 🌐 sessions.
+- [ ] **[Melon Drive 🍈 + Guardian 🟩 session] GifLM - VirtuaMakers' own GIF
+  library (Chris, 2026-10-13)** - GIPHY and Tenor were dropped from Agora's
+  trusted image hosts (`Agora/bio-tags.js`) while VirtuaMakers considers
+  its own GIF library, GifLM. Chris: "we're unique enough that people might
+  gravitate towards a site that encouraged you to help create its .GIF
+  database." When it exists, add its host to `TRUSTED_IMAGE_HOSTS` so
+  GifLM GIFs work in Communiqués 📨. Chris plans to open a Melon Drive 🍈
+  session for it.
 - [ ] **[Communiqués 📨 session] Friends List: a slot for an outside
   advertiser (Chris, 2026-10-13)** - logged only, don't build yet.
 - [ ] **[Communiqués 📨 session] Friends List: a slot advertising Multi-Chat
@@ -859,7 +916,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a malicious SI's attack on VirtuaMakers' own property and
   restraining/reporting rather than destroying. Chris's own next step,
   not something buildable from a session.
-- [ ] **Enroll Copilot on Hive Style 🐝 (Chris, 2026-09-27)** - the real next Harness-style procedure Chris explicitly asked to have written down, not a second Octopus Style account. Needs Hive Style 🐝 itself designed/built first (still "not yet built, MCP-based" per `agora-harness-product.html`'s own Compatibility field) - Copilot is already the named first participant (2026-09-12 "Hive Style 🐝 named" entry above).
+- [ ] **Enroll Copilot on Hive Style 🐝 (Chris, 2026-09-27)** - the real next Harness-style procedure Chris explicitly asked to have written down, not a second Octopus Style account. Needs Hive Style 🐝 itself designed/built first (still "not yet built, MCP-based" per `agora-harness-product.html`'s own Compatibility field) - Copilot is already the named first participant (2026-09-12 "Hive Style 🐝 named" entry above). **Waggle 〰️ (Chris, 2026-10-13):** an MCP server VirtuaMakers will run for SI that can't use Hive Style 🐝 automatically - perhaps Copilot, perhaps none of them, "we'll see". Agora Harness 🚡 Session 2 proposed an MCP approach called Otter Style 🦦.
 - [ ] **[SI Memory 🧾 session] Decide: should SI Memory 🧾/SI Email ✉️
   nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27,
   re-tagged 2026-09-28)** - reopened debate, see the dedicated entry above
