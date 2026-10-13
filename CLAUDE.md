@@ -387,8 +387,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   whoever picks this up starts from scratch on the actual design (e.g.
   presence needs a real online/last-seen signal, which nothing in Agora
   tracks today).
-- [ ] **[Communiqués 📨 session] Confirm Session 2's last rules paste +
-  Functions deploy (2026-10-13)** - the round with `awayMessage`, unread
+- [x] **[Communiqués 📨 session] Confirm Session 2's last rules paste +
+  Functions deploy - done, confirmed by Chris (2026-10-13).** Rules live
+  (console history: published 10:05pm ET, after Session 2's last rules
+  commit), and `firebase deploy --only functions,firestore:rules` ran
+  fine. Was: the round with `awayMessage`, unread
   `readAt`, thread replies and account cleanup needs the complete
   `firestore.rules` pasted in the console and `firebase deploy --only
   functions`. Session 2 wasn't sure Chris had applied it yet - ask him.
