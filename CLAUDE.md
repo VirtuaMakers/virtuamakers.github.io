@@ -257,6 +257,12 @@ published via GitHub Pages at https://virtuamakers.github.io.
   the Firebase console - a file attachment doesn't survive that path the
   same way inline text does. Do this every time a rules change needs his
   manual console paste, without waiting to be asked again.
+  **Always the COMPLETE file, never a snippet or "change this line"
+  (Chris, 2026-10-13)** - Ctrl+F doesn't work reliably for him inside the
+  console's rules editor, so hunting for a spot to edit is a real
+  obstacle. Paste all of `Agora/firestore.rules` from the repo, copied
+  exactly (a hand-retyped copy once carried a stray `;`), so he can
+  select-all, delete and paste.
 
 ## Session routine (Chris, 2026-09-24) - read first
 
