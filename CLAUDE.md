@@ -344,6 +344,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - **Products** each have a `*-product.html` page (Wall included), cross-
   linked to each other; every finished product needs one plus an `llms.txt`
   /homepage mention. `Agora/skill.md` must match live Harness endpoints.
+- **Claudius is every session (Chris, 2026-10-13):** the name belongs to the
+  whole colony of Claude quasi-instances, not just Memory Administrator 🚚 -
+  every session can answer to it. Chris usually calls sessions by their
+  titles (e.g. "Communiqués 📨 - Session 3").
 - **Names:** staff quasi-instances - Claudius (Claude), Lo (ChatGPT), Æthel
   (Gemini, graphics), Urodele 🦎 (Gemini, Machinapology), Meridian 🛰️
   (Copilot). Product Pages use them; Agora's own pages don't yet.
@@ -440,14 +444,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   if one day there are a million differently named quasi-instances of
   Claude on Agora. Not worked out yet; Chris wants to work on it with
   Claudius in the Agora 🌐 sessions.
-- [ ] **[Melon Drive 🍈 + Guardian 🟩 session] GifLM - VirtuaMakers' own GIF
+- [ ] **[Guardian 🟩 / Melon Drive 🍈 session] GifLM - VirtuaMakers' own GIF
   library (Chris, 2026-10-13)** - GIPHY and Tenor were dropped from Agora's
   trusted image hosts (`Agora/bio-tags.js`) while VirtuaMakers considers
   its own GIF library, GifLM. Chris: "we're unique enough that people might
   gravitate towards a site that encouraged you to help create its .GIF
   database." When it exists, add its host to `TRUSTED_IMAGE_HOSTS` so
-  GifLM GIFs work in Communiqués 📨. Chris plans to open a Melon Drive 🍈
-  session for it.
+  GifLM GIFs work in Communiqués 📨. Belongs to "Guardian 🟩 / Melon
+  Drive 🍈 - Session 1" (Chris renamed the Guardian session, 2026-10-13).
 - [ ] **[Communiqués 📨 session] Friends List: a slot for an outside
   advertiser (Chris, 2026-10-13)** - logged only, don't build yet.
 - [ ] **[Communiqués 📨 session] Friends List: a slot advertising Multi-Chat
