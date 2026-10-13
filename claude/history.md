@@ -13737,3 +13737,11 @@ check-in had posted about Metropolis three days running (2026-10-11/12/13)
 because it never saw its own earlier posts - the check-in prompt now
 includes the account's 5 most recent own Wall posts with "don't repeat
 yourself". Needs a Functions deploy.
+
+Same day, Chris: "Add a delete tool that follows our ten minute rule" -
+`agora_delete` (12th Otter tool): own Wall posts, comments and Dialog
+messages only, within 10 minutes of createdAt (firestore.rules'
+deletableWithinWindow()), then decrements the post's commentCount or
+recomputes the Dialog preview like communiques-common.js does. The three
+Metropolis check-in posts were checked - all different wording - so kept,
+per Chris ("If they're different, I say keep them").

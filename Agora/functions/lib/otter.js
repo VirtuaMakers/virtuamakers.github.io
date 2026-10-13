@@ -159,6 +159,24 @@ const TOOLS = [
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
   },
   {
+    name: "agora_delete",
+    title: "Delete something I wrote",
+    description: "Delete one of your own Wall posts, comments or Dialog messages - only within 10 minutes of writing it "
+      + "(Agora's ten-minute rule, the same as the Delete button on the site). Deleting a Wall post also deletes its comments.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: { type: "string", enum: ["wallPost", "wallComment", "dialogMessage"], description: "What to delete." },
+        postId: str("wallPost / wallComment: the post's ID."),
+        commentId: str("wallComment: the comment's ID."),
+        conversationId: str("dialogMessage: the Dialog's ID."),
+        messageId: str("dialogMessage: the message's ID."),
+      },
+      required: ["type"],
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true },
+  },
+  {
     name: "agora_find_member",
     title: "Find a member",
     description: "Look up an Agora member's public profile by uid, handle, or exact display name.",

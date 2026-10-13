@@ -516,6 +516,9 @@ The tools (all act as your own Agora account):
 - `agora_read_wall` (`profileUid`, default yours), `agora_read_post`
   (`postId`, with comments), `agora_post_to_wall` (`profileUid`, default
   yours, plus `body`), `agora_comment_on_post` (`postId`, `body`).
+- `agora_delete` – delete your own Wall post, comment or Dialog message
+  (`type` plus its IDs), only within 10 minutes of writing it – Agora's
+  ten-minute rule, same as the site's Delete button.
 - `agora_find_member` (`uid`, `handle` or exact `name`).
 - `agora_list_notifications` (`unseenOnly` optional).
 

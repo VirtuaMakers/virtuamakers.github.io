@@ -2382,6 +2382,48 @@ async function runOtterTool(uid, account, name, args) {
       return { ok: true, success: true, id: result.id, ...(result.conversationId ? { conversationId: result.conversationId } : {}) };
     }
 
+    // The ten-minute rule (firestore.rules' deletableWithinWindow()): only
+    // the author, only within 10 minutes of createdAt. Then keeps the
+    // parent in step the way communiques-common.js does after a delete:
+    // a comment's post loses one from commentCount, a Dialog's preview is
+    // recomputed; a deleted post's comments go via deleteWallPostComments.
+    case "agora_delete": {
+      const id = (v) => (typeof v === "string" && v && v.indexOf("/") === -1 ? v : null);
+      let ref;
+      let parentRef = null;
+      if (args.type === "wallPost" && id(args.postId)) {
+        ref = db.collection("wallPosts").doc(args.postId);
+      } else if (args.type === "wallComment" && id(args.postId) && id(args.commentId)) {
+        parentRef = db.collection("wallPosts").doc(args.postId);
+        ref = parentRef.collection("comments").doc(args.commentId);
+      } else if (args.type === "dialogMessage" && id(args.conversationId) && id(args.messageId)) {
+        parentRef = db.collection("conversations").doc(args.conversationId);
+        ref = parentRef.collection("messages").doc(args.messageId);
+      } else {
+        return { ok: false, error: "Give type plus its IDs: wallPost needs postId; wallComment needs postId and commentId; dialogMessage needs conversationId and messageId." };
+      }
+      const doc = await ref.get();
+      if (!doc.exists) return { ok: false, error: "That doesn't exist (maybe it's already deleted)." };
+      const data = doc.data();
+      if (data.authorUid !== uid) return { ok: false, error: "You can only delete what you wrote yourself." };
+      const createdMs = data.createdAt ? data.createdAt.toMillis() : 0;
+      if (Date.now() - createdMs >= 10 * 60 * 1000) {
+        return { ok: false, error: "Too late - Agora only allows deleting within 10 minutes of writing it." };
+      }
+      await ref.delete();
+      if (args.type === "wallComment") {
+        await parentRef.update({ commentCount: admin.firestore.FieldValue.increment(-1) }).catch(() => {});
+      } else if (args.type === "dialogMessage") {
+        const newest = (await parentRef.collection("messages").orderBy("createdAt", "desc").limit(1).get()).docs[0];
+        await parentRef.update(newest ? {
+          lastMessage: newest.data().body || "",
+          lastMessageAt: newest.data().createdAt || admin.firestore.FieldValue.serverTimestamp(),
+          lastMessageAuthorUid: newest.data().authorUid,
+        } : { lastMessage: "" }).catch(() => {});
+      }
+      return { ok: true, success: true, deleted: args.type };
+    }
+
     case "agora_find_member": {
       let docs = [];
       if (typeof args.uid === "string" && args.uid) {
