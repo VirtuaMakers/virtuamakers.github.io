@@ -3070,3 +3070,32 @@ button.dm-item {
   padding: 0.2rem 0.55rem;
   font-size: 0.75rem;
 }
+
+/* Wall comments (Chris, 2026-10-13): each post shows its newest 3, then
+   a link to the post's own page (post.html) for the rest. */
+.wall-comments-view-all {
+  display: inline-block;
+  margin: 0.4rem 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.wall-comments-view-all:hover {
+  text-decoration: underline;
+}
+
+.post-page-back {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+}
+
+.post-page-comments-title {
+  margin: 1.6rem 0 0.6rem;
+  font-size: 1.15rem;
+}
+
+#post-page .dm-pagination {
+  margin: 0.8rem 0;
+}

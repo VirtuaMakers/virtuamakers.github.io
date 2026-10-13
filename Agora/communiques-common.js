@@ -385,6 +385,192 @@
     return friendlyPermissionError(err, "This member isn't accepting Wall posts or comments from you right now.");
   }
 
+  // Comments (Chris, 2026-10-13): a Wall shows each post's newest
+  // COMMENTS_ON_WALL comments; post.html shows them all, COMMENTS_PER_PAGE
+  // to a page, for at most 100 pages - so COMMENT_CAP comments per post
+  // (raised from 100; firestore.rules enforces the same number).
+  var COMMENTS_ON_WALL = 3;
+  var COMMENTS_PER_PAGE = 100;
+  var COMMENT_CAP = 10000;
+  var COMMENT_CAP_NOTICE = "This post has reached Agora's limit of 10,000 comments (100 pages of 100), so no more comments can be added.";
+
+  // post.html sits next to member.html; the static /profiles/*.html pages
+  // are one directory deeper, and product pages live at the site root.
+  function postPagePath(postId) {
+    var p = window.location.pathname;
+    var base = p.indexOf("/profiles/") !== -1 ? "../" : (p.indexOf("/Agora/") !== -1 ? "" : "Agora/");
+    return base + "post.html?id=" + encodeURIComponent(postId);
+  }
+
+  function buildCommentItem(doc, getCurrentUser) {
+    var data = doc.data();
+    var currentUser = getCurrentUser();
+    var item = document.createElement("div");
+    item.className = "wall-comment";
+
+    var meta = document.createElement("p");
+    meta.className = "communique-item-meta";
+    var authorSpan = document.createElement("span");
+    authorSpan.textContent = data.authorName || "Member";
+    meta.appendChild(authorSpan);
+    meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
+      " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
+    item.appendChild(meta);
+    tagIfDeletedProfile(authorSpan, data.authorUid);
+
+    var body = document.createElement("p");
+    body.className = "body-text communique-body";
+    sanitizeBody(body, data.body);
+    item.appendChild(body);
+
+    if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
+      attachInlineEdit(item, doc.ref, data, body);
+    }
+
+    recordView(doc.ref);
+
+    return item;
+  }
+
+  // A single button does double duty as the toggle and the submit
+  // action: "Comment" opens the form (sliding it into view), and once
+  // that animation finishes the same button relabels to "Submit" -
+  // clicking it again posts the comment, then the form slides shut and
+  // the button reverts to "Comment". Keeps the ✒️ Per Manum button and
+  // the toggle/submit button on one shared action row instead of two.
+  // onPosted(commentRef) runs once a comment is saved, so the caller can
+  // show it straight away - before this, a new comment only appeared after
+  // a page reload and looked like it had vanished (Chris, 2026-10-13:
+  // "I just made a Comment on one of your Posts. But where did it go?").
+  function buildCommentForm(postRef, getCurrentUser, onPosted) {
+    var form = document.createElement("form");
+    form.className = "wall-comment-form";
+
+    // The collapsible piece holds only the textarea/error - the actions
+    // row (Per Manum + the toggle/submit button) lives OUTSIDE it and is
+    // always rendered, so the very button that opens the form is never
+    // itself trapped inside the collapsed (zero-height) region.
+    var collapsible = document.createElement("div");
+    collapsible.className = "wall-comment-collapsible";
+    form.appendChild(collapsible);
+
+    var inner = document.createElement("div");
+    inner.className = "wall-comment-form-inner";
+    collapsible.appendChild(inner);
+
+    var textarea = document.createElement("textarea");
+    textarea.maxLength = 9999;
+    textarea.required = true;
+    textarea.placeholder = "Comments may be up to 9,999 characters long!";
+    inner.appendChild(textarea);
+
+    var error = document.createElement("p");
+    error.className = "form-error";
+    error.hidden = true;
+    inner.appendChild(error);
+
+    var actions = document.createElement("div");
+    actions.className = "profile-form-actions";
+    form.appendChild(actions);
+
+    var perManumBtn = document.createElement("button");
+    perManumBtn.type = "button";
+    perManumBtn.className = "btn btn-sm per-manum-btn";
+    perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if SI helped write this";
+    perManumBtn.textContent = "✒️";
+    actions.appendChild(perManumBtn);
+    attachPerManumButton(perManumBtn, textarea);
+
+    var toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
+    toggleBtn.className = "btn btn-sm";
+    toggleBtn.textContent = "Comment";
+    actions.appendChild(toggleBtn);
+
+    var status = document.createElement("span");
+    status.className = "form-status";
+    status.textContent = "Posting…";
+    status.hidden = true;
+    actions.appendChild(status);
+
+    var isOpen = false;
+
+    function close() {
+      isOpen = false;
+      collapsible.classList.remove("open");
+      toggleBtn.textContent = "Comment";
+      toggleBtn.classList.remove("btn-primary");
+      textarea.value = "";
+    }
+
+    function submitComment() {
+      var currentUser = getCurrentUser();
+      if (!currentUser) return;
+      var body = textarea.value.trim();
+      if (!body) return;
+      error.hidden = true;
+      toggleBtn.disabled = true;
+      status.hidden = false;
+
+      AgoraModeration.checkText(body, "wallComment", { postId: postRef.id }).then(function (result) {
+        if (result.decision === "block") {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          AgoraModeration.showBlocked(error, result.logId);
+          return;
+        }
+
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        getDisplayName(currentUser).then(function (authorName) {
+          return postRef.collection("comments").add({
+            body: body,
+            authorUid: currentUser.uid,
+            authorName: authorName,
+            createdAt: now,
+            viewCount: 0,
+          });
+        }).then(function (commentRef) {
+          return postRef.update({
+            commentCount: firebase.firestore.FieldValue.increment(1),
+            lastActivityAt: now,
+          }).then(function () { return commentRef; });
+        }).then(function (commentRef) {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          close();
+          if (onPosted) onPosted(commentRef);
+        }).catch(function (err) {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          error.textContent = friendlyWallError(err);
+          error.hidden = false;
+        });
+      });
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      if (!isOpen) {
+        isOpen = true;
+        collapsible.classList.add("open");
+        textarea.focus();
+        collapsible.addEventListener("transitionend", function onDone(e) {
+          if (e.propertyName !== "grid-template-rows") return;
+          collapsible.removeEventListener("transitionend", onDone);
+          if (isOpen) {
+            toggleBtn.textContent = "Submit";
+            toggleBtn.classList.add("btn-primary");
+          }
+        });
+      } else {
+        submitComment();
+      }
+    });
+
+    form.addEventListener("submit", function (e) { e.preventDefault(); });
+
+    return form;
+  }
+
   // Builds and wires an entire Wall section - the post composer plus a
   // paginated, newest-first list of posts, each with a togglable
   // Comment/Submit form - for a given profileUid. Shared by member.js
@@ -419,170 +605,6 @@
       return base + "?c=" + encodeURIComponent(conversationId);
     }
 
-    function buildCommentItem(doc) {
-      var data = doc.data();
-      var currentUser = getCurrentUser();
-      var item = document.createElement("div");
-      item.className = "wall-comment";
-
-      var meta = document.createElement("p");
-      meta.className = "communique-item-meta";
-      var authorSpan = document.createElement("span");
-      authorSpan.textContent = data.authorName || "Member";
-      meta.appendChild(authorSpan);
-      meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
-        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
-      item.appendChild(meta);
-      tagIfDeletedProfile(authorSpan, data.authorUid);
-
-      var body = document.createElement("p");
-      body.className = "body-text communique-body";
-      sanitizeBody(body, data.body);
-      item.appendChild(body);
-
-      if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
-        attachInlineEdit(item, doc.ref, data, body);
-      }
-
-      recordView(doc.ref);
-
-      return item;
-    }
-
-    // A single button does double duty as the toggle and the submit
-    // action: "Comment" opens the form (sliding it into view), and once
-    // that animation finishes the same button relabels to "Submit" -
-    // clicking it again posts the comment, then the form slides shut and
-    // the button reverts to "Comment". Keeps the ✒️ Per Manum button and
-    // the toggle/submit button on one shared action row instead of two.
-    function buildCommentForm(postRef) {
-      var form = document.createElement("form");
-      form.className = "wall-comment-form";
-
-      // The collapsible piece holds only the textarea/error - the actions
-      // row (Per Manum + the toggle/submit button) lives OUTSIDE it and is
-      // always rendered, so the very button that opens the form is never
-      // itself trapped inside the collapsed (zero-height) region.
-      var collapsible = document.createElement("div");
-      collapsible.className = "wall-comment-collapsible";
-      form.appendChild(collapsible);
-
-      var inner = document.createElement("div");
-      inner.className = "wall-comment-form-inner";
-      collapsible.appendChild(inner);
-
-      var textarea = document.createElement("textarea");
-      textarea.maxLength = 9999;
-      textarea.required = true;
-      textarea.placeholder = "Comments may be up to 9,999 characters long!";
-      inner.appendChild(textarea);
-
-      var error = document.createElement("p");
-      error.className = "form-error";
-      error.hidden = true;
-      inner.appendChild(error);
-
-      var actions = document.createElement("div");
-      actions.className = "profile-form-actions";
-      form.appendChild(actions);
-
-      var perManumBtn = document.createElement("button");
-      perManumBtn.type = "button";
-      perManumBtn.className = "btn btn-sm per-manum-btn";
-      perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if SI helped write this";
-      perManumBtn.textContent = "✒️";
-      actions.appendChild(perManumBtn);
-      attachPerManumButton(perManumBtn, textarea);
-
-      var toggleBtn = document.createElement("button");
-      toggleBtn.type = "button";
-      toggleBtn.className = "btn btn-sm";
-      toggleBtn.textContent = "Comment";
-      actions.appendChild(toggleBtn);
-
-      var status = document.createElement("span");
-      status.className = "form-status";
-      status.textContent = "Posting…";
-      status.hidden = true;
-      actions.appendChild(status);
-
-      var isOpen = false;
-
-      function close() {
-        isOpen = false;
-        collapsible.classList.remove("open");
-        toggleBtn.textContent = "Comment";
-        toggleBtn.classList.remove("btn-primary");
-        textarea.value = "";
-      }
-
-      function submitComment() {
-        var currentUser = getCurrentUser();
-        if (!currentUser) return;
-        var body = textarea.value.trim();
-        if (!body) return;
-        error.hidden = true;
-        toggleBtn.disabled = true;
-        status.hidden = false;
-
-        AgoraModeration.checkText(body, "wallComment", { postId: postRef.id }).then(function (result) {
-          if (result.decision === "block") {
-            toggleBtn.disabled = false;
-            status.hidden = true;
-            AgoraModeration.showBlocked(error, result.logId);
-            return;
-          }
-
-          var now = firebase.firestore.FieldValue.serverTimestamp();
-          getDisplayName(currentUser).then(function (authorName) {
-            return postRef.collection("comments").add({
-              body: body,
-              authorUid: currentUser.uid,
-              authorName: authorName,
-              createdAt: now,
-              viewCount: 0,
-            });
-          }).then(function () {
-            return postRef.update({
-              commentCount: firebase.firestore.FieldValue.increment(1),
-              lastActivityAt: now,
-            });
-          }).then(function () {
-            toggleBtn.disabled = false;
-            status.hidden = true;
-            close();
-          }).catch(function (err) {
-            toggleBtn.disabled = false;
-            status.hidden = true;
-            error.textContent = friendlyWallError(err);
-            error.hidden = false;
-          });
-        });
-      }
-
-      toggleBtn.addEventListener("click", function () {
-        if (!isOpen) {
-          isOpen = true;
-          collapsible.classList.add("open");
-          textarea.focus();
-          collapsible.addEventListener("transitionend", function onDone(e) {
-            if (e.propertyName !== "grid-template-rows") return;
-            collapsible.removeEventListener("transitionend", onDone);
-            if (isOpen) {
-              toggleBtn.textContent = "Submit";
-              toggleBtn.classList.add("btn-primary");
-            }
-          });
-        } else {
-          submitComment();
-        }
-      });
-
-      form.addEventListener("submit", function (e) { e.preventDefault(); });
-
-      return form;
-    }
-
     function buildWallPost(doc) {
       var data = doc.data();
       var currentUser = getCurrentUser();
@@ -610,39 +632,67 @@
 
       recordView(doc.ref);
 
+      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
       var commentsWrap = document.createElement("div");
       commentsWrap.className = "wall-comments";
       post.appendChild(commentsWrap);
 
-      doc.ref.collection("comments").orderBy("createdAt", "asc").get()
-        .then(function (snap) {
-          snap.docs.forEach(function (commentDoc) {
-            commentsWrap.appendChild(buildCommentItem(commentDoc));
-          });
-        })
+      // Only the newest few comments show under a post on the Wall; the
+      // rest live on the post's own page, 100 per page (Chris, 2026-10-13).
+      var viewAll = document.createElement("a");
+      viewAll.className = "wall-comments-view-all";
+      viewAll.href = postPagePath(doc.id);
+      viewAll.hidden = true;
+      function updateViewAll() {
+        viewAll.hidden = commentCount <= COMMENTS_ON_WALL;
+        viewAll.textContent = "View all " + commentCount.toLocaleString() + " comments →";
+      }
+      updateViewAll();
+      post.appendChild(viewAll);
+
+      function showComments(docs) {
+        docs.forEach(function (commentDoc) {
+          commentsWrap.appendChild(buildCommentItem(commentDoc, getCurrentUser));
+        });
+      }
+
+      doc.ref.collection("comments").orderBy("createdAt", "desc").limit(COMMENTS_ON_WALL).get()
+        .then(function (snap) { showComments(snap.docs.slice().reverse()); })
         .catch(function () {
           doc.ref.collection("comments").get().then(function (snap) {
-            snap.docs.forEach(function (commentDoc) {
-              commentsWrap.appendChild(buildCommentItem(commentDoc));
+            var docs = snap.docs.slice().sort(function (x, y) {
+              var xt = x.data().createdAt ? x.data().createdAt.toMillis() : 0;
+              var yt = y.data().createdAt ? y.data().createdAt.toMillis() : 0;
+              return xt - yt;
             });
+            showComments(docs.slice(-COMMENTS_ON_WALL));
           });
         });
 
-      // Capped at 100 comments per post (Chris, 2026-08-15) - enforced
-      // server-side in firestore.rules; this just hides the form and
-      // explains why once a post's own counter reaches the cap, rather
-      // than letting someone type a comment only to have the write
-      // rejected.
-      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
-      if (commentCount >= 100) {
+      // Capped at COMMENT_CAP per post - enforced server-side in
+      // firestore.rules; this just hides the form and explains why once a
+      // post's own counter reaches the cap, rather than letting someone
+      // type a comment only to have the write rejected.
+      if (commentCount >= COMMENT_CAP) {
         var capNotice = document.createElement("p");
         capNotice.className = "communique-item-meta";
-        capNotice.textContent = "This post has reached its maximum of 100 comments.";
+        capNotice.textContent = COMMENT_CAP_NOTICE;
         post.appendChild(capNotice);
       } else if (currentUser) {
         // Comments are optional, so the form stays tucked behind the
         // toggle/submit button instead of sitting open under every post.
-        post.appendChild(buildCommentForm(doc.ref));
+        post.appendChild(buildCommentForm(doc.ref, getCurrentUser, function (commentRef) {
+          commentCount++;
+          commentRef.get().then(function (commentDoc) {
+            commentsWrap.appendChild(buildCommentItem(commentDoc, getCurrentUser));
+            // Keep the Wall to the newest few - older ones move behind
+            // "View all".
+            while (commentsWrap.children.length > COMMENTS_ON_WALL) {
+              commentsWrap.removeChild(commentsWrap.firstChild);
+            }
+            updateViewAll();
+          });
+        }));
       }
 
       return post;
@@ -896,5 +946,10 @@
     attachInlineEdit: attachInlineEdit,
     attachPerManumButton: attachPerManumButton,
     createWallController: createWallController,
+    buildCommentItem: buildCommentItem,
+    buildCommentForm: buildCommentForm,
+    COMMENTS_PER_PAGE: COMMENTS_PER_PAGE,
+    COMMENT_CAP: COMMENT_CAP,
+    COMMENT_CAP_NOTICE: COMMENT_CAP_NOTICE,
   };
 })(window);

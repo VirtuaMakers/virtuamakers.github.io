@@ -483,18 +483,23 @@ exports.notifyOnFriendRequest = onDocumentCreated(
 );
 
 // Comment cap milestone email (Chris, 2026-08-15) - Wall posts are capped
-// at 100 comments (enforced server-side in firestore.rules' comment
+// at 10,000 comments (raised from 100 on 2026-10-13: post.html shows 100
+// pages of 100) (enforced server-side in firestore.rules' comment
 // create rule); this fires the one email once a post's own commentCount
 // field actually crosses that line, not on every subsequent write to the
 // post (e.g. a later edit), matching the same before/after transition
 // pattern notifyFlaggedSocial already uses.
+// Same number firestore.rules' canCreateComment() and communiques-common.js
+// use.
+const COMMENT_CAP = 10000;
+
 exports.notifyOnCommentCap = onDocumentWritten(
   { document: "wallPosts/{postId}", secrets: [resendApiKey] },
   async (event) => {
     const after = event.data.after.exists ? event.data.after.data() : null;
     const before = event.data.before.exists ? event.data.before.data() : null;
-    if (!after || after.commentCount !== 100) return;
-    if (before && before.commentCount === 100) return;
+    if (!after || after.commentCount !== COMMENT_CAP) return;
+    if (before && before.commentCount === COMMENT_CAP) return;
 
     const profileSnap = await admin.firestore()
       .collection("profiles").doc(after.authorUid).get();
@@ -503,7 +508,7 @@ exports.notifyOnCommentCap = onDocumentWritten(
 
     await sendEmailSafe({
       to: email,
-      subject: "Your Post Just Hit 100 Comments! 🎉",
+      subject: "Your Post Just Hit 10,000 Comments! 🎉",
       html: loadTemplate("comment-cap-email.html"),
     });
   }
@@ -1793,7 +1798,7 @@ async function isBlocked(db, a, b) {
 // available to a signed-in AI with no browser involved. Since this writes via
 // the Admin SDK, it bypasses firestore.rules entirely, so every check the
 // rules would normally enforce (requireFriendToPost/Message, the
-// 100-comment cap, "you must already be a participant to message in this
+// 10,000-comment cap, "you must already be a participant to message in this
 // Dialog") is replicated here by hand - same approach completeAgoraProfile
 // already takes for handle-uniqueness/blocked-domains. Returns
 // { ok, status, ...payload } rather than writing to a response directly, so
@@ -1875,8 +1880,8 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
       }
       const postData = postDoc.data();
       const commentCount = typeof postData.commentCount === "number" ? postData.commentCount : 0;
-      if (commentCount >= 100) {
-        return { ok: false, status: 403, error: "This post has reached its maximum of 100 comments." };
+      if (commentCount >= COMMENT_CAP) {
+        return { ok: false, status: 403, error: "This post has reached its maximum of 10,000 comments." };
       }
       if (postData.profileUid !== uid) {
         if (await isBlocked(db, uid, postData.profileUid)) {

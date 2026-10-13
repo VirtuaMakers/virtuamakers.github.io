@@ -13461,3 +13461,35 @@ loaded right after `im-window.js` on all 55 pages that carry it.
   `Agora/emails/`): the Communiqué letterhead with a 🙂 heading, an
   "Accept or decline on Agora 🌐 →" link to the requester's profile, and
   its own footer line. Needs a Functions deploy.
+
+## Wall comments: show the newest 3, a post page for the rest, cap raised to 10,000 (Communiqués 📨 Session 2, Chris, 2026-10-13)
+
+Chris: "I just made a Comment on one of your (Wall) Posts. But where did it
+go?" Real bug: comments were saved, but a Wall only fetched them once on
+load, so a new comment never appeared until a reload. His ask: show a few
+comments under each post, then a way to keep reading on the post's own
+page, 100 comments per page for up to 100 pages, with the last page
+explaining the limit.
+
+- `communiques-common.js` v20: `buildCommentItem`/`buildCommentForm` moved
+  out of `createWallController` (exported) so `post.html` reuses them.
+  `buildCommentForm` takes an `onPosted(commentRef)` callback, so a new
+  comment appears immediately. Each Wall post shows its newest 3
+  (`COMMENTS_ON_WALL`) and a "View all N comments →" link
+  (`post.html?id=…`) once it has more.
+- New `Agora/post.html` + `post.js`: the post itself, a "Back to X's Wall"
+  link (member, static profile or product page), comments oldest first,
+  100 per page with Earlier/Later at top and bottom, `?page=N` deep links.
+  Pages are fetched with Firestore cursors (`startAfter`), so page 1 costs
+  at most 100 reads. A new comment jumps you to the last page. Once a post is
+  full, the last page shows `COMMENT_CAP_NOTICE`.
+- Cap raised 100 → 10,000 everywhere: `firestore.rules`
+  (`canCreateComment`), `functions/index.js` (`COMMENT_CAP` in
+  `submitAgoraCommunique`, and `notifyOnCommentCap` now celebrates 10,000),
+  both copies of `comment-cap-email.html`, and `skill.md`. Needs the rules
+  change pasted and a Functions deploy.
+- Product pages: `communiques-common.js` had been left at v17 on all 19
+  `*-product.html` pages; now v20. `product-page.css` v9 styles the link.
+- Tested in headless Chromium with a mocked Firebase (250-comment post:
+  Wall shows #248–250; pages of 100/100/50; deep link `?page=2`; a full
+  post's page 100 shows the notice and no form).

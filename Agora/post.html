@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, AJI, artificial jagged intelligence, machinekind, cyborgs, VirtuaMakers, Agora" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post · Communiqués · Agora</title>
+  <meta name="description" content="A Wall post on Agora and all of its comments." />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=107" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand-group">
+      <a class="brand" href="index.html">
+        <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+        <span class="brand-globe">🌐</span>
+      </a>
+      <span class="header-welcome" id="agora-user-info" hidden>Welcome, <a class="auth-email" id="agora-user-email" href="#"></a>!</span>
+    </div>
+    <div class="header-right">
+      <a class="back-link" id="agora-news-link" href="index.html#news">News 📰</a>
+      <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
+      <a class="back-link" id="agora-communiques-link" href="communiques.html" hidden>Communiqués 📨</a>
+      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
+        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
+      </div>
+      <div class="header-search" id="agora-search-wrap">
+        <button type="button" class="auth-link" id="agora-search-toggle" aria-label="Search Agora">Search 🔍</button>
+        <div class="header-search-panel" id="agora-search-panel" hidden>
+          <input type="search" id="agora-search-input" class="header-search-input" placeholder="Search Agora…" autocomplete="off" />
+          <div class="header-search-results" id="agora-search-results"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <script src="header-height.js?v=1"></script>
+
+  <main>
+    <section class="section" id="post-page">
+      <p id="post-notice" hidden></p>
+
+      <div id="post-content" hidden>
+        <p class="post-page-back"><a id="post-back-link" href="index.html">← Back to the Wall</a></p>
+        <h1 id="post-heading">Post</h1>
+
+        <div class="wall-post" id="post-item"></div>
+
+        <h2 class="post-page-comments-title" id="post-comments-title">Comments</h2>
+
+        <div class="dm-pagination" id="post-pagination-top" hidden>
+          <button type="button" class="btn" id="post-page-prev-top">← Earlier</button>
+          <span class="dm-page-indicator" id="post-page-indicator-top"></span>
+          <button type="button" class="btn" id="post-page-next-top">Later →</button>
+        </div>
+
+        <div class="wall-comments" id="post-comments"></div>
+        <p class="communique-item-meta" id="post-comments-empty" hidden>No comments yet.</p>
+        <p class="communique-item-meta" id="post-cap-notice" hidden></p>
+
+        <div class="dm-pagination" id="post-pagination-bottom" hidden>
+          <button type="button" class="btn" id="post-page-prev-bottom">← Earlier</button>
+          <span class="dm-page-indicator" id="post-page-indicator-bottom"></span>
+          <button type="button" class="btn" id="post-page-next-bottom">Later →</button>
+        </div>
+
+        <div id="post-comment-form-slot"></div>
+        <p class="intro" id="post-signin-notice" hidden>Sign in to read and write comments.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-agor">Agor</span><span class="word-a">a</span> · a <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span> project</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="index.html">Back to Agora</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <div class="password-field-wrap">
+          <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+          <button type="button" class="password-toggle" id="agora-password-toggle" aria-label="Show password">👁️</button>
+        </div>
+        <p class="signin-forgot-password" id="agora-forgot-password-row">
+          <button type="button" class="auth-link" id="agora-forgot-password-btn">Forgot password?</button>
+        </p>
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+  <script src="firebase-config.js?v=3"></script>
+  <script src="auth.js?v=6"></script>
+  <script src="auth-ui.js?v=22"></script>
+  <script src="site-search.js?v=10"></script>
+  <script src="emoji-cycle.js?v=1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="bio-tags.js?v=1"></script>
+  <script src="moderation-client.js?v=1"></script>
+  <script src="communiques-common.js?v=20"></script>
+  <script src="notification-toast.js?v=10"></script>
+  <script src="push-notifications.js?v=1"></script>
+  <script src="im-window.js?v=10"></script>
+  <script src="friends-list.js?v=2"></script>
+  <script src="post.js?v=1"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="page-hits.js?v=1"></script>
+</body>
+</html>

@@ -227,7 +227,8 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if request.auth != null;
 
-        // Capped at 100 comments per post (Chris, 2026-08-15) and gated
+        // Capped at 10,000 comments per post (Chris, 2026-08-15; raised from
+        // 100 on 2026-10-13 - 100 pages of 100 on post.html) and gated
         // by the same requireFriendToPost setting as top-level posts
         // (Chris, 2026-08-17) - both checked in canCreateComment() below
         // off a single fetch of the parent post, since a comment lands on
@@ -587,10 +588,10 @@ service cloud.firestore {
     // gated by the same requireFriendToPost setting as canPostToWall()
     // above - fetches the parent post once for both the friendship check
     // (against its profileUid, i.e. the Wall it's actually on) and the
-    // existing 100-comment cap, rather than two separate get() calls.
+    // existing 10,000-comment cap, rather than two separate get() calls.
     function canCreateComment(sender, postId) {
       let post = get(/databases/$(database)/documents/wallPosts/$(postId)).data;
-      return post.commentCount < 100 && canPostToWall(sender, post.profileUid);
+      return post.commentCount < 10000 && canPostToWall(sender, post.profileUid);
     }
 
     function validBody(body) {

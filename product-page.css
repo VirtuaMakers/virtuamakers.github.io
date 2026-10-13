@@ -741,6 +741,18 @@
   white-space: pre-wrap;
 }
 
+.wall-comments-view-all {
+  display: inline-block;
+  margin: 0.4rem 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wall-comments-view-all:hover {
+  text-decoration: underline;
+}
+
 .wall-comment-form {
   display: flex;
   flex-direction: column;
