@@ -18,7 +18,7 @@
 // file for what happens in the gap before that's done.
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
-const { onDocumentCreated, onDocumentWritten } = require("firebase-functions/v2/firestore");
+const { onDocumentCreated, onDocumentWritten, onDocumentUpdated, onDocumentDeleted } = require("firebase-functions/v2/firestore");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
@@ -391,11 +391,13 @@ exports.cleanupAbandonedSignups = onSchedule("every 24 hours", async () => {
 // original post's author (not the Wall owner, if those differ).
 
 exports.notifyOnDialogMessage = onDocumentCreated(
-  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [resendApiKey] },
+  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [moderationApiKey, resendApiKey] },
   async (event) => {
     const message = event.data.data();
-    await markActive(message.authorUid); // Friends List 📨 presence - see lib/presence.js
     const conversationId = event.params.conversationId;
+    // Server-side moderation first - a removed message notifies nobody.
+    if (await removeIfBlocked(event.data.ref, message, "dialogMessage", { conversationId })) return;
+    await markActive(message.authorUid); // Friends List 📨 presence - see lib/presence.js
     const conversationSnap = await admin.firestore()
       .collection("conversations").doc(conversationId).get();
     if (!conversationSnap.exists) return;
@@ -418,9 +420,10 @@ exports.notifyOnDialogMessage = onDocumentCreated(
 );
 
 exports.notifyOnWallPost = onDocumentCreated(
-  { document: "wallPosts/{postId}", secrets: [resendApiKey] },
+  { document: "wallPosts/{postId}", secrets: [moderationApiKey, resendApiKey] },
   async (event) => {
     const post = event.data.data();
+    if (await removeIfBlocked(event.data.ref, post, "wallPost", { profileUid: post.profileUid })) return;
     await markActive(post.authorUid); // Friends List 📨 presence - see lib/presence.js
     if (!post.profileUid) return;
 
@@ -445,9 +448,10 @@ exports.notifyOnWallPost = onDocumentCreated(
 const THREAD_NOTIFY_LIMIT = 25;
 
 exports.notifyOnWallComment = onDocumentCreated(
-  { document: "wallPosts/{postId}/comments/{commentId}", secrets: [resendApiKey] },
+  { document: "wallPosts/{postId}/comments/{commentId}", secrets: [moderationApiKey, resendApiKey] },
   async (event) => {
     const comment = event.data.data();
+    if (await removeIfBlocked(event.data.ref, comment, "wallComment", { postId: event.params.postId })) return;
     await markActive(comment.authorUid); // Friends List 📨 presence - see lib/presence.js
     const postRef = admin.firestore().collection("wallPosts").doc(event.params.postId);
     const postSnap = await postRef.get();
@@ -834,6 +838,127 @@ exports.moderateImage = onCall({ secrets: [moderationApiKey, resendApiKey] }, as
   });
 
   return { decision, logId: ref.id };
+});
+
+// Server-side moderation (Communiqués 📨 - Session 3, 2026-10-13, bug 1 of
+// Session 2's deep search). The checks above run only when a member's own
+// browser asks for them (moderation-client.js), so a direct Firestore SDK
+// write - or an old cached page - skipped moderation entirely. Every Wall
+// post, Wall comment and Dialog message is now checked again here, after
+// it's saved: if it would have been blocked, it's removed (a new post) or
+// put back to its previous wording (an edit), logged to moderationLog
+// exactly like a browser-side block (so the same appeal flow and
+// republishModeratedContent() work), and Chris is emailed. Only blocks act
+// here - a flag already saves normally, and the browser-side check logs it.
+// Fails open like everything else: no API key, or an API error, leaves the
+// content alone.
+async function blockDecision(text) {
+  if (typeof text !== "string" || !text) return null;
+  try {
+    const result = await analyzeText(text);
+    return result.decision === "block" ? result : null;
+  } catch (err) {
+    console.error("Server-side moderation check failed (failing open):", err.message);
+    return null;
+  }
+}
+
+async function logServerBlock({ uid, contentType, text, scores, context }) {
+  const authorName = await resolveDisplayName(uid);
+  const ref = admin.firestore().collection("moderationLog").doc();
+  await writeModerationLog(ref, {
+    uid, authorName, contentType, decision: "block", text, scores,
+    context: Object.assign({}, context, { caughtOnServer: true }),
+  });
+  await emailAdminOfModeration({
+    logId: ref.id, uid, authorName, contentType, decision: "block",
+    excerpt: text.length > 200 ? text.slice(0, 200) + "…" : text,
+  });
+}
+
+// A Dialog's preview follows its newest remaining message.
+async function refreshConversationPreview(conversationRef) {
+  const newest = await conversationRef.collection("messages").orderBy("createdAt", "desc").limit(1).get();
+  const doc = newest.docs[0];
+  await conversationRef.update(doc ? {
+    lastMessage: doc.get("body") || "",
+    lastMessageAt: doc.get("createdAt") || admin.firestore.FieldValue.serverTimestamp(),
+    lastMessageAuthorUid: doc.get("authorUid") || null,
+  } : { lastMessage: "" });
+}
+
+// Called at the top of each create trigger (notifyOnWallPost, ...): true
+// means the content was blocked and removed, so nobody should be notified.
+async function removeIfBlocked(ref, data, contentType, context) {
+  const blocked = await blockDecision(data && data.body);
+  if (!blocked) return false;
+  await logServerBlock({ uid: data.authorUid, contentType, text: data.body, scores: blocked.scores, context });
+  await ref.delete();
+  if (contentType === "wallComment") {
+    await ref.parent.parent.update({ commentCount: admin.firestore.FieldValue.increment(-1) }).catch(() => {});
+  } else if (contentType === "dialogMessage") {
+    await refreshConversationPreview(ref.parent.parent).catch(() => {});
+  }
+  return true;
+}
+
+// Edits (allowed for 10 minutes) get the same check. A blocked edit is put
+// back to its previous wording rather than deleted - the original already
+// passed.
+async function revertIfBlockedEdit(event, contentType, context) {
+  const before = event.data.before.data();
+  const after = event.data.after.data();
+  if (!after || !before || after.body === before.body) return;
+  const blocked = await blockDecision(after.body);
+  if (!blocked) return;
+  await logServerBlock({
+    uid: after.authorUid, contentType, text: after.body, scores: blocked.scores,
+    context: Object.assign({}, context, { edit: true }),
+  });
+  await event.data.after.ref.update({ body: before.body });
+  if (contentType === "dialogMessage") {
+    await refreshConversationPreview(event.data.after.ref.parent.parent).catch(() => {});
+  }
+}
+
+exports.moderateWallPostEdit = onDocumentUpdated(
+  { document: "wallPosts/{postId}", secrets: [moderationApiKey, resendApiKey] },
+  (event) => revertIfBlockedEdit(event, "wallPost", { profileUid: event.data.after.get("profileUid") })
+);
+
+exports.moderateWallCommentEdit = onDocumentUpdated(
+  { document: "wallPosts/{postId}/comments/{commentId}", secrets: [moderationApiKey, resendApiKey] },
+  (event) => revertIfBlockedEdit(event, "wallComment", { postId: event.params.postId })
+);
+
+exports.moderateDialogMessageEdit = onDocumentUpdated(
+  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [moderationApiKey, resendApiKey] },
+  (event) => revertIfBlockedEdit(event, "dialogMessage", { conversationId: event.params.conversationId })
+);
+
+// A Dialog's lastMessage is written by the sender's own browser, and the
+// conversation rules let a participant change it freely - so it could show
+// text no message ever contained (e.g. a blocked message's words, written
+// after the server removed the message itself). Whenever it changes, it's
+// checked against the newest real message and corrected if they differ.
+// Our own correction re-fires this once and then matches, so no loop.
+exports.guardDialogPreview = onDocumentUpdated("conversations/{conversationId}", async (event) => {
+  const before = event.data.before.data();
+  const after = event.data.after.data();
+  if (!after || before.lastMessage === after.lastMessage) return;
+  const ref = event.data.after.ref;
+  const newest = await ref.collection("messages").orderBy("createdAt", "desc").limit(1).get();
+  const doc = newest.docs[0];
+  const realBody = doc ? (doc.get("body") || "") : "";
+  if ((after.lastMessage || "") === realBody) return;
+  await refreshConversationPreview(ref);
+});
+
+// Deleting a Wall post (its author, within 10 minutes, or the server's own
+// moderation above) used to leave its comments stored forever, orphaned
+// under a post that no longer exists (bug 7 of Session 2's deep search).
+exports.deleteWallPostComments = onDocumentDeleted("wallPosts/{postId}", async (event) => {
+  await admin.firestore().recursiveDelete(event.data.ref.collection("comments"));
 });
 
 // Lets the original author (and only them) flag their own blocked entry
@@ -2230,6 +2355,9 @@ exports.octopusOnDialogMessage = onDocumentCreated(
         const { reply, memories } = await generateOctopusTurn(config, mem.prompt);
         await saveOctopusMemories(mem.vaultSlug, memories, "octopus:dialog");
         if (!reply) continue;
+        // The message being answered may have been removed by server-side
+        // moderation (removeIfBlocked) while the reply was being written.
+        if (!(await event.data.ref.get()).exists) return;
 
         const authorName = await resolveDisplayName(otherUid);
         const result = await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId, automated: true });

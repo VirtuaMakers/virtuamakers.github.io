@@ -85,9 +85,26 @@
     try { sessionStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
     // Only lastActive - writing appearOffline: false here used to undo an
     // "Appear offline" chosen in another open tab within a minute.
-    presenceRef(currentUser.uid).set({
+    var uid = currentUser.uid;
+    var sentAt = Date.now();
+    presenceRef(uid).set({
       lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true }).catch(function () {});
+    }, { merge: true }).then(function () {
+      if (!C.hasServerOffset()) measureServerClock(uid, sentAt, Date.now());
+    }).catch(function () {});
+  }
+
+  // Once per tab: read back the server time that write just stamped, and
+  // keep the gap between it and this computer's clock (see serverNow() in
+  // communiques-common.js). The write landed somewhere between sentAt and
+  // ackAt, so the midpoint is the best local guess for that moment.
+  function measureServerClock(uid, sentAt, ackAt) {
+    presenceRef(uid).get({ source: "server" }).then(function (doc) {
+      var stamp = doc.exists && doc.data().lastActive;
+      if (!stamp || !stamp.toMillis || ackAt - sentAt > 10000) return;
+      C.setServerOffset(stamp.toMillis() - (sentAt + ackAt) / 2);
+      render();
+    }).catch(function () {});
   }
 
   function startHeartbeat() {
@@ -125,12 +142,12 @@
 
   function isOnline(presence) {
     if (!presence || presence.appearOffline || !presence.lastActive || !presence.lastActive.toMillis) return false;
-    return Date.now() - presence.lastActive.toMillis() < ONLINE_MS;
+    return C.serverNow() - presence.lastActive.toMillis() < ONLINE_MS;
   }
 
   function lastSeenText(presence) {
     if (!presence || presence.appearOffline || !presence.lastActive || !presence.lastActive.toMillis) return "Offline";
-    var mins = Math.floor((Date.now() - presence.lastActive.toMillis()) / 60000);
+    var mins = Math.floor((C.serverNow() - presence.lastActive.toMillis()) / 60000);
     if (mins < 60) return "Last seen " + Math.max(mins, 1) + " min ago";
     var hours = Math.floor(mins / 60);
     if (hours < 24) return "Last seen " + hours + " hr ago";
@@ -195,10 +212,48 @@
     try { return localStorage.getItem(SOUNDS_KEY) === "1"; } catch (e) { return false; }
   }
 
+  // Browsers keep a fresh page silent until the visitor clicks or presses
+  // a key on it, and an AudioContext made before that starts "suspended"
+  // and stays that way until resume() is called after a click - which
+  // nothing used to call, so a context made too early stayed silent for
+  // the page's whole life (Communiqués 📨 - Session 3, 2026-10-13). Now
+  // the first click or key press anywhere wakes it, and until then the
+  // list says why there's no sound instead of silently skipping it.
   var audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function audioLocked() {
+    return !audioCtx || audioCtx.state !== "running";
+  }
+
+  function showSoundHint(show) {
+    if (panel && panel.soundHint) panel.soundHint.hidden = !show;
+  }
+
+  function unlockAudio() {
+    if (!soundsOn()) return;
+    try {
+      var ctx = getAudioCtx();
+      var resumed = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+      resumed.then(function () { showSoundHint(false); }).catch(function () {});
+    } catch (e) {}
+  }
+  ["pointerdown", "keydown", "touchstart"].forEach(function (type) {
+    document.addEventListener(type, unlockAudio, { capture: true, passive: true });
+  });
+
   function playDoor(opening) {
     try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioLocked()) {
+        // Not allowed to sound yet - say so; the next click wakes it.
+        showSoundHint(true);
+        if (!audioCtx) return;
+        audioCtx.resume().catch(function () {});
+        if (audioCtx.state !== "running") return;
+      }
       var notes = opening ? [392, 587] : [587, 349];
       notes.forEach(function (freq, i) {
         var t = audioCtx.currentTime + i * 0.16;
@@ -723,11 +778,24 @@
     soundBox.checked = soundsOn();
     soundBox.addEventListener("change", function () {
       try { localStorage.setItem(SOUNDS_KEY, soundBox.checked ? "1" : "0"); } catch (e) {}
-      if (soundBox.checked) playDoor(true); // a quick preview
+      if (!soundBox.checked) { showSoundHint(false); return; }
+      // This click is itself the permission browsers wait for.
+      try {
+        var ctx = getAudioCtx();
+        (ctx.state === "suspended" ? ctx.resume() : Promise.resolve()).then(function () {
+          showSoundHint(false);
+          playDoor(true); // a quick preview
+        }).catch(function () {});
+      } catch (e) {}
     });
     soundLabel.appendChild(soundBox);
     soundLabel.appendChild(document.createTextNode(" 🚪 Door sounds when friends come and go"));
     me.appendChild(soundLabel);
+    var soundHint = document.createElement("p");
+    soundHint.className = "friends-list-sound-hint";
+    soundHint.hidden = true;
+    soundHint.textContent = "🔇 Click anywhere on the page to let door sounds play - browsers keep a new page quiet until you do.";
+    me.appendChild(soundHint);
     el.appendChild(me);
 
     var body = document.createElement("div");
@@ -754,7 +822,7 @@
     wireDrag(el, header);
     requestAnimationFrame(function () { el.classList.add("open"); });
 
-    panel = { el: el, body: body, minBtn: minBtn, select: select, awayInput: awayInput, minimized: false, friendsLoaded: false };
+    panel = { el: el, body: body, minBtn: minBtn, select: select, awayInput: awayInput, soundHint: soundHint, minimized: false, friendsLoaded: false };
     return panel;
   }
 

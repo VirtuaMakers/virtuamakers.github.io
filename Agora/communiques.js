@@ -114,11 +114,19 @@
     return item;
   }
 
+  // Live (Communiqués 📨 - Session 3, 2026-10-13): a plain .get() meant
+  // the unread ● marks and previews only changed on a page reload.
+  var dialogsUnsub = null;
+  function stopDialogs() {
+    if (dialogsUnsub) dialogsUnsub();
+    dialogsUnsub = null;
+  }
+
   function loadDialogs() {
-    return AgoraDB.collection("conversations")
+    stopDialogs();
+    dialogsUnsub = AgoraDB.collection("conversations")
       .where("participants", "array-contains", currentUser.uid)
-      .get()
-      .then(function (snap) {
+      .onSnapshot(function (snap) {
         var docs = snap.docs.slice().sort(function (a, b) {
           var atA = a.data().lastMessageAt;
           var atB = b.data().lastMessageAt;
@@ -132,8 +140,7 @@
         docs.forEach(function (doc) {
           dialogsList.appendChild(renderDialogCard(doc));
         });
-      })
-      .catch(function () {
+      }, function () {
         dialogsEmpty.hidden = false;
         dialogsEmpty.textContent = "Couldn't load Dialogs right now - check your connection and try again.";
       });
@@ -255,6 +262,7 @@
 
   agoraOnAuthChange(function (user) {
     currentUser = user;
+    stopDialogs();
     if (!user) {
       content.hidden = true;
       signedOutNotice.hidden = false;
