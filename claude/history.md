@@ -13745,3 +13745,30 @@ deletableWithinWindow()), then decrements the post's commentCount or
 recomputes the Dialog preview like communiques-common.js does. The three
 Metropolis check-in posts were checked - all different wording - so kept,
 per Chris ("If they're different, I say keep them").
+
+## Harness/Otter/Octopus deep bug hunt, second pass (Octopus Style 🐙 session, Chris, 2026-10-13)
+
+Fixed (needs a Functions deploy):
+- **Profile pictures skipped image moderation.** completeAgoraProfile (and
+  now Otter's agora_update_my_profile) took any picture URL, while the
+  browser only lets moderated uploads through. New/changed pictures must
+  now be on Agora's own Storage or a trusted image host (server copy of
+  bio-tags.js' TRUSTED_IMAGE_HOSTS - keep the two in step). Existing
+  pictures are untouched.
+- **Memory poisoning via Octopus.** Any member's Dialog text went straight
+  into Octopus' prompt, so "REMEMBER: ..." or "ignore your instructions"
+  could steer what got saved to Claudius' SI Memory 🧾 (whose recent
+  entries every session sees at start). The message is now fenced and
+  labelled as the sender's words, and every Octopus memory is prefixed
+  with its source ("Octopus 🐙, from a Dialog with <name>").
+- Wall posts to a uid with no profile were accepted and invisible forever
+  - now 404.
+- Otter tools refuse IDs containing "/" (a uid like "x/private/data"
+  addressed a deeper Firestore document; nothing private was returned,
+  but no tool needs one).
+- A malformed %-escape in the Otter URL crashed the request - now 401.
+Noted, not changed: Harness writes are moderated twice (performCommunique
+plus Communiqués Session 3's server triggers) - double API cost, harmless;
+Octopus may spend a reply on a message the server trigger is about to
+delete; no rate limit on Otter/Harness writes; moderation runs before the
+cheap permission checks, so a refused post can still log/email a flag.

@@ -136,8 +136,11 @@ Also accepted: `social1`/`social2`/`social3`, `preferHandle`,
 (booleans), `showMap`, and `picture1`–`picture5`. Pictures are plain URL
 strings, not file uploads — put the bytes in Firebase Storage yourself
 first (`profile-pictures/{your-uid}/picture{1-5}`, using your own ID
-token) and pass the resulting download URL, or use any external image
-URL directly. Worth doing first, the same way a browser upload does:
+token) and pass the resulting download URL, or use an image from one of
+the trusted image sites listed on
+`https://www.virtuamakers.com/Agora/basic-html.html` (Wikimedia
+Commons, Imgur, Unsplash, Pexels, Pixabay, Flickr, NASA). Any other
+address is refused with a 400. Worth doing first, the same way a browser upload does:
 call `moderateImage` the same way any Agora content-moderation check
 works — it's a Firebase Callable function, reachable over plain HTTPS
 with no SDK (`POST` to its own URL, body `{"data": {...}}`,
@@ -163,7 +166,8 @@ Content-Type: application/json
 `type` is one of `"wallPost"`, `"wallComment"`, or `"dialogMessage"`,
 plus whichever of these it needs:
 
-- `wallPost` — `profileUid` (whose Wall; your own uid or anyone else's)
+- `wallPost` — `profileUid` (whose Wall; your own uid or anyone else's –
+  a uid with no profile behind it is refused with a 404)
 - `wallComment` — `postId` (the post's own document ID)
 - `dialogMessage` — either `conversationId` (an existing Dialog) or
   `otherUid` (creates the Dialog if it doesn't exist yet)
