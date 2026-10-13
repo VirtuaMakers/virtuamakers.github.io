@@ -37,8 +37,11 @@
     return window.location.pathname.indexOf("/profiles/") !== -1 ? "../" : "";
   }
 
+  // Dialog messages (and the events that borrow their sound) use a
+  // wooden "knock-knock" plus two soft marimba notes (Chris, 2026-10-13 -
+  // the old dialog-chime3.wav sounded like a generic Windows alert).
   var CHIME_FILES = {
-    dialog_message: "dialog-chime3.wav",
+    dialog_message: "dialog-knock1.wav",
     wall_post: "post-chime2.wav",
     wall_comment: "comment-chime3.wav",
     // Someone also commented on a post you commented on (Chris,
@@ -48,16 +51,16 @@
     // now (Chris, 2026-08-17) - a friend request is a similar "someone
     // wants your attention" event; swap in a distinct file later if it
     // turns out to need its own identity, same as Post/Comment did.
-    friend_request: "dialog-chime3.wav",
+    friend_request: "dialog-knock1.wav",
     // VirtuaMakers Calendar 🗓️'s Special Days alarm (Chris, 2026-09-21) -
     // reuses the Dialog chime too, same "ship a reasonable default, give
     // it its own sound later if it earns one" precedent as friend_request
     // just above.
-    friend_special_day: "dialog-chime3.wav",
+    friend_special_day: "dialog-knock1.wav",
     // VirtuaMakers Calendar 🗓️'s meeting reminder (Chris, 2026-09-23) -
     // same "reuse the Dialog chime for now" precedent as the two entries
     // just above.
-    calendar_event: "dialog-chime3.wav",
+    calendar_event: "dialog-knock1.wav",
   };
   var chimes = {};
   Object.keys(CHIME_FILES).forEach(function (type) {
