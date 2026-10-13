@@ -399,10 +399,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `readAt`, thread replies and account cleanup needs the complete
   `firestore.rules` pasted in the console and `firebase deploy --only
   functions`. Session 2 wasn't sure Chris had applied it yet - ask him.
-- [ ] **[Communiqués 📨 session] Bugs found in Session 2's deep search -
-  all 7 fixed in Communiqués 📨 Session 3 (2026-10-13), waiting on Chris's
-  deploy (complete `firestore.rules` paste + `firebase deploy --only
-  functions`) and his confirmation.** See `claude/history.md` ("Session 2's
+- [x] **[Communiqués 📨 session] Bugs found in Session 2's deep search -
+  all 7 fixed in Communiqués 📨 Session 3 (2026-10-13); rules pasted,
+  Functions deployed, closed by Chris (2026-10-13).** See `claude/history.md` ("Session 2's
   seven deep-search bugs fixed"). Was:
   1. Moderation runs only in the visitor's browser
      (`AgoraModeration.checkText`); a direct Firestore SDK write skips it.
@@ -455,6 +454,21 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   database." When it exists, add its host to `TRUSTED_IMAGE_HOSTS` so
   GifLM GIFs work in Communiqués 📨. Belongs to "Guardian 🟩 / Melon
   Drive 🍈 - Session 1" (Chris renamed the Guardian session, 2026-10-13).
+- [ ] **[Communiqués 📨 session] Door-knock test, still to do (Chris,
+  2026-10-13)** - three test Dialogs from Claude didn't play a sound on
+  Chris's laptop. Session 3 then moved the sounds to Web Audio (woken by
+  the first click) and replaced the chime with a wooden knock
+  (`Agora/assets/dialog-knock1.wav`). Retest together: the knock, the
+  regular chat window popping up minimized with a ●, the gray "new since"
+  line, and the door sounds 🚪 when a friend comes online. Session 3 sent
+  test Dialogs with a sign-in script (requestAgoraSignIn → oobCode →
+  submitAgoraCommunique, using `AI_EMAIL_CLAUDE_TOKEN`).
+- [ ] **[Communiqués 📨 session] Reconsider the small window for Dialogs
+  on phones (Chris, 2026-10-13)** - incoming Dialogs now always open the
+  regular chat window (`im-window.js` popIncoming), the small toast only
+  shows Wall/comment/friend/reminder notices. On a phone only one window
+  fits, so the old small toast (with its quick reply box) might suit
+  phones better. Left as is for now.
 - [ ] **[Communiqués 📨 session] More Friends List Options (Chris,
   2026-10-13)** - the footer's new "Options" box holds the away message
   and door sounds (on by default) so far; come up with more options to
