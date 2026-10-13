@@ -139,6 +139,7 @@
   function setMinimized(win, minimized) {
     if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
+    if (!minimized) win.el.classList.remove("im-window-unread");
     if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid, win.newestId ? win.newestId() : undefined);
     win.el.classList.toggle("im-window-minimized", minimized);
     var label = minimized ? "Restore" : "Minimize";
@@ -506,6 +507,13 @@
       .orderBy("createdAt", "desc")
       .limit(RECENT_MESSAGE_LIMIT)
       .onSnapshot(function (snap) {
+        // A new message from the other person while minimized lights the
+        // header up until the window is opened (cleared in setMinimized).
+        var newest = snap.docs[0];
+        if (win.minimized && lastSnap && newest && newest.id !== newestId()
+          && newest.data().authorUid !== currentUser.uid) {
+          win.el.classList.add("im-window-unread");
+        }
         lastSnap = snap;
         // An open (not minimized) window counts as reading the Dialog -
         // clears its unread mark in the Friends List 📨.
@@ -587,5 +595,28 @@
     });
   }
 
-  global.AgoraIMWindow = { open: openWindow, isOpenFor: isOpenFor, occupiedCornerHeight: occupiedCornerHeight };
+  // An incoming Dialog message (Chris, 2026-10-13): instead of the small
+  // fixed toast, the real, movable window pops up - minimized and lit up,
+  // so it doesn't cover the page or count as read until it's opened.
+  // A window already open for that person just shows the message itself.
+  function popIncoming(currentUser, otherUid, otherName) {
+    var existing = windows[otherUid];
+    if (existing) {
+      if (existing.minimized) existing.el.classList.add("im-window-unread");
+      return;
+    }
+    openWindow(currentUser, otherUid, otherName);
+    var win = windows[otherUid];
+    if (!win) return;
+    setMinimized(win, true);
+    win.el.classList.add("im-window-unread");
+  }
+
+  global.AgoraIMWindow = {
+    open: openWindow,
+    popIncoming: popIncoming,
+    isNarrow: isNarrowViewport,
+    isOpenFor: isOpenFor,
+    occupiedCornerHeight: occupiedCornerHeight,
+  };
 })(window);

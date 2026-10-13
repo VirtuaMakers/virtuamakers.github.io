@@ -2770,6 +2770,16 @@ button.dm-item {
   border-bottom: none;
 }
 
+/* A minimized window with a message you haven't opened yet. */
+.im-window-unread .im-window-header {
+  background: var(--accent-soft);
+}
+
+.im-window-unread .im-window-title::before {
+  content: "● ";
+  color: var(--blue);
+}
+
 /* Fullscreen: fills most of the viewport, overriding any dragged
    left/top position or the resting right/bottom corner anchor. */
 .im-window.im-window-maximized {
@@ -3082,6 +3092,54 @@ button.dm-item {
   padding: 0.5rem 0.9rem;
   border-top: 1px solid var(--line);
   font-size: 0.8rem;
+}
+
+.friends-list-footer a {
+  display: block;
+}
+
+.friends-list-options-btn {
+  display: block;
+  margin-top: 0.3rem;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.friends-list-options-btn:hover {
+  text-decoration: underline;
+}
+
+/* The little Options window, opened from the footer (Chris, 2026-10-13). */
+.friends-list-options {
+  margin: 0 0.6rem 0.5rem;
+  padding: 0.45rem 0.6rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.35);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.friends-list-options[hidden] {
+  display: none;
+}
+
+.friends-list-options-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.friends-list-minimized .friends-list-options {
+  display: none;
 }
 
 /* Incoming friend requests answered right in the Friends List 📨. */
