@@ -230,11 +230,9 @@
 
     setOptionalField("member-bio-wrap", data.bio);
     var bioEl = document.getElementById("member-bio");
-    if (data.bio && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
-      bioEl.innerHTML = DOMPurify.sanitize(data.bio, {
-        ALLOWED_TAGS: AgoraBioTags.ALLOWED_TAGS,
-        ALLOWED_ATTR: AgoraBioTags.ALLOWED_ATTR,
-      });
+    var cleanBio = data.bio && typeof AgoraBioTags !== "undefined" ? AgoraBioTags.sanitize(data.bio) : null;
+    if (cleanBio !== null) {
+      bioEl.innerHTML = cleanBio;
     } else {
       bioEl.textContent = data.bio || "";
     }

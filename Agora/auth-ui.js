@@ -196,6 +196,21 @@
   // too (Chris, 2026-09-26), a third case appeared: a page outside /Agora/
   // entirely, which needs those same links prefixed with "Agora/" instead
   // of resolving relative to its own (wrong) directory.
+  // Speed (Chris, 2026-10-13): the header, the hero greeting and the
+  // "finish your profile" check below each used to fetch the signed-in
+  // member's own profile separately - three identical round trips on
+  // every page. One shared fetch per page now; other scripts can reuse it
+  // through window.agoraOwnProfile(uid).
+  var ownProfilePromises = {};
+  function ownProfile(uid) {
+    if (!ownProfilePromises[uid]) {
+      ownProfilePromises[uid] = AgoraDB.collection("profiles").doc(uid).get();
+      ownProfilePromises[uid].catch(function () { delete ownProfilePromises[uid]; });
+    }
+    return ownProfilePromises[uid];
+  }
+  if (typeof AgoraDB !== "undefined") window.agoraOwnProfile = ownProfile;
+
   function agoraBase() {
     var p = window.location.pathname;
     if (p.indexOf("/profiles/") !== -1) return "../";
@@ -363,7 +378,7 @@
         reveal(user.displayName || "friend");
         return;
       }
-      AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+      ownProfile(user.uid).then(function (doc) {
         if (!doc.exists) {
           reveal(user.displayName || "friend");
           return;
@@ -410,7 +425,7 @@
   if (!onFormPage && typeof AgoraDB !== "undefined") {
     agoraOnAuthChange(function (user) {
       if (!user) return;
-      AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+      ownProfile(user.uid).then(function (doc) {
         if (!doc.exists) window.location.href = agoraBase() + "create-profile.html";
       });
     });

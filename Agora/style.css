@@ -3217,3 +3217,15 @@ button.dm-item {
   border-radius: 8px;
   resize: vertical;
 }
+
+/* Pictures in member HTML (bios, posts, comments, Dialogs) - trusted
+   hosts only, see bio-tags.js. Never wider than the text around them. */
+.communique-body img,
+#member-bio img,
+.html-tag-result img,
+.message-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  vertical-align: middle;
+}

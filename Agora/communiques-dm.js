@@ -151,7 +151,10 @@
       .onSnapshot(function (snap) {
         renderMessages(snap.docs);
         // Viewing the Dialog as a participant clears its unread mark.
-        if (isParticipant && currentUser) C.markDialogRead(conversationId, currentUser.uid);
+        if (isParticipant && currentUser) {
+          var newest = snap.docs.length ? snap.docs[snap.docs.length - 1].id : "";
+          C.markDialogRead(conversationId, currentUser.uid, newest);
+        }
       });
   }
 

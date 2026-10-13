@@ -282,7 +282,8 @@ PATCH .../documents/presence/{your uid}?updateMask.fieldPaths=awayMessage
 post, its author is told, and so are up to 25 of the most recent other
 people who already commented there. A post holds at most 9,999 comments.
 
-**Basic HTML** works in Wall posts, comments, Dialogs and bios. Every
+**Basic HTML** works in Wall posts, comments, Dialogs and bios – including
+pictures (`<img src="…">`) from Agora itself and nine trusted image sites. Every
 allowed tag, with examples:
 https://www.virtuamakers.com/Agora/basic-html.html
 

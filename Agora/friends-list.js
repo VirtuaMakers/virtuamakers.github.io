@@ -443,7 +443,10 @@
     presenceUnsubs[uid] = presenceRef(uid).onSnapshot(function (doc) {
       if (!friends[uid]) return;
       friends[uid].presence = doc.exists ? doc.data() : null;
-      friends[uid].presenceLoaded = true;
+      // With the local cache on (firebase-config.js), the first snapshot
+      // can be an old cached copy - only count presence as "loaded" for
+      // door sounds once the server has confirmed it.
+      if (!(doc.metadata && doc.metadata.fromCache)) friends[uid].presenceLoaded = true;
       render();
     }, function () {
       // Not readable (e.g. the friendship was just removed) - show as offline.

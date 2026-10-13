@@ -139,7 +139,7 @@
   function setMinimized(win, minimized) {
     if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
-    if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid);
+    if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid, win.newestId ? win.newestId() : undefined);
     win.el.classList.toggle("im-window-minimized", minimized);
     var label = minimized ? "Restore" : "Minimize";
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
@@ -476,44 +476,59 @@
     requestAnimationFrame(function () { el.classList.add("open"); });
     writePersisted();
 
+    // Speed (Chris, 2026-10-13): a Dialog's id is just the two uids, so the
+    // messages listener starts right away - in parallel with creating/
+    // reading the conversation doc - instead of after two round trips. On
+    // a page change, a restored window shows its messages (from the local
+    // cache, see firebase-config.js) almost at once. Bubbles are re-drawn
+    // when the conversation's participant names arrive.
+    var conversationRef = AgoraDB.collection("conversations").doc(C.conversationIdFor(currentUser.uid, otherUid));
+    var lastSnap = null;
+    function newestId() {
+      return lastSnap && lastSnap.docs.length ? lastSnap.docs[0].id : "";
+    }
+    win.newestId = newestId;
+
+    function renderMessages() {
+      if (!lastSnap || windows[otherUid] !== win) return;
+      messages.textContent = "";
+      if (!lastSnap.docs.length) {
+        messages.textContent = "No messages yet - say hello!";
+        return;
+      }
+      lastSnap.docs.slice().reverse().forEach(function (doc) {
+        messages.appendChild(buildBubble(win, doc));
+      });
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    win.unsubscribeMessages = conversationRef.collection("messages")
+      .orderBy("createdAt", "desc")
+      .limit(RECENT_MESSAGE_LIMIT)
+      .onSnapshot(function (snap) {
+        lastSnap = snap;
+        // An open (not minimized) window counts as reading the Dialog -
+        // clears its unread mark in the Friends List 📨.
+        if (!win.minimized && win.conversationId) C.markDialogRead(win.conversationId, currentUser.uid, newestId());
+        renderMessages();
+      }, function () {});
+
     C.startOrOpenDialog(currentUser, otherUid, otherName).then(function (conversationId) {
       if (windows[otherUid] !== win) return; // closed while this was in flight
       win.conversationId = conversationId;
       sendBtn.disabled = false;
       expandLink.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      if (!win.minimized && lastSnap) C.markDialogRead(conversationId, currentUser.uid, newestId());
 
-      var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
-
-      // Read the conversation doc's own participants/participantNames
-      // once before rendering any message - buildBubble() needs both to
-      // know who's who and what color each speaker gets (same sorted-
-      // participants order communiques-dm.html uses), and resolving this
-      // first (rather than in parallel with the messages listener) avoids
-      // a brief window where a bubble would render with no real name.
-      conversationRef.get().then(function (doc) {
+      // participants/participantNames tell buildBubble() who's who and
+      // which colour each speaker gets (same sorted-participants order
+      // communiques-dm.html uses).
+      return conversationRef.get().then(function (doc) {
         if (windows[otherUid] !== win) return;
         var data = doc.data() || {};
         win.participants = data.participants || win.participants;
         win.participantNames = data.participantNames || win.participantNames;
-
-        win.unsubscribeMessages = conversationRef.collection("messages")
-          .orderBy("createdAt", "desc")
-          .limit(RECENT_MESSAGE_LIMIT)
-          .onSnapshot(function (snap) {
-            // An open (not minimized) window counts as reading the Dialog -
-            // clears its unread mark in the Friends List 📨.
-            if (!win.minimized) C.markDialogRead(win.conversationId, currentUser.uid);
-            messages.textContent = "";
-            if (!snap.docs.length) {
-              messages.textContent = "No messages yet - say hello!";
-              return;
-            }
-            snap.docs.slice().reverse().forEach(function (doc) {
-              messages.appendChild(buildBubble(win, doc));
-            });
-            messages.scrollTop = messages.scrollHeight;
-          });
-
+        renderMessages();
         textarea.focus();
       });
     }).catch(function (err) {

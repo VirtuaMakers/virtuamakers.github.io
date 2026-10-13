@@ -18,7 +18,10 @@
   }
 
   function getDisplayName(user) {
-    return AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+    var fetchProfile = typeof window.agoraOwnProfile === "function"
+      ? window.agoraOwnProfile(user.uid)
+      : AgoraDB.collection("profiles").doc(user.uid).get();
+    return fetchProfile.then(function (doc) {
       if (!doc.exists) return user.displayName || "Member";
       var data = doc.data();
       return (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || user.displayName || "Member");
@@ -105,8 +108,16 @@
   // otherwise every old Dialog would light up as "new" on day one.
   var READ_TRACKING_SINCE = Date.UTC(2026, 9, 13);
 
-  function markDialogRead(conversationId, uid) {
+  // latestMessageId (optional): the newest message on screen. Only one
+  // write per new message - re-renders of the same messages don't write
+  // again.
+  var lastMarkedMessage = {};
+  function markDialogRead(conversationId, uid, latestMessageId) {
     if (!conversationId || !uid) return;
+    if (latestMessageId !== undefined) {
+      if (lastMarkedMessage[conversationId] === latestMessageId) return;
+      lastMarkedMessage[conversationId] = latestMessageId;
+    }
     var update = {};
     update["readAt." + uid] = firebase.firestore.FieldValue.serverTimestamp();
     AgoraDB.collection("conversations").doc(conversationId).update(update).catch(function () {});
@@ -281,11 +292,9 @@
   }
 
   function sanitizeBody(el, raw) {
-    if (raw && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
-      el.innerHTML = DOMPurify.sanitize(raw, {
-        ALLOWED_TAGS: AgoraBioTags.ALLOWED_TAGS,
-        ALLOWED_ATTR: AgoraBioTags.ALLOWED_ATTR,
-      });
+    var clean = raw && typeof AgoraBioTags !== "undefined" ? AgoraBioTags.sanitize(raw) : null;
+    if (clean !== null) {
+      el.innerHTML = clean;
     } else {
       el.textContent = raw || "";
     }

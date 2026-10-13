@@ -13547,3 +13547,45 @@ the speed item) plus a new page for Basic HTML.
 - Needs: complete rules paste (presence `awayMessage`, conversations
   comment) + Functions deploy. Tested in headless Chromium with a mocked
   Firebase.
+
+## Pictures from trusted image sites, and the speed pass (Communiqués 📨 Session 2, Chris, 2026-10-13)
+
+**Pictures.** Chris asked whether images work with basic HTML (they didn't:
+`<img>` wasn't allowed), then asked for nine trusted image sources besides
+Agora itself. `bio-tags.js` v3 now allows `<img src alt>` and holds
+`TRUSTED_IMAGE_HOSTS`: Agora itself (virtuamakers.com, virtuamakers.github.io,
+our own Firebase Storage bucket), Wikimedia Commons, Imgur, Unsplash, Pexels,
+Pixabay, Flickr, GIPHY, Tenor, NASA Image Library. Only `https` is accepted,
+matched on the exact host (so `i.imgur.com.evil.com` fails). A new shared
+`AgoraBioTags.sanitize()` installs the DOMPurify hooks once: it removes
+untrusted `<img>`, and adds `loading=lazy`, `decoding=async` and
+`referrerpolicy=no-referrer` to the rest. It replaced the three separate
+`DOMPurify.sanitize` calls (`communiques-common.js` sanitizeBody,
+`member.js` bio, `basic-html.html` "Try it"). The guide has a new `<img>`
+card whose host list is generated from the same array. CSS keeps pictures
+within the text width (Agora `style.css` v109, `product-page.css` v10).
+`skill.md` mentions it. Chris's long-term plan: Agora's own better hosting
+with a growing allowance (10, then 50…), and GIFs from Melon Drive 🍈 some
+day; both filed as To Do recommendations.
+
+**Speed (item 6 from the earlier list).** Agora is separate pages, so every
+click restarted Firebase from nothing. Changes:
+- `firebase-config.js` v4: `enablePersistence({ synchronizeTabs: true })`.
+  Live views (Dialog windows, Friends List, toasts) paint from the local
+  cache straight away, then update from the server. Door sounds only count
+  server-confirmed presence (`metadata.fromCache`), so a stale cached copy
+  can't "open the door".
+- `auth-ui.js` v23: the signed-in member's own profile is fetched once per
+  page (`ownProfile`, exposed as `window.agoraOwnProfile`), not three times;
+  `getDisplayName` reuses it.
+- `im-window.js` v14: the messages listener starts immediately (the
+  conversation id is just the two uids) instead of after two round trips.
+  Bubbles re-render when participant names arrive.
+- `markDialogRead(conversationId, uid, latestMessageId)` writes only when a
+  newer message is on screen (found in testing: re-renders were re-writing
+  the same read marker).
+- All 83 Firebase pages preconnect to gstatic, Firestore and the two
+  Firebase Auth hosts while the HTML loads.
+No rules or Functions changes this round. Tested in headless Chromium
+(mocked Firebase): pictures, the guide, the Friends List, comments, friend
+requests.

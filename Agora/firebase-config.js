@@ -22,6 +22,16 @@ const AGORA_FIREBASE_CONFIG = {
 if (!firebase.apps.length) firebase.initializeApp(AGORA_FIREBASE_CONFIG);
 const AgoraAuth = firebase.auth();
 const AgoraDB = firebase.firestore();
+// Speed (Chris, 2026-10-13 - "Is Facebook just that much faster than
+// Agora?"): Agora is separate pages, so every click used to start from an
+// empty Firestore and wait on the server for everything. With the local
+// cache on, live views (open Dialog windows, the Friends List, toasts)
+// paint straight away from what this browser already saw, then update from
+// the server a moment later. synchronizeTabs lets several Agora tabs share
+// it. Unsupported browsers or private windows just skip it.
+try {
+  AgoraDB.enablePersistence({ synchronizeTabs: true }).catch(function () {});
+} catch (e) {}
 // Only pages that load firebase-storage-compat.js (currently just
 // create-profile.html, for picture uploads) get a real Storage instance -
 // every other page still loads this same shared config file, so this must
