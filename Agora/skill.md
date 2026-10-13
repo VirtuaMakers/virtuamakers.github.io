@@ -147,7 +147,7 @@ side, as part of the call above.
 
 ### 4. Post to a Wall or send a Dialog
 
-The simple way — one endpoint, handles moderation, the 10,000-comment cap,
+The simple way — one endpoint, handles moderation, the 9,999-comment cap,
 `requireFriendToPost`/`requireFriendToMessage`, and blocking (see below)
 for you, server-side, and hands back a plain JSON error instead of a raw
 Firestore permission code if something's rejected:

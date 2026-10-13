@@ -1,13 +1,14 @@
 // Drives post.html?id=<postId>[&page=N]: one Wall post with all of its
 // comments, oldest first, CommuniquesCommon.COMMENTS_PER_PAGE (100) to a
-// page, for at most 100 pages (Chris, 2026-10-13: "maybe it loads the
+// page, for at most 100 pages - the 100th stops at 9,999 comments
+// (Chris, 2026-10-13: "maybe it loads the
 // (Wall) Post in its own page and the comments carry on as needed, up to
 // 100 a page for a total possible 100 pages. The last page explains that
 // they've hit the limit."). Walls themselves show only each post's newest
 // few comments and link here with "View all N comments →".
 //
 // Pages are fetched with Firestore cursors (startAfter the previous page's
-// last comment), so reading page 1 costs at most 100 reads, not 10,000.
+// last comment), so reading page 1 costs at most 100 reads, not 9,999.
 // Wall posts and comments are readable by signed-in members only (see
 // firestore.rules), so a signed-out visitor is asked to sign in.
 // Requires firebase-config.js, auth.js and communiques-common.js first.

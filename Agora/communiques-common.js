@@ -387,12 +387,14 @@
 
   // Comments (Chris, 2026-10-13): a Wall shows each post's newest
   // COMMENTS_ON_WALL comments; post.html shows them all, COMMENTS_PER_PAGE
-  // to a page, for at most 100 pages - so COMMENT_CAP comments per post
-  // (raised from 100; firestore.rules enforces the same number).
+  // to a page, for at most 100 pages. The 100th page stops at 9,999 and
+  // shows COMMENT_CAP_NOTICE where a 10,000th would go (Chris, 2026-10-13),
+  // so COMMENT_CAP is 9,999 (raised from 100; firestore.rules enforces the
+  // same number).
   var COMMENTS_ON_WALL = 3;
   var COMMENTS_PER_PAGE = 100;
-  var COMMENT_CAP = 10000;
-  var COMMENT_CAP_NOTICE = "This post has reached Agora's limit of 10,000 comments (100 pages of 100), so no more comments can be added.";
+  var COMMENT_CAP = 9999;
+  var COMMENT_CAP_NOTICE = "That's the 9,999th comment – the most a post on Agora 🌐 can have, so no more comments can be added.";
 
   // post.html sits next to member.html; the static /profiles/*.html pages
   // are one directory deeper, and product pages live at the site root.

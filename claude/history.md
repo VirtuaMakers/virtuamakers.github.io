@@ -13493,3 +13493,10 @@ explaining the limit.
 - Tested in headless Chromium with a mocked Firebase (250-comment post:
   Wall shows #248–250; pages of 100/100/50; deep link `?page=2`; a full
   post's page 100 shows the notice and no form).
+- **Cap changed to 9,999, same day (Chris: "The final (100th) page, however,
+  will not display a 10,000th comment, only going to 9,999").** Where a
+  10,000th comment would go, the last page shows "That's the 9,999th
+  comment – the most a post on Agora 🌐 can have, so no more comments can be
+  added." `COMMENT_CAP` = 9,999 in `communiques-common.js` (v21) and
+  `functions/index.js`; rules `commentCount < 9999`; the milestone email
+  and `skill.md` say 9,999.
