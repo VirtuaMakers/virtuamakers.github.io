@@ -789,7 +789,7 @@
       } catch (e) {}
     });
     soundLabel.appendChild(soundBox);
-    soundLabel.appendChild(document.createTextNode(" 🚪 Door sounds when friends come and go"));
+    soundLabel.appendChild(document.createTextNode(" Door sounds when friends come & go"));
     me.appendChild(soundLabel);
     var soundHint = document.createElement("p");
     soundHint.className = "friends-list-sound-hint";

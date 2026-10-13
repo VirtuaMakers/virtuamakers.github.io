@@ -2573,6 +2573,39 @@ button.dm-item {
   width: min(390px, 67.5vw);
 }
 
+/* The full Dialog page (communiques-dm.html) - mostly read by fellow
+   members flipping through someone else's Dialog (Chris, 2026-10-13):
+   smaller text, tighter bubbles, and no scroll box of its own, so one
+   page scroll reaches the ← Older / Newer → buttons instead of scrolling
+   the messages and then the page separately. The floating window
+   (.im-window-messages) keeps its own sizes. */
+#dm-conversation .message-list {
+  max-height: none;
+  overflow-y: visible;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+  padding-right: 0;
+}
+
+#dm-conversation .message-bubble {
+  padding: 0.4rem 0.7rem;
+}
+
+#dm-conversation .message-body {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+#dm-conversation .message-sender {
+  font-size: 0.72rem;
+  margin-bottom: 0.1rem;
+}
+
+#dm-conversation .message-time {
+  font-size: 0.68rem;
+  margin-top: 0.15rem;
+}
+
 .dm-pagination {
   display: flex;
   align-items: center;
