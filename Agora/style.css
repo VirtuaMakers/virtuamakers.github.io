@@ -2770,6 +2770,15 @@ button.dm-item {
   border-bottom: none;
 }
 
+/* Separates the earlier chat from messages that came in since you last
+   read the Dialog (im-window.js renderMessages). */
+.im-window-divider {
+  flex-shrink: 0;
+  height: 0;
+  margin: 0.2rem 0;
+  border-top: 1px solid #b9c2c6;
+}
+
 /* A minimized window with a message you haven't opened yet. */
 .im-window-unread .im-window-header {
   background: var(--accent-soft);
