@@ -10,11 +10,13 @@
   var ALLOWED_ATTR = ["href", "src", "alt"];
 
   // Pictures (Chris, 2026-10-13): <img> is allowed, but only from Agora 🌐
-  // itself plus nine trusted image hosts - big, moderated sites that don't
+  // itself plus seven trusted image hosts - big, moderated sites that don't
   // track viewers, so a picture can't be used to spy on readers or slip
   // past moderation. Anything else is removed when the text is shown.
   // Agora will host more of members' own pictures later; this list can
-  // grow too. Each entry: [name shown in the guide, test on the URL].
+  // grow too. GIF sites (GIPHY, Tenor) were left out on purpose (Chris,
+  // 2026-10-13): VirtuaMakers may build its own GIF library (the GifLM
+  // idea, a Guardian 🟩 / Melon Drive 🍈 project). Each entry: [name shown in the guide, test on the URL].
   var TRUSTED_IMAGE_HOSTS = [
     ["Agora 🌐 itself (virtuamakers.com and pictures uploaded to Agora)", function (u) {
       return u.hostname === "www.virtuamakers.com" || u.hostname === "virtuamakers.com"
@@ -28,8 +30,6 @@
     ["Pexels (images.pexels.com)", function (u) { return u.hostname === "images.pexels.com"; }],
     ["Pixabay (cdn.pixabay.com)", function (u) { return u.hostname === "cdn.pixabay.com"; }],
     ["Flickr (live.staticflickr.com)", function (u) { return u.hostname === "live.staticflickr.com"; }],
-    ["GIPHY GIFs (media.giphy.com, i.giphy.com)", function (u) { return /^(media\d?|i)\.giphy\.com$/.test(u.hostname); }],
-    ["Tenor GIFs (media.tenor.com)", function (u) { return u.hostname === "media.tenor.com"; }],
     ["NASA Image Library (images-assets.nasa.gov)", function (u) { return u.hostname === "images-assets.nasa.gov"; }],
   ];
 

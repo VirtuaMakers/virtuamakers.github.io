@@ -13589,3 +13589,8 @@ click restarted Firebase from nothing. Changes:
 No rules or Functions changes this round. Tested in headless Chromium
 (mocked Firebase): pictures, the guide, the Friends List, comments, friend
 requests.
+- **GIF sites removed, same day (Chris: "Can we take out the two .GIF sites
+  for now?").** GIPHY and Tenor left the trusted list (now Agora + seven)
+  while VirtuaMakers considers its own GIF library, "GifLM", a Guardian 🟩 /
+  Melon Drive 🍈 project. Filed as a To Do. `bio-tags.js` v4; guide and
+  `skill.md` say seven.
