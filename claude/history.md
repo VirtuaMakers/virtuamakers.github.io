@@ -13445,3 +13445,10 @@ loaded right after `im-window.js` on all 55 pages that carry it.
 - Tested in headless Chromium against a mocked Firebase (desktop + phone
   width, navigation persistence, Appear offline); `markActive` tested
   against a stubbed firebase-admin.
+- **Fix, same day (Chris: "I click on that and it takes me to my profile.
+  I cannot find the friend request"):** the "N friend requests waiting"
+  line linked to your *own* profile, but Accept/Decline only render on the
+  *requester's*. Each incoming request now shows in the Friends List by
+  name (linked to their profile) with its own Accept/Decline buttons. They
+  make the same writes as `member.js` (`status: "accepted"` + `respondedAt`,
+  or delete). `friends-list.js` v2, `style.css` v106.

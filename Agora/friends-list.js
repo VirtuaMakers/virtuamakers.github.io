@@ -169,7 +169,7 @@
   var friendsUnsub = null;
   var presenceUnsubs = {};
   var friends = {}; // uid -> { name, kind, presence }
-  var pendingIncoming = 0;
+  var pendingIncoming = []; // [{ friendshipId, uid, name }] - requests sent to me
   var roster = null;
   var refreshTimer = null;
 
@@ -229,6 +229,47 @@
     info.setAttribute("aria-label", "View " + entry.name + "'s profile");
     info.textContent = "👤";
     li.appendChild(info);
+    return li;
+  }
+
+  function buildRequestRow(r) {
+    var li = document.createElement("li");
+    li.className = "friends-list-row friends-list-request";
+    var name = document.createElement("a");
+    name.className = "friends-list-request-name";
+    name.href = memberHref(r.uid);
+    name.title = "View " + r.name + "'s profile";
+    name.textContent = r.name;
+    li.appendChild(name);
+
+    var ref = AgoraDB.collection("friendships").doc(r.friendshipId);
+    var accept = document.createElement("button");
+    accept.type = "button";
+    accept.className = "btn btn-sm btn-primary";
+    accept.textContent = "Accept";
+    var decline = document.createElement("button");
+    decline.type = "button";
+    decline.className = "btn btn-sm";
+    decline.textContent = "Decline";
+    function act(promise) {
+      accept.disabled = true;
+      decline.disabled = true;
+      promise.catch(function () {
+        accept.disabled = false;
+        decline.disabled = false;
+        name.textContent = r.name + " – couldn't update, try again";
+      });
+    }
+    // Same writes member.js's own Accept/Decline make: only the
+    // non-requester may flip pending -> accepted (firestore.rules), and
+    // either side may delete.
+    accept.addEventListener("click", function () { act(ref.update({
+        status: "accepted",
+        respondedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      })); });
+    decline.addEventListener("click", function () { act(ref.delete()); });
+    li.appendChild(accept);
+    li.appendChild(decline);
     return li;
   }
 
@@ -294,12 +335,21 @@
     online.sort(function (a, b) { return a.name.localeCompare(b.name); });
     offline.sort(function (a, b) { return (b.seen - a.seen) || a.name.localeCompare(b.name); });
 
-    if (pendingIncoming) {
-      var req = document.createElement("a");
-      req.className = "friends-list-requests";
-      req.href = memberHref(currentUser.uid);
-      req.textContent = "🙂 " + pendingIncoming + (pendingIncoming === 1 ? " friend request" : " friend requests") + " waiting";
-      body.appendChild(req);
+    // Incoming friend requests, answerable right here - Accept/Decline
+    // otherwise only exist on the *requester's* profile page, which the
+    // first version of this linked to the wrong profile for (Chris,
+    // 2026-10-13: "I cannot find the friend request on my profile").
+    if (pendingIncoming.length) {
+      var reqWrap = document.createElement("section");
+      reqWrap.className = "friends-list-group";
+      var reqTitle = document.createElement("p");
+      reqTitle.className = "friends-list-requests";
+      reqTitle.textContent = "🙂 " + pendingIncoming.length + (pendingIncoming.length === 1 ? " friend request" : " friend requests") + " waiting";
+      reqWrap.appendChild(reqTitle);
+      var reqList = document.createElement("ul");
+      pendingIncoming.forEach(function (r) { reqList.appendChild(buildRequestRow(r)); });
+      reqWrap.appendChild(reqList);
+      body.appendChild(reqWrap);
     }
 
     if (!panel.friendsLoaded) {
@@ -342,13 +392,19 @@
       .where("participants", "array-contains", myUid)
       .onSnapshot(function (snap) {
         var next = {};
-        var pending = 0;
+        var pending = [];
         snap.docs.forEach(function (doc) {
           var data = doc.data();
           var otherUid = (data.participants || []).filter(function (p) { return p !== myUid; })[0];
           if (!otherUid) return;
           if (data.status !== "accepted") {
-            if (data.requestedBy !== myUid) pending++;
+            if (data.requestedBy !== myUid) {
+              pending.push({
+                friendshipId: doc.id,
+                uid: otherUid,
+                name: (data.participantNames && data.participantNames[otherUid]) || "Member",
+              });
+            }
             return;
           }
           var prev = friends[otherUid];

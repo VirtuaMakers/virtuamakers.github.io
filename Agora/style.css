@@ -3050,3 +3050,23 @@ button.dm-item {
   border-top: 1px solid var(--line);
   font-size: 0.8rem;
 }
+
+/* Incoming friend requests answered right in the Friends List 📨. */
+.friends-list-request {
+  gap: 0.35rem;
+}
+
+.friends-list-request-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friends-list-request .btn {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+}
