@@ -3099,3 +3099,121 @@ button.dm-item {
 #post-page .dm-pagination {
   margin: 0.8rem 0;
 }
+
+/* Friends List 📨 round 2 (Chris, 2026-10-13): unread Dialogs, away
+   messages, door-sound toggle. */
+.friends-list-row.is-unread .friends-list-name-text {
+  font-weight: 800;
+}
+
+.friends-list-row.is-unread .friends-list-sub {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.friends-list-away {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friends-list-away-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.4rem;
+  padding: 0.25rem 0.45rem;
+  font: inherit;
+  font-size: 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.friends-list-away-note {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+}
+
+.friends-list-sounds {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+/* Unread Dialogs on the Communiqués page. */
+.dm-item-unread .dm-item-name {
+  font-weight: 800;
+  color: var(--blue);
+}
+
+/* Basic HTML guide (basic-html.html, Chris, 2026-10-13). */
+.html-tag-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.html-tag-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.html-tag-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  background: var(--surface);
+  scroll-margin-top: calc(var(--header-height, 72px) + 1rem);
+}
+
+.html-tag-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.html-tag-label {
+  margin: 0.8rem 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.html-tag-code {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.html-tag-result {
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.html-try-input {
+  width: 100%;
+  min-height: 8rem;
+  box-sizing: border-box;
+  padding: 0.6rem 0.8rem;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+}

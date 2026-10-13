@@ -203,7 +203,7 @@
 
   var bioTagsHint = document.getElementById("field-bio-tags-hint");
   if (bioTagsHint && typeof AgoraBioTags !== "undefined") {
-    bioTagsHint.textContent = AgoraBioTags.hint;
+    AgoraBioTags.attachHint(bioTagsHint);
   }
 
   var currentUser = null;

@@ -139,6 +139,7 @@
   function setMinimized(win, minimized) {
     if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
+    if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid);
     win.el.classList.toggle("im-window-minimized", minimized);
     var label = minimized ? "Restore" : "Minimize";
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
@@ -499,6 +500,9 @@
           .orderBy("createdAt", "desc")
           .limit(RECENT_MESSAGE_LIMIT)
           .onSnapshot(function (snap) {
+            // An open (not minimized) window counts as reading the Dialog -
+            // clears its unread mark in the Friends List 📨.
+            if (!win.minimized) C.markDialogRead(win.conversationId, currentUser.uid);
             messages.textContent = "";
             if (!snap.docs.length) {
               messages.textContent = "No messages yet - say hello!";

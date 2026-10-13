@@ -41,6 +41,9 @@
     dialog_message: "dialog-chime3.wav",
     wall_post: "post-chime2.wav",
     wall_comment: "comment-chime3.wav",
+    // Someone also commented on a post you commented on (Chris,
+    // 2026-10-13) - same sound as a comment on your own post.
+    wall_reply: "comment-chime3.wav",
     // Reuses the Dialog chime rather than a dedicated fourth sound for
     // now (Chris, 2026-08-17) - a friend request is a similar "someone
     // wants your attention" event; swap in a distinct file later if it

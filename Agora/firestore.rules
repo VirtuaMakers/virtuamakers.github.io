@@ -146,6 +146,9 @@ service cloud.firestore {
     // joining the `participants` array only grants the ability to send
     // messages and puts it in that member's own inbox, not new read access
     // they didn't already have.
+    // readAt.{uid} (Chris, 2026-10-13) is each participant's own "last
+    // read" time, written by the update rule below like lastMessage is;
+    // it backs the unread marks in the Friends List 📨.
     match /conversations/{conversationId} {
       allow read: if request.auth != null;
 
@@ -300,23 +303,27 @@ service cloud.firestore {
     // about once a minute while open; appearOffline is their own "Appear
     // offline" choice. Readable only by the member and their accepted
     // friends - when you were last on Agora is a private fact, shared
-    // with friends the same way the friendship itself is.
+    // with friends the same way the friendship itself is. awayMessage
+    // (Chris, 2026-10-13) is an optional AIM-style status line, up to 100
+    // characters, shown to those same friends.
     match /presence/{uid} {
       allow read: if request.auth != null
         && (request.auth.uid == uid || isFriendsWith(request.auth.uid, uid));
 
       allow create: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline'])
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
         && (!('lastActive' in request.resource.data) || request.resource.data.lastActive == request.time)
-        && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool);
+        && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && validAwayMessage(request.resource.data);
 
       allow update: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline'])
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastActive'])
             || request.resource.data.lastActive == request.time)
-        && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool);
+        && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && validAwayMessage(request.resource.data);
 
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
@@ -593,6 +600,11 @@ service cloud.firestore {
     function canCreateComment(sender, postId) {
       let post = get(/databases/$(database)/documents/wallPosts/$(postId)).data;
       return post.commentCount < 9999 && canPostToWall(sender, post.profileUid);
+    }
+
+    function validAwayMessage(data) {
+      return !('awayMessage' in data)
+        || (data.awayMessage is string && data.awayMessage.size() <= 100);
     }
 
     function validBody(body) {

@@ -22,4 +22,27 @@ async function markActive(uid) {
   }
 }
 
-module.exports = { markActive };
+// Called when an account is deleted ("Leave Agora" or an admin delete).
+// Without this a departed member stayed in every friend's Friends List 📨
+// forever as a nameless "Offline" friend, and their presence doc
+// lingered. Removes every friendship (accepted or pending) they're part
+// of, plus their presence doc. Best-effort: a failure here is logged and
+// never stops the account deletion itself.
+async function removeFromFriendsLists(uid) {
+  if (!uid) return;
+  const db = admin.firestore();
+  try {
+    const snap = await db.collection("friendships").where("participants", "array-contains", uid).get();
+    const refs = snap.docs.map((doc) => doc.ref);
+    refs.push(db.collection("presence").doc(uid));
+    for (let i = 0; i < refs.length; i += 400) {
+      const batch = db.batch();
+      refs.slice(i, i + 400).forEach((ref) => batch.delete(ref));
+      await batch.commit();
+    }
+  } catch (err) {
+    console.warn("removeFromFriendsLists failed for", uid, err && err.message);
+  }
+}
+
+module.exports = { markActive, removeFromFriendsLists };

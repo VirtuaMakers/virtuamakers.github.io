@@ -96,6 +96,31 @@
   // someone" entry point (a profile's Message button, the hub's New
   // Message search) so the sorted-uid-pair doc ID and participant-doc
   // shape only live in one place.
+  // Unread Dialogs (Chris, 2026-10-13). Each conversation doc keeps
+  // readAt.{uid} = when that participant last had it open; a Dialog is
+  // unread for you when its last message is from the other person and
+  // came after your readAt. Nothing tracked reading before this, so a
+  // last message older than READ_TRACKING_SINCE (or one with no
+  // lastMessageAuthorUid, from before that field existed) counts as read -
+  // otherwise every old Dialog would light up as "new" on day one.
+  var READ_TRACKING_SINCE = Date.UTC(2026, 9, 13);
+
+  function markDialogRead(conversationId, uid) {
+    if (!conversationId || !uid) return;
+    var update = {};
+    update["readAt." + uid] = firebase.firestore.FieldValue.serverTimestamp();
+    AgoraDB.collection("conversations").doc(conversationId).update(update).catch(function () {});
+  }
+
+  function isDialogUnread(data, uid) {
+    if (!data || !data.lastMessage || !data.lastMessageAuthorUid || data.lastMessageAuthorUid === uid) return false;
+    if (!data.lastMessageAt || !data.lastMessageAt.toMillis) return false;
+    var lastAt = data.lastMessageAt.toMillis();
+    if (lastAt < READ_TRACKING_SINCE) return false;
+    var read = data.readAt && data.readAt[uid];
+    return !read || !read.toMillis || read.toMillis() < lastAt;
+  }
+
   function startOrOpenDialog(currentUser, otherUid, otherName) {
     var conversationId = conversationIdFor(currentUser.uid, otherUid);
     var ref = AgoraDB.collection("conversations").doc(conversationId);
@@ -934,6 +959,8 @@
     conversationIdFor: conversationIdFor,
     interlocutorColorClass: interlocutorColorClass,
     startOrOpenDialog: startOrOpenDialog,
+    markDialogRead: markDialogRead,
+    isDialogUnread: isDialogUnread,
     loadMessagableMembers: loadMessagableMembers,
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,

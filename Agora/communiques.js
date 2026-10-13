@@ -89,6 +89,10 @@
     nameEl.className = "dm-item-name";
     nameEl.textContent = label;
     item.appendChild(nameEl);
+    if (C.isDialogUnread(data, currentUser.uid)) {
+      item.classList.add("dm-item-unread");
+      nameEl.textContent = "● " + label;
+    }
 
     if (otherUid) C.tagIfDeletedProfile(nameEl, otherUid);
 
@@ -146,7 +150,12 @@
   // filtered to the two Wall-shaped types client-side instead, matching
   // the established fallback pattern used throughout Communiqués
   // (fetchAcceptedFriendships, etc.).
-  var WALL_TYPES = { wall_post: true, wall_comment: true };
+  var WALL_TYPES = { wall_post: true, wall_comment: true, wall_reply: true };
+  var WALL_LABELS = {
+    wall_post: " posted on your Wall",
+    wall_comment: " commented on your post",
+    wall_reply: " also commented on a post you commented on",
+  };
 
   function loadActivity() {
     return AgoraDB.collection("notifications")
@@ -172,8 +181,7 @@
 
           var nameEl = document.createElement("div");
           nameEl.className = "dm-item-name";
-          nameEl.textContent = data.actorName
-            + (data.type === "wall_comment" ? " commented on your post" : " posted on your Wall");
+          nameEl.textContent = data.actorName + WALL_LABELS[data.type];
           item.appendChild(nameEl);
 
           var previewEl = document.createElement("div");

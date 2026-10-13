@@ -36,7 +36,7 @@ const {
   withCalendarEventContent,
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName } = require("./lib/notify");
-const { markActive } = require("./lib/presence");
+const { markActive, removeFromFriendsLists } = require("./lib/presence");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -132,6 +132,7 @@ exports.adminDeleteUser = onCall({ secrets: [resendApiKey] }, async (request) =>
     });
   }
 
+  await removeFromFriendsLists(uid);
   await profileRef.delete();
   await admin.auth().deleteUser(uid);
   return { success: true };
@@ -195,6 +196,7 @@ exports.selfDeleteAccount = onCall({ secrets: [resendApiKey] }, async (request) 
     });
   }
 
+  await removeFromFriendsLists(uid);
   await profileRef.delete();
   await admin.auth().deleteUser(uid);
   return { success: true };
@@ -433,24 +435,53 @@ exports.notifyOnWallPost = onDocumentCreated(
   }
 );
 
+// Thread replies (Chris, 2026-10-13): besides the post's author, everyone
+// who already commented on the post hears about a new comment too
+// (type "wall_reply") - before this, if you commented on someone's post
+// and they answered you, you never found out. Capped at the
+// THREAD_NOTIFY_LIMIT most recent distinct earlier commenters, so a huge
+// thread can't fan one comment out into thousands of emails. Both kinds
+// link straight to the post's own page (post.html), not the Wall.
+const THREAD_NOTIFY_LIMIT = 25;
+
 exports.notifyOnWallComment = onDocumentCreated(
   { document: "wallPosts/{postId}/comments/{commentId}", secrets: [resendApiKey] },
   async (event) => {
     const comment = event.data.data();
     await markActive(comment.authorUid); // Friends List 📨 presence - see lib/presence.js
-    const postSnap = await admin.firestore()
-      .collection("wallPosts").doc(event.params.postId).get();
+    const postRef = admin.firestore().collection("wallPosts").doc(event.params.postId);
+    const postSnap = await postRef.get();
     if (!postSnap.exists) return;
 
     const post = postSnap.data();
+    const linkPath = "post.html?id=" + encodeURIComponent(event.params.postId);
     await notify({
       recipientUid: post.authorUid,
       actorUid: comment.authorUid,
       type: "wall_comment",
       preview: comment.body,
-      linkPath: "member.html?uid=" + encodeURIComponent(post.profileUid),
+      linkPath,
       pushTitle: (name) => name + " commented on your post",
     });
+
+    const earlier = await postRef.collection("comments")
+      .orderBy("createdAt", "desc").limit(500).select("authorUid").get();
+    const recipients = [];
+    for (const doc of earlier.docs) {
+      const uid = doc.get("authorUid");
+      if (!uid || uid === comment.authorUid || uid === post.authorUid) continue;
+      if (recipients.indexOf(uid) !== -1) continue;
+      recipients.push(uid);
+      if (recipients.length >= THREAD_NOTIFY_LIMIT) break;
+    }
+    await Promise.all(recipients.map((uid) => notify({
+      recipientUid: uid,
+      actorUid: comment.authorUid,
+      type: "wall_reply",
+      preview: comment.body,
+      linkPath,
+      pushTitle: (name) => name + " also commented on a post you commented on",
+    })));
   }
 );
 
@@ -691,7 +722,7 @@ exports.sendNewsletterNow = onCall({ secrets: [resendApiKey] }, async (request) 
 // degradation philosophy as every other Cloud-Functions-dependent feature
 // here - a moderation outage should never be the reason nobody can post.
 
-const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio"];
+const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio", "awayMessage"];
 
 function writeModerationLog(ref, { uid, authorName, contentType, decision, text, scores, context }) {
   return ref.set({

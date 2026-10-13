@@ -29,6 +29,7 @@ const COMMUNIQUE_ACTION_LABELS = {
   dialog_message: "sent you a new Dialog message",
   wall_post: "posted on your Wall",
   wall_comment: "commented on your post",
+  wall_reply: "also commented on a post you commented on",
 };
 
 function stripHtml(html) {
@@ -151,7 +152,7 @@ async function sendFriendRequestEmail(recipientUid, actorName, linkPath) {
 }
 
 // type is one of "dialog_message" | "wall_post" | "wall_comment" |
-// "friend_request" | "friend_special_day" - the client's
+// "wall_reply" | "friend_request" | "friend_special_day" - the client's
 // notification-toast.js switches its chime/click-through on this.
 async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTitle, automated }) {
   if (recipientUid === actorUid) return; // never notify someone about their own action

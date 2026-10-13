@@ -34,7 +34,7 @@
 
   var composeHint = document.getElementById("dm-compose-hint");
   if (composeHint && typeof AgoraBioTags !== "undefined") {
-    composeHint.textContent = AgoraBioTags.hint;
+    AgoraBioTags.attachHint(composeHint);
   }
 
   function showNotice(message) {
@@ -150,6 +150,8 @@
       .orderBy("createdAt", "asc")
       .onSnapshot(function (snap) {
         renderMessages(snap.docs);
+        // Viewing the Dialog as a participant clears its unread mark.
+        if (isParticipant && currentUser) C.markDialogRead(conversationId, currentUser.uid);
       });
   }
 

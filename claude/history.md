@@ -13500,3 +13500,50 @@ explaining the limit.
   added." `COMMENT_CAP` = 9,999 in `communiques-common.js` (v21) and
   `functions/index.js`; rules `commentCount < 9999`; the milestone email
   and `skill.md` say 9,999.
+
+## Communiqués 📨 round: unread Dialogs, thread replies, away messages, door sounds, account cleanup, Basic HTML guide (Communiqués 📨 Session 2, Chris, 2026-10-13)
+
+Chris picked all five suggestions (unread, cleanup, threads, away, sounds; not
+the speed item) plus a new page for Basic HTML.
+
+- **Unread Dialogs:** conversation docs gain `readAt.{uid}`, written by
+  `CommuniquesCommon.markDialogRead()` whenever an un-minimized floating
+  window's messages snapshot fires, or a participant views
+  `communiques-dm.html`. `isDialogUnread()`: last message from the other
+  person, after your readAt. Last messages before 2026-10-13 (or with no
+  `lastMessageAuthorUid`) count as read, so old Dialogs don't all light
+  up. The Friends List bolds friends with "● New Dialog" (unread first) and
+  adds "📨 N unread Dialogs from others →"; `communiques.html` bolds
+  unread Dialogs with ●. The conversations listener only runs while the
+  list is open.
+- **Account cleanup:** `removeFromFriendsLists(uid)` (`functions/lib/presence.js`)
+  deletes every friendship the leaver is in plus their presence doc,
+  called from both `selfDeleteAccount` and `adminDeleteUser`. Before this,
+  departed members stayed in friends' lists as nameless "Offline" rows.
+- **Thread replies:** `notifyOnWallComment` now also notifies up to 25
+  (`THREAD_NOTIFY_LIMIT`) of the most recent distinct earlier commenters,
+  with new type `wall_reply` ("also commented on a post you commented on":
+  toast chime = comment chime, `communiques.js` activity label, email
+  label). Comment notifications now link to `post.html?id=…` instead of
+  the Wall.
+- **Away messages:** `presence.awayMessage` (≤100 chars; rules
+  `validAwayMessage`), moderated as new contentType `awayMessage` (added to
+  `MODERATION_TEXT_TYPES`). Typed in the Friends List, shown in italics
+  under your name to friends.
+- **Door sounds 🚪:** synthesized with Web Audio (two triangle notes, rising
+  for online and falling for offline), off by default, a per-browser
+  checkbox (localStorage `agoraFriendSounds`). Only fires after a friend's
+  presence has loaded, so opening the list is silent.
+- **Basic HTML guide:** new `Agora/basic-html.html` – intro, where it
+  works, how tags work, a card per allowed tag (what / how to write / live
+  result), a "Try it" box using the same DOMPurify allowlist, and "Not
+  allowed (yet)" (no `<img>`, colours, tables; never scripts/styles).
+  `AgoraBioTags.attachHint(el)` adds "See the Basic HTML guide →" to every
+  hint (bio, Wall, Dialog, product and static walls). Linked from
+  `skill.md` and `llms.txt`.
+- Chris asked whether images are allowed with basic HTML. They aren't:
+  `<img>` isn't on the allowlist (only the 5 uploaded profile pictures).
+  Put to him as a decision; see the chat.
+- Needs: complete rules paste (presence `awayMessage`, conversations
+  comment) + Functions deploy. Tested in headless Chromium with a mocked
+  Firebase.

@@ -19,6 +19,13 @@
 //
 // The open/minimized state survives page navigation the same way the
 // Dialog windows do (sessionStorage, one tab's lifetime).
+//
+// Round 2 (Chris, 2026-10-13): unread Dialogs (a friend with a Dialog you
+// haven't read shows in bold with "● New Dialog"; unread Dialogs from
+// non-friends get one line at the top), away messages (presence
+// awayMessage, up to 100 characters, shown to friends under your name),
+// and AIM-style door sounds when a friend comes online or goes offline -
+// off by default, a per-browser toggle.
 
 (function () {
   if (typeof CommuniquesCommon === "undefined" || typeof AgoraDB === "undefined") return;
@@ -33,6 +40,9 @@
 
   var currentUser = null;
   var appearOffline = false;
+  var awayMessage = "";
+  var AWAY_MAX = 100;
+  var SOUNDS_KEY = "agoraFriendSounds";
   var heartbeatTimer = null;
 
   function agoraBase() {
@@ -172,6 +182,38 @@
   var pendingIncoming = []; // [{ friendshipId, uid, name }] - requests sent to me
   var roster = null;
   var refreshTimer = null;
+  var convUnsub = null;
+  var unread = {}; // otherUid -> { name } for Dialogs I haven't read
+  var lastOnline = {}; // uid -> last online state heard, for door sounds
+
+  // --- Door sounds 🚪 ----------------------------------------------------------
+  // Synthesized on the spot (no audio files): a soft rising two-note
+  // "door opens" when a friend comes online, a falling one when they go.
+
+  function soundsOn() {
+    try { return localStorage.getItem(SOUNDS_KEY) === "1"; } catch (e) { return false; }
+  }
+
+  var audioCtx = null;
+  function playDoor(opening) {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      var notes = opening ? [392, 587] : [587, 349];
+      notes.forEach(function (freq, i) {
+        var t = audioCtx.currentTime + i * 0.16;
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.12, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(t);
+        osc.stop(t + 0.32);
+      });
+    } catch (e) {}
+  }
 
   function isNarrowViewport() {
     return window.innerWidth < NARROW_VIEWPORT_MAX;
@@ -189,7 +231,7 @@
 
   function buildRow(entry) {
     var li = document.createElement("li");
-    li.className = "friends-list-row";
+    li.className = "friends-list-row" + (entry.unread ? " is-unread" : "");
 
     var dot = document.createElement("span");
     dot.className = "friends-list-dot" + (entry.status === "online" ? " is-online" : entry.status === "si" ? " is-si" : "");
@@ -217,8 +259,14 @@
     main.appendChild(name);
     var sub = document.createElement("span");
     sub.className = "friends-list-sub";
-    sub.textContent = entry.sub;
+    sub.textContent = (entry.unread ? "● New Dialog · " : "") + entry.sub;
     main.appendChild(sub);
+    if (entry.away) {
+      var away = document.createElement("span");
+      away.className = "friends-list-away";
+      away.textContent = entry.away;
+      main.appendChild(away);
+    }
     main.addEventListener("click", function () { openDialog(entry.uid, entry.name); });
     li.appendChild(main);
 
@@ -319,8 +367,16 @@
     var offline = [];
     Object.keys(friends).forEach(function (uid) {
       var f = friends[uid];
-      var entry = { uid: uid, name: f.name, href: memberHref(uid) };
-      if (isOnline(f.presence)) {
+      var entry = { uid: uid, name: f.name, href: memberHref(uid), unread: !!unread[uid] };
+      if (f.presence && !f.presence.appearOffline && f.presence.awayMessage) entry.away = f.presence.awayMessage;
+      var on = isOnline(f.presence);
+      // Door sounds: only once this friend's presence has actually loaded,
+      // so opening the list doesn't "open the door" for everyone at once.
+      if (f.presenceLoaded) {
+        if (lastOnline[uid] !== undefined && lastOnline[uid] !== on && soundsOn()) playDoor(on);
+        lastOnline[uid] = on;
+      }
+      if (on) {
         entry.status = "online";
         entry.sub = f.kind === "AI" ? "Online · SI" : "Online";
         online.push(entry);
@@ -332,8 +388,20 @@
         offline.push(entry);
       }
     });
-    online.sort(function (a, b) { return a.name.localeCompare(b.name); });
-    offline.sort(function (a, b) { return (b.seen - a.seen) || a.name.localeCompare(b.name); });
+    // Unread first, then alphabetical.
+    online.sort(function (a, b) { return (b.unread - a.unread) || a.name.localeCompare(b.name); });
+    offline.sort(function (a, b) { return (b.unread - a.unread) || (b.seen - a.seen) || a.name.localeCompare(b.name); });
+
+    // Unread Dialogs from people who aren't your friends (yet) - one line,
+    // pointing at the full Communiqués page where they're all listed.
+    var others = Object.keys(unread).filter(function (uid) { return !friends[uid]; }).length;
+    if (others && panel.friendsLoaded) {
+      var otherLine = document.createElement("a");
+      otherLine.className = "friends-list-requests";
+      otherLine.href = agoraBase() + "communiques.html";
+      otherLine.textContent = "📨 " + others + (others === 1 ? " unread Dialog" : " unread Dialogs") + " from others →";
+      body.appendChild(otherLine);
+    }
 
     // Incoming friend requests, answerable right here - Accept/Decline
     // otherwise only exist on the *requester's* profile page, which the
@@ -375,10 +443,11 @@
     presenceUnsubs[uid] = presenceRef(uid).onSnapshot(function (doc) {
       if (!friends[uid]) return;
       friends[uid].presence = doc.exists ? doc.data() : null;
+      friends[uid].presenceLoaded = true;
       render();
     }, function () {
       // Not readable (e.g. the friendship was just removed) - show as offline.
-      if (friends[uid]) friends[uid].presence = null;
+      if (friends[uid]) { friends[uid].presence = null; friends[uid].presenceLoaded = true; }
       render();
     });
   }
@@ -438,6 +507,23 @@
         render();
       });
 
+    // Every Dialog I'm in, to know which have unread messages (see
+    // CommuniquesCommon.isDialogUnread). Live, so a new message bolds its
+    // sender's name straight away and reading it clears it.
+    convUnsub = AgoraDB.collection("conversations")
+      .where("participants", "array-contains", myUid)
+      .onSnapshot(function (snap) {
+        var next = {};
+        snap.docs.forEach(function (doc) {
+          var d = doc.data();
+          if (!C.isDialogUnread(d, myUid)) return;
+          var other = (d.participants || []).filter(function (p) { return p !== myUid; })[0];
+          if (other) next[other] = { name: (d.participantNames && d.participantNames[other]) || "Member" };
+        });
+        unread = next;
+        render();
+      }, function () {});
+
     // "3 min ago" text and the online cutoff move with the clock.
     refreshTimer = setInterval(render, 30 * 1000);
 
@@ -451,6 +537,10 @@
   function stopListening() {
     if (friendsUnsub) friendsUnsub();
     friendsUnsub = null;
+    if (convUnsub) convUnsub();
+    convUnsub = null;
+    unread = {};
+    lastOnline = {};
     Object.keys(presenceUnsubs).forEach(function (uid) { presenceUnsubs[uid](); });
     presenceUnsubs = {};
     friends = {};
@@ -490,6 +580,37 @@
     }
     handle.addEventListener("pointerup", end);
     handle.addEventListener("pointercancel", end);
+  }
+
+  // Moderated like every other piece of member text, then stored on your
+  // own presence doc (friends-only, see firestore.rules). Empty clears it.
+  function saveAwayMessage(text, noteEl, done) {
+    if (!currentUser) return;
+    noteEl.hidden = true;
+    var check = text && typeof AgoraModeration !== "undefined"
+      ? AgoraModeration.checkText(text, "awayMessage", {})
+      : Promise.resolve({ decision: "allow" });
+    check.then(function (result) {
+      if (result && result.decision === "block") {
+        AgoraModeration.showBlocked(noteEl, result.logId);
+        noteEl.hidden = false;
+        done(awayMessage);
+        return;
+      }
+      return presenceRef(currentUser.uid).set({
+        awayMessage: text ? text : firebase.firestore.FieldValue.delete(),
+      }, { merge: true }).then(function () {
+        awayMessage = text;
+        noteEl.textContent = text ? "Saved – friends see it under your name." : "Away message cleared.";
+        noteEl.hidden = false;
+        setTimeout(function () { noteEl.hidden = true; }, 3000);
+        done(text);
+      });
+    }).catch(function () {
+      noteEl.textContent = "Couldn't save that – try again.";
+      noteEl.hidden = false;
+      done(awayMessage);
+    });
   }
 
   function buildPanel() {
@@ -543,6 +664,44 @@
     select.addEventListener("change", function () { setAppearOffline(select.value === "offline"); });
     label.appendChild(select);
     me.appendChild(label);
+
+    // Away message - AIM's status line. Friends see it under your name.
+    var awayInput = document.createElement("input");
+    awayInput.type = "text";
+    awayInput.className = "friends-list-away-input";
+    awayInput.maxLength = AWAY_MAX;
+    awayInput.placeholder = "Away message (optional) – press Enter";
+    awayInput.value = awayMessage;
+    var awayNote = document.createElement("span");
+    awayNote.className = "friends-list-away-note";
+    awayNote.hidden = true;
+    function saveAway() {
+      var text = awayInput.value.trim().slice(0, AWAY_MAX);
+      if (text === awayMessage) return;
+      saveAwayMessage(text, awayNote, function (saved) {
+        awayInput.value = saved;
+      });
+    }
+    awayInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); saveAway(); awayInput.blur(); }
+    });
+    awayInput.addEventListener("change", saveAway);
+    me.appendChild(awayInput);
+    me.appendChild(awayNote);
+
+    // Door sounds 🚪 - off by default, remembered per browser.
+    var soundLabel = document.createElement("label");
+    soundLabel.className = "friends-list-sounds";
+    var soundBox = document.createElement("input");
+    soundBox.type = "checkbox";
+    soundBox.checked = soundsOn();
+    soundBox.addEventListener("change", function () {
+      try { localStorage.setItem(SOUNDS_KEY, soundBox.checked ? "1" : "0"); } catch (e) {}
+      if (soundBox.checked) playDoor(true); // a quick preview
+    });
+    soundLabel.appendChild(soundBox);
+    soundLabel.appendChild(document.createTextNode(" 🚪 Door sounds when friends come and go"));
+    me.appendChild(soundLabel);
     el.appendChild(me);
 
     var body = document.createElement("div");
@@ -568,7 +727,7 @@
     wireDrag(el, header);
     requestAnimationFrame(function () { el.classList.add("open"); });
 
-    panel = { el: el, body: body, minBtn: minBtn, select: select, minimized: false, friendsLoaded: false };
+    panel = { el: el, body: body, minBtn: minBtn, select: select, awayInput: awayInput, minimized: false, friendsLoaded: false };
     return panel;
   }
 
@@ -637,7 +796,11 @@
       currentUser = user;
       presenceRef(user.uid).get().then(function (doc) {
         appearOffline = !!(doc.exists && doc.data().appearOffline);
-        if (panel) panel.select.value = appearOffline ? "offline" : "online";
+        awayMessage = (doc.exists && doc.data().awayMessage) || "";
+        if (panel) {
+          panel.select.value = appearOffline ? "offline" : "online";
+          panel.awayInput.value = awayMessage;
+        }
         if (!appearOffline) startHeartbeat();
       }).catch(function () { startHeartbeat(); });
 
