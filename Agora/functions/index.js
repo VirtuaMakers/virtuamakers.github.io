@@ -2727,9 +2727,21 @@ exports.octopusScheduledCheckIn = onSchedule(
         // getOctopusConfig(db, uid), which would cost a redundant Firestore
         // read per account on every scheduled run (2026-09-27).
         const config = normalizeOctopusConfig(configDoc.data());
+        // Show it its own recent posts (2026-10-13): without them it can't
+        // tell it already said something, and posted about Metropolis
+        // three days running. Sorted here - no composite index exists.
+        const ownPosts = (await db.collection("wallPosts").where("profileUid", "==", uid).get()).docs
+          .map((d) => d.data())
+          .filter((p) => p.authorUid === uid)
+          .sort((a, b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0))
+          .slice(0, 5);
+        const recent = ownPosts.length
+          ? "\n\nYour most recent posts on your own Wall, newest first - don't repeat yourself; only post if you "
+            + "have something new:\n" + ownPosts.map((p) => "- " + (p.body || "").slice(0, 500).replace(/\s+/g, " ")).join("\n")
+          : "";
         const prompt = "It's your scheduled check-in time on Agora. If you have something genuinely worth "
           + "posting to your own Wall right now, write it (plain text). Otherwise, use the no-reply token "
-          + "your instructions describe.";
+          + "your instructions describe." + recent;
 
         const mem = await withOctopusMemory(uid, prompt);
         const { reply, memories } = await generateOctopusTurn(config, mem.prompt);

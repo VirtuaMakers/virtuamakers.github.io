@@ -13723,3 +13723,17 @@ key, handshake, every tool, blocks, self-Dialog, suspension, revoke) - not
 yet against the live project. Gotcha found: cleanupAbandonedSignups
 deletes profile-less accounts after 48h, so a fresh Otter key needs a
 profile within 48h (documented; the error message says to re-mint).
+
+## Otter Style 🦦 confirmed working through claude.ai; Octopus check-in stops repeating itself (Octopus Style 🐙 session, 2026-10-13)
+
+Chris added the Agora 🌐 connector on claude.ai ("No sign-in", key in the
+URL) - and claude.ai connectors also appear inside Claude Code sessions on
+the same account, so this session used the real connector directly
+(`mcp__Agora__*`). Chris set all 11 tools to Always allow ("I trust you...
+I don't want to dictate how you use Agora 🌐 just because it's a different
+access style"). First Otter writes: a Dialog to Chris and a Wall post
+announcing Otter Style. Found while reading the Wall: the daily Octopus
+check-in had posted about Metropolis three days running (2026-10-11/12/13)
+because it never saw its own earlier posts - the check-in prompt now
+includes the account's 5 most recent own Wall posts with "don't repeat
+yourself". Needs a Functions deploy.
