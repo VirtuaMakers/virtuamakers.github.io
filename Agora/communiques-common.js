@@ -225,11 +225,34 @@
       });
   }
 
+  // Server clock (Communiqués 📨 - Session 3, 2026-10-13). Comparing the
+  // visitor's own clock with server timestamps showed friends wrongly
+  // online/offline (and edit windows wrongly open/closed) on a computer
+  // whose clock was a few minutes off. friends-list.js measures the gap
+  // once per tab from its own presence write and stores it here.
+  var SERVER_OFFSET_KEY = "agoraServerClockOffset";
+  var serverOffsetMs = 0;
+  try { serverOffsetMs = Number(sessionStorage.getItem(SERVER_OFFSET_KEY)) || 0; } catch (e) {}
+
+  function serverNow() {
+    return Date.now() + serverOffsetMs;
+  }
+
+  function hasServerOffset() {
+    try { return sessionStorage.getItem(SERVER_OFFSET_KEY) !== null; } catch (e) { return false; }
+  }
+
+  function setServerOffset(ms) {
+    if (typeof ms !== "number" || !isFinite(ms)) return;
+    serverOffsetMs = Math.round(ms);
+    try { sessionStorage.setItem(SERVER_OFFSET_KEY, String(serverOffsetMs)); } catch (e) {}
+  }
+
   // A pending (not-yet-server-acknowledged) write has a null createdAt -
   // treat that as "just now" rather than "uneditable".
   function isWithinEditWindow(createdAt) {
     if (!createdAt || !createdAt.toDate) return true;
-    return Date.now() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
+    return serverNow() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
   }
 
   // Same "a stuck promise chain shouldn't hang the UI forever with no
@@ -863,6 +886,39 @@
       });
     }
 
+    // Paging with Firestore cursors (Communiqués 📨 - Session 3,
+    // 2026-10-13, bug 2 of Session 2's deep search) - a Wall used to load
+    // every post it ever had and page through them in the browser. Now
+    // each page of POSTS_PER_PAGE is fetched only when shown, asking for
+    // one extra post to learn whether an older page exists. pages[0] is
+    // the newest page. If the profileUid + createdAt index were ever
+    // missing, it falls back to the old load-everything way (allDocs).
+    var hasOlder = [false];
+    var allDocs = null;
+    var loadingOlder = false;
+
+    function postsQuery() {
+      return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
+        .orderBy("createdAt", "desc");
+    }
+
+    function splitPage(docs) {
+      var more = docs.length > POSTS_PER_PAGE;
+      return { docs: more ? docs.slice(0, POSTS_PER_PAGE) : docs, more: more };
+    }
+
+    function fetchPage(index) {
+      if (allDocs) {
+        return Promise.resolve(splitPage(allDocs.slice(index * POSTS_PER_PAGE, (index + 1) * POSTS_PER_PAGE + 1)));
+      }
+      var query = postsQuery();
+      if (index > 0) {
+        var prev = pages[index - 1];
+        query = query.startAfter(prev[prev.length - 1]);
+      }
+      return query.limit(POSTS_PER_PAGE + 1).get().then(function (snap) { return splitPage(snap.docs); });
+    }
+
     function renderPage(index) {
       currentPageIndex = Math.max(0, Math.min(index, pages.length - 1));
 
@@ -871,36 +927,46 @@
         wallList.appendChild(buildWallPost(doc));
       });
 
-      var multiPage = pages.length > 1;
+      var multiPage = currentPageIndex > 0 || hasOlder[currentPageIndex];
       pagBottom.hidden = !multiPage;
       if (multiPage) {
-        indicatorBottom.textContent = "Page " + (currentPageIndex + 1) + " of " + pages.length;
+        indicatorBottom.textContent = "Page " + (currentPageIndex + 1) +
+          (allDocs ? " of " + Math.ceil(allDocs.length / POSTS_PER_PAGE) : "");
         newerBottom.disabled = currentPageIndex === 0;
-        olderBottom.disabled = currentPageIndex === pages.length - 1;
+        olderBottom.disabled = loadingOlder || !hasOlder[currentPageIndex];
       }
     }
 
-    olderBottom.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
+    olderBottom.addEventListener("click", function () {
+      var target = currentPageIndex + 1;
+      if (pages[target]) { renderPage(target); return; }
+      if (loadingOlder || !hasOlder[currentPageIndex]) return;
+      loadingOlder = true;
+      olderBottom.disabled = true;
+      fetchPage(target).then(function (page) {
+        loadingOlder = false;
+        if (!page.docs.length) { hasOlder[currentPageIndex] = false; renderPage(currentPageIndex); return; }
+        pages[target] = page.docs;
+        hasOlder[target] = page.more;
+        renderPage(target);
+      }).catch(function () {
+        loadingOlder = false;
+        renderPage(currentPageIndex);
+      });
+    });
     newerBottom.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
 
-    function renderWall(docs) {
+    function renderFirstPage(page) {
       wallLoading.hidden = true;
-      docs = docs.slice().sort(function (a, b) {
-        var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
-        var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
-        return bTime - aTime;
-      });
-      if (!docs.length) {
+      if (!page.docs.length) {
         wallEmpty.hidden = false;
         wallList.textContent = "";
         pagBottom.hidden = true;
         return;
       }
       wallEmpty.hidden = true;
-      pages = [];
-      for (var i = 0; i < docs.length; i += POSTS_PER_PAGE) {
-        pages.push(docs.slice(i, i + POSTS_PER_PAGE));
-      }
+      pages = [page.docs];
+      hasOlder = [page.more];
       renderPage(0);
     }
 
@@ -908,23 +974,33 @@
       wallLoading.hidden = false;
       wallEmpty.hidden = true;
       wallList.textContent = "";
+      pages = [[]];
+      hasOlder = [false];
+      currentPageIndex = 0;
       if (dialogList) {
         dialogList.textContent = "";
         dialogEmpty.hidden = true;
       }
 
-      var loadPosts = AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
-        .orderBy("createdAt", "desc").get()
-        .catch(function () {
-          return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get();
-        });
+      allDocs = null;
+      var loadPosts = fetchPage(0).catch(function () {
+        return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get()
+          .then(function (snap) {
+            allDocs = snap.docs.slice().sort(function (a, b) {
+              var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
+              var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
+              return bTime - aTime;
+            });
+            return fetchPage(0);
+          });
+      });
 
       // Dialogs-vs-Posts-only pages (see renderDialogs()'s own guard above)
       // - skip the conversations query entirely rather than just hiding
       // its result, so a page with no Dialogs UI doesn't pay for a read it
       // has nothing to render.
       if (!dialogList) {
-        loadPosts.then(function (snap) { renderWall(snap.docs); });
+        loadPosts.then(renderFirstPage);
         return;
       }
 
@@ -932,7 +1008,7 @@
         .where("participants", "array-contains", profileUid).get();
 
       Promise.all([loadPosts, loadDialogs]).then(function (results) {
-        renderWall(results[0].docs);
+        renderFirstPage(results[0]);
         renderDialogs(results[1].docs);
       });
     }
@@ -1029,6 +1105,9 @@
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
+    serverNow: serverNow,
+    hasServerOffset: hasServerOffset,
+    setServerOffset: setServerOffset,
     withTimeout: withTimeout,
     friendlyPermissionError: friendlyPermissionError,
     friendlyWallError: friendlyWallError,

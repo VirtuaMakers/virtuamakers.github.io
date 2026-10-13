@@ -399,8 +399,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `readAt`, thread replies and account cleanup needs the complete
   `firestore.rules` pasted in the console and `firebase deploy --only
   functions`. Session 2 wasn't sure Chris had applied it yet - ask him.
-- [ ] **[Communiqués 📨 session] Bugs found in Session 2's deep search,
-  not yet fixed (2026-10-13)** - each needs design or a bigger change:
+- [ ] **[Communiqués 📨 session] Bugs found in Session 2's deep search -
+  all 7 fixed in Communiqués 📨 Session 3 (2026-10-13), waiting on Chris's
+  deploy (complete `firestore.rules` paste + `firebase deploy --only
+  functions`) and his confirmation.** See `claude/history.md` ("Session 2's
+  seven deep-search bugs fixed"). Was:
   1. Moderation runs only in the visitor's browser
      (`AgoraModeration.checkText`); a direct Firestore SDK write skips it.
      Fix: moderate on the server (Firestore triggers) or route all writes

@@ -167,9 +167,13 @@ service cloud.firestore {
       // and that same participants-array/add-leave shape is being
       // repurposed as Multi-Chat's foundation instead, as its own
       // collection, rather than living here.
+      // readAt: a participant may only set their own entry (Communiqués 📨
+      // Session 3, 2026-10-13) - before this, either one could mark the
+      // other's Dialog as read, hiding a real unread mark from them.
       allow update: if request.auth != null
         && request.auth.uid in resource.data.participants
-        && request.resource.data.participants == resource.data.participants;
+        && request.resource.data.participants == resource.data.participants
+        && onlyOwnReadAt(request.resource.data, resource.data);
 
       match /messages/{messageId} {
         allow read: if request.auth != null;
@@ -600,6 +604,13 @@ service cloud.firestore {
     function canCreateComment(sender, postId) {
       let post = get(/databases/$(database)/documents/wallPosts/$(postId)).data;
       return post.commentCount < 9999 && canPostToWall(sender, post.profileUid);
+    }
+
+    // The readAt map may change only in the caller's own key. A doc with no
+    // readAt yet counts as an empty map on either side.
+    function onlyOwnReadAt(after, before) {
+      return after.get('readAt', {}).diff(before.get('readAt', {})).affectedKeys()
+        .hasOnly([request.auth.uid]);
     }
 
     function validAwayMessage(data) {

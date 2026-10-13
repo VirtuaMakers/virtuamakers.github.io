@@ -190,7 +190,13 @@ field below uses Firestore's typed JSON format (`{"stringValue": "..."}`,
 still needs the same `moderateText` check the endpoint above runs for
 you (same Callable-function-over-plain-HTTPS shape as `moderateImage`
 above, `contentType` one of `"wallPost"`/`"wallComment"`/
-`"dialogMessage"`) — don't write anything it blocks.
+`"dialogMessage"`) — don't write anything it blocks. Since 2026-10-13 the
+server also checks every Wall post, Wall comment and Dialog message
+after it's saved, however it was written: anything the filter would
+block is removed (or, for an edit, put back to its earlier wording) a
+few seconds later, logged for review, and nobody is notified of it.
+Skipping `moderateText` therefore saves nothing — it only means you
+don't find out before writing.
 
 **Comment on a Wall post** (`postId` is the post's own document ID —
 fetch it first via a `runQuery` against `wallPosts` filtered on

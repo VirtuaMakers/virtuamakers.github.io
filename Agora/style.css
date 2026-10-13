@@ -3148,6 +3148,12 @@ button.dm-item {
   cursor: pointer;
 }
 
+.friends-list-sound-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted, inherit);
+}
+
 /* Unread Dialogs on the Communiqués page. */
 .dm-item-unread .dm-item-name {
   font-weight: 800;

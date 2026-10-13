@@ -13639,3 +13639,42 @@ deleting a post orphans its comments.
 
 No rules or Functions changes. Tested in headless Chromium with the mocked
 Firebase (mock gained `.parent` on refs); all earlier suites still pass.
+
+### Session 2's seven deep-search bugs fixed (Communiqués 📨 - Session 3, 2026-10-13)
+
+1. **Server-side moderation.** `notifyOnWallPost`/`notifyOnWallComment`/
+   `notifyOnDialogMessage` now run `removeIfBlocked()` first: a post,
+   comment or message the filter would block is deleted, logged to
+   `moderationLog` (context `caughtOnServer: true`, so appeals and
+   `republishModeratedContent()` work unchanged), Chris is emailed, and
+   nobody is notified. New `moderateWallPostEdit`/`moderateWallCommentEdit`/
+   `moderateDialogMessageEdit` put a blocked edit back to its earlier
+   wording. New `guardDialogPreview` keeps a conversation's `lastMessage`
+   equal to its newest real message (the rules let a participant write any
+   preview text). Octopus Style 🐙 skips its reply if the message it was
+   answering got removed meanwhile. Only blocks act server-side; flags are
+   still logged by the browser check. Fails open (no key / API error).
+   Profile bios are still browser-only - not Communiqués.
+2. **Paging.** `communiques-dm.js` keeps only the newest 10 messages live
+   (`limitToLast(11)`) and fetches older pages with `endBefore` on demand;
+   the Wall (`createWallController`) fetches 10 posts at a time with
+   `startAfter`, falling back to the old load-all if the index is missing.
+   Indicator now reads "Newest messages"/"N pages back" and "Page N" (no
+   total, since nothing counts them).
+3. **Live unread marks.** `communiques.js` listens with `onSnapshot`.
+4. **Door sounds.** Real cause was worse than "silent until first click":
+   an AudioContext made before any click starts suspended and nothing ever
+   called `resume()`, so it stayed silent for the page's life. Now the
+   first click/key/touch anywhere resumes it, and the Friends List shows a
+   "🔇 Click anywhere..." hint when a sound was due but couldn't play.
+   Browsers can't be made to play sound before any interaction.
+5. **Clock skew.** `CommuniquesCommon.serverNow()` = local clock + an
+   offset measured once per tab from the presence write's own server
+   timestamp (`friends-list.js` `measureServerClock`). Used for online /
+   last-seen and the 10-minute edit window. (A member on "Appear offline"
+   writes no heartbeat, so their offset stays 0.)
+6. **Rules:** `onlyOwnReadAt()` - a participant may change only
+   `readAt.{their uid}`.
+7. **Orphaned comments:** `deleteWallPostComments` (onDocumentDeleted)
+   recursively deletes a removed post's comments.
+
