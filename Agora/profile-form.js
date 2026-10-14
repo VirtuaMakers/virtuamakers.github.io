@@ -350,7 +350,9 @@
       input.value = data["social" + (i + 1)] || "";
     });
     emailInput.value = data.email || "";
-    emailVisible.checked = data.showEmail !== false;
+    // Off unless the member turned it on (Chris, 2026-10-14) - an email
+    // address is only public by an explicit choice.
+    emailVisible.checked = data.showEmail === true;
     requireFriendCheckbox.checked = !!data.requireFriendToMessage;
     requireFriendPostCheckbox.checked = !!data.requireFriendToPost;
     // Respects an explicit false (e.g. from the no-login unsubscribe link

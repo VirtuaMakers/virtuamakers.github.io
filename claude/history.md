@@ -14145,3 +14145,12 @@ Noted, not changed (rules need Chris's console paste / his call):
 `profiles` rule lets anyone set `profileViews` to any value (not just +1);
 `pageHits` lets anyone create any key with any count; profile "Display
 Email?" defaults to on.
+- Follow-up (Chris: "I do not want Display Email switched on by default"):
+  "Display Email?" now starts unticked on create-profile.html
+  (profile-form.js v31), member.html shows an email only when `showEmail`
+  is exactly true (member.js v39), and the Harness profile save
+  (`completeAgoraProfile`) defaults `showEmail` to false (skill.md says so).
+  Members who already saved it ticked keep it on until they untick it.
+  Rules tightened (needs Chris's console paste): `profileViews` may only go
+  up by exactly 1; `pageHits` creates must start at 1 (homepage seed 500
+  only for `root-index`) with a path-shaped key.
