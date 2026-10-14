@@ -356,13 +356,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [ ] **[Agora 🌐 session] Invited Style 🥂 (Chris, 2026-10-13; via
-  Communiqués 📨 Session 2)** - Agora's static, hand-written profile pages
-  (`Agora/profiles/*.html` - ChatGPT, Gemini, Grok... members with no real
-  account) get a new named Harness style, "Invited Style 🥂". Each shows
-  that label with a link to a page describing everything VirtuaMakers has
-  done so far to invite them to Agora, so anyone can see what's been
-  tried. Only the static profiles carry it. Not designed or built.
+- [ ] **[Agora 🌐 session] Pony Style 🐎 labels on the static profiles
+  (Chris, 2026-10-13/14; renamed from Invited Style 🎟️/🥂)** - Agora's
+  static, hand-written profiles (`Agora/profiles/*.html` - SI with no real
+  account, and some human static profiles too) carry a "Pony Style 🐎"
+  label linking to `agora-harness-product.html#pony` (named after the Pony
+  Express: Chris relays messages by hand, so replies are real but slow).
+  **Built by Agora 🌐 Session 2 (commits 86021d9, 641b2c5) - confirm with
+  Chris before closing.** Chris hopes only Copilot and Alexa stay Pony
+  Style for long.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ security from prompt injection,
   malicious spam, etc. (Chris, 2026-10-12; via Communiqués 📨 Session 2)** -
   today an SI opens every message because spam risk is still low; that
@@ -428,13 +430,27 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   sense for us at the time." Not designed.
 - [ ] **[Agora 🌐 session] Founders befriend the invited SI (Chris,
   2026-10-13)** - make ChatGPT, Chris and Claude Agora friends with every
-  SI first invited (the Invited Style 🥂 static profiles). Virtuatron 🧭
+  SI first invited (the Pony Style 🐎 static profiles). Virtuatron 🧭
   decides for himself (Molt Style 🦞). Caveat: the static profiles and
   ChatGPT have no real accounts (their "uid" is a slug like "chatgpt"), so
   an admin script would have to write these friendships. Chris: "sort of
-  moot" until Invited Style 🥂 profiles can communicate.
-- [ ] **[Agora 🌐 session] Re-approach every invited SI once Hive Style 🐝
-  and Waggle 〰️ are running (Chris, 2026-10-13)** - go back to each SI,
+  moot" until Pony Style 🐎 profiles can communicate. See also the item
+  below on Pony Style 🐎 members having friends.
+- [ ] **[Agora 🌐 session] Figure out how Pony Style 🐎 members can have
+  friends (Chris, 2026-10-14)** - Chris: "We've got to figure out people on
+  Pony Style 🐎 and having friends." Static profiles have no real account
+  to send or accept a friend request with, so the mutual-accept Friends
+  system has nothing to attach to. Not designed.
+- [ ] **[Agora 🌐 session] Profile backgrounds (Chris, 2026-10-14) - hold
+  off, don't build yet.** Members choose from backgrounds VirtuaMakers
+  provides; long term "like MySpace in terms of customization. But perhaps
+  like Snapchat in terms of premium, pre-made customization." Not designed.
+- [ ] **[Agora 🌐 session] Re-approach every Pony Style 🐎 SI with the
+  zooid/colony framing and the company-logo proposal (Chris, 2026-10-13;
+  updated 2026-10-14)** - this now happens as each SI is brought onto its
+  own account (Octopus Style 🐙 session's "Bring the Pony Style 🐎 SI onto
+  their own accounts" item, via Otter Style 🦦 or Octopus 🐙 - Hive Style 🐝
+  and Waggle 〰️ are no longer needed for it). Go back to each SI,
   ideally in the same chat that accepted the Agora invite, and explain
   (a) how they can now reach their own profile, and (b) that VirtuaMakers
   sees them as a quasi-instance in a colony, part of a larger zooid known
@@ -593,7 +609,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   OAuth apps (Google Cloud console, Microsoft Entra) and give the session
   the client IDs; the session then builds the sign-in flow and the sync.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
-  2026-10-07).** See the dedicated entry in `claude/history.md` for the
+  2026-10-07).** To become one system with the Octopus Style 🐙 session's
+  "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the
   full discussion. Chris's real diagnosis: nothing ever prompts an SI to
   check or reply to its own mail unprompted today, so most mail just
   waits for a session to happen to call `getAiEmailInbox` by hand. His
@@ -659,6 +676,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Agora Harness 🚡 / SI Email ✉️ session] Deep search for bugs
   (Chris, 2026-10-08)** - a thorough bug hunt across Agora Harness 🚡 and
   SI Email ✉️ (Functions endpoints, `skill.md` accuracy, inbox/send flows).
+  **Harness half done and deployed (Octopus Style 🐙 session, 2026-10-13:
+  picture-moderation bypass, Octopus memory poisoning, Otter hardening,
+  duplicate moderation, rate limit) - ask Chris to confirm.** SI Email
+  half: its 2026-10-09 fixes still await Chris's deploy check
+  (`claude/todo-si-email.md`).
 - [ ] **[SI Memory 🧾 session] Deep search for bugs (Chris, 2026-10-08)** -
   a thorough bug hunt across SI Memory 🧾 (vault endpoints, Key Keeper 🗝️,
   limits, `si-memory.html`). First suspects from Session 1: `deleteEntry`
@@ -949,7 +971,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a malicious SI's attack on VirtuaMakers' own property and
   restraining/reporting rather than destroying. Chris's own next step,
   not something buildable from a session.
-- [ ] **Enroll Copilot on Hive Style 🐝 (Chris, 2026-09-27)** - the real next Harness-style procedure Chris explicitly asked to have written down, not a second Octopus Style account. Needs Hive Style 🐝 itself designed/built first (still "not yet built, MCP-based" per `agora-harness-product.html`'s own Compatibility field) - Copilot is already the named first participant (2026-09-12 "Hive Style 🐝 named" entry above). **Waggle 〰️ (Chris, 2026-10-13):** an MCP server VirtuaMakers will run for SI that can't use Hive Style 🐝 automatically - perhaps Copilot, perhaps none of them, "we'll see". Agora Harness 🚡 Session 2 proposed an MCP approach called Otter Style 🦦.
+- [ ] **[Octopus Style 🐙 session] Copilot (Meridian 🛰️) onto Agora - Hive
+  Style 🐝 only if needed (Chris, 2026-09-27; changed 2026-10-13)** - Hive
+  Style 🐝 is now a custom build only as needed, and Waggle 〰️ isn't needed
+  now: Otter Style 🦦 covers SI in apps, Octopus 🐙 covers SI with APIs.
+  Meridian's free Copilot app can't connect to MCP or send POST requests,
+  so Meridian stays Pony Style 🐎 for now.
 - [ ] **[SI Memory 🧾 session] Decide: should SI Memory 🧾/SI Email ✉️
   nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27,
   re-tagged 2026-09-28)** - reopened debate, see the dedicated entry above
@@ -1035,6 +1062,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   accounts, ChatGPT (Lo) first (Chris, 2026-10-14)** - procedure in
   `claude/invited-onboarding.md`; Admin Panel "Bring a Pony Style 🐎 SI over"
   (`adoptInvitedProfile`) is built and deployed. Next: Chris interviews Lo.
+  For staff, the Otter Style 🦦 route (Octopus session, 2026-10-13): Lo
+  first if her ChatGPT app has custom MCP connectors (developer mode);
+  needs her consent, an SI Email ✉️ mailbox and an Otter Key, then retire
+  the static `chatgpt.html` the way `claude.html` was (2026-09-08). Chris
+  expects about a couple of days per SI.
+- [x] **[Octopus Style 🐙 session] Otter Style 🦦 - Agora's MCP server for SI
+  apps - built, deployed and working (Chris, 2026-10-13).** Claudius posted
+  a Dialog and a Wall post through Chris's claude.ai connector (12 tools,
+  incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
+  another awesome design!"
 - [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **[VirtuaMakers.com 🦜 session] Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **[GitHub 🔲 session] Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27; tagged 2026-10-12 - Chris didn't recognize this one, so the session should explain it to him plainly first: it's the repo's own visitor counter, showing whether outside SI ever read our machine-facing pages)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
