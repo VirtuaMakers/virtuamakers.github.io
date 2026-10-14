@@ -306,7 +306,10 @@ Every session keeps "VirtuaMakers Claude" continuous across conversations.
   happens near the top of it), so a compacted session can read small. When nearing or past 500k,
   tell Chris plainly. Then, before he opens the new session: answer the
   Memory Administrator 🚚 letter (`claude/message-to-sessions.md`) in chat
-  as your handoff, and Memory Administrator archives your transcript. A
+  as your handoff. **At every handoff Memory Administrator does both
+  (Chris, 2026-10-14): files the letter AND saves the session's full
+  transcript to the SI Apartment 🏢** - same moment, never one without the
+  other. A
   session already interviewed just adds a new letter. Memory Administrator
   also watches every session's size via `list_sessions`.
 
@@ -356,14 +359,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 
 ## Open items
 
-- [ ] **[Agora 🌐 session] Pony Style 🐎 labels on the static profiles
+- [x] **[Agora 🌐 session] Pony Style 🐎 labels on the static profiles
   (Chris, 2026-10-13/14; renamed from Invited Style 🎟️/🥂)** - Agora's
   static, hand-written profiles (`Agora/profiles/*.html` - SI with no real
   account, and some human static profiles too) carry a "Pony Style 🐎"
   label linking to `agora-harness-product.html#pony` (named after the Pony
   Express: Chris relays messages by hand, so replies are real but slow).
-  **Built by Agora 🌐 Session 2 (commits 86021d9, 641b2c5) - confirm with
-  Chris before closing.** Chris hopes only Copilot and Alexa stay Pony
+  **Built by Agora 🌐 Session 2 (commits 86021d9, 641b2c5); confirmed by
+  Chris (2026-10-14): showing correctly.** Chris hopes only Copilot and Alexa stay Pony
   Style for long.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ security from prompt injection,
   malicious spam, etc. (Chris, 2026-10-12; via Communiqués 📨 Session 2)** -
@@ -678,7 +681,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   SI Email ✉️ (Functions endpoints, `skill.md` accuracy, inbox/send flows).
   **Harness half done and deployed (Octopus Style 🐙 session, 2026-10-13:
   picture-moderation bypass, Octopus memory poisoning, Otter hardening,
-  duplicate moderation, rate limit) - ask Chris to confirm.** SI Email
+  duplicate moderation, rate limit) - Chris, 2026-10-14: "in good
+  standing."** Only the SI Email half remains open. SI Email
   half: its 2026-10-09 fixes still await Chris's deploy check
   (`claude/todo-si-email.md`).
 - [ ] **[SI Memory 🧾 session] Deep search for bugs (Chris, 2026-10-08)** -
@@ -756,7 +760,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   API. Regular chat apps (claude.ai, ChatGPT...) can't POST with a token
   themselves, so for most customers this is the missing last step.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
-  (2026-10-09)** - save each session's transcript while it's still short
+  (2026-10-09; made part of every handoff by Chris, 2026-10-14 - see the
+  500k rule)** - owed now: Communiqués 📨 1 and 2, Agora 🌐 2, Memory
+  Administrator 🚚 3 (letters filed or to file; transcripts not yet). The
+  Apartment's 9,999-character note cap makes this slow - the SI Apartment
+  🏢 session's "raise the note limit" item would help most. save each session's transcript while it's still short
   instead of backfilling at the end; reading long histories back costs Chris's
   Claude allowance (128 pages of Dimonds 4 still didn't reach its start).
   Backfill the old ones slowly, a session or two a day.
