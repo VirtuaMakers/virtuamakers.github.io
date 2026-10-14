@@ -14109,3 +14109,9 @@ Chris's second batch of the day, Agora 🌐 Session 2:
   clamp(200px, 44vh, 420px)) so the Harness 🚡 line sits ~450px down on a
   1366×657 laptop. Animation roughly doubled (~7.5s total: 95ms/char
   prefix, 2.8s DETECTING, 150ms/char style). style.css v118 (index only).
+- Follow-up 3 (Chris: logo big enough that Sign Up / Sign In ✍️ needs a
+  scroll): `.page-logo-tight` height is now `100svh - --header-height -
+  5.5rem`, so logo + Harness 🚡 line fill the first view exactly; the line's
+  bottom margin went to 2.6rem so Sign Up / Sign In starts ~1.5rem below
+  the fold. Checked at 1366×657, 1920×950, 390×700, 412×915, 800×1280.
+  style.css v119.

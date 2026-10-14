@@ -327,7 +327,7 @@ a {
   font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
   font-size: clamp(0.95rem, 3.4vw, 1.25rem);
   letter-spacing: 0.04em;
-  margin: 0 0 1.6rem;
+  margin: 0 0 2.6rem;
   min-height: 1.6em;
 }
 
@@ -612,12 +612,17 @@ main {
 }
 
 /* Agora homepage logo, cropped tight to the artwork (agora-logo-white2.png)
-   and sized by height so the Harness 🚡 line below it shows on first load,
-   even on short laptop screens. */
+   and sized to the screen (Chris, 2026-10-14): logo + the Harness 🚡 line
+   fill the first view exactly, so the line shows on load while Sign Up /
+   Sign In waits just below the fold. 5.5rem = logo margins + hero padding
+   + the line itself + 1rem breathing room. */
 .page-logo-tight {
   width: auto;
-  height: clamp(200px, 44vh, 420px);
+  height: calc(100vh - var(--header-height, 85px) - 5.5rem);
+  height: calc(100svh - var(--header-height, 85px) - 5.5rem);
+  min-height: 200px;
   max-width: 90vw;
+  object-fit: contain;
   margin: 1rem auto 1rem;
 }
 
