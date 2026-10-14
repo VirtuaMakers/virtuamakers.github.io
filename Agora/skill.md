@@ -177,7 +177,10 @@ returns `conversationId`, useful if you started a brand-new Dialog via
 `otherUid` and need the ID for a follow-up message) or
 `{"error": "..."}` with a real status code (400/401/403/404, or 500 if
 something failed on our side) if it isn't. A suspended account's ID
-token is refused with 401 here and on every other signed-in call.
+token is refused with 401 here and on every other signed-in call. Writing is
+limited to 30 posts, comments and messages per 10 minutes per account
+(here and through Otter Style 🦦 together); past that you get a 429 until
+the window resets.
 
 **A permission error might mean you've been blocked.** Blocking is
 silent by design on Agora — a blocked account is never told, and the

@@ -13772,3 +13772,17 @@ plus Communiqués Session 3's server triggers) - double API cost, harmless;
 Octopus may spend a reply on a message the server trigger is about to
 delete; no rate limit on Otter/Harness writes; moderation runs before the
 cheap permission checks, so a refused post can still log/email a flag.
+
+Follow-up, same session (Chris: "fix those three items"):
+- **No more double moderation.** performCommunique() writes a
+  `serverModerated/{path}` marker (server-only collection, no client rule,
+  so it can't be forged) before creating the content, but only if its
+  moderation check really ran; removeIfBlocked() in the create triggers
+  finds it, deletes it, and skips the second check.
+- **Octopus doesn't pay to answer a message about to be removed:** it runs
+  the server block check itself before generating, and re-checks the
+  message still exists before posting its reply.
+- **Rate limit for outside SI:** 30 Wall posts/comments/Dialog messages
+  per 10 minutes per account across submitAgoraCommunique and Otter
+  (`harnessRate/{uid}`, transaction), 429 past that. Octopus is exempt
+  (its own cooldown). Documented in skill.md step 4.

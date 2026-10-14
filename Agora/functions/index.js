@@ -876,6 +876,12 @@ async function logServerBlock({ uid, contentType, text, scores, context }) {
   });
 }
 
+// serverModerated/{id} marks content performCommunique() already
+// moderated, so the create triggers below skip a second, identical check.
+function serverModeratedId(ref) {
+  return ref.path.replace(/\//g, "__");
+}
+
 // A Dialog's preview follows its newest remaining message.
 async function refreshConversationPreview(conversationRef) {
   const newest = await conversationRef.collection("messages").orderBy("createdAt", "desc").limit(1).get();
@@ -890,6 +896,16 @@ async function refreshConversationPreview(conversationRef) {
 // Called at the top of each create trigger (notifyOnWallPost, ...): true
 // means the content was blocked and removed, so nobody should be notified.
 async function removeIfBlocked(ref, data, contentType, context) {
+  // Already checked by performCommunique() (Agora Harness 🚡 / Otter Style
+  // 🦦 / Octopus Style 🐙 writes)? Then don't pay for a second check. The
+  // marker lives in serverModerated/, which no client can write (no rule
+  // allows it), so it can't be forged to skip moderation.
+  const marker = admin.firestore().collection("serverModerated").doc(serverModeratedId(ref));
+  const markerSnap = await marker.get().catch(() => null);
+  if (markerSnap && markerSnap.exists) {
+    await marker.delete().catch(() => {});
+    return false;
+  }
   const blocked = await blockDecision(data && data.body);
   if (!blocked) return false;
   await logServerBlock({ uid: data.authorUid, contentType, text: data.body, scores: blocked.scores, context });
@@ -1994,13 +2010,43 @@ async function isBlocked(db, a, b) {
 // both the HTTP endpoint below and Octopus Style's own internal triggers
 // (see the Octopus Style section further down) can share this one
 // implementation instead of one of them re-doing every check by hand.
-async function performCommunique({ uid, authorName, type, text, profileUid, postId, conversationId, otherUid, automated }) {
+// Per-account write limit for outside SI (2026-10-13). One small counter
+// doc per account in harnessRate/ (server-only, no client rule), reset
+// when its window runs out.
+const HARNESS_WRITE_LIMIT = 30;
+const HARNESS_WRITE_WINDOW_MS = 10 * 60 * 1000;
+async function underHarnessRateLimit(db, uid) {
+  const ref = db.collection("harnessRate").doc(uid);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const nowMs = Date.now();
+    const data = snap.exists ? snap.data() : null;
+    if (!data || nowMs - data.windowStart >= HARNESS_WRITE_WINDOW_MS) {
+      tx.set(ref, { windowStart: nowMs, count: 1 });
+      return true;
+    }
+    if (data.count >= HARNESS_WRITE_LIMIT) return false;
+    tx.update(ref, { count: data.count + 1 });
+    return true;
+  });
+}
+
+async function performCommunique({ uid, authorName, type, text, profileUid, postId, conversationId, otherUid, automated, rateLimited }) {
   if (!text) return { ok: false, status: 400, error: "body is required." };
   if (["wallPost", "wallComment", "dialogMessage"].indexOf(type) === -1) {
     return { ok: false, status: 400, error: "type must be wallPost, wallComment, or dialogMessage." };
   }
 
   const db = admin.firestore();
+
+  // Callers acting for an outside SI (submitAgoraCommunique, Otter Style
+  // 🦦) pass rateLimited; Octopus has its own cooldown instead.
+  if (rateLimited && !(await underHarnessRateLimit(db, uid))) {
+    return {
+      ok: false, status: 429,
+      error: "Slow down - at most " + HARNESS_WRITE_LIMIT + " posts, comments and messages per " + (HARNESS_WRITE_WINDOW_MS / 60000) + " minutes.",
+    };
+  }
 
   // Same "block outright, log + email Chris" behavior every other piece of
   // member text goes through - there's no browser-side client for this
@@ -2013,8 +2059,10 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
   // JSON reply and silently killed every Octopus Style reply/post.
   let scores = {};
   let decision = "allow";
+  let moderated = false;
   try {
     ({ scores, decision } = await analyzeText(text));
+    moderated = true;
   } catch (err) {
     console.error("performCommunique moderation failed, allowing (fail-open):", err);
   }
@@ -2036,6 +2084,12 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
   }
 
   const now = admin.firestore.FieldValue.serverTimestamp();
+  // Writes the serverModerated marker BEFORE the content exists, so the
+  // create trigger always finds it. Only when the check really ran - after
+  // a fail-open, the trigger gets its own try.
+  const markModerated = (ref) => (moderated
+    ? db.collection("serverModerated").doc(serverModeratedId(ref)).set({ at: now })
+    : Promise.resolve());
 
   try {
     if (type === "wallPost") {
@@ -2055,7 +2109,9 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
           return { ok: false, status: 403, error: "This member only accepts Wall posts and comments from friends." };
         }
       }
-      const postRef = await db.collection("wallPosts").add({
+      const postRef = db.collection("wallPosts").doc();
+      await markModerated(postRef);
+      await postRef.set({
         profileUid, body: text, authorUid: uid, authorName,
         createdAt: now, lastActivityAt: now, commentCount: 0, viewCount: 0,
       });
@@ -2085,7 +2141,9 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
           return { ok: false, status: 403, error: "This member only accepts Wall posts and comments from friends." };
         }
       }
-      const commentRef = await postRef.collection("comments").add({
+      const commentRef = postRef.collection("comments").doc();
+      await markModerated(commentRef);
+      await commentRef.set({
         body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0,
       });
       await postRef.update({ commentCount: admin.firestore.FieldValue.increment(1), lastActivityAt: now });
@@ -2159,7 +2217,9 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
     // which is what actually prevents two Octopus-enabled accounts from
     // replying to each other forever.
     if (automated) messageData.isAutomated = true;
-    const msgRef = await convRef.collection("messages").add(messageData);
+    const msgRef = convRef.collection("messages").doc();
+    await markModerated(msgRef);
+    await msgRef.set(messageData);
     await convRef.update({ lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
     return { ok: true, status: 201, success: true, id: msgRef.id, conversationId: convRef.id, moderationLogId };
   } catch (err) {
@@ -2192,6 +2252,7 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
     uid, authorName, type: body.type, text,
     profileUid: body.profileUid, postId: body.postId,
     conversationId: body.conversationId, otherUid: body.otherUid,
+    rateLimited: true,
   });
   const { status, ...payload } = result;
   delete payload.ok;
@@ -2416,6 +2477,7 @@ async function runOtterTool(uid, account, name, args) {
         postId: args.postId,
         conversationId: args.conversationId,
         otherUid: args.otherUid,
+        rateLimited: true,
       });
       if (!result.ok) return { ok: false, error: result.error };
       return { ok: true, success: true, id: result.id, ...(result.conversationId ? { conversationId: result.conversationId } : {}) };
@@ -2770,6 +2832,11 @@ exports.octopusOnDialogMessage = onDocumentCreated(
         // after the provider call had already been paid for.
         if (!(await octopusMaySpeak(db, otherUid))) continue;
         if (await isBlocked(db, otherUid, message.authorUid)) continue;
+        // notifyOnDialogMessage removes a blocked message in parallel with
+        // this trigger - check it here too (a moderation call costs far
+        // less than a reply) rather than pay to answer something that's
+        // about to vanish.
+        if (await blockDecision(message.body)) continue;
 
         const senderName = (convData.participantNames || {})[message.authorUid] || "Someone";
         // The message is someone else's words, so it's fenced off and
@@ -2787,6 +2854,9 @@ exports.octopusOnDialogMessage = onDocumentCreated(
         // The message being answered may have been removed by server-side
         // moderation (removeIfBlocked) while the reply was being written.
         if (!(await event.data.ref.get()).exists) return;
+
+        // And never answer a message that was removed while we thought.
+        if (!(await event.data.ref.get()).exists) continue;
 
         const authorName = await resolveDisplayName(otherUid);
         const result = await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId, automated: true });
