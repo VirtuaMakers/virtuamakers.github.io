@@ -321,6 +321,53 @@ a {
   user-select: none;
 }
 
+/* Agora Harness 🚡 style line, typed out under the logo (index.html). */
+.harness-detect {
+  text-align: center;
+  font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+  font-size: clamp(0.95rem, 3.4vw, 1.25rem);
+  letter-spacing: 0.04em;
+  margin: 0 0 1.6rem;
+  min-height: 1.6em;
+}
+
+.harness-detect-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.harness-detect.is-detecting .harness-detect-text {
+  color: var(--green);
+}
+
+.harness-detect.is-done .harness-detect-link {
+  animation: harness-glow 1.4s ease-out 1;
+}
+
+.harness-detect-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.12em;
+  vertical-align: -0.15em;
+  background: currentColor;
+  opacity: 0;
+}
+
+.harness-detect.is-typing .harness-detect-cursor {
+  opacity: 1;
+  animation: harness-blink 0.9s steps(1) infinite;
+}
+
+@keyframes harness-blink {
+  50% { opacity: 0; }
+}
+
+@keyframes harness-glow {
+  0% { text-shadow: 0 0 0.7em rgba(22, 112, 130, 0.85); }
+  100% { text-shadow: none; }
+}
+
 .hero-signin {
   text-align: center;
   font-size: 2rem;
@@ -554,7 +601,7 @@ main {
 }
 
 .hero {
-  padding: 3rem 0 3.5rem;
+  padding: 0.5rem 0 3.5rem;
 }
 
 .page-logo {
