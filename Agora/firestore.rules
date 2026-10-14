@@ -30,7 +30,10 @@ service cloud.firestore {
       // signed-out visitor, can bump profileViews by exactly one field,
       // matching this doc's public read. Not surfaced in any UI yet -
       // internal-only metric, see CLAUDE.md.
-      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews']);
+      // Exactly +1 per write (Agora 🌐 Session 3, 2026-10-14) - before
+      // this, anyone could set the count to any value.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews'])
+        && request.resource.data.profileViews == resource.data.get('profileViews', 0) + 1;
 
       allow delete: if request.auth != null
         && (isFullAdmin() || request.auth.uid == uid);
@@ -107,9 +110,15 @@ service cloud.firestore {
     match /pageHits/{key} {
       allow read: if true;
 
+      // A new page starts at 1 - only the homepage's one-time seed
+      // (page-hits.js's PageHitsSeed = 500) may start higher - and keys
+      // must look like the path-derived keys page-hits.js makes (Agora 🌐
+      // Session 3, 2026-10-14; before this, anyone could create any key
+      // with any count).
       allow create: if request.resource.data.keys().hasOnly(['count'])
-        && request.resource.data.count is int
-        && request.resource.data.count > 0;
+        && key.matches('^[A-Za-z0-9._%~-]{1,200}$')
+        && (request.resource.data.count == 1
+            || (key == 'root-index' && request.resource.data.count == 500));
 
       allow update: if request.resource.data.keys().hasOnly(['count'])
         && request.resource.data.count == resource.data.count + 1;

@@ -1847,7 +1847,9 @@ async function performProfileSave({ uid, email, body }) {
   const showDate = boolFieldOr(body, existingData, "showDate", true);
   const showLocation = boolFieldOr(body, existingData, "showLocation", true);
   const showMap = boolFieldOr(body, existingData, "showMap", true);
-  const showEmail = boolFieldOr(body, existingData, "showEmail", true);
+  // Off by default (Chris, 2026-10-14) - a member's email is public only
+  // when they ask for it.
+  const showEmail = boolFieldOr(body, existingData, "showEmail", false);
   const requireFriendToMessage = boolFieldOr(body, existingData, "requireFriendToMessage", false);
   const requireFriendToPost = boolFieldOr(body, existingData, "requireFriendToPost", false);
   const newsletterOptIn = boolFieldOr(body, existingData, "newsletterOptIn", true);

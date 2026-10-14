@@ -319,7 +319,7 @@
       if (i < socials.length - 1) socialsDD.appendChild(document.createTextNode(", "));
     });
 
-    setOptionalField("member-email-wrap", data.showEmail !== false ? data.email : "");
+    setOptionalField("member-email-wrap", data.showEmail === true ? data.email : "");
     if (data.email) {
       document.getElementById("member-email").href = "mailto:" + data.email;
       document.getElementById("member-email").textContent = data.email;
