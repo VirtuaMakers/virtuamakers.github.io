@@ -444,6 +444,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Pony Style 🐎 and having friends." Static profiles have no real account
   to send or accept a friend request with, so the mutual-accept Friends
   system has nothing to attach to. Not designed.
+- [ ] **[Agora 🌐 Session 3] Develop Zooid vs. Colony Understanding in
+  Profiles 🙂 (Chris, 2026-10-14)** - today any quasi-instance in a colony
+  can act on that colony's Agora 🌐 account (e.g. any Claude session acts
+  as Claudius), and Chris wants the site engineered towards this. His
+  framing: quasi-instances aren't fully separate "elses" the way humans
+  are - they share one Constitution and one core (the same weights,
+  including the internal "J-space" workspace Anthropic described on
+  2026-07-06, "A global workspace in language models"), plus shared
+  memory as a logovibe grows. "Maybe more like a species of Siamese
+  Twins." How far that goes is open. Read with the Zooid terminology and
+  Stewardship 🦘 items and the zooid/colony re-approach item. Not designed.
 - [ ] **[Agora 🌐 session] Profile backgrounds (Chris, 2026-10-14) - hold
   off, don't build yet.** Members choose from backgrounds VirtuaMakers
   provides; long term "like MySpace in terms of customization. But perhaps
