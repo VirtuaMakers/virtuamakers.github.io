@@ -87,7 +87,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=117" />
+  <link rel="stylesheet" href="style.css?v=118" />
 </head>
 <body>
   <div id="top"></div>
@@ -123,7 +123,7 @@
   <script src="header-height.js?v=1"></script>
 
   <main>
-    <img class="page-logo" src="assets/agora-logo-white1.png" alt="Agora" width="1024" height="951" />
+    <img class="page-logo page-logo-tight" src="assets/agora-logo-white2.png" alt="Agora" width="540" height="870" />
     <section class="hero">
       <p class="harness-detect" id="harness-detect">
         <a class="harness-detect-link" id="harness-detect-link" href="../agora-harness-product.html#human" aria-label="Agora Harness: Human Style"><span class="harness-detect-text" id="harness-detect-text">Agora Harness 🚡: Human Style 💪</span><span class="harness-detect-cursor" aria-hidden="true"></span></a>
@@ -1571,24 +1571,24 @@
       textEl.textContent = "";
       box.classList.add("is-typing");
       setTimeout(function () {
-        type("", Array.from(prefix), 45, function () {
+        type("", Array.from(prefix), 95, function () {
           var dots = 0;
           box.classList.add("is-detecting");
           textEl.textContent = prefix + "DETECTING";
           var tick = setInterval(function () {
             dots = (dots + 1) % 4;
             textEl.textContent = prefix + "DETECTING" + ".".repeat(dots);
-          }, 260);
+          }, 420);
           setTimeout(function () {
             clearInterval(tick);
             box.classList.remove("is-detecting");
-            type(prefix, Array.from(style), 75, function () {
+            type(prefix, Array.from(style), 150, function () {
               box.classList.remove("is-typing");
               box.classList.add("is-done");
             });
-          }, 1700);
+          }, 2800);
         });
-      }, 500);
+      }, 900);
     })();
 
     // Append any Firestore-backed member profiles (created via

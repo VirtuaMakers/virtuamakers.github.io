@@ -341,7 +341,7 @@ a {
 }
 
 .harness-detect.is-done .harness-detect-link {
-  animation: harness-glow 1.4s ease-out 1;
+  animation: harness-glow 2s ease-out 1;
 }
 
 .harness-detect-cursor {
@@ -609,6 +609,16 @@ main {
   width: min(520px, 90vw);
   height: auto;
   margin: 0.5rem auto 1.4rem;
+}
+
+/* Agora homepage logo, cropped tight to the artwork (agora-logo-white2.png)
+   and sized by height so the Harness 🚡 line below it shows on first load,
+   even on short laptop screens. */
+.page-logo-tight {
+  width: auto;
+  height: clamp(200px, 44vh, 420px);
+  max-width: 90vw;
+  margin: 1rem auto 1rem;
 }
 
 #exchange-welcome .page-logo {

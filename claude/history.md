@@ -14103,3 +14103,9 @@ Chris's second batch of the day, Agora 🌐 Session 2:
   (`assets/introspection-reflection.jpg` - a cyborg studying his reflection
   in a pool, The Thinker behind him). Mint "Dreamcast 2" moved toward the
   VirtuaMakers Exchange 💱 session (recommended to Memory Administrator 🚚).
+- Follow-up 2 (Chris: "so we can see it right when the page first loads",
+  and slower): logo now `assets/agora-logo-white2.png`, cropped tight to the
+  artwork (540×870) and sized by height (`.page-logo-tight`,
+  clamp(200px, 44vh, 420px)) so the Harness 🚡 line sits ~450px down on a
+  1366×657 laptop. Animation roughly doubled (~7.5s total: 95ms/char
+  prefix, 2.8s DETECTING, 150ms/char style). style.css v118 (index only).
