@@ -171,6 +171,64 @@
       });
     });
   });
+
+  // "Make Profile Picture" (Chris, 2026-10-14) - swaps a slot's picture
+  // into slot 1 (the one that becomes the profile picture everywhere)
+  // instead of needing to re-upload files in the right order. Only a
+  // plain JS state swap - the two <input type="file"> elements never
+  // actually exchange files (browsers won't allow assigning a FileList),
+  // but save() never reads from them directly either, only from
+  // existingPictureUrls/uploadedPictureUrls, so swapping those (plus the
+  // visible thumbnail/remove-checkbox) is all a correct swap needs.
+  // Refuses to swap a slot that's mid-upload/blocked/errored, since that
+  // state (a pending async callback, a moderation-appeal button) is tied
+  // to its own slot index and wouldn't follow the swap correctly - the
+  // member just finishes or clears that picture first.
+  function pictureSlotIsStable(i) {
+    return pictureUploadState[i] === "idle" || pictureUploadState[i] === "done";
+  }
+
+  function makeProfilePicture(targetIndex) {
+    var a = 0, b = targetIndex;
+    if (a === b) return;
+    if (!pictureSlotIsStable(a) || !pictureSlotIsStable(b)) {
+      setPictureStatus(b, "Let this picture finish uploading (or fix the problem with it) before making it your Profile Picture.", true);
+      return;
+    }
+
+    [existingPictureUrls, uploadedPictureUrls, pictureUploadState].forEach(function (arr) {
+      var tmp = arr[a]; arr[a] = arr[b]; arr[b] = tmp;
+    });
+    var tmpChecked = pictureRemoveCheckboxes[a].checked;
+    pictureRemoveCheckboxes[a].checked = pictureRemoveCheckboxes[b].checked;
+    pictureRemoveCheckboxes[b].checked = tmpChecked;
+    pictureRemoveWraps[a].hidden = !existingPictureUrls[a];
+    pictureRemoveWraps[b].hidden = !existingPictureUrls[b];
+
+    var tmpSrc = pictureThumbs[a].src, tmpThumbHidden = pictureThumbs[a].hidden;
+    pictureThumbs[a].src = pictureThumbs[b].src;
+    pictureThumbs[a].hidden = pictureThumbs[b].hidden;
+    pictureThumbs[b].src = tmpSrc;
+    pictureThumbs[b].hidden = tmpThumbHidden;
+
+    setPictureStatus(a, pictureUploadState[a] === "done" ? "Uploaded ✓" : "", false);
+    setPictureStatus(b, pictureUploadState[b] === "done" ? "Uploaded ✓" : "", false);
+
+    // The raw file inputs can't swap (browsers won't let JS set .files),
+    // so clear both - re-choosing a file in either slot afterward starts
+    // fresh and works exactly as normal.
+    pictureInputs[a].value = "";
+    pictureInputs[b].value = "";
+    pictureGenerations[a]++;
+    pictureGenerations[b]++;
+  }
+
+  document.querySelectorAll(".picture-make-profile-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      makeProfilePicture(parseInt(btn.dataset.slot, 10));
+    });
+  });
+
   var socialInputs = [1, 2, 3].map(function (n) {
     return document.getElementById("field-social-" + n);
   });

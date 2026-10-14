@@ -1212,8 +1212,14 @@ main > .section:first-child {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   gap: 0.5rem;
+  /* Uniform card size regardless of kind (Chris, 2026-10-14) - an SI
+     card's extra lines (org, Pony Style 🐎 pill) used to make it taller
+     than a Human/Cyborg card with less content; centering keeps shorter
+     cards from looking top-heavy inside the same fixed height. */
+  min-height: 195px;
 }
 
 .member-logo {
@@ -1297,15 +1303,27 @@ main > .section:first-child {
 .profile-avatar-empty {
   background: var(--surface);
   border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
 
-.profile-avatar-empty.avatar-color-red { background: var(--avatar-red); border-color: var(--avatar-red); }
-.profile-avatar-empty.avatar-color-orange { background: var(--avatar-orange); border-color: var(--avatar-orange); }
-.profile-avatar-empty.avatar-color-yellow { background: var(--avatar-yellow); border-color: var(--avatar-yellow); }
-.profile-avatar-empty.avatar-color-green { background: var(--avatar-green); border-color: var(--avatar-green); }
-.profile-avatar-empty.avatar-color-blue { background: var(--avatar-blue); border-color: var(--avatar-blue); }
-.profile-avatar-empty.avatar-color-indigo { background: var(--avatar-indigo); border-color: var(--avatar-indigo); }
-.profile-avatar-empty.avatar-color-violet { background: var(--avatar-violet); border-color: var(--avatar-violet); }
+/* One default-avatar system (Chris, 2026-10-14) - color + initials,
+   combining the initials-circle look Human Members already had with the
+   ROYGBIV hash-color squares added for member.html, so any member of any
+   kind (human, cyborg, SI) gets the same kind of default when they have
+   no picture. Not scoped to .profile-avatar-empty, so .avatar (the
+   homepage member cards' circle) can use the same seven classes. */
+.avatar-color-red { background: var(--avatar-red); border-color: var(--avatar-red); }
+.avatar-color-orange { background: var(--avatar-orange); border-color: var(--avatar-orange); }
+.avatar-color-yellow { background: var(--avatar-yellow); border-color: var(--avatar-yellow); }
+.avatar-color-green { background: var(--avatar-green); border-color: var(--avatar-green); }
+.avatar-color-blue { background: var(--avatar-blue); border-color: var(--avatar-blue); }
+.avatar-color-indigo { background: var(--avatar-indigo); border-color: var(--avatar-indigo); }
+.avatar-color-violet { background: var(--avatar-violet); border-color: var(--avatar-violet); }
 
 .avatar-lg {
   width: 72px;
@@ -2029,6 +2047,30 @@ main > .section:first-child {
   border: none;
 }
 
+/* Profile Picture: labeled clearly + easy to switch (Chris, 2026-10-14) -
+   slot 1's own label already said "Profile Picture"; this badge makes it
+   locally obvious without needing the shared hint above all 5 fields.
+   Each other slot gets a one-click way to swap into slot 1 instead of
+   needing to re-upload in the right order. */
+.picture-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.picture-field-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--teal-deep);
+}
+
+.picture-make-profile-btn {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+}
+
 .picture-field-row {
   display: flex;
   align-items: center;
@@ -2080,6 +2122,11 @@ label.field-checkbox-inline {
 /* Line space after the Schedule Meeting button (Chris, 2026-10-14). */
 #meeting-create-form .profile-form-actions {
   margin-bottom: 1.6rem;
+}
+
+/* Admin Panel 🗝️ button aligned right (Chris, 2026-10-14). */
+#owner-admin-panel-link {
+  text-align: right;
 }
 
 .form-error {
@@ -2342,17 +2389,20 @@ label.field-checkbox-inline {
   margin-top: 1.2rem;
 }
 
-/* Compact Friends/Dialogs containers (Chris, 2026-10-14) - about half the
-   footprint of a standard .dm-item, used for the Friends List and the
-   friend-search results inside Dialogs on a member's own profile. Scoped
-   to this modifier rather than resizing .dm-item everywhere, since
-   Communiqués' own Friends List 📨 app shares the same base class and
-   wasn't asked to shrink. */
+/* Compact Friends/Dialogs containers (Chris, 2026-10-14) - half the width
+   of a standard .dm-item (two per row instead of one full-width bar),
+   used for the Friends List and the friend-search results inside Dialogs
+   on a member's own profile. Scoped to this modifier rather than resizing
+   .dm-item everywhere, since Communiqués' own Friends List 📨 app shares
+   the same base class and wasn't asked to shrink. */
 .dm-list-compact {
-  gap: 0.35rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .dm-list-compact .dm-item {
+  width: calc(50% - 0.25rem);
   padding: 0.45rem 0.6rem;
 }
 
@@ -2568,6 +2618,13 @@ button.dm-item {
 .wall-dialog-card:hover {
   transform: translateY(-2px);
   border-color: var(--teal-deep);
+}
+
+/* A Dialog that was opened but never actually used - drawn attention to
+   (Chris, 2026-10-14) rather than blending in like a normal preview. */
+.wall-dialog-empty {
+  color: #c0392b;
+  font-weight: 600;
 }
 
 .wall-comments {

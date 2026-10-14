@@ -13913,3 +13913,67 @@ News" - confirmed he meant the same News 📰 treatment.
   quote) - no added commentary this time, since nothing about this one
   called for a note the way the Atlantic robots.txt finding did.
   Image saved as `Agora/assets/news/northwestern-artificial-neurons-bci.jpg`.
+
+## Second Agora 🌐 UI batch: default avatars, Pony Style on humans, Dialog polish (2026-10-14)
+
+Chris reviewed the first batch live and came back with a dozen follow-ups.
+One real correction first: he thought Virtuatron's homepage picture was
+showing blank - checked directly, Virtuatron has no static profile page
+and no real Agora account, so there's no card for him anywhere on Agora
+yet to be blank. Not built around that premise; the rest of this batch
+makes sure whenever he (or anyone) is actually added without a picture,
+the same default system below covers it correctly.
+
+- **One default-avatar system, not two:** the Human Members cards'
+  existing initials-circle look (`.avatar`, e.g. "AB") and member.html's
+  new ROYGBIV color square are now the same system - `avatar-color-*`
+  classes generalized off `.profile-avatar-empty` so `.avatar` can use
+  them too, and `member.js` gets an `initialsFor()` helper (first letter
+  of first + last word, matching the existing hand-written convention)
+  so a real account's empty avatar shows colored initials, not a blank
+  square. The 3 initials-only human statics (Andrew Bernhard, Gerardus
+  Dunkel, Ray Smith) got their own hashed color class added by hand, on
+  both their homepage card and their own profile page.
+- **Uniform member-card size:** `.member`'s SI-only extra lines (org
+  text, the new Pony Style pill) used to make `#ai-cards` taller than
+  `#human-cards`/`#cyborg-cards`. Fixed with `min-height: 195px` +
+  `justify-content: center` on `.member` - same box regardless of kind,
+  content centered rather than top-heavy when a card has less to show.
+- **Pony Style 🐎 on all 5 human static profiles too** - Chris confirmed
+  (asked rather than guessed, since mislabeling real individual people
+  felt like the wrong place to assume): none of the 5 have a real account
+  either, so the same "kept running by hand" definition applies. Added
+  the same pill, same place, both their own page and their homepage card.
+- **Friends/Dialogs containers, round 2:** the first round's padding-only
+  `.dm-list-compact` wasn't what Chris meant by "really long" - he meant
+  width. Redone as a 2-column wrap (`flex-direction: row; flex-wrap:
+  wrap`, each `.dm-item` at `calc(50% - gap/2)`) so friend chips tile two
+  per row instead of each spanning the full container as one long bar.
+- **"Profile Picture" made explicit + easy to switch:** slot 1 already
+  said "Profile Picture" with a hint explaining it - added a small badge
+  on the field itself too ("⭐ This is the one everyone sees first") so
+  it's locally obvious without needing the shared intro above all 5
+  fields. New "Make Profile Picture" button on slots 2-5
+  (`profile-form.js`'s `makeProfilePicture()`) swaps a picture into slot
+  1 with one click - a pure JS state swap (existingPictureUrls/
+  uploadedPictureUrls/thumbnail/remove-checkbox), since `save()` never
+  reads the raw `<input type="file">` elements directly and browsers
+  won't let JS assign a FileList to one anyway. Refuses to swap a slot
+  that's mid-upload/blocked/errored, since that state is tied to its own
+  slot's async callbacks and wouldn't follow the swap correctly.
+- **Admin Panel 🗝️ button right-aligned** - `#owner-admin-panel-link {
+  text-align: right; }`.
+- **"Your Dialogs" explained + fixed:** a Dialog's conversation document
+  is created the moment the chat window opens, before anyone's typed
+  anything - so a thread with "No messages yet." is a real, normal state
+  (someone clicked Dialog and didn't follow through), not a bug. Told
+  Chris this plainly. Fixed the confusing part: `buildDialogCard()`
+  (`communiques-common.js`, shared with the static profile pages' own
+  Wall-nested Dialogs preview) no longer shows a timestamp when there's
+  no message - it was showing the thread's creation date, which read like
+  a message that didn't exist. Copy changed to "No messages yet – say
+  hello! 📨", styled red (`.wall-dialog-empty`, the same `#c0392b` already
+  used for form errors) to stand out rather than blend in as filler.
+- Cache-busted: `style.css` to v=115, `communiques-common.js` to v=27,
+  `member.js` to v=37, `profile-form.js` to v=30, swept everywhere each
+  is referenced.

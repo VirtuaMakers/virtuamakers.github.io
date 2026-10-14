@@ -138,6 +138,17 @@
     return AVATAR_COLOR_CLASSES[Math.abs(hash) % AVATAR_COLOR_CLASSES.length];
   }
 
+  // Same first-letter-of-first-word + first-letter-of-last-word initials
+  // the Human Members cards on Agora/index.html already use by hand (e.g.
+  // "AB" for Andrew Bernhard) - computed here so a real account's default
+  // avatar matches that same convention automatically.
+  function initialsFor(name) {
+    var words = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "";
+    if (words.length === 1) return words[0].charAt(0).toUpperCase();
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+  }
+
   var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
 
@@ -181,6 +192,7 @@
       avatarEmpty.hidden = false;
       avatarEmpty.classList.remove.apply(avatarEmpty.classList, AVATAR_COLOR_CLASSES);
       avatarEmpty.classList.add(avatarColorClassFor(uid));
+      avatarEmpty.textContent = initialsFor(preferringHandle ? data.handle : (data.name || data.handle));
     }
 
     document.getElementById("member-kind").textContent = data.kind === "AI" ? "SI" : (data.kind || "");

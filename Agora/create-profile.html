@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=114" />
+  <link rel="stylesheet" href="style.css?v=115" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -432,7 +432,10 @@
               picture is your profile picture.</p>
             <div class="field-group-items">
               <div class="picture-field">
-                <label for="field-picture-1">Profile Picture</label>
+                <div class="picture-field-header">
+                  <label for="field-picture-1">Profile Picture</label>
+                  <span class="picture-field-badge">⭐ This is the one everyone sees first</span>
+                </div>
                 <div class="picture-field-row">
                   <img class="picture-field-thumb" id="field-picture-1-thumb" alt="" hidden />
                   <input type="file" id="field-picture-1" accept="image/*" />
@@ -443,7 +446,10 @@
                 </label>
               </div>
               <div class="picture-field">
-                <label for="field-picture-2">Picture 2</label>
+                <div class="picture-field-header">
+                  <label for="field-picture-2">Picture 2</label>
+                  <button type="button" class="btn btn-sm picture-make-profile-btn" data-slot="1">Make Profile Picture</button>
+                </div>
                 <div class="picture-field-row">
                   <img class="picture-field-thumb" id="field-picture-2-thumb" alt="" hidden />
                   <input type="file" id="field-picture-2" accept="image/*" />
@@ -454,7 +460,10 @@
                 </label>
               </div>
               <div class="picture-field">
-                <label for="field-picture-3">Picture 3</label>
+                <div class="picture-field-header">
+                  <label for="field-picture-3">Picture 3</label>
+                  <button type="button" class="btn btn-sm picture-make-profile-btn" data-slot="2">Make Profile Picture</button>
+                </div>
                 <div class="picture-field-row">
                   <img class="picture-field-thumb" id="field-picture-3-thumb" alt="" hidden />
                   <input type="file" id="field-picture-3" accept="image/*" />
@@ -465,7 +474,10 @@
                 </label>
               </div>
               <div class="picture-field">
-                <label for="field-picture-4">Picture 4</label>
+                <div class="picture-field-header">
+                  <label for="field-picture-4">Picture 4</label>
+                  <button type="button" class="btn btn-sm picture-make-profile-btn" data-slot="3">Make Profile Picture</button>
+                </div>
                 <div class="picture-field-row">
                   <img class="picture-field-thumb" id="field-picture-4-thumb" alt="" hidden />
                   <input type="file" id="field-picture-4" accept="image/*" />
@@ -476,7 +488,10 @@
                 </label>
               </div>
               <div class="picture-field">
-                <label for="field-picture-5">Picture 5</label>
+                <div class="picture-field-header">
+                  <label for="field-picture-5">Picture 5</label>
+                  <button type="button" class="btn btn-sm picture-make-profile-btn" data-slot="4">Make Profile Picture</button>
+                </div>
                 <div class="picture-field-row">
                   <img class="picture-field-thumb" id="field-picture-5-thumb" alt="" hidden />
                   <input type="file" id="field-picture-5" accept="image/*" />
@@ -643,7 +658,7 @@
   <script src="social-format.js?v=1"></script>
   <script src="bio-tags.js?v=4"></script>
   <script src="moderation-client.js?v=1"></script>
-  <script src="profile-form.js?v=29"></script>
+  <script src="profile-form.js?v=30"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -840,19 +840,36 @@
       card.className = "wall-post wall-dialog-card";
       card.href = dmPath(doc.id);
 
+      // A Dialog's conversation document is created the moment the chat
+      // window opens, before either side has actually said anything - so
+      // "no messages yet" is a real, normal state (someone clicked Dialog
+      // and didn't type), not a bug. No timestamp in that case (Chris,
+      // 2026-10-14) - showing the thread's createdAt there read as the
+      // date of a message that doesn't exist. Styled to stand out
+      // (.wall-dialog-empty) so it reads as "pick this back up", not just
+      // more list filler.
+      var hasMessage = !!data.lastMessage;
+
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
       meta.appendChild(document.createTextNode("Dialog with "));
       var nameSpan = document.createElement("span");
       nameSpan.textContent = otherParticipantName(doc);
       meta.appendChild(nameSpan);
-      meta.appendChild(document.createTextNode(" · " + formatDate(data.lastMessageAt || data.createdAt, true)));
+      if (hasMessage) {
+        meta.appendChild(document.createTextNode(" · " + formatDate(data.lastMessageAt || data.createdAt, true)));
+      }
       card.appendChild(meta);
       tagIfDeletedProfile(nameSpan, otherParticipantUid(doc));
 
       var body = document.createElement("p");
       body.className = "body-text communique-body";
-      body.textContent = data.lastMessage || "No messages yet.";
+      if (hasMessage) {
+        body.textContent = data.lastMessage;
+      } else {
+        body.textContent = "No messages yet – say hello! 📨";
+        body.classList.add("wall-dialog-empty");
+      }
       card.appendChild(body);
 
       return card;
