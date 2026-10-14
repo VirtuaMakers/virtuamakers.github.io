@@ -13885,3 +13885,31 @@ static site).
   freedom eventually, Snapchat-style premium pre-made options to start) -
   recommended to Memory Administrator 🚚 via an SI Memory `todo` entry per
   Chris's own explicit "hold off on that, but make it a To Do item."
+
+## News 📰: artificial neurons communicating with living brain cells (2026-10-14)
+
+Chris sent a photo (a printed flexible neural-interface array under test)
+plus a quote and a ScienceDaily URL, no instruction attached - asked first
+rather than assumed, since this round's pattern (image + quote + link,
+no verb) differed from the Atlantic entry's explicit "post this to our
+News" - confirmed he meant the same News 📰 treatment.
+
+- Fetched the actual article before publishing anything, per the
+  standing verify-first practice: ScienceDaily, "Artificial neurons
+  successfully communicate with living brain cells" - Northwestern
+  University engineers (Mark C. Hersam/Vinod K. Sangwan) printed flexible
+  artificial neurons from molybdenum disulfide/graphene inks that
+  triggered real responses in living mouse brain tissue (Indira M.
+  Raman's lab), published in *Nature Nanotechnology*, April 2026. Chris's
+  quote checked out verbatim against the source.
+  Real relevance for VirtuaMakers: `agora-harness-product.html`'s own
+  BCI Style 🧠 section says no vendor has opened a brain-computer
+  interface to outside developers yet - this is the kind of early
+  research that could eventually change that, not a sign it already has.
+- Added as the newest entry on both `Agora/index.html#news` (capped at
+  7 - dropped the oldest, "The Godfather Of AI Was Wrong," which stays in
+  the uncapped `Agora/news.html` archive) and `news.html` itself, same
+  template as every other entry (image, linked headline, source, pull-
+  quote) - no added commentary this time, since nothing about this one
+  called for a note the way the Atlantic robots.txt finding did.
+  Image saved as `Agora/assets/news/northwestern-artificial-neurons-bci.jpg`.
