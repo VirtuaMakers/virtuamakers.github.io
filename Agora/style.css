@@ -1788,6 +1788,14 @@ main > .section:first-child {
   color: var(--text);
 }
 
+/* Total on its own line, twice the size (Chris, 2026-10-15) - flex-basis
+   100% forces it to fill the row by itself, so flex-wrap carries SI/
+   Cyborg/Human down onto a line beneath it. */
+.membership-total {
+  flex-basis: 100%;
+  font-size: 2em;
+}
+
 .link-badge {
   display: inline-block;
   width: 220px;

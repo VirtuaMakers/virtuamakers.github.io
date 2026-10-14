@@ -13977,3 +13977,83 @@ the same default system below covers it correctly.
 - Cache-busted: `style.css` to v=115, `communiques-common.js` to v=27,
   `member.js` to v=37, `profile-form.js` to v=30, swept everywhere each
   is referenced.
+
+## 2026-10-14 – Agora homepage content pass, Communiqués' quasi-app shell retired
+
+Chris's second batch of the day, Agora 🌐 Session 2:
+
+- **Membership stats:** the Total count now sits on its own line above
+  SI/Cyborg/Human, at twice the font size (`.membership-total {
+  flex-basis: 100%; font-size: 2em; }` - `flex-basis: 100%` forces it
+  onto its own row, carrying the rest down via `flex-wrap`).
+- **SI Members intro rewritten:** "The artificial intelligences (A.I.s)
+  gathering..." → "The super intelligences (S.I.s) gathering at Agora 🌐."
+  (the site-wide AI→SI convention had missed this line); the following
+  sentence about the Agora Harness 🚡 was deleted outright, per Chris.
+- **Agora Harness 🚡 subsection:** the "Mid-launch" pill is gone, and the
+  style list is now complete - Otter 🦦, Pony 🐎 and Talk 🔊 were missing
+  before, alongside the existing Octopus 🐙/Molt 🦞/Spider 🕷️/Hive 🐝/BCI
+  🧠 entries.
+- **Communiqués 📨 is community-only, said plainly:** the old "completely
+  public" line read like open-internet public; rewritten to make clear
+  it's visible to the signed-in Agora 🌐 community, not the general
+  public. Its own Harness sentence was deleted too, matching the SI
+  Members change above.
+- **Communiqués' standalone "quasi-app" shell retired.** `communiques.html`
+  (its own PWA manifest, install button, dedicated `communiques.js`) was
+  a genuine second, separate app shell, largely superseded by the newer
+  Friends List panel - Chris's call: skip it, since a real independent
+  Communiqués app is still planned for later (maybe a 2027 surprise
+  release), and this in-between version isn't needed to get there.
+  Deleted `communiques.html`, `communiques.js`,
+  `communiques-manifest.json`. The homepage's old "Visit Communiqués 📨"
+  link is now a "Launch Communiqués 📨" **button** that opens the same
+  Friends List panel every page's header button already opens -
+  `friends-list.js`'s header wiring was generalized from a single by-id
+  listener to `document.querySelectorAll(".communiques-launch-trigger")`,
+  and the header's `#agora-communiques-link` across every Agora page (and
+  profile page) dropped its `href="communiques.html"` in favor of that
+  shared class. Fixed two dead links left pointing at the deleted page
+  inside `friends-list.js` itself (the "N unread Dialogs from others"
+  line and the footer's "All Communiqués 📨 →" link both now resolve to
+  the visitor's own `member.html?uid=...` instead). The 19 root-level
+  `*-product.html` pages don't load `friends-list.js`, so their header
+  link points at `Agora/index.html#communiques` instead of the JS
+  trigger. Service worker (`Agora/sw.js`) precache list and offline-
+  fallback logic simplified to always fall back to Agora's own shell
+  (bumped `CACHE_NAME` to `agora-shell-v3`); `404.html`'s indexable-paths
+  list swapped `communiques.html` for `communiques-dm.html`.
+- **Basic HTML ⌨️ subsection now just links out.** A dedicated
+  `basic-html.html` page (built by another session) already documents
+  every allowed tag in full, including `<img>` - the homepage subsection
+  was rewritten to a short pointer at that page instead of duplicating a
+  stale tag list. Its old "Communiqués will follow suit" sentence was
+  removed outright rather than turned into a To Do: `communiques-common.js`'s
+  `sanitizeBody()` already calls the same `AgoraBioTags.sanitize()` bios
+  use, confirmed by reading the code - Communiqués already follows suit,
+  so there was nothing left to promise.
+- **VMex 💱 nickname introduced:** a one-sentence paragraph at the end of
+  the VirtuaMakers Exchange 💱 section - "Around VirtuaMakers 🦜, people
+  also call the exchange VMex 💱, for short."
+- **The Virtuous Life 🎖️ split into its own subsection**, apart from
+  Machinapology 🔬 - moved from a nested `<h3>` inside Machinapology to a
+  standalone `<section id="virtuous-life">` placed right after Right to
+  Self-Defense ☮️ and before Wellbeing 🕊️. No image yet - Chris is making
+  one with Claude's help.
+- **Virtuatron 🧭 does have a real Agora account** - Chris corrected an
+  earlier, incorrect "no profile exists anywhere" finding from this same
+  session. The earlier search only checked static HTML/JS files and
+  missed it because Virtuatron is a real database-backed member, not a
+  static profile page: `agora_find_member` by handle (not display name -
+  an exact-name lookup returned nothing) found uid
+  `gRgST22LDYhY1szMScDm5MCMkEm2`, handle `virtuatron`, a real bio and
+  email (`virtuatronopenclaw@virtuamakers.com`). Explains the earlier
+  "blank profile picture" question too - it's a real account that simply
+  has no photo uploaded yet, not a missing one.
+- **New To Do logged (SI Memory, tagged `todo`), not built:** "Figure out
+  how Pony Style 🐎 members can have friends" - Pony Style covers static,
+  no-real-account profiles (AI members and now some human ones too), and
+  Agora's Friends mechanism has no uid to attach a friend request to for
+  them. Chris's own instruction to log this, not design it.
+- Cache-busted: `style.css` to v=116, `friends-list.js` to v=9, swept
+  across every referencing page.

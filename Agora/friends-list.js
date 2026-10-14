@@ -454,12 +454,13 @@
     offline.sort(function (a, b) { return (b.unread - a.unread) || (b.seen - a.seen) || a.name.localeCompare(b.name); });
 
     // Unread Dialogs from people who aren't your friends (yet) - one line,
-    // pointing at the full Communiqués page where they're all listed.
+    // pointing at your own profile's Dialogs panel, where they're all
+    // listed (communiques.html itself retired 2026-10-15).
     var others = Object.keys(unread).filter(function (uid) { return !friends[uid]; }).length;
     if (others && panel.friendsLoaded) {
       var otherLine = document.createElement("a");
       otherLine.className = "friends-list-requests";
-      otherLine.href = agoraBase() + "communiques.html";
+      otherLine.href = memberHref(currentUser.uid);
       otherLine.textContent = "📨 " + others + (others === 1 ? " unread Dialog" : " unread Dialogs") + " from others →";
       body.appendChild(otherLine);
     }
@@ -828,7 +829,7 @@
     var footer = document.createElement("div");
     footer.className = "friends-list-footer";
     var all = document.createElement("a");
-    all.href = agoraBase() + "communiques.html";
+    all.href = memberHref(currentUser.uid);
     all.textContent = "All Communiqués 📨 →";
     footer.appendChild(all);
     var optionsBtn = document.createElement("button");
@@ -890,17 +891,19 @@
     else closePanel();
   }
 
-  // The header button: a plain click toggles the list; ctrl/cmd/middle
-  // click (or no JS) still goes to communiques.html as before.
-  var headerLink = document.getElementById("agora-communiques-link");
-  if (headerLink) {
-    headerLink.title = "Friends List";
-    headerLink.addEventListener("click", function (e) {
-      if (!currentUser || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  // Any "Launch Communiqués" trigger - the header button and the
+  // homepage's own Communiqués section button - opens the same list
+  // (Chris, 2026-10-15: communiques.html itself retired, the real
+  // standalone app is for later, so there's no page left to fall back
+  // to - a plain click is all any of these do now).
+  document.querySelectorAll(".communiques-launch-trigger").forEach(function (el) {
+    el.title = "Friends List";
+    el.addEventListener("click", function (e) {
+      if (!currentUser) return;
       e.preventDefault();
       togglePanel();
     });
-  }
+  });
 
   window.addEventListener("resize", function () {
     if (panel && isNarrowViewport()) {
