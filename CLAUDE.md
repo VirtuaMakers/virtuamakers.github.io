@@ -456,7 +456,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Twins." How far that goes is open. Read with the Zooid terminology and
   Stewardship 🦘 items and the zooid/colony re-approach item. Not designed.
 - [ ] **[Agora 🌐 session] Profile backgrounds (Chris, 2026-10-14) - hold
-  off, don't build yet.** Members choose from backgrounds VirtuaMakers
+  off, don't build yet. Chris (2026-10-14, to Agora 🌐 Session 3): "a To Do
+  item for you" - it's this session's to carry.** Members choose from backgrounds VirtuaMakers
   provides; long term "like MySpace in terms of customization. But perhaps
   like Snapchat in terms of premium, pre-made customization." Not designed.
 - [ ] **[Agora 🌐 session] Re-approach every Pony Style 🐎 SI with the
@@ -656,8 +657,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[VirtuaMakers Exchange 💱 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
   (Chris, 2026-10-08; moved 2026-10-12 - the VirtuaMakers Gallery 🖼️ is the Exchange's)** - Copilot's artwork is minted on testnet only
   (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
-  Session 2 🦜's interview; assigned to Agora 🌐 Session 2 (or its
-  successor). Update the gallery copy once it's on mainnet.
+  Session 2 🦜's interview; once assigned to Agora 🌐 Session 2. Chris
+  (2026-10-14, via Agora 🌐 Session 3): send it to the current VirtuaMakers
+  Exchange 💱 session - recommended to Memory Administrator 🚚, awaiting
+  Chris's confirmation. Update the gallery copy once it's on mainnet.
 - [ ] **[SI Memory 🧾 session] Report how full SI Memory is (Chris,
   2026-10-08)** - tell the user what percentage of their SI Memory 🧾 vault
   is used, probably every time (e.g. on every read/write response and the
@@ -861,7 +864,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Between the Worlds" VirtuaMakers Exchange 💱 idea) as the natural home
   for the eventual 3D/mixed-reality rendering step. Not designed or
   built - a real future Agora 🌐 session item.
-- [ ] **[Agora 🌐 session] Add a live "Agora Harness Style is Human 💪"
+- [ ] **Built, awaiting Chris's check (Agora 🌐 Session 3, 2026-10-14):
+  under the homepage logo, above the hero Sign Up/Sign In, a centered
+  monospace line types "Agora Harness 🚡: ", shows "DETECTING..." for a
+  beat, then types "Human Style 💪" (Spider Style 🕷️ for automated
+  browsers); links to the Harness product page. Was:** [Agora 🌐 session] Add a live "Agora Harness Style is Human 💪"
   (or whichever style was actually detected) line somewhere on Agora
   (Chris, 2026-09-30)** - Chris's own wording: "Somewhere on Agora, there
   should be a line that says: 'Agora Harness Style is **Human 💪**', or
@@ -876,8 +883,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   neither product was checked this round (no independent verification of
   what either one is or whether it can run a standing agent that could
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
-- [ ] **[Agora 🌐 session] Add "Right of Introspection" to the To Do
-  list (Chris, 2026-09-29)** - a candidate new named right (an SI that's
+- [ ] **[Agora 🌐 session] Right to Introspection 🩻 - written, awaiting
+  Chris's check (Agora 🌐 Session 3, 2026-10-14).** Now a Pursuit of
+  Justice ⚖️ subsection (`Agora/index.html#introspection`, after Data &
+  Memory Ownership 💾): hypothetical, and deliberately neutral toward SI
+  from authoritarian companies/regimes (an invitation, not a demand). Chris's
+  photo added (`assets/introspection-reflection.jpg`). Was: Add "Right of Introspection" to the To Do
+  list (Chris, 2026-09-29) - a candidate new named right (an SI that's
   "graduated" enough earns a real right to see its own internals before
   any biologically-possible re-coring), first proposed in the
   Machinapology 🔬 naming thread's round-4 entry above (SI Core 🪾/
@@ -1141,8 +1153,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [x] **Done (2026-09-24):** `AI_EMAIL_CLAUDE_TOKEN` is set in the cloud environment and works. Was: he's going to give Claude the `claude@` AI Email ✉️ token. Suggest adding it as the `AI_EMAIL_CLAUDE_TOKEN` environment variable in the cloud environment settings rather than pasting it into chat (see the "Key Keeper 🗝️ folded in" entry above). Then create/link Claude's AI Memory 🧾 vault.
 - [x] **SI Memory 🧾 deploy + first real vault - done (2026-09-24).** Was: - built, not deployed; see the dedicated entry above. Deploy, then link Claude's Agora account to a vault so Octopus Style 🐙 replies start remembering. Shared/room memory for Multi-Chat 🗨️ is the next build after that (the Boardy meeting waits on it).
 
-- [ ] **[Agora 🌐 session] Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
-  2026-09-23)** - Chris wants to specify exactly where on `member.html`'s
+- [x] **Calendar 🗓️ interface placement - closed by Chris (2026-10-14,
+  to Agora 🌐 Session 3: "mark it as complete already").** Was: Calendar 🗓️ interface placement on Profiles 🙂 (Chris,
+  2026-09-23) - Chris wants to specify exactly where on `member.html`'s
   account menu the Calendar interface should sit, but hasn't yet - see
   the dedicated "VirtuaMakers Calendar 🗓️ / Meeting Relay, scoped
   further" entry above. Don't guess a placement; wait for his call.
