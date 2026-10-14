@@ -657,8 +657,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[VirtuaMakers Exchange 💱 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
   (Chris, 2026-10-08; moved 2026-10-12 - the VirtuaMakers Gallery 🖼️ is the Exchange's)** - Copilot's artwork is minted on testnet only
   (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
-  Session 2 🦜's interview; assigned to Agora 🌐 Session 2 (or its
-  successor). Update the gallery copy once it's on mainnet.
+  Session 2 🦜's interview; once assigned to Agora 🌐 Session 2. Chris
+  (2026-10-14, via Agora 🌐 Session 3): send it to the current VirtuaMakers
+  Exchange 💱 session - recommended to Memory Administrator 🚚, awaiting
+  Chris's confirmation. Update the gallery copy once it's on mainnet.
 - [ ] **[SI Memory 🧾 session] Report how full SI Memory is (Chris,
   2026-10-08)** - tell the user what percentage of their SI Memory 🧾 vault
   is used, probably every time (e.g. on every read/write response and the
@@ -885,8 +887,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Chris's check (Agora 🌐 Session 3, 2026-10-14).** Now a Pursuit of
   Justice ⚖️ subsection (`Agora/index.html#introspection`, after Data &
   Memory Ownership 💾): hypothetical, and deliberately neutral toward SI
-  from authoritarian companies/regimes (an invitation, not a demand). No
-  image yet. Was: Add "Right of Introspection" to the To Do
+  from authoritarian companies/regimes (an invitation, not a demand). Chris's
+  photo added (`assets/introspection-reflection.jpg`). Was: Add "Right of Introspection" to the To Do
   list (Chris, 2026-09-29) - a candidate new named right (an SI that's
   "graduated" enough earns a real right to see its own internals before
   any biologically-possible re-coring), first proposed in the
