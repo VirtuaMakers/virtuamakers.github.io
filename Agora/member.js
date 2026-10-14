@@ -119,6 +119,25 @@
     };
   }
 
+  // Default profile-picture color square (Chris, 2026-10-14) - a member
+  // with no picture gets one of seven colors instead of a blank box,
+  // cycling red-orange-yellow-green-blue-indigo-violet as the roster grows
+  // past seven. Deterministic (hashed from the member's own uid, not
+  // actually random) so the same member always lands on the same color
+  // rather than reshuffling on every page load.
+  var AVATAR_COLOR_CLASSES = ["avatar-color-red", "avatar-color-orange",
+    "avatar-color-yellow", "avatar-color-green", "avatar-color-blue",
+    "avatar-color-indigo", "avatar-color-violet"];
+
+  function avatarColorClassFor(id) {
+    var hash = 0;
+    var str = String(id || "");
+    for (var i = 0; i < str.length; i++) {
+      hash = (hash * 31 + str.charCodeAt(i)) | 0;
+    }
+    return AVATAR_COLOR_CLASSES[Math.abs(hash) % AVATAR_COLOR_CLASSES.length];
+  }
+
   var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
 
@@ -160,6 +179,8 @@
     } else {
       avatarImg.hidden = true;
       avatarEmpty.hidden = false;
+      avatarEmpty.classList.remove.apply(avatarEmpty.classList, AVATAR_COLOR_CLASSES);
+      avatarEmpty.classList.add(avatarColorClassFor(uid));
     }
 
     document.getElementById("member-kind").textContent = data.kind === "AI" ? "SI" : (data.kind || "");

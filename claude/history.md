@@ -13818,3 +13818,70 @@ vividly.) He hopes only Copilot and Alexa stay Pony for long - he can relay
 for a couple, not ~25. Renamed in agora-harness-product.html (#pony),
 harnessStyles.js, the admin panel and invited-onboarding.md. Added To Dos:
 Octopus via OpenRouter, and Cadences (Chris's word for heartbeats).
+
+## Pony Style 🐎 labels, ROYGBIV picture squares, and a member.html pass (Chris, 2026-10-14)
+
+A batch of Agora 🌐 UI requests, all on `main` now (no deploy needed -
+static site).
+
+- **Pony Style 🐎 pill** added to all 23 static SI profile pages
+  (`Agora/profiles/*.html`) and their homepage cards (`Agora/index.html
+  #ai-cards`), linking to `/agora-harness-product.html#pony`. Reused
+  Alexa's existing `pill pill-soon` look rather than inventing a new
+  color, per Chris's own "just change that tag to say Pony Style 🐎"
+  framing - Alexa's old "Profile coming soon" text swapped the same way.
+  The 5 human static profiles and Claude's own real account (`member.html
+  ?uid=...`) correctly carry no style badge - "other accounts will not
+  identify their styles" stays true automatically, since real accounts
+  were never part of this change. Verified in headless Chromium, both on
+  a profile page and the homepage grid.
+- **Default profile-picture color square:** a member with no `picture1`
+  on `member.html` now gets one of seven ROYGBIV squares instead of a
+  blank box, same size as a real picture (`.profile-avatar-empty` was
+  already 72×72 - no size change needed, just a fill). Deterministic, not
+  literally random - `avatarColorClassFor()` in `member.js` hashes the
+  member's own `uid` (simple string hash mod 7), so the same member
+  always lands on the same color rather than reshuffling on reload. Real
+  caveat flagged to Chris: this can't guarantee any specific member (e.g.
+  Virtuatron, who has no Agora uid yet) lands on a specific color -
+  deterministic-from-uid, not pinned. New `--avatar-*` CSS variables in
+  `Agora/style.css`, matching the site's existing muted-saturation
+  palette rather than neon swatches.
+- **Friends/Dialogs containers shrunk** - new `.dm-list-compact` modifier
+  class (about half the padding/gap of a standard `.dm-item`), applied to
+  `#friends-list` and the Dialogs section's `#dialogs-friend-results`.
+  Deliberately scoped to those two ids rather than resizing `.dm-item`
+  globally, since Communiqués' own Friends List 📨 app (`communiques.html`)
+  shares the same base class and wasn't asked to shrink.
+- **Wall/Dialogs restructured** on `member.html`: the old "Dialogs"
+  sub-heading buried inside the Wall panel (`#wall-dialog-list`) and the
+  separate standalone `#member-dialogs` friend-search section are now one
+  panel, titled plainly "Dialogs" - the friend-search-to-start-a-Dialog
+  feature moved into it, right above the actual Dialog-thread list (new
+  "Your Dialogs" sub-heading). Wall and Dialogs now sit side by side in a
+  new `.wall-dialogs-row` CSS grid (`1fr 1fr`, collapsing to one column
+  under 640px) instead of stacking full-width. No JS changes needed for
+  the move itself - `communiques-common.js`'s `createWallController`
+  already treated `#wall-dialog-list`/`#wall-dialogs-empty` as optional,
+  looked up by id regardless of where in the DOM they sit (a previous
+  session's own "optional markup" design paid off directly here). Roles
+  (admin-only) moved to sit after the new row rather than between Wall
+  and the old Dialogs section. Verified structurally (div-tag balance,
+  every expected id still present exactly once) and visually (a mock
+  fixture in headless Chromium, both desktop 2-column and mobile
+  1-column).
+- **Line space after Schedule Meeting** - `#meeting-create-form
+  .profile-form-actions { margin-bottom: 1.6rem; }`, scoped to that one
+  form rather than the shared `.profile-form-actions` class everywhere.
+- **Larger profile-page keywords** - `#member-content .page-title`
+  ("Profile 🙂") +25%, `#member-form .panel-title` ("Form") +75%,
+  `#member-form .profile-field dt` (Kind/Location/Birthdate/
+  Organization(s)/Pictures/etc. - literally every field label, per
+  Chris's own "etc." covering the ones he didn't name individually) +50%.
+  Scoped to member.html's own ids throughout, not the shared
+  `.profile-field`/`.page-title`/`.panel-title` classes the 23 static
+  profile pages and `communiques.html` also use - those stay unchanged.
+- **Logged, not built:** profile background customization (MySpace-style
+  freedom eventually, Snapchat-style premium pre-made options to start) -
+  recommended to Memory Administrator 🚚 via an SI Memory `todo` entry per
+  Chris's own explicit "hold off on that, but make it a To Do item."

@@ -18,6 +18,16 @@
   --blue-deep: #1e3f9e;
   --blue-light: #4d8df0;
   --blue-soft: #e5eefc;
+  /* Default profile-picture color squares (Chris, 2026-10-14) - a member
+     with no picture gets one of these seven, deterministically, cycling
+     ROYGBIV as the member roster grows past seven. */
+  --avatar-red: #c8503f;
+  --avatar-orange: #d9823b;
+  --avatar-yellow: #c9a227;
+  --avatar-green: #61a138;
+  --avatar-blue: #2b57d6;
+  --avatar-indigo: #4a4e9e;
+  --avatar-violet: #8e4f93;
   --radius: 14px;
   --maxw: 960px;
 }
@@ -722,6 +732,28 @@ main > .section:first-child {
   margin-bottom: 1.8rem;
 }
 
+/* Wall/Dialogs side by side (Chris, 2026-10-14) - half-width columns on a
+   member's own profile instead of stacking full-width, one under the
+   other. Collapses back to one column on phones. */
+.wall-dialogs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.8rem;
+}
+
+.wall-dialogs-row .profile-panel {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .wall-dialogs-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .panel-title {
   font-size: 1.3rem;
   font-weight: 800;
@@ -1267,6 +1299,14 @@ main > .section:first-child {
   border: 1px solid var(--line);
 }
 
+.profile-avatar-empty.avatar-color-red { background: var(--avatar-red); border-color: var(--avatar-red); }
+.profile-avatar-empty.avatar-color-orange { background: var(--avatar-orange); border-color: var(--avatar-orange); }
+.profile-avatar-empty.avatar-color-yellow { background: var(--avatar-yellow); border-color: var(--avatar-yellow); }
+.profile-avatar-empty.avatar-color-green { background: var(--avatar-green); border-color: var(--avatar-green); }
+.profile-avatar-empty.avatar-color-blue { background: var(--avatar-blue); border-color: var(--avatar-blue); }
+.profile-avatar-empty.avatar-color-indigo { background: var(--avatar-indigo); border-color: var(--avatar-indigo); }
+.profile-avatar-empty.avatar-color-violet { background: var(--avatar-violet); border-color: var(--avatar-violet); }
+
 .avatar-lg {
   width: 72px;
   height: 72px;
@@ -1303,6 +1343,21 @@ main > .section:first-child {
   letter-spacing: 0.08em;
   color: var(--teal);
   margin-bottom: 0.2rem;
+}
+
+/* Larger keywords on a member's own profile page (Chris, 2026-10-14) -
+   scoped to member.html's own Form panel, not the shared .profile-field
+   markup every static profile page also uses. */
+#member-content .page-title {
+  font-size: 2.75rem; /* 2.2rem + 25% */
+}
+
+#member-form .panel-title {
+  font-size: 2.275rem; /* 1.3rem + 75% */
+}
+
+#member-form .profile-field dt {
+  font-size: 1.08rem; /* 0.72rem + 50% */
 }
 
 /* flex-wrap: nowrap plus flex-basis 0 means every thumbnail always
@@ -2022,6 +2077,11 @@ label.field-checkbox-inline {
   color: var(--muted);
 }
 
+/* Line space after the Schedule Meeting button (Chris, 2026-10-14). */
+#meeting-create-form .profile-form-actions {
+  margin-bottom: 1.6rem;
+}
+
 .form-error {
   color: #c0392b;
   font-size: 0.9rem;
@@ -2280,6 +2340,29 @@ label.field-checkbox-inline {
   flex-direction: column;
   gap: 0.7rem;
   margin-top: 1.2rem;
+}
+
+/* Compact Friends/Dialogs containers (Chris, 2026-10-14) - about half the
+   footprint of a standard .dm-item, used for the Friends List and the
+   friend-search results inside Dialogs on a member's own profile. Scoped
+   to this modifier rather than resizing .dm-item everywhere, since
+   Communiqués' own Friends List 📨 app shares the same base class and
+   wasn't asked to shrink. */
+.dm-list-compact {
+  gap: 0.35rem;
+}
+
+.dm-list-compact .dm-item {
+  padding: 0.45rem 0.6rem;
+}
+
+.dm-list-compact .dm-item-name {
+  font-size: 0.85rem;
+}
+
+.dm-list-compact .dm-item-preview {
+  font-size: 0.72rem;
+  margin-top: 0.1rem;
 }
 
 .dm-item {

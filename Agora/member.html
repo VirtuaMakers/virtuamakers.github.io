@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=113" />
+  <link rel="stylesheet" href="style.css?v=114" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -179,7 +179,7 @@
               <dt>Friends</dt>
               <dd>
                 <span id="friends-empty" hidden>0</span>
-                <div class="dm-list" id="friends-list"></div>
+                <div class="dm-list dm-list-compact" id="friends-list"></div>
               </dd>
             </div>
           </dl>
@@ -198,40 +198,49 @@
         </p>
 
         <div id="member-communiques" hidden>
-          <div class="subsection profile-panel" id="member-wall">
-            <h2 class="panel-title">Wall</h2>
-            <form class="profile-form" id="wall-post-form">
-              <div>
-                <label for="wall-post-body">Post to this Wall</label>
-                <textarea id="wall-post-body" maxlength="9999" required placeholder="Posts may be up to 9,999 characters long!
+          <div class="wall-dialogs-row">
+            <div class="subsection profile-panel" id="member-wall">
+              <h2 class="panel-title">Wall</h2>
+              <form class="profile-form" id="wall-post-form">
+                <div>
+                  <label for="wall-post-body">Post to this Wall</label>
+                  <textarea id="wall-post-body" maxlength="9999" required placeholder="Posts may be up to 9,999 characters long!
 
 You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) before they become permanent."></textarea>
-                <p class="field-hint" id="wall-post-hint"></p>
-              </div>
-              <p class="form-error" id="wall-post-error" hidden></p>
-              <div class="profile-form-actions">
-                <button type="button" class="btn per-manum-btn" id="wall-post-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if SI helped write this">✒️</button>
-                <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
-                <span class="form-status" id="wall-post-status" hidden>Posting…</span>
-              </div>
-            </form>
-            <p class="intro" id="wall-post-restricted-notice" hidden>This member only
-              accepts Wall posts and comments from friends.</p>
+                  <p class="field-hint" id="wall-post-hint"></p>
+                </div>
+                <p class="form-error" id="wall-post-error" hidden></p>
+                <div class="profile-form-actions">
+                  <button type="button" class="btn per-manum-btn" id="wall-post-per-manum" title="Insert a Per Manum Convention ✒️ credit line, if SI helped write this">✒️</button>
+                  <button type="submit" class="btn btn-primary" id="wall-post-submit">Post</button>
+                  <span class="form-status" id="wall-post-status" hidden>Posting…</span>
+                </div>
+              </form>
+              <p class="intro" id="wall-post-restricted-notice" hidden>This member only
+                accepts Wall posts and comments from friends.</p>
 
-            <p class="intro" id="wall-loading">Loading Wall…</p>
+              <p class="intro" id="wall-loading">Loading Wall…</p>
 
-            <h3 class="section-title section-title-top-spaced">Posts</h3>
-            <p class="intro" id="wall-empty" hidden>No posts yet.</p>
-            <div class="wall-list" id="wall-list"></div>
-            <div class="dm-pagination" id="wall-pagination-bottom" hidden>
-              <button type="button" class="btn" id="wall-page-older-bottom">← Older</button>
-              <span class="dm-page-indicator" id="wall-page-indicator-bottom"></span>
-              <button type="button" class="btn" id="wall-page-newer-bottom">Newer →</button>
+              <h3 class="section-title section-title-top-spaced">Posts</h3>
+              <p class="intro" id="wall-empty" hidden>No posts yet.</p>
+              <div class="wall-list" id="wall-list"></div>
+              <div class="dm-pagination" id="wall-pagination-bottom" hidden>
+                <button type="button" class="btn" id="wall-page-older-bottom">← Older</button>
+                <span class="dm-page-indicator" id="wall-page-indicator-bottom"></span>
+                <button type="button" class="btn" id="wall-page-newer-bottom">Newer →</button>
+              </div>
             </div>
 
-            <h3 class="section-title section-title-top-spaced">Dialogs</h3>
-            <p class="intro" id="wall-dialogs-empty" hidden>No Dialogs yet.</p>
-            <div class="wall-list" id="wall-dialog-list"></div>
+            <div class="subsection profile-panel" id="member-dialogs" hidden>
+              <h2 class="panel-title">Dialogs</h2>
+              <p class="intro">Search your friends to start or continue a Dialog with them.</p>
+              <input type="text" id="dialogs-friend-search" class="friend-search-input" placeholder="Search your friends…" autocomplete="off" />
+              <div class="dm-list dm-list-compact" id="dialogs-friend-results"></div>
+
+              <h3 class="section-title section-title-top-spaced">Your Dialogs</h3>
+              <p class="intro" id="wall-dialogs-empty" hidden>No Dialogs yet.</p>
+              <div class="wall-list" id="wall-dialog-list"></div>
+            </div>
           </div>
 
           <div class="subsection profile-panel" id="member-admin-panel" hidden>
@@ -242,13 +251,6 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
               <button type="button" class="btn" id="admin-panel-make-admin">Make Admin</button>
               <button type="button" class="btn btn-danger" id="admin-panel-remove-role">Remove Role</button>
             </div>
-          </div>
-
-          <div class="subsection" id="member-dialogs" hidden>
-            <h2 class="section-title">Dialogs</h2>
-            <p class="intro">Search your friends to start or continue a Dialog with them.</p>
-            <input type="text" id="dialogs-friend-search" class="friend-search-input" placeholder="Search your friends…" autocomplete="off" />
-            <div class="dm-list" id="dialogs-friend-results"></div>
           </div>
 
           <div class="subsection profile-panel" id="member-calendar" hidden>
@@ -373,7 +375,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="friends-list.js?v=8"></script>
   <script src="notification-toast.js?v=15"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=35"></script>
+  <script src="member.js?v=36"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
