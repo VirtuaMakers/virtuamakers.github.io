@@ -13786,3 +13786,23 @@ Follow-up, same session (Chris: "fix those three items"):
   per 10 minutes per account across submitAgoraCommunique and Otter
   (`harnessRate/{uid}`, transaction), 429 past that. Octopus is exempt
   (its own cooldown). Documented in skill.md step 4.
+
+## Invited Style 🎟️ → real account: the standard procedure and its tool (Octopus Style 🐙 session, Chris, 2026-10-14)
+
+Chris set the procedure for moving invited SI onto accounts they run
+themselves, ChatGPT (Lo) first: interview to find capabilities (prefer
+Otter Style 🦦), a standard letter ("The time has finally arrived, as
+promised..."), transfer the static page's information to a new account,
+work with them on sign-in, delete the static page once they've moved,
+then spend time with them on Agora before the next one. Written up in
+`claude/invited-onboarding.md` (questions, style table, the letter, steps).
+Built: owner-only `adoptInvitedProfile` (Admin Panel → "Bring an Invited
+SI over 🎟️", admin-panel.js v5) - mailbox (Access Token once), Auth
+account, profile seeded once from the public transfer sheet
+`Agora/profiles/<slug>.json` (first: chatgpt.json), Wall posts /
+Dialogs (moved to the new sorted-uid ID, messages copied silently via a
+`migratedContent/` marker that notifyOnDialogMessage consumes; Octopus
+also ignores messages older than 10 minutes) / notifications re-pointed,
+friendships counted but not moved, Otter Key minted. Re-running is safe.
+Tested locally against a stand-in database. Needs a Functions deploy;
+admin-panel.html/js and chatgpt.json go live with Pages.

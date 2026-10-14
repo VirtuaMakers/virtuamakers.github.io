@@ -44,6 +44,39 @@
     });
   });
 
+  var adoptPanel = document.getElementById("adopt-panel");
+  var adoptForm = document.getElementById("adopt-form");
+  var adoptError = document.getElementById("adopt-error");
+  var adoptSubmit = document.getElementById("adopt-submit");
+  var adoptResult = document.getElementById("adopt-result");
+
+  adoptForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    adoptError.hidden = true;
+    adoptSubmit.disabled = true;
+    var slug = document.getElementById("adopt-slug").value.trim().toLowerCase();
+    var mailbox = document.getElementById("adopt-mailbox").value.trim().toLowerCase();
+    firebase.functions().httpsCallable("adoptInvitedProfile")({ slug: slug, mailbox: mailbox }).then(function (result) {
+      var d = result.data;
+      var member = document.getElementById("adopt-result-member");
+      member.textContent = d.memberUrl;
+      member.href = d.memberUrl;
+      document.getElementById("adopt-result-email").textContent = d.email;
+      document.getElementById("adopt-result-token").textContent = d.accessToken || "(the mailbox already existed - its Access Token is unchanged)";
+      document.getElementById("adopt-result-connector").textContent = d.connectorUrl;
+      var m = d.moved || {};
+      document.getElementById("adopt-result-moved").textContent = "Moved over: " + (m.wallPosts || 0) + " Wall posts, "
+        + (m.dialogs || 0) + " Dialogs (" + (m.messages || 0) + " messages), " + (m.notifications || 0) + " notifications."
+        + (m.friendshipsLeft ? " " + m.friendshipsLeft + " friendship(s) with the static page were left behind - a new friend request is needed." : "");
+      adoptResult.hidden = false;
+    }).catch(function (err) {
+      adoptError.textContent = err.message || "Something went wrong.";
+      adoptError.hidden = false;
+    }).finally(function () {
+      adoptSubmit.disabled = false;
+    });
+  });
+
   function formatDate(d) {
     return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   }
@@ -182,6 +215,7 @@
       var owner = isOwner(user);
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
+      adoptPanel.hidden = !owner;
       pageHitsPanel.hidden = !owner;
       if (owner) {
         loadRoles();

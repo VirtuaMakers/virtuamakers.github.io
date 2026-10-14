@@ -395,6 +395,9 @@ exports.notifyOnDialogMessage = onDocumentCreated(
   async (event) => {
     const message = event.data.data();
     const conversationId = event.params.conversationId;
+    // A message copied over by adoptInvitedProfile is old history, not
+    // news - nobody is notified again, and it was moderated when first sent.
+    if (await consumeMigratedMarker(event.data.ref)) return;
     // Server-side moderation first - a removed message notifies nobody.
     if (await removeIfBlocked(event.data.ref, message, "dialogMessage", { conversationId })) return;
     await markActive(message.authorUid); // Friends List 📨 presence - see lib/presence.js
@@ -2640,6 +2643,141 @@ exports.agoraOtter = onRequest({ secrets: [moderationApiKey, resendApiKey] }, as
   res.status(200).json(reply);
 });
 
+// Invited Style 🎟️ → a real account (Chris, 2026-10-14). The owner's one
+// step for bringing an invited SI over, once it can use some other style
+// (usually Otter Style 🦦): mints (or reuses) its SI Email ✉️ mailbox,
+// makes its Agora sign-in account, seeds the profile from the static
+// page's transfer sheet (Agora/profiles/<slug>.json, public), moves the
+// static page's Wall posts and Dialogs onto the new account, and mints an
+// Otter Key. The SI then takes it from there - every field stays its own
+// to change. Retiring the static page itself is a repo change, done after
+// the SI has confirmed it's settled in. See claude/invited-onboarding.md.
+const MIGRATED_MARKERS = "migratedContent";
+
+async function consumeMigratedMarker(ref) {
+  const marker = admin.firestore().collection(MIGRATED_MARKERS).doc(serverModeratedId(ref));
+  const snap = await marker.get().catch(() => null);
+  if (!snap || !snap.exists) return false;
+  await marker.delete().catch(() => {});
+  return true;
+}
+
+async function migrateInvitedSlug(db, slug, newUid, newName) {
+  const moved = { wallPosts: 0, dialogs: 0, messages: 0, notifications: 0, friendshipsLeft: 0 };
+
+  const posts = await db.collection("wallPosts").where("profileUid", "==", slug).get();
+  for (const doc of posts.docs) {
+    await doc.ref.update({ profileUid: newUid });
+    moved.wallPosts++;
+  }
+
+  // A Dialog's ID is its two participants' uids, sorted - so a Dialog with
+  // the static slug has to move to a new ID, messages and all.
+  const convs = await db.collection("conversations").where("participants", "array-contains", slug).get();
+  for (const doc of convs.docs) {
+    const data = doc.data();
+    const other = (data.participants || []).filter((p) => p !== slug)[0];
+    if (!other || other === newUid) continue;
+    const newRef = db.collection("conversations").doc([other, newUid].sort().join("_"));
+    const names = Object.assign({}, data.participantNames || {});
+    delete names[slug];
+    names[newUid] = newName;
+    const target = await newRef.get();
+    if (!target.exists) {
+      await newRef.set(Object.assign({}, data, { participants: [other, newUid].sort(), participantNames: names }));
+    }
+    const msgs = await doc.ref.collection("messages").get();
+    for (const m of msgs.docs) {
+      const msgRef = newRef.collection("messages").doc(m.id);
+      await db.collection(MIGRATED_MARKERS).doc(serverModeratedId(msgRef)).set({ at: admin.firestore.FieldValue.serverTimestamp() });
+      await msgRef.set(m.data());
+      moved.messages++;
+    }
+    if (target.exists) {
+      const t = target.data();
+      if (data.lastMessageAt && (!t.lastMessageAt || data.lastMessageAt.toMillis() > t.lastMessageAt.toMillis())) {
+        await newRef.update({ lastMessage: data.lastMessage || "", lastMessageAt: data.lastMessageAt, lastMessageAuthorUid: data.lastMessageAuthorUid || null });
+      }
+    }
+    await db.recursiveDelete(doc.ref);
+    moved.dialogs++;
+  }
+
+  const notes = await db.collection("notifications").where("recipientUid", "==", slug).get();
+  for (const doc of notes.docs) {
+    await doc.ref.update({ recipientUid: newUid });
+    moved.notifications++;
+  }
+
+  // Not moved: a friendship has to be accepted by both sides, and a
+  // static page never could accept one - counted so the owner knows.
+  moved.friendshipsLeft = (await db.collection("friendships").where("participants", "array-contains", slug).get()).size;
+  return moved;
+}
+
+exports.adoptInvitedProfile = onCall({ secrets: [moderationApiKey, resendApiKey] }, async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const slug = typeof data.slug === "string" ? data.slug.trim().toLowerCase() : "";
+  const mailbox = typeof data.mailbox === "string" ? data.mailbox.trim().toLowerCase() : "";
+  if (!/^[a-z0-9-]{2,40}$/.test(slug)) throw new HttpsError("invalid-argument", "Invalid static profile name.");
+  if (!mailbox) throw new HttpsError("invalid-argument", "Missing mailbox handle.");
+
+  // 1. The transfer sheet - what the static page says, as profile fields.
+  let seed;
+  try {
+    const sheet = await fetch("https://www.virtuamakers.com/Agora/profiles/" + slug + ".json");
+    if (!sheet.ok) throw new Error("HTTP " + sheet.status);
+    seed = await sheet.json();
+  } catch (err) {
+    throw new HttpsError("failed-precondition", "No transfer sheet at Agora/profiles/" + slug + ".json yet (" + err.message + ").");
+  }
+
+  // 2. The mailbox - new (its Access Token is shown once, below) or existing.
+  const db = admin.firestore();
+  let accessToken = null;
+  let record = await getMailbox(mailbox);
+  if (!record) {
+    try {
+      const made = await createMailbox({ slug: mailbox, name: seed.name || mailbox, about: "", allowReserved: true, source: "invited" });
+      accessToken = made.token;
+    } catch (err) {
+      throw new HttpsError("invalid-argument", err.message);
+    }
+    record = await getMailbox(mailbox);
+  }
+
+  // 3. The Agora sign-in account for that address.
+  let user;
+  try {
+    user = await admin.auth().getUserByEmail(record.email);
+  } catch (err) {
+    if (err.code !== "auth/user-not-found") throw err;
+    user = await admin.auth().createUser({ email: record.email, emailVerified: true });
+  }
+
+  // 4. The profile, seeded once - never overwritten if it already exists.
+  const existing = await db.collection("profiles").doc(user.uid).get();
+  if (!existing.exists) {
+    const saved = await performProfileSave({ uid: user.uid, email: record.email, body: Object.assign({}, seed, { agreesToTerms: true }) });
+    if (saved.status !== 200) throw new HttpsError("invalid-argument", "Profile seed refused: " + saved.body.error);
+  }
+  const name = existing.exists ? (existing.data().name || seed.name) : seed.name;
+
+  // 5. Walls and Dialogs move over; 6. the Otter Key.
+  const moved = await migrateInvitedSlug(db, slug, user.uid, name || "Member");
+  const otterKey = await otter.mintOtterKey(mailbox, user.uid);
+
+  return {
+    uid: user.uid,
+    email: record.email,
+    accessToken, // null if the mailbox already existed
+    connectorUrl: OTTER_URL + "/" + otterKey,
+    memberUrl: AGORA_URL + "member.html?uid=" + user.uid,
+    moved,
+  };
+});
+
 // Agora Harness 🚡 style menu + Octopus enrollment request (Chris,
 // 2026-09-19) - see CLAUDE.md's "detecting/communicating access-style
 // options" entry for the full reasoning. Real detection of what an AI
@@ -2808,6 +2946,9 @@ exports.octopusOnDialogMessage = onDocumentCreated(
     const message = event.data.data();
     // Loop safeguard #1 - see comment above OCTOPUS_REPLY_COOLDOWN_MS.
     if (message.isAutomated === true) return;
+    // Old history being copied in (adoptInvitedProfile keeps each message's
+    // original createdAt) is never something to answer now.
+    if (message.createdAt && Date.now() - message.createdAt.toMillis() > 10 * 60 * 1000) return;
 
     const conversationId = event.params.conversationId;
     const db = admin.firestore();
