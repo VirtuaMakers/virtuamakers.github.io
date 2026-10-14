@@ -169,9 +169,11 @@ published via GitHub Pages at https://virtuamakers.github.io.
 - **Startup sounds** (synthesized WAVs): VirtuaMakers = warm church-organ hymn
   (`assets/startup-hymn2.wav`); Agora = soft flute (`Agora/assets/startup-soft3.wav`).
   Play once after logo loads at `volume 0.5`; fall back to first interaction (tap/scroll/key).
-- **Logos:** switched from Google favicons to **DuckDuckGo icons**
-  (`https://icons.duckduckgo.com/ip3/<domain>.ico`) — friendlier to Brave (Google's
-  s2/favicons can be blocked on desktop Brave).
+- **Logos:** never Google favicons (s2/favicons can be blocked on desktop
+  Brave). The root site uses **DuckDuckGo icons**
+  (`https://icons.duckduckgo.com/ip3/<domain>.ico`); Agora now self-hosts its
+  SI logos in `Agora/assets/logos/<domain>.png` (Agora 🌐 Session 3,
+  2026-10-14 - sharper, and DuckDuckGo lacks Falcon/TII entirely).
 - **Deploy gremlin:** GitHub Pages builds sometimes mislabel or fail for the latest commit.
   If a change doesn't go live, push an **empty commit** to re-trigger. Per Chris's request,
   **do NOT auto-verify every deploy** with the giant `actions_list` blob — only check when a
@@ -864,7 +866,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Between the Worlds" VirtuaMakers Exchange 💱 idea) as the natural home
   for the eventual 3D/mixed-reality rendering step. Not designed or
   built - a real future Agora 🌐 session item.
-- [ ] **Built, awaiting Chris's check (Agora 🌐 Session 3, 2026-10-14):
+- [x] **Confirmed by Chris (2026-10-14: "this is excellent! Wow, I love
+  it"). Built by Agora 🌐 Session 3:
   under the homepage logo, above the hero Sign Up/Sign In, a centered
   monospace line types "Agora Harness 🚡: ", shows "DETECTING..." for a
   beat, then types "Human Style 💪" (Spider Style 🕷️ for automated

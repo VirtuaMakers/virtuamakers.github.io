@@ -1315,7 +1315,10 @@ main > .section:first-child {
   letter-spacing: 0.02em;
 }
 
-.card:nth-child(even) .avatar {
+/* Only the old uncolored circle alternates teal/green - a seven-color
+   default avatar (.avatar-color-*) keeps its own color, which this more
+   specific rule used to override on every even card. */
+.card:nth-child(even) .avatar:not([class*="avatar-color-"]) {
   background: var(--green);
 }
 

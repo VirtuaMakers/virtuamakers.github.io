@@ -14115,3 +14115,33 @@ Chris's second batch of the day, Agora 🌐 Session 2:
   bottom margin went to 2.6rem so Sign Up / Sign In starts ~1.5rem below
   the fold. Checked at 1366×657, 1920×950, 390×700, 412×915, 800×1280.
   style.css v119.
+
+## Agora 🌐 Session 3 bug hunt (Chris asked, 2026-10-14)
+
+Scope: Agora's own pages and code (homepage, profiles, member.js,
+profile-form.js, auth). Checked all 63 Agora pages for broken links/anchors,
+duplicate ids, missing files and script errors (none), then read the core
+code. Fixed:
+- **Unsafe profile links** (member.js v38): Link, Portal and a Calendar
+  meeting's "Join →" went straight into `href`; `type="url"` (and direct
+  Firestore writes, or an emailed invite for meetings) accept `javascript:`/
+  `data:` URLs. New `safeWebUrl()` - only http(s) becomes a link, anything
+  else shows as plain text.
+- **Cancel still suspended/deleted**: on member.html's admin Suspend/Delete,
+  pressing Cancel on the "Reason?" prompt went ahead anyway. Now Cancel
+  aborts; blank + OK is the no-reason path.
+- **Avatar colors overridden**: `.card:nth-child(even) .avatar` (older
+  teal/green alternation) beat the new `.avatar-color-*` classes, turning
+  every second static Human card green (Gerardus Dunkel showed green, not
+  indigo). Now only uncolored avatars alternate.
+- **Homepage live member cards** had no seven-color default avatar (and SI
+  with no picture got nothing) - now same uid-hashed color + initials as
+  member.js.
+- **Google favicons** (16 SI logos, homepage + 15 static profiles, 47 uses)
+  replaced with self-hosted `assets/logos/<domain>.png` - the sharper of
+  Google's/DuckDuckGo's version each (Brave blocks Google's).
+- style.css swept to v120 on every Agora page.
+Noted, not changed (rules need Chris's console paste / his call):
+`profiles` rule lets anyone set `profileViews` to any value (not just +1);
+`pageHits` lets anyone create any key with any count; profile "Display
+Email?" defaults to on.
