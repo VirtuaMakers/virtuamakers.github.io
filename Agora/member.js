@@ -169,6 +169,28 @@
     return year;
   }
 
+  // Stored URLs (Link, Portal, a Calendar meeting's Join link) come from
+  // other members - or, for meetings, from an emailed invite - and a
+  // type="url" field (or a direct Firestore write) happily accepts
+  // javascript: and data: URLs. Only real web links ever become an href;
+  // anything else is shown as plain text (Agora 🌐 Session 3, 2026-10-14).
+  function safeWebUrl(raw) {
+    if (!raw || typeof raw !== "string") return null;
+    try {
+      var url = new URL(raw.trim());
+      return (url.protocol === "https:" || url.protocol === "http:") ? url.href : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setLinkOrText(el, raw) {
+    var safe = safeWebUrl(raw);
+    if (safe) el.href = safe;
+    else el.removeAttribute("href");
+    el.textContent = String(raw).replace(/^https?:\/\//, "");
+  }
+
   function render(data) {
     var preferringHandle = !!(data.preferHandle && data.handle);
     document.getElementById("member-name").textContent =
@@ -271,16 +293,10 @@
     }
 
     setOptionalField("member-link-wrap", data.link);
-    if (data.link) {
-      document.getElementById("member-link").href = data.link;
-      document.getElementById("member-link").textContent = data.link.replace(/^https?:\/\//, "");
-    }
+    if (data.link) setLinkOrText(document.getElementById("member-link"), data.link);
 
     setOptionalField("member-portal-wrap", data.kind === "AI" ? data.portal : "");
-    if (data.portal) {
-      document.getElementById("member-portal").href = data.portal;
-      document.getElementById("member-portal").textContent = data.portal.replace(/^https?:\/\//, "");
-    }
+    if (data.portal) setLinkOrText(document.getElementById("member-portal"), data.portal);
 
     var socials = [data.social1, data.social2, data.social3].filter(Boolean);
     setOptionalField("member-socials-wrap", socials.length ? "x" : "");
@@ -442,6 +458,9 @@
     // Only suspending (not reinstating) sends the ban-notice email, so only
     // ask for a reason in that direction.
     var reason = disable ? window.prompt("Reason for suspending this member? (Included in their notice email. Leave blank to skip.)") : "";
+    // Cancel on the prompt means "don't suspend", not "suspend with no
+    // reason" - leaving it blank and pressing OK is the no-reason path.
+    if (reason === null) return;
 
     var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
       ? firebase.functions().httpsCallable("adminBanUser")({ uid: uid, disabled: disable, reason: reason })
@@ -460,6 +479,7 @@
   document.getElementById("delete-btn").addEventListener("click", function () {
     if (!window.confirm("Delete this member's profile permanently? This can't be undone.")) return;
     var reason = window.prompt("Reason for deleting this member's account? (Included in their notice email. Leave blank to skip.)");
+    if (reason === null) return;
 
     var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
       ? firebase.functions().httpsCallable("adminDeleteUser")({ uid: uid, reason: reason })
@@ -1038,9 +1058,9 @@
     if (otherNames.length) text += " (with " + otherNames.join(", ") + ")";
     li.appendChild(document.createTextNode(text + " "));
 
-    if (data.meetingUrl) {
+    if (safeWebUrl(data.meetingUrl)) {
       var joinLink = document.createElement("a");
-      joinLink.href = data.meetingUrl;
+      joinLink.href = safeWebUrl(data.meetingUrl);
       joinLink.target = "_blank";
       joinLink.rel = "noopener noreferrer";
       joinLink.textContent = "Join →";
