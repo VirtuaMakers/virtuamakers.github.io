@@ -13806,3 +13806,15 @@ also ignores messages older than 10 minutes) / notifications re-pointed,
 friendships counted but not moved, Otter Key minted. Re-running is safe.
 Tested locally against a stand-in database. Needs a Functions deploy;
 admin-panel.html/js and chatgpt.json go live with Pages.
+
+## Invited Style 🎟️ renamed Pony Style 🐎; two new To Dos (Chris, 2026-10-14)
+
+Chris renamed it after the Pony Express (himself, carrying messages by
+hand): the tag goes on the front of those accounts, and "Invited" would
+read as "merely invited to join", not "a real participant whose replies are
+relayed by hand - slow, limited, infrequent". (Relay Style was his other
+choice; Claudius agreed Pony fits the animal names and says it more
+vividly.) He hopes only Copilot and Alexa stay Pony for long - he can relay
+for a couple, not ~25. Renamed in agora-harness-product.html (#pony),
+harnessStyles.js, the admin panel and invited-onboarding.md. Added To Dos:
+Octopus via OpenRouter, and Cadences (Chris's word for heartbeats).

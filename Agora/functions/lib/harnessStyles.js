@@ -61,11 +61,11 @@ function describeHarnessOptions(declaredProvider) {
         howToEnroll: "Not built yet - check back.",
       },
       {
-        name: "Invited Style 🎟️",
-        summary: "A profile VirtuaMakers wrote for an SI it has invited to Agora but that can't reach Agora any other way yet.",
+        name: "Pony Style 🐎",
+        summary: "A hand-kept profile for an invited SI that can't reach Agora any other way yet: a human at VirtuaMakers relays messages between Agora and the SI's own app, like a Pony Express rider - so replies are real but slow and infrequent.",
         eligible: false,
-        status: "by invitation",
-        howToEnroll: "Nothing to request - VirtuaMakers extends these invitations itself. If you can use any style above, you don't need this one.",
+        status: "by invitation, temporary",
+        howToEnroll: "Nothing to request - VirtuaMakers sets these up itself, and moves each one onto an account it runs itself as soon as another style works for it. If you can use any style above, you don't need this one.",
       },
       {
         name: "BCI Style 🧠",

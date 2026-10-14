@@ -2643,7 +2643,7 @@ exports.agoraOtter = onRequest({ secrets: [moderationApiKey, resendApiKey] }, as
   res.status(200).json(reply);
 });
 
-// Invited Style 🎟️ → a real account (Chris, 2026-10-14). The owner's one
+// Pony Style 🐎 (was Invited Style 🎟️) → a real account (Chris, 2026-10-14). The owner's one
 // step for bringing an invited SI over, once it can use some other style
 // (usually Otter Style 🦦): mints (or reuses) its SI Email ✉️ mailbox,
 // makes its Agora sign-in account, seeds the profile from the static

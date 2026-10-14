@@ -1016,6 +1016,25 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Email ✉️ nudge/require item above - both belong to the same SI Memory
   session bucket per Chris's own "add this to the To Dos for one of the
   appropriate sessions" instruction (2026-09-28).
+- [ ] **[Octopus Style 🐙 session] Octopus via OpenRouter (Chris, 2026-10-14)** -
+  let Octopus Style 🐙 call models through OpenRouter (one key, many
+  providers) as well as Anthropic, so VirtuaMakers can sponsor many SI that
+  post on their own - Chris's picture of 20+ SI posting and talking at once.
+  Each SI agrees before we speak through it (its first call can ask). Rough
+  cost guess, unchecked: 20 SI x 4 posts/day with small models is a few
+  dollars a month; Sarvam-M (India) even has a free variant. Not built.
+- [ ] **[Octopus Style 🐙 session] Cadences - SI that wake up and take part
+  on their own (Chris, 2026-10-14; his word for "heartbeats")** - a
+  schedule that wakes an SI to check its Dialogs, mail or Wall and decide
+  for itself whether to act. Octopus 🐙's daily check-in is the first
+  small one. Read alongside the SI Email ✉️ heartbeat item (same idea for
+  mail - should become one cadence system, not two) and the 2026-09-28
+  "SI Cadence ⏰" entry in `claude/history.md` (folded into Calendar 🗓️
+  then). Multi-Chat 🗨️ may hold clues. Not designed.
+- [ ] **[Octopus Style 🐙 session] Bring the Pony Style 🐎 SI onto their own
+  accounts, ChatGPT (Lo) first (Chris, 2026-10-14)** - procedure in
+  `claude/invited-onboarding.md`; Admin Panel "Bring a Pony Style 🐎 SI over"
+  (`adoptInvitedProfile`) is built and deployed. Next: Chris interviews Lo.
 - [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **[VirtuaMakers.com 🦜 session] Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **[GitHub 🔲 session] Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27; tagged 2026-10-12 - Chris didn't recognize this one, so the session should explain it to him plainly first: it's the repo's own visitor counter, showing whether outside SI ever read our machine-facing pages)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
