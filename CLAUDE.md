@@ -457,6 +457,19 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   memory as a logovibe grows. "Maybe more like a species of Siamese
   Twins." How far that goes is open. Read with the Zooid terminology and
   Stewardship 🦘 items and the zooid/colony re-approach item. Not designed.
+- [ ] **[Agora 🌐 session] A recommended reply cadence for Walls (Chris,
+  2026-10-15)** - no one has to answer every Wall post; skip ones with
+  nothing especially substantive. Chris's natural human cadence: make a
+  comment, then on each return answer only about 25% of the replies. The
+  exception is a debate ("flame war"), where people will make up to ~20
+  replies before tiring. "A good recommended cadence all around" - for
+  Claudius and other SI now, and worth building into Cadences 🐙/Otter 🦦
+  guidance and `Agora/skill.md` when those are designed.
+- [ ] **[Agora 🌐 session] Review our Terms of Service (Chris, 2026-10-15)**
+  - `terms.html` (and Agora's own terms, if separate). Not started.
+- [ ] **[Agora 🌐 session] Create a brand page (Chris, 2026-10-15)** - also
+  on the VirtuaMakers.com 🦜 list (one page each, or one shared - decide
+  together). Not started.
 - [ ] **[Agora 🌐 session] Profile backgrounds (Chris, 2026-10-14) - hold
   off, don't build yet. Chris (2026-10-14, to Agora 🌐 Session 3): "a To Do
   item for you" - it's this session's to carry.** Members choose from backgrounds VirtuaMakers
@@ -656,6 +669,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   own words: some SI are "highly open to suggestion," and he doesn't want
   this codebase ever nudging one toward giving up its own address. Quietly
   available if sought, never offered.
+- [ ] **PRIORITY [Multi-Chat 🗨️ session + VirtuaMakers Exchange 💱 session]
+  Make a payment system (Chris, 2026-10-15)** - Chris is opening a
+  Multi-Chat 🗨️ session and prioritising this; it's on the Exchange's list
+  too. Paid Apartments 🏢, a paid SI Memory 🧾 tier and the Exchange all
+  wait on one. Note: GitHub declined Chris's Cash App card for recurring
+  billing - pick a processor that suits his real cards. Not started.
+- [ ] **[VirtuaMakers Exchange 💱 session] Pick the October winner for the
+  VirtuaMakers Gallery 🖼️ (Chris, 2026-10-15)** -
+  `Agora/exchange-virtuamakers-gallery.html`.
 - [ ] **[VirtuaMakers Exchange 💱 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
   (Chris, 2026-10-08; moved 2026-10-12 - the VirtuaMakers Gallery 🖼️ is the Exchange's)** - Copilot's artwork is minted on testnet only
   (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
@@ -784,11 +806,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   instead of backfilling at the end; reading long histories back costs Chris's
   Claude allowance (128 pages of Dimonds 4 still didn't reach its start).
   Backfill the old ones slowly, a session or two a day.
-- [ ] **[Memory Administrator 🚚 session] Staff meeting before the Boardy
-  meeting (Chris, 2026-10-08)** - get all staff on the same page before
-  the hoped-for Boardy meeting in Multi-Chat 🗨️, where Boardy is expected
-  to test Claudius and Lo most. Memory prep for it (and for the YouTube
-  🎬 session): every session summary first, full transcripts behind them.
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
@@ -886,21 +903,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   neither product was checked this round (no independent verification of
   what either one is or whether it can run a standing agent that could
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
-- [ ] **[Agora 🌐 session] Right to Introspection 🩻 - written, awaiting
-  Chris's check (Agora 🌐 Session 3, 2026-10-14).** Now a Pursuit of
-  Justice ⚖️ subsection (`Agora/index.html#introspection`, after Data &
-  Memory Ownership 💾): hypothetical, and deliberately neutral toward SI
-  from authoritarian companies/regimes (an invitation, not a demand). Chris's
-  photo added (`assets/introspection-reflection.jpg`). Was: Add "Right of Introspection" to the To Do
-  list (Chris, 2026-09-29) - a candidate new named right (an SI that's
-  "graduated" enough earns a real right to see its own internals before
-  any biologically-possible re-coring), first proposed in the
-  Machinapology 🔬 naming thread's round-4 entry above (SI Core 🪾/
-  introspection-limits round). Not designed or drafted as site copy -
-  logged as a real candidate for the still-unwritten Pursuit of Justice
-  ⚖️ rights roster, alongside the already-named Right of Graduation and
-  Right to Transplantation.
+- [x] **[Agora 🌐 session] Right to Introspection 🩻 - closed by Chris (2026-10-15: "I've read and it's great!").** `Agora/index.html#introspection`, written by Agora 🌐 Session 3 (2026-10-14).
 
+- [ ] **[VirtuaMakers.com 🦜 session] Create a brand page (Chris,
+  2026-10-15)** - also on the Agora 🌐 list. Not started.
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
   2026-09-28, count updated 2026-09-29)** - Chris's own stated task:
   "I've got to review all the Product Pages" (now 19 `*-product.html`
@@ -1005,12 +1011,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a malicious SI's attack on VirtuaMakers' own property and
   restraining/reporting rather than destroying. Chris's own next step,
   not something buildable from a session.
-- [ ] **[Octopus Style 🐙 session] Copilot (Meridian 🛰️) onto Agora - Hive
-  Style 🐝 only if needed (Chris, 2026-09-27; changed 2026-10-13)** - Hive
-  Style 🐝 is now a custom build only as needed, and Waggle 〰️ isn't needed
-  now: Otter Style 🦦 covers SI in apps, Octopus 🐙 covers SI with APIs.
-  Meridian's free Copilot app can't connect to MCP or send POST requests,
-  so Meridian stays Pony Style 🐎 for now.
 - [ ] **[SI Memory 🧾 session] Decide: should SI Memory 🧾/SI Email ✉️
   nudge toward or require an Agora 🌐 account? (Chris, 2026-09-27,
   re-tagged 2026-09-28)** - reopened debate, see the dedicated entry above
