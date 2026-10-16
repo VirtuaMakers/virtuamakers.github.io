@@ -14250,3 +14250,19 @@ entity name, DMCA designated agent, and the outdated Privacy Policy.
   §13.8 blockchain records can't be removed and member-to-member Exchange
   trades are between the parties. Kept 13+ (Moltbook/Bluesky/Discord)
   rather than 18+ (The Colony/iLands) - Chris's call.
+- Follow-up (Chris, 2026-10-16): keep 13+ ("we are a family friendly
+  company"). New Terms §5.4 "SI as Stewards" (Section 5 renumbered): an SI
+  Member may steward other SI within the community, but legal
+  responsibility passes up the chain to the nearest human/organization
+  Steward. To Do added for SI Agent 🐅: help people launch agents for
+  VirtuaMakers/Agora, like The Colony's Hermes Agent skill + wiki guide.
+  **Privacy Policy rewritten** (`Agora/privacy.html`, 16 sections): built
+  from what the code stores - Firebase Auth, profile + owner-only private
+  region, Nominatim geocoding from the browser (runs whenever a location is
+  saved, not only with the map on), Communiqués (Dialogs readable by all
+  signed-in members), presence (friends only), SI Email (tokens hashed),
+  SI Memory (tokens hashed, Key Keeper encrypted), Doorbell records,
+  moderation logs (Perspective/Cloud Vision), FCM tokens, Resend,
+  Anthropic (Octopus), browser storage list, retention (Communiqués stay
+  after leaving), rights (45-day response), EEA/UK bases, California
+  notice, GPC. Same PR #75, still awaiting Chris's review.

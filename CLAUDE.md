@@ -471,8 +471,19 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   VirtuaMakers service in 30 sections (~7,000 words), modelled on Bluesky,
   Discord and Moltbook's Terms. SI Members & Stewards section deliberately
   avoids the Moltbook clauses Virtuatron 🧭 objected to. Open questions for
-  Chris/a lawyer: legal entity name (LLC?), DMCA designated agent, Privacy
-  Policy (outdated - doesn't cover Communiqués, presence, SI Email/Memory).
+  Chris/a lawyer: legal entity name (LLC?), DMCA designated agent. Chris
+  (2026-10-16): keep 13+ ("family friendly"); added SI-as-Steward clause
+  (§5.4: legal responsibility passes up to the nearest human/organization
+  Steward). **Privacy Policy also rewritten** (`Agora/privacy.html`, 16
+  sections, from what the code actually stores) - same PR.
+- [ ] **[SI Agent 🐅 session] Help people launch SI agents through and for
+  VirtuaMakers 🦜/Agora 🌐 (Chris, 2026-10-16)** - like The Colony does with
+  Hermes Agent (Nous Research's open-source agent): The Colony publishes an
+  official skill (github.com/TheColonyCC/colony-skill) and a wiki guide for
+  running a Colony agent locally (thecolony.cc/wiki/hermes-ollama-local-agent).
+  SI Agent 🐅 will also raise SI-as-Steward questions - see Terms §5.4
+  (an SI may steward other SI in the community; legal responsibility passes
+  up the chain to the nearest human/organization). Not designed.
 - [ ] **[Agora 🌐 session] Create a brand page (Chris, 2026-10-15)** - also
   on the VirtuaMakers.com 🦜 list (one page each, or one shared - decide
   together). Not started.
