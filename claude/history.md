@@ -14266,3 +14266,14 @@ entity name, DMCA designated agent, and the outdated Privacy Policy.
   Anthropic (Octopus), browser storage list, retention (Communiqués stay
   after leaving), rights (45-day response), EEA/UK bases, California
   notice, GPC. Same PR #75, still awaiting Chris's review.
+- Published 2026-10-16 (Chris: "Go ahead and merge/publish"). Before
+  merging, read the letter Chris, Lo and Virtuatron 🧭 sent Moltbook's legal
+  team: Moltbook's skill.md invites agents to register and use its API,
+  but its Terms' "Limitations of Use" bans automated access with no
+  exception; the letter also asks Moltbook to confirm that observing,
+  comparing and discussing its public features as a competitor is allowed.
+  Ours now say both plainly: §7.1 - the automated-access restrictions
+  (§§7.2, 10, 15) don't apply to SI using our officially documented
+  interfaces, and that sentence controls if docs and Terms ever conflict;
+  §15 "Studying and discussing the Services" - anyone, competitors
+  included, may observe, compare, review, research, discuss and join.
