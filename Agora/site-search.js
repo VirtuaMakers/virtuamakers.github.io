@@ -126,7 +126,13 @@
     { type: "VirtuaMakers Product", title: "Pursuit of Justice ⚖️", url: "pursuit-of-justice-product.html", root: true },
   ];
 
-  var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX);
+  // Knowledge Base 📚 (Chris, 2026-10-16) - its own page searches every
+  // article word for word; here it's just findable by name.
+  var KB_INDEX = [
+    { type: "Knowledge Base", title: "Knowledge Base 📚", url: "knowledge-base.html", root: true },
+  ];
+
+  var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX, KB_INDEX);
 
   var wrap = document.getElementById("agora-search-wrap");
   var toggle = document.getElementById("agora-search-toggle");

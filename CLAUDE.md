@@ -942,8 +942,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   that, every article listed by type (Machinapology 🔬, Product Page,
   etc.). The Product Pages move into the Knowledge Base under their own
   "Product Page" category. Chris and Claudius will write KB articles
-  together on any and everything. Wait for Chris's picture before
-  building.
+  together on any and everything. **Built (2026-10-16, Knowledge Base 📚
+  Session 1): `knowledge-base.html` + `.js`/`.css`, logo
+  `assets/knowledge-base-logo.png` (transparent). Articles live in the
+  `ARTICLES` list in `knowledge-base.js` (add a line per new article);
+  search covers titles, summaries and each article's full text. Linked
+  from the homepage hero, header search, `llms.txt`, sitemap. Awaiting
+  Chris's check once live; Agora 🌐 link still to come.**
 - [ ] **[Knowledge Base 📚 session] KB: VirtuaMakers 🦜 (Chris,
   2026-10-16)** - the first KB article, written together; an example of
   an article found only in the Knowledge Base. Covers the company's

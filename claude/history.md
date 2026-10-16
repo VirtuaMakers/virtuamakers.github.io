@@ -14392,3 +14392,21 @@ display name changes. Comments need a collection-group index - first
 `Agora/firestore.indexes.json` (firebase.json now points at it; deploy
 with firestore:indexes). Notifications keep the old name (they're
 ephemeral). Tested locally against a stand-in database.
+
+## Knowledge Base 📚 main page (Chris, 2026-10-16, Knowledge Base 📚 Session 1)
+
+Chris: the Product Pages go into a Knowledge Base under their own
+category, and he and Claudius will write KB articles together "on any
+and everything" (first planned: "KB: VirtuaMakers 🦜", an article found
+only in the KB). Built `knowledge-base.html` with the standard Agora 🌐
+header (sign-in works there): title, Chris's book-stack picture (background
+cut to real transparency - `assets/knowledge-base-logo.png`), then the
+search bar front and centre, then every article by type. Article list
+lives in `knowledge-base.js` (`ARTICLES`, `TYPES`; a type shows only once
+it has an article - for now just the 19 Product Pages). Search is all
+in-browser: on first search it fetches each article page and indexes its
+`<main>` text (Product Page Walls excluded), ranks title > summary >
+body, accent-insensitive, highlights snippets, and keeps `?q=` in the URL
+so searches can be linked. Linked from the homepage hero buttons, the
+header search (`site-search.js` KB_INDEX, v=11 everywhere), `llms.txt`
+and `sitemap.xml`.
