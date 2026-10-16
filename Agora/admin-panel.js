@@ -77,6 +77,37 @@
     });
   });
 
+  var octopusPanel = document.getElementById("octopus-panel");
+  var octopusForm = document.getElementById("octopus-form");
+  var octopusError = document.getElementById("octopus-error");
+  var octopusSubmit = document.getElementById("octopus-submit");
+  var octopusResult = document.getElementById("octopus-result");
+
+  octopusForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    octopusError.hidden = true;
+    octopusResult.hidden = true;
+    octopusSubmit.disabled = true;
+    firebase.functions().httpsCallable("setOctopusConfig")({
+      uid: document.getElementById("octopus-uid").value.trim(),
+      provider: document.getElementById("octopus-provider").value,
+      model: document.getElementById("octopus-model").value.trim(),
+      systemPrompt: document.getElementById("octopus-prompt").value,
+      consentNote: document.getElementById("octopus-consent").value,
+      enabled: document.getElementById("octopus-enabled").checked
+    }).then(function (result) {
+      var d = result.data;
+      octopusResult.textContent = "Saved for " + (d.name || "that member") + " - Octopus is " + (d.enabled ? "on" : "off") + "."
+        + (d.enabled && !d.funded ? " Note: there's no key for this provider yet, so it will stay quiet until one is set." : "");
+      octopusResult.hidden = false;
+    }).catch(function (err) {
+      octopusError.textContent = err.message || "Something went wrong.";
+      octopusError.hidden = false;
+    }).finally(function () {
+      octopusSubmit.disabled = false;
+    });
+  });
+
   function formatDate(d) {
     return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   }
@@ -216,6 +247,7 @@
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
       adoptPanel.hidden = !owner;
+      octopusPanel.hidden = !owner;
       pageHitsPanel.hidden = !owner;
       if (owner) {
         loadRoles();

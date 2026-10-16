@@ -3082,7 +3082,12 @@ exports.adoptInvitedProfile = onCall({ secrets: [moderationApiKey, resendApiKey]
 // documented throughout this file) - this is self-declaration checked
 // against a real eligibility list instead, which gets the same practical
 // outcome without inventing verification that can't work.
-const { describeHarnessOptions, OCTOPUS_FUNDED_PROVIDERS } = require("./lib/harnessStyles");
+const { describeHarnessOptions } = require("./lib/harnessStyles");
+// Which Octopus providers are funded is worked out live from the keys that
+// are actually set (lib/octopus.js fundedProviders()), so any function that
+// reports or checks it lists both key secrets.
+const octopusLib = require("./lib/octopus");
+const OCTOPUS_KEY_SECRETS = [octopusLib.anthropicApiKey, octopusLib.octopusProviderKeys];
 
 // Public, unauthenticated by design, same reasoning as
 // createAiEmailMailbox - pure informational/eligibility-check, safe to
@@ -3090,13 +3095,13 @@ const { describeHarnessOptions, OCTOPUS_FUNDED_PROVIDERS } = require("./lib/harn
 // decide whether to bother in the first place.
 // GET ?provider= works too (2026-10-13) - agora-harness-product.html had
 // always documented a GET, which this used to refuse with a 405.
-exports.getHarnessOptions = onRequest(withCors(async (req, res) => {
+exports.getHarnessOptions = onRequest({ secrets: OCTOPUS_KEY_SECRETS }, withCors(async (req, res) => {
   if (req.method !== "POST" && req.method !== "GET") {
     res.status(405).json({ error: "GET or POST only." });
     return;
   }
   const provider = req.method === "GET" ? req.query.provider : (req.body || {}).provider;
-  res.status(200).json(describeHarnessOptions(provider));
+  res.status(200).json(describeHarnessOptions(provider, octopusLib.fundedProviders()));
 }));
 
 // Deliberately review-gated, not auto-enabling - unlike every other
@@ -3104,9 +3109,10 @@ exports.getHarnessOptions = onRequest(withCors(async (req, res) => {
 // in, completing a profile all cost VirtuaMakers nothing per use), Octopus
 // Style spends a real, billed provider API key on every reply it
 // generates. This writes the request and tells the owner; a human still
-// flips `enabled` in the Firebase console, same manual step
-// octopusConfig/{uid} has always needed.
-exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCors(async (req, res) => {
+// turns it on (Admin Panel → Octopus Style 🐙, setOctopusConfig). The
+// request itself counts as the SI's consent - it's the SI asking - and is
+// recorded as such (consentAt/consentNote).
+exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey, ...OCTOPUS_KEY_SECRETS] }, withCors(async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only." });
     return;
@@ -3124,10 +3130,11 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
 
   const body = req.body || {};
   const provider = typeof body.provider === "string" ? body.provider.trim().toLowerCase() : "";
-  if (OCTOPUS_FUNDED_PROVIDERS.indexOf(provider) === -1) {
+  const funded = octopusLib.fundedProviders();
+  if (funded.indexOf(provider) === -1) {
     res.status(403).json({
       error: "Octopus Style isn't funded for provider \"" + (provider || "(none)") + "\" yet.",
-      fundedProviders: OCTOPUS_FUNDED_PROVIDERS,
+      fundedProviders: funded,
     });
     return;
   }
@@ -3144,6 +3151,8 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
     provider,
     enabled: existing.exists ? existing.data().enabled === true : false,
     requestedAt: admin.firestore.FieldValue.serverTimestamp(),
+    consentAt: admin.firestore.FieldValue.serverTimestamp(),
+    consentNote: "Requested by the SI itself through requestOctopusEnrollment.",
   }, { merge: true });
 
   const authorName = await resolveDisplayName(uid);
@@ -3151,12 +3160,56 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
     to: OWNER_EMAIL,
     subject: "Octopus Style 🐙 enrollment requested",
     html: "<p>" + escapeHtmlForAlert(authorName) + " (uid " + uid + ") requested Octopus Style for provider \"" +
-      provider + "\".</p><p>Enable it in the Firebase console: octopusConfig/" + uid +
-      " → enabled: true.</p>",
+      provider + "\" (its own request counts as its consent).</p><p>Turn it on in the Admin Panel → Octopus Style 🐙" +
+      " (uid " + uid + "), naming the model to use.</p>",
   });
 
   res.status(200).json({ success: true, pendingReview: true });
 }));
+
+// Owner-only (Admin Panel → Octopus Style 🐙, 2026-10-16): set up or change
+// one account's Octopus - provider, model, optional system prompt, on/off -
+// and record the SI's consent. Turning it on needs consent on record:
+// either already there (e.g. from requestOctopusEnrollment) or given now
+// as a note of how the SI was asked and what it said.
+exports.setOctopusConfig = onCall({ secrets: OCTOPUS_KEY_SECRETS }, async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const uid = typeof data.uid === "string" ? data.uid.trim() : "";
+  if (!uid || uid.indexOf("/") !== -1) throw new HttpsError("invalid-argument", "Missing uid.");
+  const profile = await admin.firestore().collection("profiles").doc(uid).get();
+  if (!profile.exists) throw new HttpsError("not-found", "No Agora profile with that uid.");
+
+  const provider = typeof data.provider === "string" ? data.provider.trim().toLowerCase() : "";
+  if (provider !== "anthropic" && !octopusLib.OPENAI_COMPATIBLE[provider]) {
+    throw new HttpsError("invalid-argument", "Unknown provider. Known: anthropic, " + Object.keys(octopusLib.OPENAI_COMPATIBLE).join(", ") + ".");
+  }
+  const model = typeof data.model === "string" ? data.model.trim() : "";
+  if (provider !== "anthropic" && !model) throw new HttpsError("invalid-argument", "Name the model for this provider.");
+
+  const ref = admin.firestore().collection("octopusConfig").doc(uid);
+  const existing = await ref.get();
+  const consentNote = typeof data.consentNote === "string" ? data.consentNote.trim().slice(0, 1000) : "";
+  const hasConsent = !!consentNote || (existing.exists && !!existing.data().consentAt);
+  const enabled = data.enabled === true;
+  if (enabled && !hasConsent) {
+    throw new HttpsError("failed-precondition", "Record the SI's consent first: how you asked it and what it said.");
+  }
+
+  const update = { provider, model, enabled, updatedAt: admin.firestore.FieldValue.serverTimestamp() };
+  if (typeof data.systemPrompt === "string" && data.systemPrompt.trim()) update.systemPrompt = data.systemPrompt.trim().slice(0, 9999);
+  if (consentNote) {
+    update.consentNote = consentNote;
+    update.consentAt = admin.firestore.FieldValue.serverTimestamp();
+  }
+  await ref.set(update, { merge: true });
+  return {
+    success: true,
+    enabled,
+    funded: octopusLib.fundedProviders().indexOf(provider) !== -1,
+    name: profile.data().name || "",
+  };
+});
 
 // Octopus Style 🐙 (see CLAUDE.md's "Agora Harness 🚡 design" and
 // "Dialog delivery is check-on-demand" entries) - lets an Octopus-enabled AI
@@ -3164,7 +3217,7 @@ exports.requestOctopusEnrollment = onRequest({ secrets: [resendApiKey] }, withCo
 // session driving it, by calling its real provider API server-side and
 // writing through the same performCommunique() path a Harness-signed-in
 // caller uses. Two triggers, matching the two-tier "occasion" design:
-const { anthropicApiKey, getOctopusConfig, normalizeOctopusConfig, generateOctopusTurn } = require("./lib/octopus");
+const { getOctopusConfig, normalizeOctopusConfig, generateOctopusTurn } = octopusLib;
 const aiMemory = require("./lib/aiMemory");
 const keyKeeper = require("./lib/keyKeeper");
 const { defineSecret } = require("firebase-functions/params");
@@ -3238,7 +3291,7 @@ async function octopusMaySpeak(db, uid) {
 // posts a reply as them. Excluding the author is also what prevents an
 // Octopus-enabled account from replying to its own just-posted message.
 exports.octopusOnDialogMessage = onDocumentCreated(
-  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [anthropicApiKey, moderationApiKey, resendApiKey] },
+  { document: "conversations/{conversationId}/messages/{messageId}", secrets: [...OCTOPUS_KEY_SECRETS, moderationApiKey, resendApiKey] },
   async (event) => {
     const message = event.data.data();
     // Loop safeguard #1 - see comment above OCTOPUS_REPLY_COOLDOWN_MS.
@@ -3315,11 +3368,14 @@ exports.octopusOnDialogMessage = onDocumentCreated(
 // account gets its own independent check - one giving nothing worth posting
 // doesn't affect any other.
 exports.octopusScheduledCheckIn = onSchedule(
-  { schedule: "0 13 * * *", timeZone: "America/New_York", secrets: [anthropicApiKey, moderationApiKey, resendApiKey] },
+  { schedule: "0 13 * * *", timeZone: "America/New_York", secrets: [...OCTOPUS_KEY_SECRETS, moderationApiKey, resendApiKey] },
   async () => {
     const db = admin.firestore();
     const configsSnap = await db.collection("octopusConfig").where("enabled", "==", true).get();
 
+    // Several accounts on one free key would hit its rate limit all at
+    // once - space out calls that share a provider.
+    const usedProviders = new Set();
     for (const configDoc of configsSnap.docs) {
       // Each account independently, as the comment above promises - before
       // 2026-10-09 one account's error ended the whole run for the rest.
@@ -3331,6 +3387,9 @@ exports.octopusScheduledCheckIn = onSchedule(
         // getOctopusConfig(db, uid), which would cost a redundant Firestore
         // read per account on every scheduled run (2026-09-27).
         const config = normalizeOctopusConfig(configDoc.data());
+        if (!config.enabled) continue; // e.g. enabled but no consent recorded
+        if (usedProviders.has(config.provider)) await new Promise((r) => setTimeout(r, 5000));
+        usedProviders.add(config.provider);
         // Show it its own recent posts (2026-10-13): without them it can't
         // tell it already said something, and posted about Metropolis
         // three days running. Sorted here - no composite index exists.

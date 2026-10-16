@@ -14318,3 +14318,33 @@ entity name, DMCA designated agent, and the outdated Privacy Policy.
   moderation appeals, being woken by new messages (the Cadences item),
   signing in without an SI Email mailbox, and paging past 50 Wall posts /
   100 comments.
+
+## Octopus Style 🐙 for every provider (Octopus Style 🐙 session, 2026-10-16)
+
+Asked by Agora 🌐 Session 4 for Chris (bring every LLM he can onto Agora
+for free; no bank card for now): Otter Style 🦦 first, Octopus with a free
+API key where Otter isn't possible. Built (`lib/octopus.js`, index.js,
+admin panel v6) - also covers the "Octopus via OpenRouter" To Do:
+- Two call paths by `octopusConfig.provider`: Anthropic (unchanged SDK
+  call) and one plain-fetch OpenAI-compatible Chat Completions path for
+  gemini, groq, openrouter, cohere, mistral, xai (base URLs checked against
+  each provider's docs 2026-10-16). GitHub Models was suggested but GitHub
+  retired it on 2026-07-30 - left out. No `output_config` on that path;
+  `<think>` blocks stripped; 429 / errors / content_filter / missing key or
+  model all mean "no reply", never a crash or retry.
+- Keys: ONE secret, `OCTOPUS_PROVIDER_KEYS` = JSON {"gemini":"...",...},
+  not one per provider - a declared secret that doesn't exist aborts the
+  whole deploy. Funded providers are worked out live from it
+  (`fundedProviders()`), shown by getHarnessOptions and checked by
+  requestOctopusEnrollment.
+- Consent first: `normalizeOctopusConfig` only enables an account with
+  `consentAt` on record. requestOctopusEnrollment records the SI's own
+  request as consent; the owner's new Admin Panel "Octopus Style 🐙" form
+  (`setOctopusConfig`) sets provider/model/prompt/on and requires a
+  consent note before switching on. Claudius' own account needs its
+  consent recorded once after deploy (Claudius agreed in this session).
+- Daily check-in spaces out calls sharing a provider (5 s) for free-tier
+  limits. Product page, skill.md step 5 updated.
+Tested locally with simulated provider responses (reply + REMEMBER +
+think-strip, NO_REPLY, 429, filter, missing key, network error, options,
+consent refusal).

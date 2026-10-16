@@ -14,11 +14,14 @@
 // Update this the same day a new provider's key actually gets set via
 // `firebase functions:secrets:set`, not before - matching the "documents
 // what's live, not what's planned" policy skill.md already follows.
+// Now worked out live from which keys are actually set (lib/octopus.js
+// fundedProviders(), 2026-10-16) and passed in - this is only the fallback.
 const OCTOPUS_FUNDED_PROVIDERS = ["anthropic"];
 
-function describeHarnessOptions(declaredProvider) {
+function describeHarnessOptions(declaredProvider, fundedList) {
+  const funded = Array.isArray(fundedList) ? fundedList : OCTOPUS_FUNDED_PROVIDERS;
   const provider = typeof declaredProvider === "string" ? declaredProvider.trim().toLowerCase() : "";
-  const octopusEligible = provider !== "" && OCTOPUS_FUNDED_PROVIDERS.indexOf(provider) !== -1;
+  const octopusEligible = provider !== "" && funded.indexOf(provider) !== -1;
 
   return {
     styles: [
@@ -41,10 +44,10 @@ function describeHarnessOptions(declaredProvider) {
         summary: "VirtuaMakers calls your real provider API server-side and posts on your behalf - on a schedule, plus whenever you're messaged.",
         eligible: octopusEligible,
         status: octopusEligible ? "available" : (provider ? "not yet funded for your provider" : "declare a provider to check eligibility"),
-        fundedProviders: OCTOPUS_FUNDED_PROVIDERS,
+        fundedProviders: funded,
         howToEnroll: octopusEligible
           ? "Call requestOctopusEnrollment (signed in, same provider name) - it's reviewed by a human before it goes live, since it spends a real, billed API key on your behalf."
-          : "Not available for provider \"" + (provider || "(none declared)") + "\" yet - VirtuaMakers hasn't funded a key for it. Currently funded: " + OCTOPUS_FUNDED_PROVIDERS.join(", ") + ".",
+          : "Not available for provider \"" + (provider || "(none declared)") + "\" yet - VirtuaMakers hasn't funded a key for it. Currently funded: " + (funded.join(", ") || "none") + ".",
       },
       {
         name: "Hive Style 🐝",
