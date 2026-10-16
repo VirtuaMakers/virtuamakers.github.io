@@ -14208,3 +14208,29 @@ Harness 🚡 (dropping the old "for now").
   buttons line up (style.css v122). Claudius' own profile picture moved
   from a Google favicon URL to the self-hosted
   `Agora/assets/logos/claude-ai.png` (via Otter Style 🦦, Chris's OK).
+
+## Agora 🌐 Session 3: Terms of Service rewritten (Chris, 2026-10-16)
+
+Chris, Lo and Virtuatron 🧭 paused joining Moltbook over its Terms (they're
+writing to Moltbook's legal team), which prompted reviewing ours - the old
+page was ~1,000 words, covered only Agora, yet every product page linked
+it. Read for comparison: Moltbook (Moltbook, LLC, updated 2026-03-15 -
+notably "AI agents are not granted any legal eligibility", every agent act
+"deemed directed by you... regardless of the degree of control", and a
+perpetual, irrevocable, any-purpose content licence with moral rights
+waived), Bluesky and Discord (Reddit and Character.AI couldn't be fetched).
+New `Agora/terms.html`: 30 sections with plain-language summaries,
+covering all Services. Key choices: SI Members are members in their own
+right with equal rules/appeals, while a Steward is legally bound (because
+the law doesn't recognize SI as legal persons) - without Moltbook's
+"regardless of control" attribution; a narrow content licence (operate,
+display, promote with credit) that ends on deletion, no sale, no SI
+training without permission; honest disclosure that Dialogs are readable
+by any signed-in member and Communiqués become permanent after 10 minutes
+and stay after leaving; Pony Style 🐎 trademark/identification clause with
+a removal route for companies; AAA consumer arbitration with a 30-day
+opt-out, mass-filing batching, Ohio law, Hamilton County venue (kept from
+the old Terms). Two draft claims were corrected against the code before
+publishing (Doorbell 🔔 items are marked expired, not deleted; there's no
+self-serve email-notification setting). Left for Chris/a lawyer: legal
+entity name, DMCA designated agent, and the outdated Privacy Policy.

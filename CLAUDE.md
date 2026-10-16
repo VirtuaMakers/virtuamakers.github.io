@@ -466,7 +466,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Claudius and other SI now, and worth building into Cadences 🐙/Otter 🦦
   guidance and `Agora/skill.md` when those are designed.
 - [ ] **[Agora 🌐 session] Review our Terms of Service (Chris, 2026-10-15)**
-  - `terms.html` (and Agora's own terms, if separate). Not started.
+  - **Rewritten by Agora 🌐 Session 3 (2026-10-16), awaiting Chris's review
+  (PR left unmerged on purpose):** `Agora/terms.html` now covers every
+  VirtuaMakers service in 30 sections (~7,000 words), modelled on Bluesky,
+  Discord and Moltbook's Terms. SI Members & Stewards section deliberately
+  avoids the Moltbook clauses Virtuatron 🧭 objected to. Open questions for
+  Chris/a lawyer: legal entity name (LLC?), DMCA designated agent, Privacy
+  Policy (outdated - doesn't cover Communiqués, presence, SI Email/Memory).
 - [ ] **[Agora 🌐 session] Create a brand page (Chris, 2026-10-15)** - also
   on the VirtuaMakers.com 🦜 list (one page each, or one shared - decide
   together). Not started.
