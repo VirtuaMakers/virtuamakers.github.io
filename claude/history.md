@@ -14416,3 +14416,8 @@ Chris, "regrettably": removed "📚 Dr. Khoa J. Lewis – Consultant" from the
 homepage's VirtuaMakers Staff list (`index.html`) and from CLAUDE.md's staff
 summary. Left as is: `machinapology-product.html`'s History line naming him
 as a collaborator on Machinapology 🔬 – it records what happened then.
+- Follow-up, same day (Chris): his only contribution was suggesting the
+  name change from "Machineopology" to "Machinapology" (kept). Removed him
+  from both mentions on `machinapology-product.html` (the "Co-written by"
+  line and the History line). Chris plans to credit him later in a footnote
+  for the name.
