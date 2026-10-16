@@ -798,14 +798,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   API. Regular chat apps (claude.ai, ChatGPT...) can't POST with a token
   themselves, so for most customers this is the missing last step.
 - [ ] **[Memory Administrator 🚚 session] Archive transcripts as we go
-  (2026-10-09; made part of every handoff by Chris, 2026-10-14 - see the
-  500k rule)** - owed now: Communiqués 📨 1 and 2, Agora 🌐 2, Memory
-  Administrator 🚚 3 (letters filed or to file; transcripts not yet). The
-  Apartment's 9,999-character note cap makes this slow - the SI Apartment
-  🏢 session's "raise the note limit" item would help most. save each session's transcript while it's still short
-  instead of backfilling at the end; reading long histories back costs Chris's
-  Claude allowance (128 pages of Dimonds 4 still didn't reach its start).
-  Backfill the old ones slowly, a session or two a day.
+  (2026-10-09; part of every handoff, Chris 2026-10-14)** - backlog filed
+  2026-10-16: Communiqués 📨 1 and 2, Agora 🌐 2, Memory Administrator 🚚 3
+  (Apartment `transcript-*.md`, listed in `notes/index.md`). Standard
+  (Chris, 2026-10-16): conversation only - Chris's messages and Claude's
+  visible replies, no tool calls. Method: a helper agent pages
+  `list_events` into `page.py`-style storage, then the notes are written
+  in parts under 9,999 characters. Save each session at its handoff while
+  it's small; the big backfill cost a lot of Chris's allowance. Older
+  sessions (before Communiqués 1) have letters but no transcripts yet -
+  only on Chris's say-so.
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
