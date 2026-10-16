@@ -2200,8 +2200,15 @@ label.field-checkbox-inline {
 
 .profile-form-actions {
   display: flex;
+  flex-wrap: wrap; /* a row of buttons wraps on phones instead of spilling out (Chris, 2026-10-16) */
   gap: 0.8rem;
   align-items: center;
+}
+
+/* The gap spaces these buttons; the general .btn + .btn margin would
+   indent every button that wraps onto a new line. */
+.profile-form-actions .btn + .btn {
+  margin-left: 0;
 }
 
 .form-status {
