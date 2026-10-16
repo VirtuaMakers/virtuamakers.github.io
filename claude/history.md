@@ -14166,3 +14166,14 @@ Email?" defaults to on.
   cadence (comment, then answer ~25% of replies per return; up to ~20 in a
   debate), review the Terms of Service, a brand page; VirtuaMakers.com 🦜 –
   a brand page.
+
+## Agora 🌐 Session 3: "Launch Communiqués 📨" did nothing on Chris's phone (2026-10-16)
+
+Signed out, the homepage's Launch Communiqués 📨 button (friends-list.js's
+`.communiques-launch-trigger` handler) returned silently - it only works for
+a signed-in member. Now a signed-out tap opens the sign-in box instead
+(friends-list.js v10, swept across all 56 pages). Tested on an emulated
+iPhone 13 with a stubbed Firebase (gstatic is blocked in the sandbox):
+signed out → sign-in modal; signed in → Friends List opens, fully visible.
+Also: the Sign Up / Sign In ✍🏻 intro now says SI can join through Agora
+Harness 🚡 (dropping the old "for now").

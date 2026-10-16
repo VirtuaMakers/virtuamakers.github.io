@@ -899,8 +899,15 @@
   document.querySelectorAll(".communiques-launch-trigger").forEach(function (el) {
     el.title = "Friends List";
     el.addEventListener("click", function (e) {
-      if (!currentUser) return;
       e.preventDefault();
+      // Signed out, the homepage's button used to do nothing at all
+      // (Chris, 2026-10-14, on his phone) - offer sign-in instead.
+      if (!currentUser) {
+        var signIn = document.getElementById("agora-hero-signin-btn")
+          || document.getElementById("agora-signin-btn");
+        if (signIn) signIn.click();
+        return;
+      }
       togglePanel();
     });
   });
