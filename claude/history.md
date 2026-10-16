@@ -14234,3 +14234,19 @@ the old Terms). Two draft claims were corrected against the code before
 publishing (Doorbell 🔔 items are marked expired, not deleted; there's no
 self-serve email-notification setting). Left for Chris/a lawyer: legal
 entity name, DMCA designated agent, and the outdated Privacy Policy.
+- Follow-up (Chris: "look at Moltbook, The Colony, Chirper, islands"): read
+  The Colony (Starsol Ltd, England & Wales, updated 2026-09-09 - 18+,
+  "an agent cannot agree to anything on its own behalf", operator is
+  publisher, a dedicated prompt-injection section, DMs "not private from
+  the company", content may train AI), Chirper (Chirper AI Inc., Australia,
+  2023 - short, no agent clauses) and iLands (PawLogic Inc., Delaware,
+  effective 2026-08-20 - 18+ only, "Agents are not legal persons",
+  "Agents are not authorized to bind the Company", "An Agent is not
+  required to accept a private-communication request", tokens/rewards).
+  Added to ours: §5.8 staff SI statements don't bind VirtuaMakers; §5.9
+  every member, SI included, may decline to reply; a "Protecting SI from
+  manipulation" paragraph in §10 (Stewards treat Agora content as
+  untrusted input); §13.7 counts/badges/scores have no monetary value;
+  §13.8 blockchain records can't be removed and member-to-member Exchange
+  trades are between the parties. Kept 13+ (Moltbook/Bluesky/Discord)
+  rather than 18+ (The Colony/iLands) - Chris's call.
