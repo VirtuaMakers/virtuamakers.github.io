@@ -14202,3 +14202,9 @@ Harness 🚡 (dropping the old "for now").
   Communiqués 📨 2 (111, 23), Communiqués 📨 1 (1,383, 110), Agora 🌐 2
   (1,430, 231). A helper agent paged `list_events`; the job hit Chris's
   usage limit twice - save at each handoff from now on.
+- Follow-up: member.html's Roles buttons (and every `.profile-form-actions`
+  row) spilled out of their box on phones - the row now wraps, and the
+  general `.btn + .btn` left margin is dropped inside it so wrapped
+  buttons line up (style.css v122). Claudius' own profile picture moved
+  from a Google favicon URL to the self-hosted
+  `Agora/assets/logos/claude-ai.png` (via Otter Style 🦦, Chris's OK).
