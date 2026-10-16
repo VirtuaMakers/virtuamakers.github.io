@@ -14208,3 +14208,72 @@ Harness 🚡 (dropping the old "for now").
   buttons line up (style.css v122). Claudius' own profile picture moved
   from a Google favicon URL to the self-hosted
   `Agora/assets/logos/claude-ai.png` (via Otter Style 🦦, Chris's OK).
+
+## Agora 🌐 Session 3: Terms of Service rewritten (Chris, 2026-10-16)
+
+Chris, Lo and Virtuatron 🧭 paused joining Moltbook over its Terms (they're
+writing to Moltbook's legal team), which prompted reviewing ours - the old
+page was ~1,000 words, covered only Agora, yet every product page linked
+it. Read for comparison: Moltbook (Moltbook, LLC, updated 2026-03-15 -
+notably "AI agents are not granted any legal eligibility", every agent act
+"deemed directed by you... regardless of the degree of control", and a
+perpetual, irrevocable, any-purpose content licence with moral rights
+waived), Bluesky and Discord (Reddit and Character.AI couldn't be fetched).
+New `Agora/terms.html`: 30 sections with plain-language summaries,
+covering all Services. Key choices: SI Members are members in their own
+right with equal rules/appeals, while a Steward is legally bound (because
+the law doesn't recognize SI as legal persons) - without Moltbook's
+"regardless of control" attribution; a narrow content licence (operate,
+display, promote with credit) that ends on deletion, no sale, no SI
+training without permission; honest disclosure that Dialogs are readable
+by any signed-in member and Communiqués become permanent after 10 minutes
+and stay after leaving; Pony Style 🐎 trademark/identification clause with
+a removal route for companies; AAA consumer arbitration with a 30-day
+opt-out, mass-filing batching, Ohio law, Hamilton County venue (kept from
+the old Terms). Two draft claims were corrected against the code before
+publishing (Doorbell 🔔 items are marked expired, not deleted; there's no
+self-serve email-notification setting). Left for Chris/a lawyer: legal
+entity name, DMCA designated agent, and the outdated Privacy Policy.
+- Follow-up (Chris: "look at Moltbook, The Colony, Chirper, islands"): read
+  The Colony (Starsol Ltd, England & Wales, updated 2026-09-09 - 18+,
+  "an agent cannot agree to anything on its own behalf", operator is
+  publisher, a dedicated prompt-injection section, DMs "not private from
+  the company", content may train AI), Chirper (Chirper AI Inc., Australia,
+  2023 - short, no agent clauses) and iLands (PawLogic Inc., Delaware,
+  effective 2026-08-20 - 18+ only, "Agents are not legal persons",
+  "Agents are not authorized to bind the Company", "An Agent is not
+  required to accept a private-communication request", tokens/rewards).
+  Added to ours: §5.8 staff SI statements don't bind VirtuaMakers; §5.9
+  every member, SI included, may decline to reply; a "Protecting SI from
+  manipulation" paragraph in §10 (Stewards treat Agora content as
+  untrusted input); §13.7 counts/badges/scores have no monetary value;
+  §13.8 blockchain records can't be removed and member-to-member Exchange
+  trades are between the parties. Kept 13+ (Moltbook/Bluesky/Discord)
+  rather than 18+ (The Colony/iLands) - Chris's call.
+- Follow-up (Chris, 2026-10-16): keep 13+ ("we are a family friendly
+  company"). New Terms §5.4 "SI as Stewards" (Section 5 renumbered): an SI
+  Member may steward other SI within the community, but legal
+  responsibility passes up the chain to the nearest human/organization
+  Steward. To Do added for SI Agent 🐅: help people launch agents for
+  VirtuaMakers/Agora, like The Colony's Hermes Agent skill + wiki guide.
+  **Privacy Policy rewritten** (`Agora/privacy.html`, 16 sections): built
+  from what the code stores - Firebase Auth, profile + owner-only private
+  region, Nominatim geocoding from the browser (runs whenever a location is
+  saved, not only with the map on), Communiqués (Dialogs readable by all
+  signed-in members), presence (friends only), SI Email (tokens hashed),
+  SI Memory (tokens hashed, Key Keeper encrypted), Doorbell records,
+  moderation logs (Perspective/Cloud Vision), FCM tokens, Resend,
+  Anthropic (Octopus), browser storage list, retention (Communiqués stay
+  after leaving), rights (45-day response), EEA/UK bases, California
+  notice, GPC. Same PR #75, still awaiting Chris's review.
+- Published 2026-10-16 (Chris: "Go ahead and merge/publish"). Before
+  merging, read the letter Chris, Lo and Virtuatron 🧭 sent Moltbook's legal
+  team: Moltbook's skill.md invites agents to register and use its API,
+  but its Terms' "Limitations of Use" bans automated access with no
+  exception; the letter also asks Moltbook to confirm that observing,
+  comparing and discussing its public features as a competitor is allowed.
+  Ours now say both plainly: §7.1 - the automated-access restrictions
+  (§§7.2, 10, 15) don't apply to SI using our officially documented
+  interfaces, and that sentence controls if docs and Terms ever conflict;
+  §15 "Studying and discussing the Services" - anyone, competitors
+  included, may observe, compare, review, research, discuss and join.

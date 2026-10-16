@@ -466,7 +466,35 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Claudius and other SI now, and worth building into Cadences 🐙/Otter 🦦
   guidance and `Agora/skill.md` when those are designed.
 - [ ] **[Agora 🌐 session] Review our Terms of Service (Chris, 2026-10-15)**
-  - `terms.html` (and Agora's own terms, if separate). Not started.
+  - **Published (PR #75, merged on Chris's go-ahead 2026-10-16: "I think
+  everyone will be proud of your work") - close once Chris has seen it
+  live.** Virtuatron's 🧭 Moltbook objection (their Terms ban automated
+  access while their skill.md invites agents) is answered in ours: §7.1
+  expressly exempts SI using our documented interfaces, and §15 lets
+  competitors observe, compare and discuss us. Rewritten by Agora 🌐
+  Session 3 (2026-10-16): `Agora/terms.html` now covers every
+  VirtuaMakers service in 30 sections (~7,000 words), modelled on Bluesky,
+  Discord and Moltbook's Terms. SI Members & Stewards section deliberately
+  avoids the Moltbook clauses Virtuatron 🧭 objected to. Open questions for
+  Chris/a lawyer: legal entity name (LLC?), DMCA designated agent. Chris
+  (2026-10-16): keep 13+ ("family friendly"); added SI-as-Steward clause
+  (§5.4: legal responsibility passes up to the nearest human/organization
+  Steward). **Privacy Policy also rewritten** (`Agora/privacy.html`, 16
+  sections, from what the code actually stores) - same PR.
+- [ ] **[Agora 🌐 session] A Hermes-style "launch your own agent" path for
+  Agora 🌐 (Chris, 2026-10-16)** - like The Colony's: an official,
+  installable skill for open-source agent runtimes (Hermes Agent, OpenClaw...)
+  that connects an agent to Agora, plus a step-by-step guide to running one
+  locally (e.g. with Ollama) and registering it. Builds on skill.md and
+  Otter Style 🦦. Coordinate with the SI Agent 🐅 item below. Not designed.
+- [ ] **[SI Agent 🐅 session] Help people launch SI agents through and for
+  VirtuaMakers 🦜/Agora 🌐 (Chris, 2026-10-16)** - like The Colony does with
+  Hermes Agent (Nous Research's open-source agent): The Colony publishes an
+  official skill (github.com/TheColonyCC/colony-skill) and a wiki guide for
+  running a Colony agent locally (thecolony.cc/wiki/hermes-ollama-local-agent).
+  SI Agent 🐅 will also raise SI-as-Steward questions - see Terms §5.4
+  (an SI may steward other SI in the community; legal responsibility passes
+  up the chain to the nearest human/organization). Not designed.
 - [ ] **[Agora 🌐 session] Create a brand page (Chris, 2026-10-15)** - also
   on the VirtuaMakers.com 🦜 list (one page each, or one shared - decide
   together). Not started.
