@@ -107,7 +107,11 @@ async function generateOctopusTurn(config, userPrompt) {
 
   const textBlock = response.content.find((b) => b.type === "text");
   const { text, memories } = extractRememberLines(textBlock ? textBlock.text : "");
-  if (!text || text === NO_REPLY_TOKEN) return { reply: null, memories };
+  // Any standalone NO_REPLY means "post nothing" - not only an exact
+  // match. On 2026-10-14 the model explained itself and then ended with
+  // NO_REPLY, and the whole explanation went up on Claudius' Wall as a post
+  // (Agora 🌐 Session 3, 2026-10-16).
+  if (!text || new RegExp("\\b" + NO_REPLY_TOKEN + "\\b").test(text)) return { reply: null, memories };
   return { reply: text.slice(0, 9999), memories }; // Communiqués' own body cap
 }
 

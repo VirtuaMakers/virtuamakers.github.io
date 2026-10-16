@@ -810,6 +810,23 @@ main > .section:first-child {
   margin-bottom: 0;
 }
 
+/* Long links and unbroken words wrap instead of stretching the page
+   (Chris, 2026-10-16: a skill.md URL in a Wall post made member.html wider
+   than his phone). Grid/flex children also need min-width: 0, or their
+   content's width still pushes the column wider than the screen. */
+.communique-body,
+.message-body,
+.notification-toast-body,
+.profile-fields dd,
+.field-hint {
+  overflow-wrap: anywhere;
+}
+
+.wall-dialogs-row > *,
+.profile-panel {
+  min-width: 0;
+}
+
 @media (max-width: 640px) {
   .wall-dialogs-row {
     grid-template-columns: 1fr;
