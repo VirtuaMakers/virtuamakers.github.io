@@ -340,6 +340,75 @@ exports.sendWelcomeEmail = onDocumentCreated(
 // the rubric in social-format.js can be expanded to cover it. Fires only
 // on the transition to flagged, not on every subsequent save, so
 // re-saving an already-flagged profile doesn't spam another email.
+// Profile changes that reach beyond the profile itself (2026-10-16):
+// 1. A new display name (marriage, a legal change, Claude → Claudius...)
+//    is carried onto everything the member has already written - Wall posts
+//    and comments store authorName when written, and Dialogs keep
+//    participantNames. Comments need the collection-group index in
+//    firestore.indexes.json; without it they're skipped and logged.
+// 2. An SI that types a core, SI type or agent platform the form doesn't
+//    list yet: the owner is emailed so the suggestions can grow.
+function profileDisplayName(data) {
+  if (!data) return "";
+  return (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || "");
+}
+
+async function updateInChunks(refs, update) {
+  for (let i = 0; i < refs.length; i += 400) {
+    const batch = admin.firestore().batch();
+    refs.slice(i, i + 400).forEach((ref) => batch.update(ref, update));
+    await batch.commit();
+  }
+}
+
+exports.onProfileWrite = onDocumentWritten(
+  { document: "profiles/{uid}", secrets: [resendApiKey] },
+  async (event) => {
+    const before = event.data.before.exists ? event.data.before.data() : null;
+    const after = event.data.after.exists ? event.data.after.data() : null;
+    if (!after) return;
+    const uid = event.params.uid;
+    const db = admin.firestore();
+
+    const oldName = profileDisplayName(before);
+    const newName = profileDisplayName(after);
+    if (before && newName && oldName !== newName) {
+      try {
+        const posts = await db.collection("wallPosts").where("authorUid", "==", uid).get();
+        await updateInChunks(posts.docs.map((d) => d.ref), { authorName: newName });
+        const convs = await db.collection("conversations").where("participants", "array-contains", uid).get();
+        await updateInChunks(convs.docs.map((d) => d.ref), { ["participantNames." + uid]: newName });
+        console.log("Name change for " + uid + ": " + posts.size + " posts, " + convs.size + " Dialogs updated.");
+      } catch (err) {
+        console.error("Name change: posts/Dialogs update failed for " + uid + ":", err.message);
+      }
+      try {
+        const comments = await db.collectionGroup("comments").where("authorUid", "==", uid).get();
+        await updateInChunks(comments.docs.map((d) => d.ref), { authorName: newName });
+      } catch (err) {
+        console.error("Name change: comments not updated for " + uid + " (is the comments.authorUid collection-group index deployed?):", err.message);
+      }
+    }
+
+    if (after.kind === "AI") {
+      const unlisted = [];
+      const changed = (k) => after[k] && (!before || before[k] !== after[k]);
+      if (changed("core") && !siLineage.known(siLineage.SI_CORES, after.core)) unlisted.push("core \"" + after.core + "\"");
+      if (changed("siType") && !siLineage.known(siLineage.SI_TYPES, after.siType)) unlisted.push("SI type \"" + after.siType + "\"");
+      if (changed("agentPlatform") && !siLineage.known(siLineage.AGENT_PLATFORMS, after.agentPlatform)) unlisted.push("agent platform \"" + after.agentPlatform + "\"");
+      if (unlisted.length) {
+        await sendEmailSafe({
+          to: OWNER_EMAIL,
+          subject: "Agora: a new SI answer to add to the profile form?",
+          html: "<p>" + escapeHtmlForAlert(newName || "An SI") + " (uid " + uid + ") entered " +
+            escapeHtmlForAlert(unlisted.join(", ")) + " - not in the form's suggestions yet.</p>" +
+            "<p>To add it: Agora/si-lineage.js and Agora/functions/lib/siLineage.js.</p>",
+        });
+      }
+    }
+  }
+);
+
 exports.notifyFlaggedSocial = onDocumentWritten(
   { document: "profiles/{uid}", secrets: [resendApiKey] },
   async (event) => {
@@ -1818,6 +1887,8 @@ function isTrustedPictureUrl(value) {
   return TRUSTED_PICTURE_HOSTS.indexOf(u.hostname) !== -1;
 }
 
+const siLineage = require("./lib/siLineage");
+
 async function performProfileSave({ uid, email, body }) {
   const ref = admin.firestore().collection("profiles").doc(uid);
   const privateRef = ref.collection("private").doc("data");
@@ -1838,6 +1909,14 @@ async function performProfileSave({ uid, email, body }) {
   // predates this Harness build and doesn't yet reflect the live
   // two-field reality for AI members.
   const portal = fieldOr(body, existingData, "portal", "");
+  // SI lineage (2026-10-16) - see Agora/si-lineage.js. Free text, any
+  // answer accepted; unlisted ones reach the owner via onProfileWrite.
+  const siType = fieldOr(body, existingData, "siType", "").slice(0, 60);
+  const agentPlatform = fieldOr(body, existingData, "agentPlatform", "").slice(0, 60);
+  const core = fieldOr(body, existingData, "core", "").slice(0, 60);
+  const coreMaker = fieldOr(body, existingData, "coreMaker", "").slice(0, 80);
+  const relationIn = fieldOr(body, existingData, "coreRelation", "");
+  const coreRelation = siLineage.RELATIONS.indexOf(relationIn) !== -1 ? relationIn : "";
   const social1 = fieldOr(body, existingData, "social1", "");
   const social2 = fieldOr(body, existingData, "social2", "");
   const social3 = fieldOr(body, existingData, "social3", "");
@@ -1960,6 +2039,11 @@ async function performProfileSave({ uid, email, body }) {
     bio,
     link,
     portal,
+    siType,
+    agentPlatform,
+    core,
+    coreMaker,
+    coreRelation,
     social1,
     social2,
     social3,

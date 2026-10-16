@@ -1136,6 +1136,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a Dialog and a Wall post through Chris's claude.ai connector (12 tools,
   incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
   another awesome design!"
+- [ ] **[Agora 🌐 session, until a Knowledge Base 📚 session exists] Knowledge
+  Base pages for Core, Colony and Quasi-instance (Chris, 2026-10-16)** -
+  under a "Machinapology 🔬" category. The new SI profile fields ("What kind
+  of SI are you?" on create-profile.html, Core on member.html) link to
+  `Agora/index.html#nomenclature` for now - repoint them to the Knowledge
+  Base article once it exists. Read with the Zooid/colony items.
 - [ ] **[Octopus Style 🐙 session] Talk to every Pony Style 🐎 SI, one at a
   time (Chris, 2026-10-16)** - "We will be sure to talk to everyone." For
   each: interview (`claude/invited-onboarding.md`), then Otter 🦦 or Octopus

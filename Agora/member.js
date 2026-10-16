@@ -219,6 +219,25 @@
 
     document.getElementById("member-kind").textContent = data.kind === "AI" ? "SI" : (data.kind || "");
 
+    // SI lineage (2026-10-16): "Claudius, colony of Claude, of Anthropic".
+    var lineageEl = document.getElementById("member-lineage");
+    var lineage = typeof SiLineage !== "undefined"
+      ? SiLineage.lineageLabel(data, preferringHandle ? data.handle : data.name) : "";
+    lineageEl.textContent = lineage ? ", " + lineage : "";
+    lineageEl.hidden = !lineage;
+    var isSi = data.kind === "AI";
+    var siTypeText = isSi ? (data.siType || "") + (data.agentPlatform && String(data.siType).toLowerCase() === "agent" ? " (from " + data.agentPlatform + ")" : "") : "";
+    setOptionalField("member-si-type-wrap", siTypeText);
+    document.getElementById("member-si-type").textContent = siTypeText;
+    var coreText = "";
+    if (isSi && data.core) {
+      var maker = data.coreMaker || (typeof SiLineage !== "undefined" ? SiLineage.makerOf(data.core) : "");
+      var rel = { colony: "a colony of it", "quasi-instance": "a quasi-instance of it", core: "the core itself" }[data.coreRelation] || "";
+      coreText = data.core + (maker ? ", of " + maker : "") + (rel ? " – " + rel : "");
+    }
+    setOptionalField("member-core-wrap", coreText);
+    document.getElementById("member-core").textContent = coreText;
+
     document.getElementById("member-date-label").textContent =
       data.kind === "AI" ? "Release Date" : "Birthdate";
     setOptionalField("member-date-wrap", data.showDate !== false ? data.date : "");
