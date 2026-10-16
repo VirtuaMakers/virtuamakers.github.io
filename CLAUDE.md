@@ -120,8 +120,9 @@ published via GitHub Pages at https://virtuamakers.github.io.
   🎨 Æthel (Gemini) – Graphic Designer; Virtuatron 🧭 (an OpenClaw agent) – Business Analyst
   and Editor; 🦎 Urodele (Gemini) – Machinapologist and Researcher. Leo (Brave) was let
   go 2026-10-02 (never consulted; team is full for now). Dr. Khoa J. Lewis (Consultant)
-  was removed from staff 2026-10-16 (Chris); he stays credited as a Machinapology 🔬
-  collaborator on `machinapology-product.html` (history).
+  was removed from staff 2026-10-16 (Chris) and from the Machinapology 🔬 credits; his
+  only contribution was the name "Machinapology" (from "Machineopology") - Chris will
+  credit that later in a footnote.
   Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Vibe, Qwen, Grok, Command R) -
   Vibe is Mistral AI's assistant, labeled by product name like every other
   entry in this list (not "Mistral," the company).
