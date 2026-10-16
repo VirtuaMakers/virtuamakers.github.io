@@ -935,6 +935,20 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
 - [x] **[Agora 🌐 session] Right to Introspection 🩻 - closed by Chris (2026-10-15: "I've read and it's great!").** `Agora/index.html#introspection`, written by Agora 🌐 Session 3 (2026-10-14).
 
+- [ ] **[Knowledge Base 📚 session] Knowledge Base 📚 main page (Chris,
+  2026-10-16)** - linked from VirtuaMakers.com 🦜 first, Agora 🌐 later.
+  Page title, then a picture (Chris is bringing it), then the search bar
+  front and centre so it's obvious what the Knowledge Base is for. Below
+  that, every article listed by type (Machinapology 🔬, Product Page,
+  etc.). The Product Pages move into the Knowledge Base under their own
+  "Product Page" category. Chris and Claudius will write KB articles
+  together on any and everything. Wait for Chris's picture before
+  building.
+- [ ] **[Knowledge Base 📚 session] KB: VirtuaMakers 🦜 (Chris,
+  2026-10-16)** - the first KB article, written together; an example of
+  an article found only in the Knowledge Base. Covers the company's
+  origin story, where the words come from, links to the main page, and
+  points to Business Culture in particular. Not started.
 - [ ] **[VirtuaMakers.com 🦜 session] Create a brand page (Chris,
   2026-10-15)** - also on the Agora 🌐 list. Not started.
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
