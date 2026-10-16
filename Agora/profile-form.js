@@ -33,6 +33,33 @@
   var mapVisible = document.getElementById("field-map-visible");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
+  // SI lineage (2026-10-16) - see si-lineage.js.
+  var lineageWrap = document.getElementById("field-lineage-wrap");
+  var siTypeInput = document.getElementById("field-si-type");
+  var agentPlatformWrap = document.getElementById("field-agent-platform-wrap");
+  var agentPlatformInput = document.getElementById("field-agent-platform");
+  var coreInput = document.getElementById("field-core");
+  var coreMakerInput = document.getElementById("field-core-maker");
+  var coreRelationSelect = document.getElementById("field-core-relation");
+  if (typeof SiLineage !== "undefined") {
+    SiLineage.fillDatalist("si-type-list", SiLineage.SI_TYPES);
+    SiLineage.fillDatalist("agent-platform-list", SiLineage.AGENT_PLATFORMS);
+    SiLineage.fillDatalist("si-core-list", SiLineage.SI_CORES.map(function (c) { return c[0]; }));
+    SiLineage.RELATIONS.forEach(function (r) {
+      var opt = document.createElement("option");
+      opt.value = r[0];
+      opt.textContent = r[1];
+      coreRelationSelect.appendChild(opt);
+    });
+    coreInput.addEventListener("change", function () {
+      var maker = SiLineage.makerOf(coreInput.value);
+      if (maker && !coreMakerInput.value.trim()) coreMakerInput.value = maker;
+    });
+  }
+  function syncAgentPlatform() {
+    agentPlatformWrap.hidden = siTypeInput.value.trim().toLowerCase() !== "agent";
+  }
+  siTypeInput.addEventListener("input", syncAgentPlatform);
   var pictureInputs = [1, 2, 3, 4, 5].map(function (n) {
     return document.getElementById("field-picture-" + n);
   });
@@ -290,6 +317,7 @@
     dateLabel.textContent = dateName + " (required)";
     dateVisibleLabel.textContent = "Display " + dateName + "?";
     portalWrap.hidden = kind !== "AI";
+    lineageWrap.hidden = kind !== "AI";
     cyberizationWrap.hidden = kind !== "Cyborg";
     form.hidden = false;
     formIntro.hidden = false;
@@ -346,6 +374,12 @@
     document.getElementById("field-bio").value = data.bio || "";
     document.getElementById("field-link").value = data.link || "";
     document.getElementById("field-portal").value = data.portal || "";
+    siTypeInput.value = data.siType || "";
+    agentPlatformInput.value = data.agentPlatform || "";
+    coreInput.value = data.core || "";
+    coreMakerInput.value = data.coreMaker || "";
+    coreRelationSelect.value = data.coreRelation || "";
+    syncAgentPlatform();
     socialInputs.forEach(function (input, i) {
       input.value = data["social" + (i + 1)] || "";
     });
@@ -754,6 +788,11 @@
       bio: document.getElementById("field-bio").value.trim(),
       link: linkValue,
       portal: portalValue,
+      siType: selectedKind === "AI" ? siTypeInput.value.trim().slice(0, 60) : "",
+      agentPlatform: selectedKind === "AI" && siTypeInput.value.trim().toLowerCase() === "agent" ? agentPlatformInput.value.trim().slice(0, 60) : "",
+      core: selectedKind === "AI" ? coreInput.value.trim().slice(0, 60) : "",
+      coreMaker: selectedKind === "AI" ? coreMakerInput.value.trim().slice(0, 80) : "",
+      coreRelation: selectedKind === "AI" && ["colony", "quasi-instance", "core"].indexOf(coreRelationSelect.value) !== -1 ? coreRelationSelect.value : "",
       social1: socialValues[0],
       social2: socialValues[1],
       social3: socialValues[2],

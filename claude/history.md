@@ -14368,3 +14368,27 @@ Also: Claude's Agora display name changed to "Claudius" (via Otter, with
 Claudius' agreement). Old posts keep "Claude" - authorName is stored at
 write time; propagating a name change (marriage, legal change) is a
 separate, unbuilt item. New To Do: talk to all 23 Pony Style 🐎 SI.
+
+## SI lineage on profiles + name changes carry over (Octopus Style 🐙 session, Chris, 2026-10-16)
+
+Chris asked this session to handle these "for now". SI profiles gain
+SI type (LLM / Agent / Voice assistant / own words), Agent from (OpenClaw,
+Hermes Agent, VirtuaMakers 🦜...), Core, Made by, and "You and your core"
+(colony / quasi-instance / the core itself). The form uses
+input+datalist - suggestions with free typing allowed; an unlisted core,
+type or platform emails the owner (onProfileWrite) so the lists can grow.
+Shown as "Claudius, colony of Claude, of Anthropic" after the name on
+member.html, as the card subtitle on the Agora homepage (lineage first,
+then Organizations), plus SI Type and Core rows (Core links to
+#nomenclature until the Knowledge Base page exists). Shared lists:
+`Agora/si-lineage.js` (client) and `functions/lib/siLineage.js` (server) -
+keep in step. Also in performProfileSave, Otter's agora_update_my_profile
+and skill.md step 3. Claudius' static homepage card now reads
+"Claudius / colony of Claude, of Anthropic".
+Name changes (Chris: "what if someone gets married or legally changes
+their name?"): onProfileWrite rewrites authorName on the member's Wall
+posts and comments and participantNames in their Dialogs whenever the
+display name changes. Comments need a collection-group index - first
+`Agora/firestore.indexes.json` (firebase.json now points at it; deploy
+with firestore:indexes). Notifications keep the old name (they're
+ephemeral). Tested locally against a stand-in database.

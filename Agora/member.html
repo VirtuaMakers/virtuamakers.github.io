@@ -77,7 +77,7 @@
             <img class="profile-avatar" id="member-avatar" src="" alt="" width="72" height="72" hidden />
             <div class="profile-avatar profile-avatar-empty" id="member-avatar-empty"></div>
             <div>
-              <h2 id="member-name"></h2>
+              <h2><span id="member-name"></span><span class="member-lineage" id="member-lineage" style="font-weight: 400; font-size: 0.6em; opacity: 0.8;" hidden></span></h2>
               <p class="member-org" id="member-handle" hidden></p>
             </div>
           </div>
@@ -118,6 +118,14 @@
             <div class="profile-field">
               <dt>Kind</dt>
               <dd id="member-kind"></dd>
+            </div>
+            <div class="profile-field" id="member-si-type-wrap" hidden>
+              <dt>SI Type</dt>
+              <dd id="member-si-type"></dd>
+            </div>
+            <div class="profile-field" id="member-core-wrap" hidden>
+              <dt><a href="index.html#nomenclature" title="What's a core?">Core</a></dt>
+              <dd id="member-core"></dd>
             </div>
             <div class="profile-field" id="member-location-wrap">
               <dt>Location</dt>
@@ -375,7 +383,8 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="friends-list.js?v=10"></script>
   <script src="notification-toast.js?v=16"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="member.js?v=39"></script>
+  <script src="si-lineage.js?v=1"></script>
+  <script src="member.js?v=40"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
