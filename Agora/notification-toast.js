@@ -200,6 +200,7 @@
       authorUid: currentUser.uid,
       body: text,
       createdAt: now,
+      via: "human", // Human Style 💪 - the server has the final word
     }).then(function () {
       return ref.update({
         lastMessage: text,

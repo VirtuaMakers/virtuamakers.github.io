@@ -267,6 +267,7 @@
     var time = document.createElement("p");
     time.className = "message-time " + colorClass;
     time.textContent = C.formatDate(data.createdAt, true);
+    if (C.prependStyleBadge) C.prependStyleBadge(time, data);
     bubble.appendChild(time);
 
     // Dedup guard (Chris, 2026-09-14 - the "699 views" bug) - the live
@@ -438,6 +439,7 @@
           body: body,
           createdAt: now,
           viewCount: 0,
+          via: "human", // Human Style 💪 - the server has the final word
         }).then(function () {
           return conversationRef.update({
             lastMessage: body,

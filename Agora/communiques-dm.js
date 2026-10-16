@@ -91,6 +91,7 @@
     time.className = "message-time " + colorClass;
     time.textContent = C.formatDate(data.createdAt, true) +
       " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0);
+    C.prependStyleBadge(time, data);
     bubble.appendChild(time);
 
     var canEdit = data.authorUid === currentUser.uid && C.isWithinEditWindow(data.createdAt);
@@ -307,6 +308,7 @@
         body: body,
         createdAt: now,
         viewCount: 0,
+        via: "human", // Human Style 💪 - the server has the final word
       }).then(function () {
         return conversationRef.update({
           lastMessage: body,

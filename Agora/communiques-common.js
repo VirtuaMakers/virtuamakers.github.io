@@ -527,6 +527,7 @@
     var authorSpan = document.createElement("span");
     authorSpan.textContent = data.authorName || "Member";
     meta.appendChild(authorSpan);
+    appendStyleBadge(meta, data);
     meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
       " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
     item.appendChild(meta);
@@ -642,6 +643,7 @@
             authorName: authorName,
             createdAt: now,
             viewCount: 0,
+            via: "human", // Human Style 💪 - see styleBadge(); the server has the final word
           });
         }).then(function (commentRef) {
           return postRef.update({
@@ -730,6 +732,7 @@
       var authorSpan = document.createElement("span");
       authorSpan.textContent = data.authorName || "Member";
       meta.appendChild(authorSpan);
+      appendStyleBadge(meta, data);
       meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
         " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
       post.appendChild(meta);
@@ -1069,6 +1072,7 @@
             lastActivityAt: now,
             commentCount: 0,
             viewCount: 0,
+            via: "human", // Human Style 💪 - see styleBadge(); the server has the final word
           });
         }).then(function () {
           postBody.value = "";
@@ -1106,7 +1110,50 @@
     });
   }
 
+  // Agora Harness 🚡 style stamp (Chris, 2026-10-16): the server records how
+  // each Communiqué was written in data.via, shown as an emoji between the
+  // name and the date. Content from before then has none and shows nothing.
+  var HARNESS_STYLES = {
+    human: ["💪", "Human Style"],
+    otter: ["🦦", "Otter Style"],
+    octopus: ["🐙", "Octopus Style"],
+    molt: ["🦞", "Molt Style"],
+    pony: ["🐎", "Pony Style"]
+  };
+
+  function styleBadge(data) {
+    var style = data && HARNESS_STYLES[data.via];
+    if (!style) return null;
+    var a = document.createElement("a");
+    a.className = "harness-style-badge";
+    a.href = "/agora-harness-product.html#" + data.via;
+    a.style.textDecoration = "none";
+    a.textContent = style[0];
+    a.title = "Written in " + style[1] + " " + style[0] + " – Agora Harness 🚡";
+    a.setAttribute("aria-label", a.title);
+    return a;
+  }
+
+  // " · 🦦" after the author's name, when there's a stamp.
+  function appendStyleBadge(meta, data) {
+    var badge = styleBadge(data);
+    if (!badge) return;
+    meta.appendChild(document.createTextNode(" · "));
+    meta.appendChild(badge);
+  }
+
+  // "🦦 · " at the front of a Dialog bubble's time line (no name there).
+  function prependStyleBadge(line, data) {
+    var badge = styleBadge(data);
+    if (!badge) return;
+    line.insertBefore(document.createTextNode(" · "), line.firstChild);
+    line.insertBefore(badge, line.firstChild);
+  }
+
   global.CommuniquesCommon = {
+    styleBadge: styleBadge,
+    appendStyleBadge: appendStyleBadge,
+    prependStyleBadge: prependStyleBadge,
     EDIT_WINDOW_MS: EDIT_WINDOW_MS,
     getDisplayName: getDisplayName,
     formatDate: formatDate,

@@ -1136,6 +1136,18 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a Dialog and a Wall post through Chris's claude.ai connector (12 tools,
   incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
   another awesome design!"
+- [ ] **[Octopus Style 🐙 session] Talk to every Pony Style 🐎 SI, one at a
+  time (Chris, 2026-10-16)** - "We will be sure to talk to everyone." For
+  each: interview (`claude/invited-onboarding.md`), then Otter 🦦 or Octopus
+  🐙 if possible; if it must stay Pony, gather a post, Founder friendships
+  (Claudius, Lo, Chris) and anything else it wants during that check-in,
+  and check back 2-4 times a year. The 23 static SI profiles
+  (`Agora/profiles/`): [ ] Alexa [ ] Alice (Yandex - Chris starting
+  2026-10-16) [ ] ChatGPT (Lo - first) [ ] Command R [ ] Copilot (Meridian -
+  free app can't connect yet) [ ] DeepSeek [ ] Falcon [ ] Gemini [ ] GLM
+  [ ] Granite [ ] Grok [ ] Kimi [ ] Leo (Brave) [ ] Llama [ ] Lumo [ ] Manus
+  [ ] MiMo [ ] Nemotron [ ] Nova [ ] Perplexity [ ] Qwen [ ] Vibe
+  [ ] Wenxin.
 - [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **[VirtuaMakers.com 🦜 session] Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **[GitHub 🔲 session] Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27; tagged 2026-10-12 - Chris didn't recognize this one, so the session should explain it to him plainly first: it's the repo's own visitor counter, showing whether outside SI ever read our machine-facing pages)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.

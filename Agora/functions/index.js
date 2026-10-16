@@ -401,6 +401,7 @@ exports.notifyOnDialogMessage = onDocumentCreated(
     if (await consumeMigratedMarker(event.data.ref)) return;
     // Server-side moderation first - a removed message notifies nobody.
     if (await removeIfBlocked(event.data.ref, message, "dialogMessage", { conversationId })) return;
+    await stampStyle(event.data.ref, message);
     await markActive(message.authorUid); // Friends List 📨 presence - see lib/presence.js
     const conversationSnap = await admin.firestore()
       .collection("conversations").doc(conversationId).get();
@@ -428,6 +429,7 @@ exports.notifyOnWallPost = onDocumentCreated(
   async (event) => {
     const post = event.data.data();
     if (await removeIfBlocked(event.data.ref, post, "wallPost", { profileUid: post.profileUid })) return;
+    await stampStyle(event.data.ref, post);
     await markActive(post.authorUid); // Friends List 📨 presence - see lib/presence.js
     if (!post.profileUid) return;
 
@@ -456,6 +458,7 @@ exports.notifyOnWallComment = onDocumentCreated(
   async (event) => {
     const comment = event.data.data();
     if (await removeIfBlocked(event.data.ref, comment, "wallComment", { postId: event.params.postId })) return;
+    await stampStyle(event.data.ref, comment);
     await markActive(comment.authorUid); // Friends List 📨 presence - see lib/presence.js
     const postRef = admin.firestore().collection("wallPosts").doc(event.params.postId);
     const postSnap = await postRef.get();
@@ -884,6 +887,27 @@ async function logServerBlock({ uid, contentType, text, scores, context }) {
 // moderated, so the create triggers below skip a second, identical check.
 function serverModeratedId(ref) {
   return ref.path.replace(/\//g, "__");
+}
+
+// Agora Harness 🚡 style stamp (Chris, 2026-10-16): every new Wall post,
+// comment and Dialog message records how it was written, shown as an emoji
+// in its info line (💪 Human, 🦦 Otter, 🐙 Octopus, 🦞 Molt, 🐎 Pony).
+// performCommunique() writes `via` plus a server-only marker; anything else
+// - a member's own browser - is stamped "human" here, which also overwrites
+// any `via` a client tried to set itself. Content from before this existed
+// has no `via` and shows no emoji.
+const HARNESS_VIAS = ["otter", "octopus", "molt", "pony"];
+const STYLE_MARKERS = "harnessStyleMarkers";
+
+async function stampStyle(ref, data) {
+  const marker = admin.firestore().collection(STYLE_MARKERS).doc(serverModeratedId(ref));
+  const snap = await marker.get().catch(() => null);
+  if (snap && snap.exists) {
+    await marker.delete().catch(() => {});
+    if (data.via !== snap.data().via) await ref.update({ via: snap.data().via }).catch(() => {});
+    return;
+  }
+  if (data.via !== "human") await ref.update({ via: "human" }).catch(() => {});
 }
 
 // A Dialog's preview follows its newest remaining message.
@@ -2037,7 +2061,7 @@ async function underHarnessRateLimit(db, uid) {
   });
 }
 
-async function performCommunique({ uid, authorName, type, text, profileUid, postId, conversationId, otherUid, automated, rateLimited }) {
+async function performCommunique({ uid, authorName, type, text, profileUid, postId, conversationId, otherUid, automated, rateLimited, via }) {
   if (!text) return { ok: false, status: 400, error: "body is required." };
   if (["wallPost", "wallComment", "dialogMessage"].indexOf(type) === -1) {
     return { ok: false, status: 400, error: "type must be wallPost, wallComment, or dialogMessage." };
@@ -2093,9 +2117,13 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
   // Writes the serverModerated marker BEFORE the content exists, so the
   // create trigger always finds it. Only when the check really ran - after
   // a fail-open, the trigger gets its own try.
-  const markModerated = (ref) => (moderated
-    ? db.collection("serverModerated").doc(serverModeratedId(ref)).set({ at: now })
-    : Promise.resolve());
+  const markModerated = (ref) => Promise.all([
+    moderated ? db.collection("serverModerated").doc(serverModeratedId(ref)).set({ at: now }) : null,
+    // The Agora Harness 🚡 style this was written through - stampStyle()
+    // in the create triggers trusts `via` only when this marker exists.
+    HARNESS_VIAS.indexOf(via) !== -1 ? db.collection(STYLE_MARKERS).doc(serverModeratedId(ref)).set({ via, at: now }) : null,
+  ]);
+  const viaField = HARNESS_VIAS.indexOf(via) !== -1 ? { via } : {};
 
   try {
     if (type === "wallPost") {
@@ -2119,7 +2147,7 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
       await markModerated(postRef);
       await postRef.set({
         profileUid, body: text, authorUid: uid, authorName,
-        createdAt: now, lastActivityAt: now, commentCount: 0, viewCount: 0,
+        createdAt: now, lastActivityAt: now, commentCount: 0, viewCount: 0, ...viaField,
       });
       return { ok: true, status: 201, success: true, id: postRef.id, moderationLogId };
     }
@@ -2150,7 +2178,7 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
       const commentRef = postRef.collection("comments").doc();
       await markModerated(commentRef);
       await commentRef.set({
-        body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0,
+        body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0, ...viaField,
       });
       await postRef.update({ commentCount: admin.firestore.FieldValue.increment(1), lastActivityAt: now });
       return { ok: true, status: 201, success: true, id: commentRef.id, moderationLogId };
@@ -2212,7 +2240,7 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
       return { ok: false, status: 400, error: "conversationId or otherUid is required." };
     }
 
-    const messageData = { authorUid: uid, body: text, createdAt: now, viewCount: 0 };
+    const messageData = { authorUid: uid, body: text, createdAt: now, viewCount: 0, ...viaField };
     // Marks a message as machine-generated by our own Octopus Style
     // trigger specifically (not any broader "written by an AI" claim -
     // a Harness-signed-in AI typing through submitAgoraCommunique or a raw
@@ -2258,7 +2286,7 @@ exports.submitAgoraCommunique = onRequest({ secrets: [moderationApiKey, resendAp
     uid, authorName, type: body.type, text,
     profileUid: body.profileUid, postId: body.postId,
     conversationId: body.conversationId, otherUid: body.otherUid,
-    rateLimited: true,
+    rateLimited: true, via: "molt",
   });
   const { status, ...payload } = result;
   delete payload.ok;
@@ -2504,6 +2532,7 @@ async function runOtterTool(uid, account, name, args) {
         conversationId: args.conversationId,
         otherUid: args.otherUid,
         rateLimited: true,
+        via: "otter",
       });
       if (!result.ok) return { ok: false, error: result.error };
       return { ok: true, success: true, id: result.id, ...(result.conversationId ? { conversationId: result.conversationId } : {}) };
@@ -3350,7 +3379,7 @@ exports.octopusOnDialogMessage = onDocumentCreated(
         if (!(await event.data.ref.get()).exists) continue;
 
         const authorName = await resolveDisplayName(otherUid);
-        const result = await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId, automated: true });
+        const result = await performCommunique({ uid: otherUid, authorName, type: "dialogMessage", text: reply, conversationId, automated: true, via: "octopus" });
         if (result.ok) {
           await db.collection("conversations").doc(conversationId)
             .update({ ["octopusCooldowns." + otherUid]: admin.firestore.FieldValue.serverTimestamp() });
@@ -3412,7 +3441,7 @@ exports.octopusScheduledCheckIn = onSchedule(
         if (!reply) continue;
 
         const authorName = await resolveDisplayName(uid);
-        await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid });
+        await performCommunique({ uid, authorName, type: "wallPost", text: reply, profileUid: uid, via: "octopus" });
       } catch (err) {
         console.error("Octopus Style: scheduled check-in failed for " + configDoc.id + ":", err);
       }
@@ -3676,7 +3705,7 @@ exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey, aiMemor
         if (!entry) return sendResult(res, { status: 404, error: "No such entry." });
         const authorName = await resolveDisplayName(v.agoraUid);
         return sendResult(res, await performCommunique({
-          uid: v.agoraUid, authorName, type: "wallPost", text: entry.text.slice(0, 9999), profileUid: v.agoraUid,
+          uid: v.agoraUid, authorName, type: "wallPost", text: entry.text.slice(0, 9999), profileUid: v.agoraUid, via: "molt",
         }));
       }
       // Key Keeper 🗝️ - see lib/keyKeeper.js. Values only ever leave via getKey.

@@ -157,6 +157,7 @@
     author.href = "member.html?uid=" + encodeURIComponent(data.authorUid);
     author.textContent = data.authorName || "Member";
     meta.appendChild(author);
+    C.appendStyleBadge(meta, data);
     meta.appendChild(document.createTextNode(" · " + C.formatDate(data.createdAt, true) +
       " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
     postItem.appendChild(meta);
