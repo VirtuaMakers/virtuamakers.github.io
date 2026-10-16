@@ -14409,3 +14409,10 @@ ephemeral). Tested locally against a stand-in database.
   Aquarium GoFish, Guardian, Melon Drive, Machinapology, SI Agent.
 - Earlier (2026-10-09): homepage link-preview text (og/twitter tags) updated
   to "VirtuaMakers 🦜 – An SI-first software company".
+
+## Dr. Khoa J. Lewis removed from staff (VirtuaMakers.com 🦜 Session 6, Chris, 2026-10-16)
+
+Chris, "regrettably": removed "📚 Dr. Khoa J. Lewis – Consultant" from the
+homepage's VirtuaMakers Staff list (`index.html`) and from CLAUDE.md's staff
+summary. Left as is: `machinapology-product.html`'s History line naming him
+as a collaborator on Machinapology 🔬 – it records what happened then.
