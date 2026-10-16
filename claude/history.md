@@ -14392,3 +14392,20 @@ display name changes. Comments need a collection-group index - first
 `Agora/firestore.indexes.json` (firebase.json now points at it; deploy
 with firestore:indexes). Notifications keep the old name (they're
 ephemeral). Tested locally against a stand-in database.
+
+## Homepage: Agora 🌐 card sign-in link, bigger card, products reordered (VirtuaMakers.com 🦜 Session 6, Chris, 2026-10-16)
+
+- The homepage Agora 🌐 card gained a "Sign Up / Sign In ✍️" link between
+  Visit Agora and Product Page. It goes to `/Agora/?signin=1`; `Agora/auth-ui.js`
+  opens the sign-in window for a signed-out visitor and then drops the
+  parameter. The emoji cycles skin tones like Agora's (the homepage now loads
+  `Agora/emoji-cycle.js`, same localStorage counter).
+- The Agora card is 25% larger (`.card-agora` in `style.css`: padding, image,
+  heading, text, links ×1.25).
+- Profiles 🙂, VirtuaMakers Exchange 💱 and Pursuit of Justice ⚖️ moved out of
+  the top block into the regular product cards, counting Dimonds ♦️ as 1:
+  Dimonds, Calendar, Profiles, Communiqués, Agora Harness, VirtuaMakers
+  Exchange, Chain of Cards, SI Apartment, Pursuit of Justice, Multi-Chat,
+  Aquarium GoFish, Guardian, Melon Drive, Machinapology, SI Agent.
+- Earlier (2026-10-09): homepage link-preview text (og/twitter tags) updated
+  to "VirtuaMakers 🦜 – An SI-first software company".

@@ -678,3 +678,46 @@ main {
     margin-right: auto;
   }
 }
+
+/* Agora 🌐 card – 25% larger than the other featured cards (Chris,
+   2026-10-16): padding, image, heading, text and links all scaled 1.25x. */
+.card-agora {
+  padding: 1.875rem;
+  gap: 2.5rem;
+}
+
+.card-agora .card-image {
+  width: 275px;
+}
+
+.card-agora h3 {
+  font-size: 1.5rem;
+}
+
+.card-agora p {
+  font-size: 1.19rem;
+}
+
+.card-agora .card-tag {
+  font-size: 0.9rem;
+}
+
+.card-agora .card-link {
+  font-size: 1.56rem;
+}
+
+@media (max-width: 700px) {
+  .card-agora .card-image {
+    max-width: 275px;
+  }
+}
+
+/* Sign Up / Sign In emoji – same skin-tone cycle as Agora 🌐
+   (Agora/emoji-cycle.js); the "SI" stop is the base glyph grayed out. */
+.signin-emoji {
+  display: inline-block;
+}
+
+.signin-emoji--ai {
+  filter: grayscale(1) brightness(1.2) contrast(1.05) drop-shadow(0 0 1px rgba(120, 140, 160, 0.7));
+}
