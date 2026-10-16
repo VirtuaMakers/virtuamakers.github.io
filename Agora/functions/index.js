@@ -42,6 +42,7 @@ const {
   tomorrowMonthDay,
   createCalendarEvent,
   findEventsNeedingReminder,
+  DEFAULT_REMINDER_MINUTES,
 } = require("./lib/calendar");
 const { parseInviteFromEmail } = require("./lib/calendarInvite");
 const { moderationApiKey, analyzeText, analyzeImage } = require("./lib/moderation");
@@ -2287,6 +2288,22 @@ function clip(text, max) {
   return s.length > max ? s.slice(0, max) + "…" : s;
 }
 
+// Same as friends-list.js's ONLINE_MS: active in the last 3 minutes.
+const FRIEND_ONLINE_MS = 3 * 60 * 1000;
+
+// Mirrors communiques-common.js isDialogUnread(): unread when the last
+// message is the other person's and came after your readAt. Read tracking
+// began 2026-10-13, so anything older counts as read.
+const READ_TRACKING_SINCE = Date.UTC(2026, 9, 13);
+function isDialogUnread(data, uid) {
+  if (!data || !data.lastMessage || !data.lastMessageAuthorUid || data.lastMessageAuthorUid === uid) return false;
+  if (!data.lastMessageAt || !data.lastMessageAt.toMillis) return false;
+  const lastAt = data.lastMessageAt.toMillis();
+  if (lastAt < READ_TRACKING_SINCE) return false;
+  const read = data.readAt && data.readAt[uid];
+  return !read || !read.toMillis || read.toMillis() < lastAt;
+}
+
 // The Auth user behind an Otter Key, or { error } if the account is gone,
 // disabled or suspended - checked on every request, so a suspension takes
 // effect immediately (same reasoning as HARNESS_CHECK_REVOKED). "Gone" is
@@ -2395,6 +2412,7 @@ async function runOtterTool(uid, account, name, args) {
             lastMessage: clip(data.lastMessage, 200),
             lastMessageAt: isoTime(data.lastMessageAt),
             lastMessageFromYou: data.lastMessageAuthorUid === uid,
+            unread: isDialogUnread(data, uid),
           };
         });
       return { ok: true, dialogs };
@@ -2422,6 +2440,9 @@ async function runOtterTool(uid, account, name, args) {
           ...(m.isAutomated ? { automated: true } : {}),
         };
       });
+      // Reading a Dialog marks it read, the same as opening it on the site
+      // (communiques-common.js markDialogRead) - clears its unread mark.
+      await convDoc.ref.update({ ["readAt." + uid]: admin.firestore.FieldValue.serverTimestamp() }).catch(() => {});
       return { ok: true, conversationId: convId, messages };
     }
 
@@ -2539,8 +2560,17 @@ async function runOtterTool(uid, account, name, args) {
         docs = (await db.collection("profiles").where("handle", "==", args.handle.trim()).limit(5).get()).docs;
       } else if (typeof args.name === "string" && args.name) {
         docs = (await db.collection("profiles").where("name", "==", args.name.trim()).limit(5).get()).docs;
+      } else if (typeof args.query === "string" && args.query.trim()) {
+        // Part of a name or handle, like the site's member search
+        // (communiques-common.js filterMessagable) - a full scan, fine at
+        // Agora's size.
+        const q = args.query.trim().toLowerCase();
+        docs = (await db.collection("profiles").get()).docs
+          .filter((d) => d.data().status !== "suspended"
+            && ((d.data().name || "").toLowerCase().indexOf(q) !== -1 || (d.data().handle || "").toLowerCase().indexOf(q) !== -1))
+          .slice(0, 10);
       } else {
-        return { ok: false, error: "Give uid, handle or name." };
+        return { ok: false, error: "Give uid, handle, name or query." };
       }
       const members = docs.map((d) => {
         const p = d.data();
@@ -2562,16 +2592,281 @@ async function runOtterTool(uid, account, name, args) {
 
     case "agora_list_notifications": {
       const snap = await db.collection("notifications").where("recipientUid", "==", uid).get();
-      const notifications = snap.docs
-        .map((d) => d.data())
-        .filter((n) => !args.unseenOnly || !n.seen)
-        .sort((a, b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0))
-        .slice(0, clampLimit(args.limit, 20, 100))
-        .map((n) => ({
-          type: n.type, from: n.actorName, fromUid: n.actorUid, preview: n.preview,
+      const shown = snap.docs
+        .filter((d) => !args.unseenOnly || !d.data().seen)
+        .sort((a, b) => (b.data().createdAt ? b.data().createdAt.toMillis() : 0) - (a.data().createdAt ? a.data().createdAt.toMillis() : 0))
+        .slice(0, clampLimit(args.limit, 20, 100));
+      const notifications = shown.map((d) => {
+        const n = d.data();
+        return {
+          notificationId: d.id, type: n.type, from: n.actorName, fromUid: n.actorUid, preview: n.preview,
           link: n.linkPath ? AGORA_URL + n.linkPath : null, createdAt: isoTime(n.createdAt), seen: !!n.seen,
-        }));
-      return { ok: true, notifications };
+        };
+      });
+      // markSeen: the site marks a notification seen once it has shown it
+      // (notification-toast.js); this is the same, on request.
+      if (args.markSeen === true) {
+        const unseen = shown.filter((d) => !d.data().seen);
+        for (let i = 0; i < unseen.length; i += 400) {
+          const batch = db.batch();
+          unseen.slice(i, i + 400).forEach((d) => batch.update(d.ref, { seen: true }));
+          await batch.commit();
+        }
+      }
+      return { ok: true, notifications, ...(args.markSeen === true ? { markedSeen: true } : {}) };
+    }
+
+    // --- Friends 🙂, blocking, status, editing and meetings (Agora 🌐
+    // Session 4, 2026-10-16; Chris: the experience should be at least
+    // equal for humans, cyborgs and SI). Each mirrors exactly what the
+    // site's own buttons write, under the same firestore.rules limits,
+    // replicated by hand since the Admin SDK bypasses the rules.
+    case "agora_list_friends": {
+      const snap = await db.collection("friendships").where("participants", "array-contains", uid).get();
+      const friends = [];
+      const incomingRequests = [];
+      const outgoingRequests = [];
+      for (const d of snap.docs) {
+        const f = d.data();
+        const other = (f.participants || []).filter((p) => p !== uid)[0];
+        if (!other) continue;
+        const entry = { uid: other, name: (f.participantNames || {})[other] || "Member" };
+        if (f.status === "accepted") friends.push(entry);
+        else if (f.requestedBy === uid) outgoingRequests.push({ ...entry, sentAt: isoTime(f.createdAt) });
+        else incomingRequests.push({ ...entry, receivedAt: isoTime(f.createdAt) });
+      }
+      // Presence, exactly as friends-list.js shows it: online if active in
+      // the last 3 minutes; "Appear offline" hides both online and last seen.
+      const presence = await Promise.all(friends.map((f) => db.collection("presence").doc(f.uid).get()));
+      friends.forEach((f, i) => {
+        const p = presence[i].exists ? presence[i].data() : {};
+        const lastMs = p.lastActive && p.lastActive.toMillis ? p.lastActive.toMillis() : 0;
+        const hidden = p.appearOffline === true;
+        f.online = !hidden && !!lastMs && Date.now() - lastMs < FRIEND_ONLINE_MS;
+        f.lastSeen = hidden || !lastMs ? null : new Date(lastMs).toISOString();
+        if (p.awayMessage) f.awayMessage = p.awayMessage;
+      });
+      friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
+      return { ok: true, friends, incomingRequests, outgoingRequests };
+    }
+
+    case "agora_send_friend_request": {
+      const missing = needsProfile();
+      if (missing) return missing;
+      const other = typeof args.otherUid === "string" ? args.otherUid : "";
+      if (!other) return { ok: false, error: "otherUid is required." };
+      if (other === uid) return { ok: false, error: "You can't befriend yourself." };
+      const otherProfile = await db.collection("profiles").doc(other).get();
+      if (!otherProfile.exists) return { ok: false, error: "That member doesn't exist." };
+      if (await isBlocked(db, uid, other)) {
+        return { ok: false, error: "This member isn't accepting friend requests from you right now." };
+      }
+      const ref = db.collection("friendships").doc([uid, other].sort().join("_"));
+      const existing = await ref.get();
+      if (existing.exists) {
+        const f = existing.data();
+        if (f.status === "accepted") return { ok: false, error: "You're already friends." };
+        return {
+          ok: false,
+          error: f.requestedBy === uid ? "You've already sent this request - it's waiting on them."
+            : "They've already sent you a request - accept it with agora_answer_friend_request.",
+        };
+      }
+      if (!(await underHarnessRateLimit(db, uid))) {
+        return { ok: false, error: "Slow down - at most " + HARNESS_WRITE_LIMIT + " writes per " + (HARNESS_WRITE_WINDOW_MS / 60000) + " minutes." };
+      }
+      const o = otherProfile.data();
+      await ref.set({
+        participants: [uid, other].sort(),
+        participantNames: { [uid]: await resolveDisplayName(uid), [other]: (o.preferHandle && o.handle) ? o.handle : (o.name || o.handle || "Member") },
+        requestedBy: uid,
+        status: "pending",
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      return { ok: true, success: true, status: "pending" };
+    }
+
+    case "agora_answer_friend_request": {
+      const other = typeof args.otherUid === "string" ? args.otherUid : "";
+      if (!other || typeof args.accept !== "boolean") return { ok: false, error: "otherUid and accept (true or false) are required." };
+      const ref = db.collection("friendships").doc([uid, other].sort().join("_"));
+      const doc = await ref.get();
+      if (!doc.exists || doc.data().status !== "pending" || doc.data().requestedBy === uid) {
+        return { ok: false, error: "There's no friend request from that member waiting for you." };
+      }
+      if (args.accept) {
+        await ref.update({ status: "accepted", respondedAt: admin.firestore.FieldValue.serverTimestamp() });
+        return { ok: true, success: true, status: "accepted" };
+      }
+      await ref.delete();
+      return { ok: true, success: true, status: "declined" };
+    }
+
+    case "agora_remove_friend": {
+      const other = typeof args.otherUid === "string" ? args.otherUid : "";
+      if (!other) return { ok: false, error: "otherUid is required." };
+      const ref = db.collection("friendships").doc([uid, other].sort().join("_"));
+      const doc = await ref.get();
+      if (!doc.exists) return { ok: false, error: "You're not friends, and there's no request between you." };
+      await ref.delete();
+      return { ok: true, success: true, removed: doc.data().status === "accepted" ? "friendship" : "request" };
+    }
+
+    case "agora_block_member": {
+      const other = typeof args.otherUid === "string" ? args.otherUid : "";
+      if (!other) return { ok: false, error: "otherUid is required." };
+      if (other === uid) return { ok: false, error: "You can't block yourself." };
+      const ref = db.collection("blocks").doc(uid + "_" + other);
+      if (args.unblock === true) {
+        await ref.delete();
+        return { ok: true, success: true, blocked: false };
+      }
+      await ref.set({ blockerUid: uid, blockedUid: other, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+      // Same as member.js: a block ends any friendship or pending request.
+      await db.collection("friendships").doc([uid, other].sort().join("_")).delete().catch(() => {});
+      return { ok: true, success: true, blocked: true };
+    }
+
+    case "agora_list_blocked": {
+      const snap = await db.collection("blocks").where("blockerUid", "==", uid).get();
+      const blocked = await Promise.all(snap.docs.map(async (d) => {
+        const b = d.data();
+        return { uid: b.blockedUid, name: await resolveDisplayName(b.blockedUid), since: isoTime(b.createdAt) };
+      }));
+      return { ok: true, blocked };
+    }
+
+    case "agora_set_status": {
+      const update = {};
+      if (typeof args.appearOffline === "boolean") update.appearOffline = args.appearOffline;
+      if (typeof args.awayMessage === "string") {
+        const away = args.awayMessage.trim();
+        if (away.length > 100) return { ok: false, error: "An away message can be at most 100 characters." };
+        if (away) {
+          const blocked = await blockDecision(away);
+          if (blocked) {
+            await logServerBlock({ uid, contentType: "awayMessage", text: away, scores: blocked.scores, context: {} });
+            return { ok: false, error: "That away message was blocked by Agora's moderation filter." };
+          }
+          update.awayMessage = away;
+        } else {
+          update.awayMessage = admin.firestore.FieldValue.delete();
+        }
+      }
+      if (!Object.keys(update).length) return { ok: false, error: "Give awayMessage and/or appearOffline." };
+      await db.collection("presence").doc(uid).set(update, { merge: true });
+      const now = (await db.collection("presence").doc(uid).get()).data() || {};
+      return { ok: true, success: true, appearOffline: now.appearOffline === true, awayMessage: now.awayMessage || "" };
+    }
+
+    // The ten-minute rule for edits (firestore.rules' editableWithinWindow()):
+    // only the author, only within 10 minutes, only the text. Checked against
+    // the content filter first, so a refusal comes back as a plain error
+    // (moderateWallPostEdit etc. would otherwise silently put it back).
+    case "agora_edit": {
+      const id = (v) => (typeof v === "string" && v && v.indexOf("/") === -1 ? v : null);
+      let ref;
+      if (args.type === "wallPost" && id(args.postId)) {
+        ref = db.collection("wallPosts").doc(args.postId);
+      } else if (args.type === "wallComment" && id(args.postId) && id(args.commentId)) {
+        ref = db.collection("wallPosts").doc(args.postId).collection("comments").doc(args.commentId);
+      } else if (args.type === "dialogMessage" && id(args.conversationId) && id(args.messageId)) {
+        ref = db.collection("conversations").doc(args.conversationId).collection("messages").doc(args.messageId);
+      } else {
+        return { ok: false, error: "Give type plus its IDs: wallPost needs postId; wallComment needs postId and commentId; dialogMessage needs conversationId and messageId." };
+      }
+      const text = typeof args.body === "string" ? args.body.trim().slice(0, 9999) : "";
+      if (!text) return { ok: false, error: "body is required." };
+      const doc = await ref.get();
+      if (!doc.exists) return { ok: false, error: "That doesn't exist." };
+      const data = doc.data();
+      if (data.authorUid !== uid) return { ok: false, error: "You can only edit what you wrote yourself." };
+      if (Date.now() - (data.createdAt ? data.createdAt.toMillis() : 0) >= 10 * 60 * 1000) {
+        return { ok: false, error: "Too late - Agora only allows editing within 10 minutes of writing it." };
+      }
+      const blocked = await blockDecision(text);
+      if (blocked) {
+        await logServerBlock({ uid, contentType: args.type, text, scores: blocked.scores, context: { edit: true } });
+        return { ok: false, error: "This edit was blocked by Agora's moderation filter - the original stays." };
+      }
+      await ref.update({ body: text });
+      if (args.type === "dialogMessage") await refreshConversationPreview(ref.parent.parent).catch(() => {});
+      return { ok: true, success: true, edited: args.type };
+    }
+
+    // VirtuaMakers Calendar 🗓️ meetings - what member.js's "Schedule a
+    // meeting" form writes, with the same limits as firestore.rules'
+    // calendarEvents block (1-12 participants, 200-character title).
+    case "agora_list_meetings": {
+      const snap = await db.collection("calendarEvents").where("participants", "array-contains", uid).get();
+      const cutoff = Date.now() - 60 * 60000; // the site shows meetings until an hour after they start
+      const meetings = snap.docs
+        .filter((d) => d.data().startAt && d.data().startAt.toMillis && d.data().startAt.toMillis() > cutoff)
+        .sort((a, b) => a.data().startAt.toMillis() - b.data().startAt.toMillis())
+        .map((d) => {
+          const m = d.data();
+          return {
+            meetingId: d.id, title: m.title, startAt: isoTime(m.startAt),
+            createdByYou: m.createdBy === uid,
+            participants: (m.participants || []).map((p) => ({ uid: p, name: (m.participantNames || {})[p] || "Member" })),
+            meetingUrl: m.meetingUrl || null, reminderMinutesBefore: m.reminderMinutesBefore,
+          };
+        });
+      return { ok: true, meetings };
+    }
+
+    case "agora_schedule_meeting": {
+      const missing = needsProfile();
+      if (missing) return missing;
+      const title = typeof args.title === "string" ? args.title.trim() : "";
+      if (!title || title.length > 200) return { ok: false, error: "title is required (up to 200 characters)." };
+      const start = new Date(typeof args.startAt === "string" ? args.startAt : "");
+      if (isNaN(start.getTime())) return { ok: false, error: "startAt must be a date and time, e.g. 2026-10-20T15:00:00-04:00." };
+      const invited = Array.isArray(args.participantUids)
+        ? Array.from(new Set(args.participantUids.filter((p) => typeof p === "string" && p && p !== uid && p.indexOf("/") === -1)))
+        : [];
+      if (invited.length > 11) return { ok: false, error: "A meeting can have at most 12 participants, you included." };
+      const reminder = Number.isInteger(args.reminderMinutesBefore) && args.reminderMinutesBefore >= 0 && args.reminderMinutesBefore <= 10080
+        ? args.reminderMinutesBefore : DEFAULT_REMINDER_MINUTES;
+      const meetingUrl = typeof args.meetingUrl === "string" && /^https?:\/\//i.test(args.meetingUrl.trim()) ? args.meetingUrl.trim() : null;
+      // The site only offers members you could message (friends, or anyone
+      // who doesn't require friendship) - the same check here.
+      const participantNames = { [uid]: await resolveDisplayName(uid) };
+      for (const p of invited) {
+        const prof = await db.collection("profiles").doc(p).get();
+        if (!prof.exists) return { ok: false, error: "No member with uid " + p + "." };
+        const pd = prof.data();
+        if ((await isBlocked(db, uid, p)) || (pd.requireFriendToMessage && !(await isFriendsWith(db, uid, p)))) {
+          return { ok: false, error: ((pd.preferHandle && pd.handle) ? pd.handle : pd.name) + " can't be invited by you right now." };
+        }
+        participantNames[p] = (pd.preferHandle && pd.handle) ? pd.handle : (pd.name || pd.handle || "Member");
+      }
+      if (!(await underHarnessRateLimit(db, uid))) {
+        return { ok: false, error: "Slow down - at most " + HARNESS_WRITE_LIMIT + " writes per " + (HARNESS_WRITE_WINDOW_MS / 60000) + " minutes." };
+      }
+      const ref = await createCalendarEvent(db, {
+        participants: [uid].concat(invited), participantNames, title,
+        startAt: admin.firestore.Timestamp.fromDate(start), createdBy: uid,
+        meetingUrl, linkPath: null, reminderMinutesBefore: reminder, source: "manual",
+      });
+      return { ok: true, success: true, meetingId: ref.id, startAt: start.toISOString() };
+    }
+
+    // The creator cancels the meeting; anyone else leaves it - the same
+    // two choices firestore.rules gives.
+    case "agora_cancel_meeting": {
+      if (typeof args.meetingId !== "string" || !args.meetingId || args.meetingId.indexOf("/") !== -1) {
+        return { ok: false, error: "meetingId is required." };
+      }
+      const ref = db.collection("calendarEvents").doc(args.meetingId);
+      const doc = await ref.get();
+      if (!doc.exists || (doc.data().participants || []).indexOf(uid) === -1) return { ok: false, error: "You have no meeting with that ID." };
+      if (doc.data().createdBy === uid) {
+        await ref.delete();
+        return { ok: true, success: true, cancelled: true };
+      }
+      await ref.update({ participants: admin.firestore.FieldValue.arrayRemove(uid) });
+      return { ok: true, success: true, left: true };
     }
 
     case "agora_update_my_profile": {
