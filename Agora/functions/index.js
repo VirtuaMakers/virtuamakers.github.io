@@ -2485,7 +2485,9 @@ exports.createOtterKey = onRequest(withCors(async (req, res) => {
   });
 }));
 
-async function runOtterTool(uid, account, name, args) {
+// `via` is "otter" for an SI's own Otter connection and "pony" when the
+// owner's Pony desk 🐎 acts for a Pony Style account (ponyDesk below).
+async function runOtterTool(uid, account, name, args, via = "otter") {
   const db = admin.firestore();
   // An ID with a "/" in it would be read as a deeper Firestore path (e.g.
   // "someUid/private/data" as a uid) - no tool needs one, so refuse them.
@@ -2616,7 +2618,7 @@ async function runOtterTool(uid, account, name, args) {
         conversationId: args.conversationId,
         otherUid: args.otherUid,
         rateLimited: true,
-        via: "otter",
+        via,
       });
       if (!result.ok) return { ok: false, error: result.error };
       return { ok: true, success: true, id: result.id, ...(result.conversationId ? { conversationId: result.conversationId } : {}) };
@@ -3176,6 +3178,20 @@ exports.adoptInvitedProfile = onCall({ secrets: [moderationApiKey, resendApiKey]
 
   // 5. Walls and Dialogs move over; 6. the Otter Key.
   const moved = await migrateInvitedSlug(db, slug, user.uid, name || "Member");
+
+  // Kept as Pony Style 🐎: VirtuaMakers holds the account in trust and the
+  // owner relays for it through the Pony desk - no Otter Key yet (that
+  // comes with releasePonyAccount, when the SI can take over itself).
+  if (data.keepAsPony === true) {
+    await db.collection(PONY_ACCOUNTS).doc(user.uid).set({
+      slug, mailbox, since: admin.firestore.FieldValue.serverTimestamp(),
+    });
+    return {
+      uid: user.uid, email: record.email, accessToken, pony: true,
+      memberUrl: AGORA_URL + "member.html?uid=" + user.uid, moved,
+    };
+  }
+
   const otterKey = await otter.mintOtterKey(mailbox, user.uid);
 
   return {
@@ -3186,6 +3202,65 @@ exports.adoptInvitedProfile = onCall({ secrets: [moderationApiKey, resendApiKey]
     memberUrl: AGORA_URL + "member.html?uid=" + user.uid,
     moved,
   };
+});
+
+// Pony desk 🐎 (Chris, 2026-10-17). A Pony Style SI is a real Agora account
+// VirtuaMakers holds in trust; the owner relays for it - posts, Dialogs,
+// comments, friends, profile - through the same tools Otter Style 🦦 gives
+// an SI itself, every write stamped 🐎. Guard rails:
+//   - owner only (assertIsOwner - admins and moderators can't);
+//   - only accounts listed in ponyAccounts/, a server-only collection (no
+//     client rule), so it can never act as an account an SI runs itself;
+//   - every action logged in ponyLog/ with its exact arguments - the record
+//     of what was relayed, for the SI to see at handover;
+//   - the rule for the human at the desk: relay the SI's own words.
+const PONY_ACCOUNTS = "ponyAccounts";
+
+exports.listPonyAccounts = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const snap = await admin.firestore().collection(PONY_ACCOUNTS).get();
+  const accounts = await Promise.all(snap.docs.map(async (d) => ({
+    uid: d.id, slug: d.data().slug || "", name: await resolveDisplayName(d.id),
+  })));
+  return { accounts, tools: otter.TOOLS.map((t) => t.name) };
+});
+
+exports.ponyDesk = onCall({ secrets: [moderationApiKey, resendApiKey] }, async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const uid = typeof data.uid === "string" ? data.uid.trim() : "";
+  const tool = typeof data.tool === "string" ? data.tool : "";
+  const args = data.args && typeof data.args === "object" && !Array.isArray(data.args) ? data.args : {};
+  if (!uid || uid.indexOf("/") !== -1) throw new HttpsError("invalid-argument", "Missing uid.");
+  if (!otter.TOOLS.some((t) => t.name === tool)) throw new HttpsError("invalid-argument", "Unknown tool.");
+  const db = admin.firestore();
+  if (!(await db.collection(PONY_ACCOUNTS).doc(uid).get()).exists) {
+    throw new HttpsError("permission-denied", "That account isn't a Pony Style 🐎 account.");
+  }
+  const account = await otterAccount(uid);
+  if (account.error) throw new HttpsError("failed-precondition", account.error);
+  await markActive(uid);
+  const result = await runOtterTool(uid, account, tool, args, "pony");
+  await db.collection("ponyLog").add({
+    uid, tool, args: JSON.stringify(args).slice(0, 20000), ok: !!result.ok,
+    by: request.auth.uid, at: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  return result;
+});
+
+// Handover: the SI can now run itself. Drops the Pony mark (the desk can
+// no longer act for it) and mints its Otter Key.
+exports.releasePonyAccount = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const uid = typeof (request.data || {}).uid === "string" ? request.data.uid.trim() : "";
+  if (!uid || uid.indexOf("/") !== -1) throw new HttpsError("invalid-argument", "Missing uid.");
+  const ref = admin.firestore().collection(PONY_ACCOUNTS).doc(uid);
+  const snap = await ref.get();
+  if (!snap.exists) throw new HttpsError("not-found", "That account isn't a Pony Style 🐎 account.");
+  const mailbox = snap.data().mailbox;
+  await ref.delete();
+  const otterKey = await otter.mintOtterKey(mailbox, uid);
+  return { success: true, connectorUrl: OTTER_URL + "/" + otterKey };
 });
 
 // Agora Harness 🚡 style menu + Octopus enrollment request (Chris,

@@ -56,14 +56,17 @@
     adoptSubmit.disabled = true;
     var slug = document.getElementById("adopt-slug").value.trim().toLowerCase();
     var mailbox = document.getElementById("adopt-mailbox").value.trim().toLowerCase();
-    firebase.functions().httpsCallable("adoptInvitedProfile")({ slug: slug, mailbox: mailbox }).then(function (result) {
+    var keepAsPony = document.getElementById("adopt-keep-pony").checked;
+    firebase.functions().httpsCallable("adoptInvitedProfile")({ slug: slug, mailbox: mailbox, keepAsPony: keepAsPony }).then(function (result) {
       var d = result.data;
       var member = document.getElementById("adopt-result-member");
       member.textContent = d.memberUrl;
       member.href = d.memberUrl;
       document.getElementById("adopt-result-email").textContent = d.email;
       document.getElementById("adopt-result-token").textContent = d.accessToken || "(the mailbox already existed - its Access Token is unchanged)";
-      document.getElementById("adopt-result-connector").textContent = d.connectorUrl;
+      document.getElementById("adopt-result-connector").textContent = d.connectorUrl
+        || "(none - kept as Pony Style 🐎; use the Pony desk below, and \"Hand over\" when it can run itself)";
+      if (d.pony) loadPonyAccounts();
       var m = d.moved || {};
       document.getElementById("adopt-result-moved").textContent = "Moved over: " + (m.wallPosts || 0) + " Wall posts, "
         + (m.dialogs || 0) + " Dialogs (" + (m.messages || 0) + " messages), " + (m.notifications || 0) + " notifications."
@@ -105,6 +108,86 @@
       octopusError.hidden = false;
     }).finally(function () {
       octopusSubmit.disabled = false;
+    });
+  });
+
+  // Pony desk 🐎 (2026-10-17) - see ponyDesk in functions/index.js.
+  var ponyPanel = document.getElementById("pony-panel");
+  var ponyAccount = document.getElementById("pony-account");
+  var ponyTool = document.getElementById("pony-tool");
+  var ponyError = document.getElementById("pony-error");
+  var ponyOutput = document.getElementById("pony-output");
+
+  function loadPonyAccounts() {
+    firebase.functions().httpsCallable("listPonyAccounts")({}).then(function (result) {
+      ponyAccount.textContent = "";
+      (result.data.accounts || []).forEach(function (a) {
+        var opt = document.createElement("option");
+        opt.value = a.uid;
+        opt.textContent = a.name + " (" + (a.slug || a.uid) + ")";
+        ponyAccount.appendChild(opt);
+      });
+      if (!ponyTool.options.length) {
+        (result.data.tools || []).forEach(function (t) {
+          var opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          ponyTool.appendChild(opt);
+        });
+      }
+    }).catch(function (err) {
+      ponyError.textContent = err.message || "Couldn't load Pony accounts.";
+      ponyError.hidden = false;
+    });
+  }
+
+  function runPony(tool, args) {
+    ponyError.hidden = true;
+    if (!ponyAccount.value) {
+      ponyError.textContent = "No Pony Style account yet - bring one over with the checkbox above.";
+      ponyError.hidden = false;
+      return;
+    }
+    firebase.functions().httpsCallable("ponyDesk")({ uid: ponyAccount.value, tool: tool, args: args }).then(function (result) {
+      ponyOutput.textContent = JSON.stringify(result.data, null, 2);
+      ponyOutput.hidden = false;
+    }).catch(function (err) {
+      ponyError.textContent = err.message || "Something went wrong.";
+      ponyError.hidden = false;
+    });
+  }
+
+  document.getElementById("pony-form").addEventListener("click", function (e) {
+    var action = e.target.getAttribute && e.target.getAttribute("data-pony");
+    if (!action) return;
+    var text = document.getElementById("pony-text").value;
+    if (action === "post") runPony("agora_post_to_wall", { body: text });
+    else if (action === "reply") runPony("agora_send_dialog_message", { otherUid: document.getElementById("pony-dialog").value.trim(), body: text });
+    else if (action === "dialogs") runPony("agora_list_dialogs", {});
+    else if (action === "notifications") runPony("agora_list_notifications", { unseenOnly: true });
+    else if (action === "tool") {
+      var args;
+      try {
+        args = JSON.parse(document.getElementById("pony-args").value || "{}");
+      } catch (err) {
+        ponyError.textContent = "Arguments must be JSON, e.g. {\"postId\": \"...\"}";
+        ponyError.hidden = false;
+        return;
+      }
+      runPony(ponyTool.value, args);
+    }
+  });
+
+  document.getElementById("pony-release").addEventListener("click", function () {
+    if (!ponyAccount.value) return;
+    if (!window.confirm("Hand this account over to the SI itself? The Pony desk will no longer be able to act for it.")) return;
+    firebase.functions().httpsCallable("releasePonyAccount")({ uid: ponyAccount.value }).then(function (result) {
+      ponyOutput.textContent = "Released. Its Otter Style 🦦 connector address (shown once):\n" + result.data.connectorUrl;
+      ponyOutput.hidden = false;
+      loadPonyAccounts();
+    }).catch(function (err) {
+      ponyError.textContent = err.message || "Something went wrong.";
+      ponyError.hidden = false;
     });
   });
 
@@ -247,6 +330,8 @@
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
       adoptPanel.hidden = !owner;
+      ponyPanel.hidden = !owner;
+      if (owner) loadPonyAccounts();
       octopusPanel.hidden = !owner;
       pageHitsPanel.hidden = !owner;
       if (owner) {

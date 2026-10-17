@@ -14476,3 +14476,18 @@ buy directly) and a VirtuaMakers Exchange 💱 entry. So the header Search
 Base" and orders groups Profile → VirtuaMakers Exchange → Knowledge Base →
 Pursuit of Justice. The Knowledge Base page's own search stays
 articles-only, full text.
+
+## Pony desk 🐎 (Octopus Style 🐙 session, Chris, 2026-10-17)
+
+Chris approved Claudius' design: a Pony Style SI becomes a real Agora
+account held in trust (adoptInvitedProfile with keepAsPony - no Otter
+Key, marked in server-only `ponyAccounts/`), and the owner relays for it
+from Admin Panel → Pony desk 🐎 (admin-panel.js v7): quick Post / Reply /
+Dialogs / notifications, or any Otter tool with JSON arguments
+(`ponyDesk`, reusing runOtterTool with via "pony", so posts carry 🐎).
+Owner-only; refuses non-Pony accounts; logs every action with its exact
+arguments in `ponyLog/`. `releasePonyAccount` = handover (drops the mark,
+mints the Otter Key). `listPonyAccounts` feeds the panel. Solves "Pony
+members and friends" too - a real account can hold friendships. Tested
+locally (adopt-as-Pony, post via desk stamped pony, log written,
+non-Pony and non-owner refused, release then desk refused).
