@@ -54,6 +54,8 @@
   var adminInboxList = document.getElementById("admin-inbox-list");
   var adminInboxCount = document.getElementById("admin-inbox-count");
   var adminSentList = document.getElementById("admin-sent-list");
+  var adminSpamList = document.getElementById("admin-spam-list");
+  var adminSpamCount = document.getElementById("admin-spam-count");
 
   adminMailForm.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -105,6 +107,18 @@
           + escapeHtml(m.subject || "(no subject)") + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
           + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
       }).join("") : "<li>No mail yet.</li>";
+      var spam = d.spam || [];
+      adminSpamCount.textContent = spam.length ? "(" + spam.length + ")" : "";
+      adminSpamList.innerHTML = spam.length ? spam.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"><summary>"
+          + "<button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
+          + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
+          + escapeHtml(m.from || "unknown") + " – " + escapeHtml(m.subject || "(no subject)")
+          + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<p class=\"field-hint\">Why: " + escapeHtml(m.spamReason || "filtered") + "</p>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-notspam\">Not spam</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>No spam.</li>";
       adminSentList.innerHTML = d.sent.length ? d.sent.map(function (m) {
         return "<li><details><summary>" + escapeHtml((m.to || []).join(", ")) + " – " + escapeHtml(m.subject || "")
           + " <span class=\"field-hint\">" + mailDate(m.sentAt) + "</span></summary>"
@@ -113,12 +127,26 @@
     }).catch(function () {
       adminInboxList.innerHTML = "<li>Couldn't load (has the latest Functions deploy run?).</li>";
       adminSentList.innerHTML = "";
+      adminSpamList.innerHTML = "";
     });
   }
 
-  adminInboxList.addEventListener("click", function (e) {
+  function onMailClick(e) {
+    var notSpam = e.target.closest(".admin-mail-notspam");
+    if (notSpam) {
+      notSpam.disabled = true;
+      var box = notSpam.closest("details");
+      firebase.functions().httpsCallable("moveAdminMail")({ ids: [box.getAttribute("data-id")], folder: "inbox" })
+        .then(loadAdminMail)
+        .catch(function (err) {
+          notSpam.disabled = false;
+          window.alert(err.message || "Couldn't move it.");
+        });
+      return;
+    }
     var btn = e.target.closest(".admin-mail-delete");
     if (!btn) return;
+    var list = btn.closest("ul");
     e.preventDefault();
     e.stopPropagation();
     var el = btn.closest("details");
@@ -132,12 +160,15 @@
         showAdminUnread();
       }
       li.remove();
-      if (!adminInboxList.children.length) adminInboxList.innerHTML = "<li>No mail yet.</li>";
+      if (!list.children.length) list.innerHTML = list === adminSpamList ? "<li>No spam.</li>" : "<li>No mail yet.</li>";
     }).catch(function (err) {
       btn.disabled = false;
       window.alert(err.message || "Couldn't delete it.");
     });
-  });
+  }
+
+  adminInboxList.addEventListener("click", onMailClick);
+  adminSpamList.addEventListener("click", onMailClick);
 
   adminInboxList.addEventListener("toggle", function (e) {
     var el = e.target;

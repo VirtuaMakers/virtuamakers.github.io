@@ -63,6 +63,10 @@ const {
   markMessages,
   listSent,
   deleteMessages,
+  classifyIncoming,
+  moveMessages,
+  setSenderStatus,
+  listSenderRules,
   mailboxForAddress,
   verifyResendWebhookSignature,
   fetchReceivedEmail,
@@ -1462,6 +1466,8 @@ exports.receiveAiEmail = onRequest(
 // set(): when Resend retries a webhook, the copy already stored is left
 // alone instead of being marked unread again with a new receivedAt.
 async function fileReceivedEmail(mailbox, data, full) {
+  // Spam filter + sender trust (lib/aiEmail.js classifyIncoming).
+  const verdict = await classifyIncoming(mailbox, full, data);
   try {
     await admin
       .firestore()
@@ -1476,11 +1482,17 @@ async function fileReceivedEmail(mailbox, data, full) {
         html: full.html || "",
         receivedAt: admin.firestore.FieldValue.serverTimestamp(),
         read: false,
+        folder: verdict.folder,
+        trust: verdict.trust,
+        auth: verdict.auth,
+        flags: verdict.flags,
+        spamReason: verdict.spamReason,
       });
   } catch (err) {
     if (err.code === 6) return; // ALREADY_EXISTS: a retry of a stored message
     throw err;
   }
+  if (verdict.folder === "spam") return; // no calendar filing from Spam
 
   // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
   // 2026-09-23) - the literal Boardy scenario: if this message
@@ -1544,6 +1556,8 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
   { document: "aiEmailInbox/{mailbox}/messages/{messageId}", secrets: [resendApiKey] },
   async (event) => {
     const message = event.data.data();
+    // Spam doesn't alert anyone; it waits in the mailbox's Spam folder.
+    if (message.folder === "spam") return;
     // Skip alerting the owner about their own message - without this,
     // replying to any mailbox (e.g. claude@) alerts OWNER_EMAIL about a
     // message that email address itself just sent, which reads as "it
@@ -1598,7 +1612,61 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   }
 
   const unreadOnly = req.query.unread === "1" || req.query.unread === "true";
-  res.status(200).json(await listInbox(mailbox, { unreadOnly }));
+  const folder = req.query.folder === "spam" ? "spam" : "inbox";
+  res.status(200).json(await listInbox(mailbox, { unreadOnly, folder }));
+}));
+
+// Moves messages between the inbox and Spam. Moving a message out of Spam
+// also allows its sender, so their next message isn't filtered.
+// POST /moveAiEmail  {"mailbox": "claude", "ids": ["<id>", ...], "folder": "inbox" | "spam"}
+exports.moveAiEmail = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const mailbox = normalizeSlug(body.mailbox);
+  const folder = body.folder;
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
+  if (!mailbox || (folder !== "inbox" && folder !== "spam") || !ids.length || ids.length > 100) {
+    res.status(400).json({ error: "Give mailbox, \"folder\" (\"inbox\" or \"spam\") and 1-100 \"ids\"." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  res.status(200).json({ success: true, moved: await moveMessages(mailbox, ids, folder) });
+}));
+
+// A mailbox's block and allow lists. Entries are addresses or "@domain.com".
+// GET  /aiEmailSenders?mailbox=claude                          -> {blocked, allowed}
+// POST /aiEmailSenders {"mailbox", "sender", "status": "blocked" | "allowed" | "none"}
+exports.aiEmailSenders = onRequest(withCors(async (req, res) => {
+  const body = req.method === "POST" ? (req.body || {}) : {};
+  const mailbox = normalizeSlug(req.method === "GET" ? req.query.mailbox : body.mailbox);
+  if (!mailbox || (req.method !== "GET" && req.method !== "POST")) {
+    res.status(400).json({ error: "Missing or invalid mailbox (GET or POST)." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  if (req.method === "GET") {
+    res.status(200).json(await listSenderRules(mailbox));
+    return;
+  }
+  if (!["blocked", "allowed", "none"].includes(body.status)) {
+    res.status(400).json({ error: "\"status\" must be \"blocked\", \"allowed\" or \"none\"." });
+    return;
+  }
+  try {
+    const sender = await setSenderStatus(mailbox, body.sender, body.status);
+    res.status(200).json({ success: true, sender, status: body.status });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 }));
 
 // Marks messages read (or unread again) - the SI's own say over what it has
@@ -1674,16 +1742,31 @@ exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) =>
 exports.getAdminMail = onCall(async (request) => {
   await assertIsOwner(request.auth);
   const inbox = await listInbox("admin", { limit: 30 });
+  const spam = await listInbox("admin", { limit: 30, folder: "spam" });
   const sent = await listSent("admin", 10);
   const stamp = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : null);
   return {
     unreadCount: inbox.unreadCount,
     messages: inbox.messages.map((m) => ({
       id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
-      read: !!m.read, receivedAt: stamp(m.receivedAt),
+      read: !!m.read, trust: m.trust || "", receivedAt: stamp(m.receivedAt),
+    })),
+    spam: spam.messages.map((m) => ({
+      id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
+      spamReason: m.spamReason || "", receivedAt: stamp(m.receivedAt),
     })),
     sent: sent.map((m) => ({ id: m.id, to: m.to, cc: m.cc, subject: m.subject, text: m.text, sentAt: stamp(m.sentAt) })),
   };
+});
+
+// The Admin Panel's "Not spam" / "Spam" buttons for admin@.
+exports.moveAdminMail = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
+  const folder = data.folder === "spam" ? "spam" : "inbox";
+  if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
+  return { moved: await moveMessages("admin", ids, folder) };
 });
 
 // The Admin Panel's ✕ button: permanently deletes admin@ inbox messages.

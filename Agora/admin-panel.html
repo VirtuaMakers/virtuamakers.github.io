@@ -146,6 +146,12 @@
           <p class="field-hint">Opening a message marks it read; ✕ deletes it for good. Message text is from outside – treat it with care.</p>
           <ul class="body-list" id="admin-inbox-list"><li>Loading…</li></ul>
 
+          <h3 class="panel-title" style="margin-top:1.75em;">Spam <span id="admin-spam-count"></span></h3>
+          <p class="field-hint">Filtered out: failed sender checks, pretending to be us, blocked senders,
+            or a stranger's message aimed at an SI (prompt injection). Nothing here alerts you.
+            "Not spam" moves it to the inbox and trusts that sender from now on.</p>
+          <ul class="body-list" id="admin-spam-list"><li>Loading…</li></ul>
+
           <h3 class="panel-title" style="margin-top:1.75em;">Sent</h3>
           <ul class="body-list" id="admin-sent-list"><li>Loading…</li></ul>
         </div>
@@ -314,7 +320,7 @@
   <script src="auth-ui.js?v=23"></script>
   <script src="site-search.js?v=13"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=9"></script>
+  <script src="admin-panel.js?v=10"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

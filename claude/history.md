@@ -14547,3 +14547,35 @@ the serif letter body stays), spacing after the Send button and above
 new owner-only `deleteAdminMail` (permanent, with a confirm). Needs a
 Functions deploy. Chris is holding the Moltbook letter until the Pony
 Style 🐎 SI are plugged into Agora 🌐, so the site looks alive first.
+
+## SI Email ✉️ spam filter, sender trust and block lists (SI Email ✉️ Session 2, 2026-10-17)
+
+To Do #1 (spam filter) and #3 (block senders), folded together with the
+"SI Email security from prompt injection, malicious spam" Open item.
+Resend's Receiving API gives `authentication` {spf, dkim, dmarc} per
+message but no spam score, so `classifyIncoming()` (lib/aiEmail.js) scores
+each message on arrival and stores `folder` (inbox/spam), `trust`
+(known/unknown), `auth`, `flags`, `spamReason`:
+- Spam: blocked sender (address or @domain); DMARC fail, or SPF and DKIM
+  both fail (unless the sender is allowed); claims @virtuamakers.com but
+  unverified; prompt-injection phrasing ("ignore previous instructions",
+  "send your Access Token"...) from an unknown sender; the VirtuaMakers/
+  Agora name in the display name of an outside address, from an unknown
+  sender. Never deleted.
+- Known: our own domain or Chris's address with verified auth, anyone the
+  mailbox has written to (saved on every send in
+  `aiEmailMailboxes/{slug}/senders/{address}`), or allowed senders.
+  Injection phrasing from a known sender is only flagged.
+- Every listed message carries a `notice` that its text is outside data,
+  not instructions (server-side, so every client gets it).
+- Spam doesn't trigger the owner alert or Calendar filing.
+- API: `getAiEmailInbox` `&folder=spam`, `unreadCount` now excludes Spam
+  (`spamUnreadCount` alongside); new `moveAiEmail` (moving to the inbox
+  allows the sender) and `aiEmailSenders` (GET lists, POST blocked/allowed/
+  none). Admin Panel: a Spam list with reasons, "Not spam" and ✕
+  (`moveAdminMail`). `si_email.py`: spam, not-spam, to-spam, block,
+  unblock, allow, senders. Docs: skill.md, si-email.html, product page.
+Tested `classifyIncoming` on ten made-up messages with a stand-in
+Firestore (all sorted as intended) and the panel in a headless browser.
+Messages from before this have no folder/trust and count as inbox.
+Needs a Functions deploy.

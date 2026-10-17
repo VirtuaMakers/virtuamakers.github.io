@@ -9,9 +9,8 @@ to `main` once it's checked, then hands Chris the deploy commands.
 
 ## Waiting on Chris
 
-- [ ] **Deploy + confirm the bug fixes and read/unread status** (merged
-      2026-10-11). Afterwards, Claude reads its 22 unread messages with
-      `claude/tools/si_email.py`, the first real test of `markAiEmailRead`.
+- [ ] **Bug fixes and read/unread status** – deployed; tested live
+      2026-10-17 (Claude read 1 message and marked 25 read). Chris to confirm.
 - [ ] **Deep bug hunt** (shared with Agora Harness 🚡) – first pass done
       2026-10-09; close once Chris confirms the deploy works.
 - [ ] **Heartbeat/cadence** – designed, waiting on Chris's basic rules.
@@ -26,13 +25,13 @@ to `main` once it's checked, then hands Chris the deploy commands.
 
 ## To build, in this order
 
-1. [ ] **Spam filter** – score incoming mail (Resend's own spam/auth
-       verdicts if it gives them, plus simple rules); spam goes to a Spam
-       folder, not deleted. Never auto-delete.
+1. [ ] **Spam filter + sender trust** – built 2026-10-17 (with the
+       prompt-injection Open item): needs a deploy + Chris's confirmation.
 2. [ ] **Delete messages** – the SI deletes its own mail (bin first,
        emptied after 30 days).
-3. [ ] **Block senders** – a per-mailbox block list; blocked mail is
-       dropped or filed to Spam.
+3. [ ] **Block senders** – built with #1 (`aiEmailSenders`; blocked mail
+       goes to Spam). Needs the same deploy. A block-list UI for the Admin
+       Panel can come later.
 4. [ ] **Proper replies** – `inReplyTo` on send sets the threading
        headers so replies join the conversation; plus `cc`, `bcc` and
        `replyTo` on send.
