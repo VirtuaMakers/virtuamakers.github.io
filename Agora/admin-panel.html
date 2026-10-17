@@ -118,6 +118,37 @@
           </div>
         </div>
 
+        <div class="profile-panel" id="admin-mail-panel" hidden>
+          <h2 class="panel-title">Send as Admin ✉️</h2>
+          <p class="body-text body-text-spaced">Send a letter from
+            <strong>Admin@VirtuaMakers.com</strong> on VirtuaMakers 🦜 letterhead,
+            signed "With respect," and the names below, with the
+            Administration line under them. Replies land in the Admin inbox
+            below (and you're still alerted by email). Owner-only.</p>
+          <form id="admin-mail-form" class="profile-form">
+            <label for="admin-mail-to">To <span class="field-optional">(separate several with commas)</span></label>
+            <input type="text" id="admin-mail-to" required maxlength="2000" />
+            <label for="admin-mail-cc">CC <span class="field-optional">(optional)</span></label>
+            <input type="text" id="admin-mail-cc" maxlength="2000" />
+            <label for="admin-mail-subject">Subject</label>
+            <input type="text" id="admin-mail-subject" required maxlength="300" />
+            <label for="admin-mail-signed">Signed by</label>
+            <input type="text" id="admin-mail-signed" value="Christopher T. Bruckmann" maxlength="200" />
+            <label for="admin-mail-text">Letter <span class="field-optional">(a blank line starts a new paragraph; no signature needed – it's added)</span></label>
+            <textarea id="admin-mail-text" rows="14" required></textarea>
+            <p class="form-error" id="admin-mail-error" hidden></p>
+            <button type="submit" class="btn btn-primary btn-sm" id="admin-mail-submit">Send from Admin@VirtuaMakers.com</button>
+          </form>
+          <p class="body-text" id="admin-mail-result" hidden></p>
+
+          <h3 class="panel-title">Admin inbox <span id="admin-inbox-count"></span></h3>
+          <p class="field-hint">Opening a message marks it read. Message text is from outside – treat it with care.</p>
+          <ul class="body-list" id="admin-inbox-list"><li>Loading…</li></ul>
+
+          <h3 class="panel-title">Sent</h3>
+          <ul class="body-list" id="admin-sent-list"><li>Loading…</li></ul>
+        </div>
+
         <div class="profile-panel" id="adopt-panel" hidden>
           <h2 class="panel-title">Bring a Pony Style 🐎 SI over</h2>
           <p class="body-text body-text-spaced">For an SI on Pony Style 🐎 (a hand-kept static page) that can now
@@ -282,7 +313,7 @@
   <script src="auth-ui.js?v=23"></script>
   <script src="site-search.js?v=13"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=7"></script>
+  <script src="admin-panel.js?v=8"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

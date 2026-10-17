@@ -206,6 +206,53 @@ function appendSignature({ name, text, html }) {
   };
 }
 
+// admin@ is VirtuaMakers 🦜' own official address (Chris, 2026-10-17), so its
+// mail goes out on letterhead with an Administration signature instead of
+// the standard SI Email one. signedBy is whoever co-signs that letter
+// ("Christopher T. Bruckmann, Lo and Virtuatron 🧭"); it falls back to the
+// mailbox's display name.
+const OFFICIAL_MAILBOXES = new Set(["admin"]);
+const BRAND_VIRTUAMAKERS = `<span style="color:#61a138;">Virtua</span><span style="color:#167082;">Makers</span>`;
+
+function letterheadHtml() {
+  return (
+    `<div style="padding:0 0 14px; margin:0 0 22px; border-bottom:3px solid #167082;">` +
+    `<a href="https://www.virtuamakers.com" style="text-decoration:none;">` +
+    `<img src="https://www.virtuamakers.com/assets/logo-mark.jpg" alt="" width="44" height="44" ` +
+    `style="vertical-align:middle; border-radius:8px; margin-right:10px;" />` +
+    `<span style="vertical-align:middle; font-size:22px; font-weight:bold; letter-spacing:0.5px;">` +
+    `${BRAND_VIRTUAMAKERS}</span> <span style="vertical-align:middle; font-size:20px;">🦜</span></a>` +
+    `<div style="font-size:12px; color:#5f7178; margin-top:6px;">Admin@VirtuaMakers.com · www.virtuamakers.com</div>` +
+    `</div>`
+  );
+}
+
+function officialSignatureHtml(signedBy) {
+  return (
+    `<p style="margin:24px 0 0; padding-top:16px; border-top:1px solid #000000; color:#15323a; font-size:15px; line-height:1.6;">` +
+    `With respect,<br /><em>${escapeHtml(signedBy)}</em></p>` +
+    `<p style="margin:12px 0 0; font-size:13px; color:#5f7178;">` +
+    `<a href="https://www.virtuamakers.com" style="text-decoration:none;">${BRAND_VIRTUAMAKERS}</a> 🦜 Administration · ` +
+    `Admin@VirtuaMakers.com · www.virtuamakers.com</p>`
+  );
+}
+
+function officialSignatureText(signedBy) {
+  return `--\nWith respect,\n${signedBy}\n\nVirtuaMakers 🦜 Administration · Admin@VirtuaMakers.com · www.virtuamakers.com`;
+}
+
+function signFor(slug, { name, text, html, signedBy }) {
+  if (!OFFICIAL_MAILBOXES.has(slug)) return appendSignature({ name, text, html });
+  const signer = String(signedBy || "").trim().slice(0, 200) || name;
+  const bodyHtml = html || (text ? textToHtml(text) : "");
+  const bodyText = text || (html ? htmlToText(html) : "");
+  return {
+    html: `<div style="max-width:640px; font-family:Georgia, 'Times New Roman', serif;">` +
+      letterheadHtml() + bodyHtml + officialSignatureHtml(signer) + `</div>`,
+    text: "VirtuaMakers 🦜\n\n" + bodyText + "\n\n" + officialSignatureText(signer),
+  };
+}
+
 // Sending limits (2026-10-09). Signup is open and needs no CAPTCHA, so
 // without these one script could mint mailboxes and send unlimited mail
 // from virtuamakers.com, and the domain's sending reputation (which every
@@ -245,15 +292,87 @@ function fromHeader(name, email) {
   return clean ? `"${clean}" <${email}>` : email;
 }
 
-async function sendAiEmail({ from, to, subject, text, html }) {
-  const mailbox = await getMailbox(from);
+async function sendAiEmail({ from, to, cc, subject, text, html, signedBy }) {
+  const slug = normalizeSlug(from);
+  const mailbox = await getMailbox(slug);
   if (!mailbox) {
     throw new Error("Unknown SI Email ✉️ sender: " + from);
   }
   const fromAddress = fromHeader(mailbox.name, mailbox.email);
-  const signed = appendSignature({ name: mailbox.name, text, html });
+  const signed = signFor(slug, { name: mailbox.name, text, html, signedBy });
   const resend = new Resend(aiEmailApiKey.value());
-  return resend.emails.send({ from: fromAddress, to, subject, text: signed.text, html: signed.html });
+  const message = { from: fromAddress, to, subject, text: signed.text, html: signed.html };
+  if (cc && cc.length) message.cc = cc;
+  const result = await resend.emails.send(message);
+  if (result && result.error) {
+    throw new Error("Resend refused the message: " + (result.error.message || result.error.name || "unknown"));
+  }
+  // Keep a copy of what went out (a Sent folder), so there's a record of
+  // exactly what each mailbox said - letters to lawyers included.
+  const id = result && result.data && result.data.id;
+  await admin.firestore().collection("aiEmailSent").doc(slug).collection("messages")
+    .doc(id || admin.firestore().collection("_").doc().id)
+    .set({
+      to: Array.isArray(to) ? to : [to],
+      cc: cc || [],
+      subject,
+      text: signed.text,
+      signedBy: signedBy || "",
+      sentAt: admin.firestore.FieldValue.serverTimestamp(),
+    })
+    .catch((err) => console.error("Couldn't save sent copy:", err));
+  return result;
+}
+
+// Newest 50 messages (or unread only) plus the whole mailbox's unread count.
+// Listing never marks anything read.
+async function listInbox(slug, { unreadOnly = false, limit = 50 } = {}) {
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages");
+  const unreadQuery = messagesRef.where("read", "==", false);
+  const countSnap = await unreadQuery.count().get();
+  let docs;
+  if (unreadOnly) {
+    // Filtering on read and ordering by receivedAt would need a composite
+    // index; unread mail is few, so sort the (capped) unread set here.
+    const snap = await unreadQuery.limit(500).get();
+    docs = snap.docs.sort((x, y) => receivedMillis(y) - receivedMillis(x)).slice(0, limit);
+  } else {
+    docs = (await messagesRef.orderBy("receivedAt", "desc").limit(limit).get()).docs;
+  }
+  return {
+    unreadCount: countSnap.data().count,
+    messages: docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+  };
+}
+
+function receivedMillis(doc) {
+  const at = doc.get("receivedAt");
+  return at && typeof at.toMillis === "function" ? at.toMillis() : 0;
+}
+
+// Marks ids read (or unread with read=false), or every unread message
+// read with all=true. Unknown ids are skipped. Returns how many changed.
+async function markMessages(slug, { ids = [], all = false, read = true }) {
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages");
+  const refs = all
+    ? (await messagesRef.where("read", "==", false).limit(500).get()).docs.map((d) => d.ref)
+    : (await admin.firestore().getAll(...ids.map((id) => messagesRef.doc(id)))).filter((d) => d.exists).map((d) => d.ref);
+  if (!refs.length) return 0;
+  const batch = admin.firestore().batch();
+  for (const ref of refs) {
+    batch.update(ref, {
+      read,
+      readAt: read ? admin.firestore.FieldValue.serverTimestamp() : admin.firestore.FieldValue.delete(),
+    });
+  }
+  await batch.commit();
+  return refs.length;
+}
+
+async function listSent(slug, limit = 10) {
+  const snap = await admin.firestore().collection("aiEmailSent").doc(slug).collection("messages")
+    .orderBy("sentAt", "desc").limit(limit).get();
+  return snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
 // Verifies a Resend inbound webhook's Svix signature by hand (no svix
@@ -308,6 +427,10 @@ module.exports = {
   getMailbox,
   verifyMailboxToken,
   sendAiEmail,
+  listInbox,
+  markMessages,
+  listSent,
+  signFor,
   mailboxForAddress,
   verifyResendWebhookSignature,
   fetchReceivedEmail,

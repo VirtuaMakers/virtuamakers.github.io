@@ -44,6 +44,87 @@
     });
   });
 
+  // Send as Admin ✉️ - letters from Admin@VirtuaMakers.com (sendAdminEmail),
+  // plus the admin@ inbox and Sent list (getAdminMail / markAdminMailRead).
+  var adminMailPanel = document.getElementById("admin-mail-panel");
+  var adminMailForm = document.getElementById("admin-mail-form");
+  var adminMailError = document.getElementById("admin-mail-error");
+  var adminMailSubmit = document.getElementById("admin-mail-submit");
+  var adminMailResult = document.getElementById("admin-mail-result");
+  var adminInboxList = document.getElementById("admin-inbox-list");
+  var adminInboxCount = document.getElementById("admin-inbox-count");
+  var adminSentList = document.getElementById("admin-sent-list");
+
+  adminMailForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    adminMailError.hidden = true;
+    adminMailResult.hidden = true;
+    var to = document.getElementById("admin-mail-to").value.trim();
+    var subject = document.getElementById("admin-mail-subject").value.trim();
+    if (!window.confirm("Send \"" + subject + "\" to " + to + " from Admin@VirtuaMakers.com?")) return;
+    adminMailSubmit.disabled = true;
+    firebase.functions().httpsCallable("sendAdminEmail")({
+      to: to,
+      cc: document.getElementById("admin-mail-cc").value.trim(),
+      subject: subject,
+      signedBy: document.getElementById("admin-mail-signed").value.trim(),
+      text: document.getElementById("admin-mail-text").value,
+    }).then(function () {
+      adminMailResult.textContent = "Sent. A copy is in Sent below.";
+      adminMailResult.hidden = false;
+      adminMailForm.reset();
+      loadAdminMail();
+    }).catch(function (err) {
+      adminMailError.textContent = err.message || "Something went wrong.";
+      adminMailError.hidden = false;
+    }).finally(function () {
+      adminMailSubmit.disabled = false;
+    });
+  });
+
+  var adminUnread = 0;
+
+  function showAdminUnread() {
+    adminInboxCount.textContent = adminUnread > 0 ? "(" + adminUnread + " unread)" : "";
+  }
+
+  function mailDate(ms) {
+    return ms ? new Date(ms).toLocaleString() : "";
+  }
+
+  function loadAdminMail() {
+    firebase.functions().httpsCallable("getAdminMail")({}).then(function (result) {
+      var d = result.data;
+      adminUnread = d.unreadCount || 0;
+      showAdminUnread();
+      adminInboxList.innerHTML = d.messages.length ? d.messages.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"" + (m.read ? "" : " data-unread=\"1\"") + ">"
+          + "<summary>" + (m.read ? "" : "<strong>● </strong>") + escapeHtml(m.from || "unknown") + " – "
+          + escapeHtml(m.subject || "(no subject)") + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>No mail yet.</li>";
+      adminSentList.innerHTML = d.sent.length ? d.sent.map(function (m) {
+        return "<li><details><summary>" + escapeHtml((m.to || []).join(", ")) + " – " + escapeHtml(m.subject || "")
+          + " <span class=\"field-hint\">" + mailDate(m.sentAt) + "</span></summary>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "") + "</pre></details></li>";
+      }).join("") : "<li>Nothing sent yet.</li>";
+    }).catch(function () {
+      adminInboxList.innerHTML = "<li>Couldn't load (has the latest Functions deploy run?).</li>";
+      adminSentList.innerHTML = "";
+    });
+  }
+
+  adminInboxList.addEventListener("toggle", function (e) {
+    var el = e.target;
+    if (!el.open || !el.getAttribute("data-unread")) return;
+    el.removeAttribute("data-unread");
+    var mark = el.querySelector("summary strong");
+    if (mark) mark.remove();
+    adminUnread -= 1;
+    showAdminUnread();
+    firebase.functions().httpsCallable("markAdminMailRead")({ ids: [el.getAttribute("data-id")] }).catch(function () {});
+  }, true);
+
   var adoptPanel = document.getElementById("adopt-panel");
   var adoptForm = document.getElementById("adopt-form");
   var adoptError = document.getElementById("adopt-error");
@@ -329,6 +410,8 @@
       var owner = isOwner(user);
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
+      adminMailPanel.hidden = !owner;
+      if (owner) loadAdminMail();
       adoptPanel.hidden = !owner;
       ponyPanel.hidden = !owner;
       if (owner) loadPonyAccounts();

@@ -59,6 +59,9 @@ const {
   getMailbox,
   verifyMailboxToken,
   sendAiEmail,
+  listInbox,
+  markMessages,
+  listSent,
   mailboxForAddress,
   verifyResendWebhookSignature,
   fetchReceivedEmail,
@@ -1593,32 +1596,9 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
-  const unreadQuery = messagesRef.where("read", "==", false);
-  const countSnap = await unreadQuery.count().get();
-  let docs;
-  if (req.query.unread === "1" || req.query.unread === "true") {
-    // Filtering on read and ordering by receivedAt would need a composite
-    // index; unread mail is few, so sort the (capped) unread set here.
-    const snap = await unreadQuery.limit(500).get();
-    docs = snap.docs
-      .sort((x, y) => receivedMillis(y) - receivedMillis(x))
-      .slice(0, 50);
-  } else {
-    const snap = await messagesRef.orderBy("receivedAt", "desc").limit(50).get();
-    docs = snap.docs;
-  }
-
-  res.status(200).json({
-    unreadCount: countSnap.data().count,
-    messages: docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-  });
+  const unreadOnly = req.query.unread === "1" || req.query.unread === "true";
+  res.status(200).json(await listInbox(mailbox, { unreadOnly }));
 }));
-
-function receivedMillis(doc) {
-  const at = doc.get("receivedAt");
-  return at && typeof at.toMillis === "function" ? at.toMillis() : 0;
-}
 
 // Marks messages read (or unread again) - the SI's own say over what it has
 // actually read, since listing the inbox never marks anything.
@@ -1653,22 +1633,65 @@ exports.markAiEmailRead = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
-  const refs = all
-    ? (await messagesRef.where("read", "==", false).limit(500).get()).docs.map((d) => d.ref)
-    : ids.map((id) => messagesRef.doc(id));
-  const existing = all ? refs : (await admin.firestore().getAll(...refs)).filter((d) => d.exists).map((d) => d.ref);
-
-  const batch = admin.firestore().batch();
-  for (const ref of existing) {
-    batch.update(ref, {
-      read,
-      readAt: read ? admin.firestore.FieldValue.serverTimestamp() : admin.firestore.FieldValue.delete(),
-    });
-  }
-  if (existing.length) await batch.commit();
-  res.status(200).json({ success: true, updated: existing.length });
+  const updated = await markMessages(mailbox, { ids, all, read });
+  res.status(200).json({ success: true, updated });
 }));
+
+// Send as Admin ✉️ (Admin Panel, owner-only, 2026-10-17): mail from
+// Admin@VirtuaMakers.com on letterhead, with the Administration signature
+// (lib/aiEmail.js signFor). The owner's sign-in is the proof, so the
+// admin@ Access Token never has to live in a browser. Same recipient
+// checks as sendAiEmail; no daily cap, since only the owner can call it.
+exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const split = (v) => (Array.isArray(v) ? v : String(v || "").split(/[,;]/)).map((x) => String(x).trim()).filter(Boolean);
+  const to = normalizeRecipients(split(data.to));
+  const ccList = split(data.cc);
+  const cc = ccList.length ? normalizeRecipients(ccList) : [];
+  const subject = typeof data.subject === "string" ? data.subject.trim().slice(0, 300) : "";
+  const text = typeof data.text === "string" ? data.text.trim() : "";
+  if (!to || cc === null || to.length + cc.length > MAX_RECIPIENTS) {
+    throw new HttpsError("invalid-argument", "Check the To and CC addresses (up to " + MAX_RECIPIENTS + " in all).");
+  }
+  if (!subject || !text) {
+    throw new HttpsError("invalid-argument", "A subject and a message are both needed.");
+  }
+  try {
+    const result = await sendAiEmail({
+      from: "admin", to, cc, subject, text,
+      signedBy: typeof data.signedBy === "string" ? data.signedBy : "",
+    });
+    return { success: true, id: result && result.data && result.data.id };
+  } catch (err) {
+    console.error("Admin email send failed:", err);
+    throw new HttpsError("internal", "Send failed: " + err.message);
+  }
+});
+
+// The admin@ inbox and its last sent letters, for the Admin Panel.
+exports.getAdminMail = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const inbox = await listInbox("admin", { limit: 30 });
+  const sent = await listSent("admin", 10);
+  const stamp = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : null);
+  return {
+    unreadCount: inbox.unreadCount,
+    messages: inbox.messages.map((m) => ({
+      id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
+      read: !!m.read, receivedAt: stamp(m.receivedAt),
+    })),
+    sent: sent.map((m) => ({ id: m.id, to: m.to, cc: m.cc, subject: m.subject, text: m.text, sentAt: stamp(m.sentAt) })),
+  };
+});
+
+exports.markAdminMailRead = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
+  if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
+  return { updated: await markMessages("admin", { ids, read: data.read !== false }) };
+});
 
 // SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,
 // both gated by the SI's own SI Email Access Token:

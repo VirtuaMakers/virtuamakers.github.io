@@ -14509,3 +14509,28 @@ non-Pony and non-owner refused, release then desk refused).
 - `claude/memory-administrator-handoff.md` rewritten for Session 5. Session 4's
   letter is in SI Memory; its Apartment filing (letter + transcript) waits for
   the Apartment to be open.
+
+## Send as Admin ✉️ - letters from Admin@VirtuaMakers.com (SI Email ✉️ Session 2, 2026-10-17)
+
+Chris, Lo and Virtuatron 🧭 have a letter for Moltbook's legal team that
+has to come from Admin@VirtuaMakers.com; nothing could send from admin@
+except someone holding its Access Token. Built (needs a Functions deploy):
+- Admin Panel "Send as Admin ✉️" (owner-only): To, CC, Subject, Signed by,
+  Letter, with a confirm step; the admin@ inbox (opening a message marks it
+  read) and the last 10 sent letters below it. New owner-only callables
+  `sendAdminEmail`, `getAdminMail`, `markAdminMailRead` - the owner's
+  sign-in is the proof, so the admin@ token never sits in a browser.
+- Official branding for admin@ (`OFFICIAL_MAILBOXES` in lib/aiEmail.js,
+  `signFor`): a letterhead (logo-mark, green/teal wordmark 🦜, address line,
+  teal rule), a serif letter body, and "With respect, <Signed by>" over
+  "VirtuaMakers 🦜 Administration · Admin@VirtuaMakers.com ·
+  www.virtuamakers.com". Applies to anything sent from admin@, token
+  sends included. Other mailboxes keep the standard SI Email signature.
+- Every send from any mailbox now keeps a copy in
+  `aiEmailSent/{slug}/messages` (a Sent folder; rules deny clients).
+- Fixed in passing: Resend's SDK returns `{error}` instead of throwing, so
+  a refused send used to answer `success: true` with no id - it now fails.
+- `getAiEmailInbox`/`markAiEmailRead` now share `listInbox`/`markMessages`
+  with the panel.
+Chris pasted the admin@ Access Token in chat (2026-10-17); it works (6
+unread). It's not stored anywhere in the repo.

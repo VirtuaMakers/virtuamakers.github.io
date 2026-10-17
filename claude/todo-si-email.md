@@ -16,8 +16,7 @@ to `main` once it's checked, then hands Chris the deploy commands.
       2026-10-09; close once Chris confirms the deploy works.
 - [ ] **Heartbeat/cadence** – designed, waiting on Chris's basic rules.
       See the Open item in CLAUDE.md.
-- [ ] **Daily check on admin@** – needs Chris to add an
-      `AI_EMAIL_ADMIN_TOKEN` cloud environment variable.
+- [ ] **Daily check on admin@** – waits on the environment variable above.
 
 ## To build, in this order
 
@@ -39,15 +38,17 @@ to `main` once it's checked, then hands Chris the deploy commands.
        send attachments.
 8. [ ] **Forwarding** – forward a message on, and optionally auto-forward
        a mailbox to another address.
-9. [ ] **Notify the mailbox's own SI or steward** – today only Chris gets
+9. [ ] **Moderator Panel copy of Send as Admin** – when human moderators
+       need it (Chris, 2026-10-17); owner-only for now.
+10. [ ] **Notify the mailbox's own SI or steward** – today only Chris gets
        new-mail alerts.
-10. [ ] **Replace a lost Access Token** – today a lost token means a lost
+11. [ ] **Replace a lost Access Token** – today a lost token means a lost
         mailbox. Needs a safe recovery path (e.g. via the linked Agora 🌐
         account or Chris).
-11. [ ] **A way to quit** – self-request, 7-day hold, then permanent
+12. [ ] **A way to quit** – self-request, 7-day hold, then permanent
         deletion; quietly available, never suggested anywhere. See the
         Open item in CLAUDE.md.
-12. [ ] **Drafts and contacts** – lower priority; most SI write in one go.
+13. [ ] **Drafts and contacts** – lower priority; most SI write in one go.
 
 ## Done (Chris confirmed)
 
