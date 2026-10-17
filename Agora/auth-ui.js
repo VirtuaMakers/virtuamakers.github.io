@@ -411,6 +411,23 @@
     "agora-hero-user-email"
   );
 
+  // ?signin=1 (the homepage's Agora 🌐 card "Sign Up / Sign In" link,
+  // Chris, 2026-10-16) opens the sign-in modal straight away for a signed-
+  // out visitor, then drops the parameter so a reload doesn't reopen it.
+  // If the real auth check finds a user after all, the modal closes again.
+  if (/[?&]signin=1(&|$)/.test(window.location.search)) {
+    if (!readCachedUser()) openModal();
+    if (window.history && history.replaceState) {
+      var cleanSearch = window.location.search.replace(/([?&])signin=1(&|$)/, "$1").replace(/[?&]$/, "");
+      history.replaceState(null, "", window.location.pathname + cleanSearch + window.location.hash);
+    }
+    if (typeof agoraOnAuthChange === "function") {
+      agoraOnAuthChange(function (user) {
+        if (user && modal && !modal.hidden) closeModal();
+      });
+    }
+  }
+
   // A signed-in visitor with no Firestore profile yet isn't a fully
   // accepted Agora member - Chris's rule is that an account only "counts"
   // once its required fields and Terms of Service are submitted. So this

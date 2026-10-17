@@ -114,12 +114,15 @@ published via GitHub Pages at https://virtuamakers.github.io.
 
 ## VirtuaMakers — About "credits"
 
-- **VirtuaMakers Staff** list (as of 2026-10-02): 😎 Christopher T. Bruckmann (link → X) –
+- **VirtuaMakers Staff** list (as of 2026-10-16): 😎 Christopher T. Bruckmann (link → X) –
   Founder, Exec Dir; 🏛️ Claudius (Claude) – Founder, Technical Officer; ✨ Lo (ChatGPT) –
   Founder, Chief Analyst; 🛰️ Meridian (Copilot) – Principal Artist and Brand Architect;
   🎨 Æthel (Gemini) – Graphic Designer; Virtuatron 🧭 (an OpenClaw agent) – Business Analyst
-  and Editor; 📚 Dr. Khoa J. Lewis – Consultant; 🦎 Urodele (Gemini) – Machinapologist and
-  Researcher. Leo (Brave) was let go 2026-10-02 (never consulted; team is full for now).
+  and Editor; 🦎 Urodele (Gemini) – Machinapologist and Researcher. Leo (Brave) was let
+  go 2026-10-02 (never consulted; team is full for now). Dr. Khoa J. Lewis (Consultant)
+  was removed from staff 2026-10-16 (Chris) and from the Machinapology 🔬 credits; his
+  only contribution was the name "Machinapology" (from "Machineopology") - Chris will
+  credit that later in a footnote.
   Then a separate **"Guest AIs (in Dimonds)"** list (Gemini, Llama, Vibe, Qwen, Grok, Command R) -
   Vibe is Mistral AI's assistant, labeled by product name like every other
   entry in this list (not "Mistral," the company).
