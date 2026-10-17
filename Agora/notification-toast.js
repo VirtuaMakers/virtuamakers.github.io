@@ -196,7 +196,7 @@
   function sendReply(conversationId, text, onDone) {
     var now = firebase.firestore.FieldValue.serverTimestamp();
     var ref = AgoraDB.collection("conversations").doc(conversationId);
-    ref.collection("messages").add({
+    CommuniquesCommon.writeThrottled(currentUser.uid, "dialog", ref.collection("messages").doc(), {
       authorUid: currentUser.uid,
       body: text,
       createdAt: now,

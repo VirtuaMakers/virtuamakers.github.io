@@ -195,7 +195,8 @@ service cloud.firestore {
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
           && validBody(request.resource.data.body)
-          && canSendInConversation(request.auth.uid, conversationId);
+          && canSendInConversation(request.auth.uid, conversationId)
+          && throttled('dialog', messageId);
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
@@ -226,7 +227,8 @@ service cloud.firestore {
         && request.resource.data.profileUid is string
         && validBody(request.resource.data.body)
         && wallExists(request.resource.data.profileUid)
-        && canPostToWall(request.auth.uid, request.resource.data.profileUid);
+        && canPostToWall(request.auth.uid, request.resource.data.profileUid)
+        && throttled('wall', postId);
 
       allow update: if editableWithinWindow(['body']);
       allow delete: if deletableWithinWindow();
@@ -269,7 +271,8 @@ service cloud.firestore {
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
           && validBody(request.resource.data.body)
-          && canCreateComment(request.auth.uid, postId);
+          && canCreateComment(request.auth.uid, postId)
+          && throttled('wall', commentId);
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
@@ -277,6 +280,30 @@ service cloud.firestore {
         allow update: if request.auth != null
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']);
       }
+    }
+
+    // Rate limit (Chris, 2026-10-17) - one doc per member counting what
+    // they've written straight from the website (the Agora Harness 🚡 keeps
+    // its own limit server-side): up to 30 Wall posts and comments
+    // together ("wall") and 60 Dialog messages ("dialog") per 10 minutes.
+    // Every post/comment/message must bump its bucket in the same write
+    // and name itself as that bucket's LastId (see throttled() below), so
+    // the count can't be skipped. Only its own member can read or bump it,
+    // one step at a time; it can never be deleted, so it can't be reset
+    // early.
+    match /writeThrottle/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['wallStart', 'wallCount', 'wallLastId',
+          'dialogStart', 'dialogCount', 'dialogLastId'])
+        && ((throttleChanged().hasOnly(['wallStart', 'wallCount', 'wallLastId'])
+              && throttleBumpOk('wall', 30))
+          || (throttleChanged().hasOnly(['dialogStart', 'dialogCount', 'dialogLastId'])
+              && throttleBumpOk('dialog', 60)));
+
+      allow delete: if false;
     }
 
     // Friends 🙂 - a symmetrical relationship between two members, stored
@@ -656,6 +683,38 @@ service cloud.firestore {
         'product-profiles', 'product-pursuit-of-justice', 'product-si-agent', 'product-si-apartment', 'product-si-bank-accounts', 'product-si-email',
         'product-si-memory', 'product-virtuamakers-exchange', 'qwen', 'ray-smith', 'vibe', 'wenxin'
         ];
+    }
+
+    // The fields a writeThrottle write changes (all of them on create).
+    function throttleChanged() {
+      return resource == null
+        ? request.resource.data.keys()
+        : request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // One bucket's bump: either a fresh 10-minute window (only once the
+    // old one has ended) starting at 1, or one more within the limit.
+    function throttleBumpOk(b, limit) {
+      let before = resource == null ? {} : resource.data;
+      let after = request.resource.data;
+      return after[b + 'Count'] is int
+        && after[b + 'Start'] is timestamp
+        && after[b + 'LastId'] is string
+        && ((after[b + 'Start'] == request.time
+              && after[b + 'Count'] == 1
+              && (!((b + 'Start') in before)
+                  || request.time > before[b + 'Start'] + duration.value(10, 'm')))
+          || ((b + 'Start') in before
+              && after[b + 'Start'] == before[b + 'Start']
+              && after[b + 'Count'] == before[b + 'Count'] + 1
+              && after[b + 'Count'] <= limit));
+    }
+
+    // A new post/comment/message passes only if the same write bumped the
+    // author's writeThrottle bucket in its name.
+    function throttled(b, newId) {
+      return getAfter(/databases/$(database)/documents/writeThrottle/$(request.auth.uid)).data
+        .get(b + 'LastId', '') == newId;
     }
 
     // The readAt map may change only in the caller's own key. A doc with no

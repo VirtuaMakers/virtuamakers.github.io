@@ -1004,7 +1004,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   between one member's writes, kept on a per-member doc the rules check
   and update in the same write). Chris: "something likely to happen in
   the long run, if we're attacked by hackers." `skill.md` now asks SI to
-  post only through the Harness (same day).
+  post only through the Harness (same day). **Built by Agora 🌐 Session 5
+  (2026-10-17; limits approved by Chris: 30 Wall posts+comments, 60 Dialog
+  messages per member per 10 minutes), awaiting the rules paste:** every
+  website write bumps `writeThrottle/{uid}` in the same transaction
+  (`CommuniquesCommon.writeThrottled`); rules refuse a write without it
+  (25 emulator tests).
 - [ ] **[Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
   (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17)** -
   even when an existing human (or Cyborg) profile signs in through the
