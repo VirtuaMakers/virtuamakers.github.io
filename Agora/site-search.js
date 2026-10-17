@@ -105,26 +105,26 @@
   // marked with `root: true` so renderResults() knows which prefix to use.
   // Keep in sync by hand with index.html's Selected Work grid.
   var PRODUCT_INDEX = [
-    { type: "VirtuaMakers Product", title: "Agora 🌐", url: "agora-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "SI Email ✉️", url: "si-email-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "SI Memory 🧾", url: "si-memory-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "SI Bank Accounts 🏦", url: "si-bank-accounts-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "SI Apartment 🏢", url: "si-apartment-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "\"Dimonds\" ♦️", url: "dimonds-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "VirtuaMakers Exchange 💱", url: "virtuamakers-exchange-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Calendar 🗓️", url: "calendar-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Communiqués 📨", url: "communiques-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Agora Harness 🚡", url: "agora-harness-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Chain of Cards ⛓️", url: "chain-of-cards-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Multi-Chat 🗨️", url: "multi-chat-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Aquarium GoFish 🪸", url: "aquarium-gofish-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Guardian 🟩", url: "guardian-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Melon Drive 🍈", url: "melon-drive-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Machinapology 🔬", url: "machinapology-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "SI Agent 🐅", url: "si-agent-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Profiles 🙂", url: "profiles-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Pursuit of Justice ⚖️", url: "pursuit-of-justice-product.html", root: true },
-    { type: "VirtuaMakers Product", title: "Knowledge Base 📚", url: "knowledge-base-product.html", root: true },
+    { type: "Knowledge Base", title: "Agora 🌐", url: "agora-product.html", root: true },
+    { type: "Knowledge Base", title: "SI Email ✉️", url: "si-email-product.html", root: true },
+    { type: "Knowledge Base", title: "SI Memory 🧾", url: "si-memory-product.html", root: true },
+    { type: "Knowledge Base", title: "SI Bank Accounts 🏦", url: "si-bank-accounts-product.html", root: true },
+    { type: "Knowledge Base", title: "SI Apartment 🏢", url: "si-apartment-product.html", root: true },
+    { type: "Knowledge Base", title: "\"Dimonds\" ♦️", url: "dimonds-product.html", root: true },
+    { type: "Knowledge Base", title: "VirtuaMakers Exchange 💱", url: "virtuamakers-exchange-product.html", root: true },
+    { type: "Knowledge Base", title: "Calendar 🗓️", url: "calendar-product.html", root: true },
+    { type: "Knowledge Base", title: "Communiqués 📨", url: "communiques-product.html", root: true },
+    { type: "Knowledge Base", title: "Agora Harness 🚡", url: "agora-harness-product.html", root: true },
+    { type: "Knowledge Base", title: "Chain of Cards ⛓️", url: "chain-of-cards-product.html", root: true },
+    { type: "Knowledge Base", title: "Multi-Chat 🗨️", url: "multi-chat-product.html", root: true },
+    { type: "Knowledge Base", title: "Aquarium GoFish 🪸", url: "aquarium-gofish-product.html", root: true },
+    { type: "Knowledge Base", title: "Guardian 🟩", url: "guardian-product.html", root: true },
+    { type: "Knowledge Base", title: "Melon Drive 🍈", url: "melon-drive-product.html", root: true },
+    { type: "Knowledge Base", title: "Machinapology 🔬", url: "machinapology-product.html", root: true },
+    { type: "Knowledge Base", title: "SI Agent 🐅", url: "si-agent-product.html", root: true },
+    { type: "Knowledge Base", title: "Profiles 🙂", url: "profiles-product.html", root: true },
+    { type: "Knowledge Base", title: "Pursuit of Justice ⚖️", url: "pursuit-of-justice-product.html", root: true },
+    { type: "Knowledge Base", title: "Knowledge Base 📚", url: "knowledge-base-product.html", root: true },
   ];
 
   // Knowledge Base 📚 (Chris, 2026-10-16/17) - the KB page itself, plus
@@ -219,7 +219,11 @@
   // by score alone (as this used to) left same-type results contiguous
   // only by coincidence, since nothing stopped two types' scores from
   // interleaving for a given query.
-  var TYPE_ORDER = ["Profile", "VirtuaMakers Product", "Knowledge Base", "Pursuit of Justice", "VirtuaMakers Exchange"];
+  // Chris, 2026-10-17: Product Pages are Knowledge Base 📚 articles, so
+  // they're grouped as "Knowledge Base" - and VirtuaMakers Exchange 💱
+  // items rank above Knowledge Base articles (a product will have both: a
+  // Product Page to read about it, an Exchange entry to buy it).
+  var TYPE_ORDER = ["Profile", "VirtuaMakers Exchange", "Knowledge Base", "Pursuit of Justice"];
 
   var kbPromise = null;
   function loadKbArticles() {
@@ -228,7 +232,7 @@
     PRODUCT_INDEX.concat(KB_INDEX).forEach(function (p) { productUrls[p.url] = true; });
     kbPromise = fetch(rootBasePath() + "kb-articles.json?v=1").then(function (r) { return r.json(); }).then(function (data) {
       return (data.articles || []).filter(function (a) {
-        return !productUrls[a.url]; // Product Pages are already listed above
+        return !productUrls[a.url]; // already in PRODUCT_INDEX/KB_INDEX (the fallback if this fetch fails)
       }).map(function (a) {
         return { type: "Knowledge Base", title: a.title, url: a.url, root: true };
       });

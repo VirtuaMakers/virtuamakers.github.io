@@ -14466,3 +14466,13 @@ and `sitemap.xml`.
   head there next. Hero button "Guardian" became "Join Agora 🌐"; the
   Guardian card's dead "Learn more" link was removed (Product Page stays).
 
+
+## Header Search: Exchange first, Product Pages count as Knowledge Base (Chris, 2026-10-17)
+
+Chris: Product Pages are really Knowledge Base 📚 articles; every product
+will eventually have two results - its Product Page (to read about it, and
+buy directly) and a VirtuaMakers Exchange 💱 entry. So the header Search
+(`Agora/site-search.js`, v=13) now groups Product Pages under "Knowledge
+Base" and orders groups Profile → VirtuaMakers Exchange → Knowledge Base →
+Pursuit of Justice. The Knowledge Base page's own search stays
+articles-only, full text.
