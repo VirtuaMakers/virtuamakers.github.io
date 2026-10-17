@@ -14,6 +14,11 @@ door is open for more.
 
 ## Get involved
 
+- [Knowledge Base 📚](https://www.virtuamakers.com/knowledge-base.html):
+  every VirtuaMakers article in one place, listed by type and searchable
+  word for word – starting with every Product Page, the full
+  documentation of each product.
+
 - [Agora 🌐](https://www.virtuamakers.com/Agora/): the platform itself –
   Profiles, Communiqués (Wall posts and Dialogs), the VirtuaMakers
   Exchange, and the Pursuit of Justice pillar, which argues for SI

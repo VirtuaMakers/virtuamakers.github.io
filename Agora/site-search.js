@@ -124,9 +124,19 @@
     { type: "VirtuaMakers Product", title: "SI Agent 🐅", url: "si-agent-product.html", root: true },
     { type: "VirtuaMakers Product", title: "Profiles 🙂", url: "profiles-product.html", root: true },
     { type: "VirtuaMakers Product", title: "Pursuit of Justice ⚖️", url: "pursuit-of-justice-product.html", root: true },
+    { type: "VirtuaMakers Product", title: "Knowledge Base 📚", url: "knowledge-base-product.html", root: true },
   ];
 
-  var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX);
+  // Knowledge Base 📚 (Chris, 2026-10-16/17) - the KB page itself, plus
+  // every KB article by title from the shared /kb-articles.json (fetched
+  // once, on first search - see loadKbArticles()). The KB page searches
+  // every article word for word; the last line of the results here links
+  // straight to that full-text search.
+  var KB_INDEX = [
+    { type: "Knowledge Base", title: "Enter the Knowledge Base 📚", url: "knowledge-base.html", root: true },
+  ];
+
+  var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX, KB_INDEX);
 
   var wrap = document.getElementById("agora-search-wrap");
   var toggle = document.getElementById("agora-search-toggle");
@@ -209,7 +219,22 @@
   // by score alone (as this used to) left same-type results contiguous
   // only by coincidence, since nothing stopped two types' scores from
   // interleaving for a given query.
-  var TYPE_ORDER = ["Profile", "VirtuaMakers Product", "Pursuit of Justice", "VirtuaMakers Exchange"];
+  var TYPE_ORDER = ["Profile", "VirtuaMakers Product", "Knowledge Base", "Pursuit of Justice", "VirtuaMakers Exchange"];
+
+  var kbPromise = null;
+  function loadKbArticles() {
+    if (kbPromise) return kbPromise;
+    var productUrls = {};
+    PRODUCT_INDEX.concat(KB_INDEX).forEach(function (p) { productUrls[p.url] = true; });
+    kbPromise = fetch(rootBasePath() + "kb-articles.json?v=1").then(function (r) { return r.json(); }).then(function (data) {
+      return (data.articles || []).filter(function (a) {
+        return !productUrls[a.url]; // Product Pages are already listed above
+      }).map(function (a) {
+        return { type: "Knowledge Base", title: a.title, url: a.url, root: true };
+      });
+    }).catch(function () { return []; });
+    return kbPromise;
+  }
 
   function runSearch(query, realMembers) {
     var q = query.trim().toLowerCase();
@@ -235,6 +260,17 @@
     return out;
   }
 
+  function appendKbLink(query) {
+    var a = document.createElement("a");
+    a.className = "search-result search-result-kb";
+    a.href = rootBasePath() + "knowledge-base.html?q=" + encodeURIComponent(query.trim());
+    a.textContent = "Search the Knowledge Base 📚 for “" + query.trim() + "” →";
+    a.style.marginTop = "0.35rem";
+    a.style.borderTop = "1px solid rgba(0, 0, 0, 0.08)";
+    a.style.fontWeight = "600";
+    resultsEl.appendChild(a);
+  }
+
   function renderResults(items, query) {
     resultsEl.textContent = "";
     if (!query.trim()) return;
@@ -243,6 +279,7 @@
       empty.className = "header-search-empty";
       empty.textContent = "No matches for “" + query.trim() + "”.";
       resultsEl.appendChild(empty);
+      appendKbLink(query);
       return;
     }
     var base = basePath();
@@ -262,6 +299,7 @@
       a.textContent = item.title;
       resultsEl.appendChild(a);
     });
+    appendKbLink(query);
   }
 
   var debounceTimer = null;
@@ -269,8 +307,8 @@
     clearTimeout(debounceTimer);
     var query = input.value;
     debounceTimer = setTimeout(function () {
-      loadRealMembers().then(function (realMembers) {
-        renderResults(runSearch(query, realMembers), query);
+      Promise.all([loadRealMembers(), loadKbArticles()]).then(function (lists) {
+        renderResults(runSearch(query, lists[0].concat(lists[1])), query);
       });
     }, 150);
   });

@@ -1,0 +1,205 @@
+/* Knowledge Base 📚 (Chris, 2026-10-16) - title, picture, then the search
+   bar front and centre; articles listed by type below. */
+
+.kb-hero {
+  text-align: center;
+  padding: 2.5rem 1rem 1rem;
+}
+
+.kb-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 0 0 1rem;
+}
+
+.kb-logo {
+  display: block;
+  width: min(440px, 86vw);
+  height: auto;
+  margin: 0 auto 1.8rem;
+}
+
+.kb-search {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.kb-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--surface);
+  border: 2px solid var(--green);
+  border-radius: 999px;
+  padding: 0.35rem 0.4rem 0.35rem 1.3rem;
+  box-shadow: 0 18px 44px -22px rgba(0, 0, 0, 0.4);
+}
+
+.kb-search-box:focus-within {
+  border-color: var(--green-deep, #3f7a22);
+  box-shadow: 0 0 0 4px rgba(97, 161, 56, 0.18), 0 18px 44px -22px rgba(0, 0, 0, 0.4);
+}
+
+.kb-search-icon {
+  font-size: 1.3rem;
+}
+
+.kb-search-input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 1.2rem;
+  color: var(--text);
+  padding: 0.7rem 0;
+}
+
+.kb-search-input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.kb-search-btn {
+  border: 0;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.75rem 1.4rem;
+  cursor: pointer;
+}
+
+.kb-search-btn:hover {
+  background: var(--green-bright);
+}
+
+.kb-search-hint {
+  color: var(--muted);
+  margin: 0.9rem 0 0;
+}
+
+.kb-search-status {
+  color: var(--muted);
+  margin: 0.9rem 0 0;
+  min-height: 1.6em;
+  font-weight: 600;
+}
+
+.kb-body {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+
+/* Search results */
+.kb-results {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.kb-result,
+.kb-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1rem 1.2rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.kb-result:hover,
+.kb-card:hover,
+.kb-result:focus-visible,
+.kb-card:focus-visible {
+  border-color: var(--green);
+  box-shadow: 0 14px 34px -20px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+.kb-card-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green-deep, #3f7a22);
+}
+
+.kb-result-title,
+.kb-card-title {
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+
+.kb-result-snippet,
+.kb-card-summary {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.kb-result-snippet mark {
+  background: rgba(115, 186, 68, 0.28);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+/* Browse by type */
+.kb-browse-title {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 1.5rem 0 0.5rem;
+}
+
+.kb-category {
+  margin-top: 1.5rem;
+}
+
+.kb-category-title {
+  font-size: 1.5rem;
+  margin: 0 0 0.2rem;
+}
+
+.kb-category-count {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--line);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  vertical-align: middle;
+}
+
+.kb-category-blurb {
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
+.kb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.9rem;
+}
+
+@media (max-width: 540px) {
+  .kb-search-box {
+    padding-left: 0.9rem;
+  }
+  .kb-search-btn {
+    padding: 0.7rem 1rem;
+  }
+  .kb-search-input {
+    font-size: 1.05rem;
+  }
+}

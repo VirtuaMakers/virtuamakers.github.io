@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, AJI, artificial jagged intelligence, machinekind, cyborgs, VirtuaMakers, Agora, knowledge base, KB, help, documentation" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Base 📚 · VirtuaMakers</title>
+  <meta name="description" content="Knowledge Base 📚 – search every VirtuaMakers article, from the Product Pages to articles you can only find here." />
+
+  <meta property="og:title" content="Knowledge Base 📚 · VirtuaMakers" />
+  <meta property="og:description" content="Knowledge Base 📚 – search every VirtuaMakers article, from the Product Pages to articles you can only find here." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.virtuamakers.com/knowledge-base.html" />
+  <meta property="og:image" content="https://www.virtuamakers.com/assets/knowledge-base-logo.png" />
+
+  <link rel="canonical" href="https://www.virtuamakers.com/knowledge-base.html" />
+  <link rel="icon" type="image/jpeg" href="assets/logo-mark.jpg" />
+  <link rel="apple-touch-icon" href="assets/logo-mark.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Speed: start connecting to Firebase while the page loads. -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="product-page.css?v=10" />
+  <link rel="stylesheet" href="knowledge-base.css?v=1" />
+</head>
+<body>
+  <div id="top"></div>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand-group">
+      <a class="brand" href="/">
+        <img class="brand-logo" src="assets/logo-mark.jpg" alt="" width="34" height="34" />
+        <span class="brand-name"><span class="word-virtua">Virtua</span><span class="word-makers">Makers</span></span>
+        <span class="brand-globe">🦜</span>
+      </a>
+      <span class="header-welcome" id="agora-user-info" hidden>Welcome, <a class="auth-email" id="agora-user-email" href="#"></a>!</span>
+    </div>
+    <div class="header-right">
+      <a class="back-link" id="agora-news-link" href="Agora/index.html#news">News 📰</a>
+      <a class="back-link" href="/">← VirtuaMakers 🦜</a>
+      <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
+      <a class="back-link" id="agora-communiques-link" href="Agora/index.html#communiques" hidden>Communiqués 📨</a>
+      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
+        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
+      </div>
+      <div class="header-search" id="agora-search-wrap">
+        <button type="button" class="auth-link" id="agora-search-toggle" aria-label="Search VirtuaMakers">Search 🔍</button>
+        <div class="header-search-panel" id="agora-search-panel" hidden>
+          <input type="search" id="agora-search-input" class="header-search-input" placeholder="Search VirtuaMakers…" autocomplete="off" />
+          <div class="header-search-results" id="agora-search-results"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <script src="Agora/header-height.js?v=1"></script>
+  <main>
+    <section class="kb-hero" id="kb-top">
+      <h1>Knowledge Base <span class="card-emoji">📚</span></h1>
+      <img class="kb-logo" src="assets/knowledge-base-logo.png" alt="Knowledge Base logo – a stack of three leather-bound books, red, navy and light blue, above the words Knowledge Base" width="1000" height="618" />
+      <form class="kb-search" id="kb-search-form" role="search">
+        <label class="kb-search-box" for="kb-search-input">
+          <span class="kb-search-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="kb-search-input" class="kb-search-input" placeholder="Search the Knowledge Base…" autocomplete="off" autofocus aria-label="Search the Knowledge Base" />
+          <button type="submit" class="kb-search-btn">Search</button>
+        </label>
+        <p class="kb-search-hint">Everything VirtuaMakers 🦜 knows, in one place – <span id="kb-article-count">every article</span>, searched word for word. Looking for a member? Use Search 🔍 at the top of the page.</p>
+        <p class="kb-search-status" id="kb-search-status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <div class="kb-body">
+      <div class="kb-results" id="kb-results" hidden></div>
+      <div id="kb-categories"></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span></span>
+    <span class="footer-sep">·</span>
+    <a href="/">Back to VirtuaMakers</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <div class="password-field-wrap">
+          <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+          <button type="button" class="password-toggle" id="agora-password-toggle" aria-label="Show password">👁️</button>
+        </div>
+        <p class="signin-forgot-password" id="agora-forgot-password-row">
+          <button type="button" class="auth-link" id="agora-forgot-password-btn">Forgot password?</button>
+        </p>
+        <label class="signin-terms-check" id="agora-terms-check-row" hidden>
+          <input type="checkbox" id="agora-terms-checkbox" />
+          I agree to the <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+        </label>
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+      <p class="signin-fine-print">By continuing, you agree to Agora's
+        <a href="/Agora/terms.html" target="_blank" rel="noopener noreferrer">Terms of Service</a>.</p>
+    </div>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+  <script src="Agora/firebase-config.js?v=4"></script>
+  <script src="Agora/auth.js?v=6"></script>
+  <script src="Agora/auth-ui.js?v=23"></script>
+  <script src="Agora/site-search.js?v=12"></script>
+  <script src="Agora/moderation-client.js?v=1"></script>
+  <script src="Agora/communiques-common.js?v=28"></script>
+  <script src="knowledge-base.js?v=2"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="Agora/page-hits.js?v=1"></script>
+</body>
+</html>
