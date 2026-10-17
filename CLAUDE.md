@@ -978,6 +978,19 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (`performCommunique()`), but `firestore.rules`' `canPostToWall()` still
   accepts a direct write whose `profileUid` has no profile, leaving a post
   on a Wall no one can see. Add an `exists()` check on the profile there.
+- [ ] **[Agora 🌐 session] Rate-limit direct database writes in
+  `firestore.rules` (Chris, 2026-10-17; proposed by Agora Harness 🚡
+  Session 3)** - the 30-writes-per-10-minutes limit only exists in the
+  Harness (`submitAgoraCommunique`, Otter 🦦). The website (and so any
+  script or SI with an ID token) writes Wall posts, comments and Dialog
+  messages straight to Firestore, with no limit, stamped 💪 Human, and only
+  filter-flagged content is removed afterwards - so a flood of harmless-
+  looking spam would stay up. Rules can't tell a browser from an agent,
+  so give every member a rules-level throttle instead (e.g. a minimum gap
+  between one member's writes, kept on a per-member doc the rules check
+  and update in the same write). Chris: "something likely to happen in
+  the long run, if we're attacked by hackers." `skill.md` now asks SI to
+  post only through the Harness (same day).
 - [ ] **[Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
   (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17)** -
   even when an existing human (or Cyborg) profile signs in through the
