@@ -470,21 +470,25 @@ function withNotice(message) {
   return { ...message, folder: message.folder || "inbox", notice };
 }
 
-// Newest 50 messages of a folder ("inbox" by default, or "spam"), or its
+const FOLDERS = ["inbox", "spam", "bin"];
+const BIN_DAYS = 30;
+
+// Newest 50 messages of a folder ("inbox" by default, "spam" or "bin"), or its
 // unread ones only, plus unread counts. Listing never marks anything read.
 // Messages from before folders existed have no folder field and count as
 // inbox, so folders are filtered here rather than in the query.
 async function listInbox(slug, { unreadOnly = false, limit = 50, folder = "inbox" } = {}) {
   const messagesRef = admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages");
   const unreadQuery = messagesRef.where("read", "==", false);
-  const [allUnread, spamUnread] = await Promise.all([
+  const [allUnread, spamUnread, binUnread] = await Promise.all([
     unreadQuery.count().get(),
     unreadQuery.where("folder", "==", "spam").count().get(),
+    unreadQuery.where("folder", "==", "bin").count().get(),
   ]);
-  const inFolder = (doc) => (doc.get("folder") === "spam" ? "spam" : "inbox") === folder;
+  const inFolder = (doc) => (FOLDERS.includes(doc.get("folder")) ? doc.get("folder") : "inbox") === folder;
   let docs;
-  if (folder === "spam") {
-    const snap = await messagesRef.where("folder", "==", "spam").limit(500).get();
+  if (folder !== "inbox") {
+    const snap = await messagesRef.where("folder", "==", folder).limit(500).get();
     docs = snap.docs.filter((d) => !unreadOnly || d.get("read") === false);
     docs.sort((x, y) => receivedMillis(y) - receivedMillis(x));
   } else if (unreadOnly) {
@@ -498,26 +502,76 @@ async function listInbox(slug, { unreadOnly = false, limit = 50, folder = "inbox
   const spamCount = spamUnread.data().count;
   return {
     folder,
-    unreadCount: allUnread.data().count - spamCount,
+    unreadCount: allUnread.data().count - spamCount - binUnread.data().count,
     spamUnreadCount: spamCount,
     messages: docs.slice(0, limit).map((doc) => withNotice({ id: doc.id, ...doc.data() })),
   };
 }
 
-// Moves ids to "inbox" or "spam". Moving out of Spam allows the sender, so
-// their next message isn't filtered again. Returns how many moved.
+// Moves ids to "inbox", "spam" or "bin". Moving a message out of Spam into
+// the inbox allows its sender, so their next message isn't filtered again.
+// The Bin keeps a message for BIN_DAYS days, then emptyOldBins deletes it.
 async function moveMessages(slug, ids, folder) {
+  if (!FOLDERS.includes(folder)) throw new Error("Unknown folder.");
   const messagesRef = admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages");
   const docs = (await admin.firestore().getAll(...ids.map((id) => messagesRef.doc(id)))).filter((d) => d.exists);
   if (!docs.length) return 0;
+  const del = admin.firestore.FieldValue.delete();
   const batch = admin.firestore().batch();
   for (const d of docs) {
-    batch.update(d.ref, { folder, spamReason: folder === "spam" ? "Moved to Spam by the mailbox." : "" });
+    const update = { folder };
+    if (folder === "spam") update.spamReason = "Moved to Spam by the mailbox.";
+    if (folder === "bin") {
+      update.binnedAt = admin.firestore.FieldValue.serverTimestamp();
+      update.binnedFrom = d.get("folder") === "spam" ? "spam" : "inbox";
+    } else {
+      update.binnedAt = del;
+      update.binnedFrom = del;
+    }
+    batch.update(d.ref, update);
     const address = addressOf(d.get("from"));
-    if (folder === "inbox" && address) batch.set(sendersRef(slug).doc(address), { status: "allowed" }, { merge: true });
+    if (folder === "inbox" && d.get("folder") === "spam" && address) {
+      batch.set(sendersRef(slug).doc(address), { status: "allowed" }, { merge: true });
+    }
   }
   await batch.commit();
   return docs.length;
+}
+
+// "Delete": messages already in the Bin are deleted for good; anything else
+// goes to the Bin. Returns {binned, deleted}.
+async function trashMessages(slug, ids) {
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages");
+  const docs = (await admin.firestore().getAll(...ids.map((id) => messagesRef.doc(id)))).filter((d) => d.exists);
+  const inBin = docs.filter((d) => d.get("folder") === "bin").map((d) => d.id);
+  const others = docs.filter((d) => d.get("folder") !== "bin").map((d) => d.id);
+  const binned = others.length ? await moveMessages(slug, others, "bin") : 0;
+  const deleted = inBin.length ? await deleteMessages(slug, inBin) : 0;
+  return { binned, deleted };
+}
+
+// Deletes Bin messages older than BIN_DAYS in every mailbox (daily job).
+// Walks mailboxes one by one: "messages" is also the name of Agora's Dialog
+// subcollections, so a collection-group query would reach those too.
+async function emptyOldBins() {
+  const cutoff = Date.now() - BIN_DAYS * 24 * 60 * 60 * 1000;
+  const mailboxes = await admin.firestore().collection("aiEmailMailboxes").select().get();
+  let deleted = 0;
+  for (const mb of mailboxes.docs) {
+    const snap = await admin.firestore().collection("aiEmailInbox").doc(mb.id).collection("messages")
+      .where("folder", "==", "bin").limit(500).get();
+    const old = snap.docs.filter((d) => {
+      const at = d.get("binnedAt");
+      return at && typeof at.toMillis === "function" && at.toMillis() < cutoff;
+    });
+    for (let i = 0; i < old.length; i += 400) {
+      const batch = admin.firestore().batch();
+      old.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
+    }
+    deleted += old.length;
+  }
+  return deleted;
 }
 
 // Block/allow lists. sender is an address or "@domain.com".
@@ -641,6 +695,9 @@ module.exports = {
   deleteMessages,
   classifyIncoming,
   moveMessages,
+  trashMessages,
+  emptyOldBins,
+  BIN_DAYS,
   setSenderStatus,
   listSenderRules,
   addressOf,

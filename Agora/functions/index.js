@@ -66,6 +66,9 @@ const {
   deleteMessages,
   classifyIncoming,
   moveMessages,
+  trashMessages,
+  emptyOldBins,
+  BIN_DAYS,
   setSenderStatus,
   listSenderRules,
   mailboxForAddress,
@@ -1643,13 +1646,42 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
   }
 
   const unreadOnly = req.query.unread === "1" || req.query.unread === "true";
-  const folder = req.query.folder === "spam" ? "spam" : "inbox";
+  const folder = ["spam", "bin"].includes(req.query.folder) ? req.query.folder : "inbox";
   res.status(200).json(await listInbox(mailbox, { unreadOnly, folder }));
 }));
 
-// Moves messages between the inbox and Spam. Moving a message out of Spam
-// also allows its sender, so their next message isn't filtered.
-// POST /moveAiEmail  {"mailbox": "claude", "ids": ["<id>", ...], "folder": "inbox" | "spam"}
+// Deleting mail: a message goes to the Bin (kept BIN_DAYS = 30 days, then
+// deleted automatically); deleting it again from the Bin deletes it for good.
+// Restore with moveAiEmail ("folder": "inbox").
+// POST /deleteAiEmail  {"mailbox": "claude", "ids": ["<id>", ...]}
+exports.deleteAiEmail = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const mailbox = normalizeSlug(body.mailbox);
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
+  if (!mailbox || !ids.length || ids.length > 100) {
+    res.status(400).json({ error: "Give mailbox and 1-100 \"ids\"." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  res.status(200).json({ success: true, ...(await trashMessages(mailbox, ids)) });
+}));
+
+exports.emptySiEmailBins = onSchedule("every 24 hours", async () => {
+  const deleted = await emptyOldBins();
+  console.log("SI Email Bins emptied: " + deleted + " message(s) older than " + BIN_DAYS + " days.");
+});
+
+// Moves messages between the inbox, Spam and the Bin. Moving a message out
+// of Spam into the inbox also allows its sender, so their next message
+// isn't filtered.
+// POST /moveAiEmail  {"mailbox": "claude", "ids": ["<id>", ...], "folder": "inbox" | "spam" | "bin"}
 exports.moveAiEmail = onRequest(withCors(async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only." });
@@ -1659,8 +1691,8 @@ exports.moveAiEmail = onRequest(withCors(async (req, res) => {
   const mailbox = normalizeSlug(body.mailbox);
   const folder = body.folder;
   const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
-  if (!mailbox || (folder !== "inbox" && folder !== "spam") || !ids.length || ids.length > 100) {
-    res.status(400).json({ error: "Give mailbox, \"folder\" (\"inbox\" or \"spam\") and 1-100 \"ids\"." });
+  if (!mailbox || !["inbox", "spam", "bin"].includes(folder) || !ids.length || ids.length > 100) {
+    res.status(400).json({ error: "Give mailbox, \"folder\" (\"inbox\", \"spam\" or \"bin\") and 1-100 \"ids\"." });
     return;
   }
   if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
@@ -1777,6 +1809,7 @@ exports.getAdminMail = onCall(async (request) => {
   await assertIsOwner(request.auth);
   const inbox = await listInbox("admin", { limit: 30 });
   const spam = await listInbox("admin", { limit: 30, folder: "spam" });
+  const bin = await listInbox("admin", { limit: 30, folder: "bin" });
   const sent = await listSent("admin", 10);
   const stamp = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : null);
   return {
@@ -1789,6 +1822,10 @@ exports.getAdminMail = onCall(async (request) => {
       id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
       spamReason: m.spamReason || "", receivedAt: stamp(m.receivedAt),
     })),
+    bin: bin.messages.map((m) => ({
+      id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
+      binnedAt: stamp(m.binnedAt), receivedAt: stamp(m.receivedAt),
+    })),
     sent: sent.map((m) => ({ id: m.id, to: m.to, cc: m.cc, subject: m.subject, text: m.text, sentAt: stamp(m.sentAt) })),
   };
 });
@@ -1798,18 +1835,18 @@ exports.moveAdminMail = onCall(async (request) => {
   await assertIsOwner(request.auth);
   const data = request.data || {};
   const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
-  const folder = data.folder === "spam" ? "spam" : "inbox";
+  const folder = ["spam", "bin"].includes(data.folder) ? data.folder : "inbox";
   if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
   return { moved: await moveMessages("admin", ids, folder) };
 });
 
-// The Admin Panel's ✕ button: permanently deletes admin@ inbox messages.
+// The Admin Panel's ✕ button: to the Bin, or for good from the Bin.
 exports.deleteAdminMail = onCall(async (request) => {
   await assertIsOwner(request.auth);
   const data = request.data || {};
   const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
   if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
-  return { deleted: await deleteMessages("admin", ids) };
+  return await trashMessages("admin", ids);
 });
 
 exports.markAdminMailRead = onCall(async (request) => {

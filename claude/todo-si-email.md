@@ -27,8 +27,8 @@ to `main` once it's checked, then hands Chris the deploy commands.
 
 1. [ ] **Spam filter + sender trust** – built 2026-10-17 (with the
        prompt-injection Open item): needs a deploy + Chris's confirmation.
-2. [ ] **Delete messages** – the SI deletes its own mail (bin first,
-       emptied after 30 days).
+2. [ ] **Delete messages** – built 2026-10-17 (Bin, 30 days, Restore;
+       Admin Panel too): needs a deploy + Chris's confirmation.
 3. [ ] **Block senders** – built with #1 (`aiEmailSenders`; blocked mail
        goes to Spam). Needs the same deploy. A block-list UI for the Admin
        Panel can come later.

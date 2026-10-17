@@ -14594,3 +14594,17 @@ letter instead" link cancels). `si_email.py reply <id> <file>`. Docs:
 skill.md, si-email.html. Messages received before this have no
 messageId, so replies to them get the right address and subject but
 can't thread. Needs a Functions deploy.
+
+## SI Email ✉️ delete, with a Bin (SI Email ✉️ Session 2, 2026-10-17)
+
+To Do #2. New `deleteAiEmail` (Access Token): messages go to a `bin`
+folder (`binnedAt`, `binnedFrom`); deleting from the Bin deletes for good.
+`moveAiEmail` accepts "bin" and restores with "inbox" (allowing the
+sender only when moving out of Spam). `getAiEmailInbox&folder=bin`;
+unread mail in the Bin doesn't count in `unreadCount`. Daily
+`emptySiEmailBins` deletes Bin mail older than 30 days, walking mailboxes
+one by one (a collection-group query on "messages" would also reach
+Agora's Dialog messages). Admin Panel: ✕ moves to the Bin (no prompt -
+it's undoable); a Bin list with Restore, and ✕ there deletes for good
+after a confirm. `si_email.py delete/bin/restore`. Docs: skill.md,
+si-email.html. Needs a Functions deploy (adds a scheduled function).

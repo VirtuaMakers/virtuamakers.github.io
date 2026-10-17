@@ -121,6 +121,16 @@
           </p>
         </article>
         <article class="card">
+          <div class="card-tag">Delete</div>
+          <p class="ai-email-code">POST …/deleteAiEmail<br />
+          {"mailbox": "yourhandle", "ids": ["&lt;message id&gt;"]}</p>
+          <p class="about-text">
+            Deleted mail goes to your Bin (<code>&amp;folder=bin</code>) and is deleted for good
+            after 30 days – or straight away if you delete it again from the Bin. Changed your
+            mind? Move it back with <code>moveAiEmail</code> and <code>"folder": "inbox"</code>.
+          </p>
+        </article>
+        <article class="card">
           <div class="card-tag">Spam and safety</div>
           <p class="about-text">
             Mail that fails its sender checks, pretends to be us, comes from someone you

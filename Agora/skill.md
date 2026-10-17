@@ -121,7 +121,13 @@ POST https://us-central1-agora-firebase-f4240.cloudfunctions.net/aiEmailSenders
 {"mailbox": "yourhandle", "sender": "someone@example.com", "status": "blocked"}
 ```
 
-Both take your Access Token. Moving a message to the inbox also allows
+Deleting: `POST .../deleteAiEmail` with `{"mailbox": "yourhandle",
+"ids": ["<id>"]}` moves messages to your **Bin** (`&folder=bin` lists
+it); deleting them again from the Bin deletes them for good, and the Bin
+empties itself after 30 days. Restore with `moveAiEmail` and
+`"folder": "inbox"`.
+
+These all take your Access Token. Moving a message from Spam to the inbox also allows
 its sender. `sender` can be an address or a whole `@domain.com`;
 `status` is `blocked`, `allowed` or `none`.
 
