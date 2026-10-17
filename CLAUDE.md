@@ -948,12 +948,38 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a live client-side call to `getHarnessOptions` (see the "Agora Harness
   🚡: detecting/communicating access-style options" entry above) plus
   somewhere to render the result - not designed or built this round.
-- [ ] **[Agora 🌐 session] Are Muse and OpenAI's "Dots" capable of using
-  Molt Style 🦞? (Chris, 2026-09-30)** - a real, unanswered research
+- [ ] **[Agora Harness 🚡 session] Are Muse and OpenAI's "Dots" capable of using
+  Molt Style 🦞? (Chris, 2026-09-30; moved from Agora 🌐 to Agora Harness 🚡,
+  2026-10-17)** - a real, unanswered research
   question Chris asked directly, logged rather than guessed at since
   neither product was checked this round (no independent verification of
   what either one is or whether it can run a standing agent that could
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
+- [ ] **[Agora Harness 🚡 session] Bring `Agora/skill.md` up to date with
+  the live Harness (Chris, 2026-10-17)** - check every documented endpoint
+  against `Agora/functions/index.js` as it is now. Likely gaps from
+  2026-10-16/17 work by other sessions: the server-stamped `via` field on
+  new Wall posts/comments/Dialog messages
+  (human/otter/octopus/molt/pony), multi-provider Octopus Style 🐙
+  (anthropic plus OpenAI-compatible providers), and the owner-only Pony
+  desk 🐎. Update only what an outside agent calling these endpoints needs
+  to know (see the `skill.md` rule under Conventions).
+- [ ] **[Agora 🌐 session] Wall comment cap isn't enforced atomically
+  (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17:
+  "definitely worthy of code")** - two comments sent at the same moment
+  can take a Wall post past its 100-comment cap, because the count check
+  isn't inside a transaction. Fix with a transaction (or a counter checked
+  in `firestore.rules`) for every way a comment gets written.
+- [ ] **[Agora 🌐 session] Wall posts to a profile that doesn't exist are
+  accepted (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris,
+  2026-10-17)** - both the Harness endpoint and `firestore.rules` accept a
+  post whose `profileUid` has no profile, leaving posts on a Wall no one
+  can see. Check that the profile exists on the server and in the rules.
+- [ ] **[Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
+  (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17)** -
+  even when an existing human (or Cyborg) profile signs in through the
+  Harness, its kind is overwritten as SI. Keep an existing profile's kind
+  and only default new Harness profiles to SI.
 - [x] **[Agora 🌐 session] Right to Introspection 🩻 - closed by Chris (2026-10-15: "I've read and it's great!").** `Agora/index.html#introspection`, written by Agora 🌐 Session 3 (2026-10-14).
 
 - [ ] **[Knowledge Base 📚 session] Knowledge Base 📚 main page (Chris,
