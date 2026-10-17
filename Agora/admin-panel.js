@@ -44,6 +44,191 @@
     });
   });
 
+  // Send as Admin ✉️ - letters from Admin@VirtuaMakers.com (sendAdminEmail),
+  // plus the admin@ inbox and Sent list (getAdminMail / markAdminMailRead).
+  var adminMailPanel = document.getElementById("admin-mail-panel");
+  var adminMailForm = document.getElementById("admin-mail-form");
+  var adminMailError = document.getElementById("admin-mail-error");
+  var adminMailSubmit = document.getElementById("admin-mail-submit");
+  var adminMailResult = document.getElementById("admin-mail-result");
+  var adminInboxList = document.getElementById("admin-inbox-list");
+  var adminInboxCount = document.getElementById("admin-inbox-count");
+  var adminSentList = document.getElementById("admin-sent-list");
+  var adminSpamList = document.getElementById("admin-spam-list");
+  var adminMailReplying = document.getElementById("admin-mail-replying");
+  var adminBinList = document.getElementById("admin-bin-list");
+  var adminBinCount = document.getElementById("admin-bin-count");
+  var DELETE_BUTTON = "<button type=\"button\" class=\"admin-mail-delete\" title=\"Delete\" aria-label=\"Delete\""
+    + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>";
+  var replyingTo = "";
+
+  function clearReplying() {
+    replyingTo = "";
+    adminMailReplying.hidden = true;
+    adminMailReplying.textContent = "";
+  }
+
+  function startReply(details) {
+    var m = adminMessages[details.getAttribute("data-id")];
+    if (!m) return;
+    var from = String(m.from || "");
+    var angle = from.match(/<([^>]*)>/);
+    document.getElementById("admin-mail-to").value = (angle ? angle[1] : from).trim();
+    var subject = String(m.subject || "");
+    document.getElementById("admin-mail-subject").value = /^re:/i.test(subject) ? subject : "Re: " + subject;
+    replyingTo = m.id;
+    adminMailReplying.innerHTML = "Replying to " + escapeHtml(from) + " – it will join that conversation. "
+      + "<a href=\"#\" id=\"admin-mail-cancel-reply\">Write a new letter instead</a>";
+    adminMailReplying.hidden = false;
+    document.getElementById("admin-mail-cancel-reply").addEventListener("click", function (e) {
+      e.preventDefault();
+      clearReplying();
+    });
+    adminMailForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("admin-mail-text").focus();
+  }
+  var adminMessages = {};
+  var adminSpamCount = document.getElementById("admin-spam-count");
+
+  adminMailForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    adminMailError.hidden = true;
+    adminMailResult.hidden = true;
+    var to = document.getElementById("admin-mail-to").value.trim();
+    var subject = document.getElementById("admin-mail-subject").value.trim();
+    if (!window.confirm("Send \"" + subject + "\" to " + to + " from Admin@VirtuaMakers.com?")) return;
+    adminMailSubmit.disabled = true;
+    firebase.functions().httpsCallable("sendAdminEmail")({
+      to: to,
+      cc: document.getElementById("admin-mail-cc").value.trim(),
+      subject: subject,
+      signedBy: document.getElementById("admin-mail-signed").value.trim(),
+      text: document.getElementById("admin-mail-text").value,
+      inReplyTo: replyingTo,
+    }).then(function () {
+      adminMailResult.textContent = "Sent. A copy is in Sent below.";
+      adminMailResult.hidden = false;
+      adminMailForm.reset();
+      clearReplying();
+      loadAdminMail();
+    }).catch(function (err) {
+      adminMailError.textContent = err.message || "Something went wrong.";
+      adminMailError.hidden = false;
+    }).finally(function () {
+      adminMailSubmit.disabled = false;
+    });
+  });
+
+  var adminUnread = 0;
+
+  function showAdminUnread() {
+    adminInboxCount.textContent = adminUnread > 0 ? "(" + adminUnread + " unread)" : "";
+  }
+
+  function mailDate(ms) {
+    return ms ? new Date(ms).toLocaleString() : "";
+  }
+
+  function loadAdminMail() {
+    firebase.functions().httpsCallable("getAdminMail")({}).then(function (result) {
+      var d = result.data;
+      adminUnread = d.unreadCount || 0;
+      showAdminUnread();
+      adminMessages = {};
+      d.messages.forEach(function (m) { adminMessages[m.id] = m; });
+      adminInboxList.innerHTML = d.messages.length ? d.messages.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"" + (m.read ? "" : " data-unread=\"1\"") + ">"
+          + "<summary><button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
+          + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
+          + (m.read ? "" : "<strong>● </strong>") + escapeHtml(m.from || "unknown") + " – "
+          + escapeHtml(m.subject || "(no subject)") + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-reply\">Reply</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>No mail yet.</li>";
+      var spam = d.spam || [];
+      adminSpamCount.textContent = spam.length ? "(" + spam.length + ")" : "";
+      adminSpamList.innerHTML = spam.length ? spam.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"><summary>"
+          + "<button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
+          + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
+          + escapeHtml(m.from || "unknown") + " – " + escapeHtml(m.subject || "(no subject)")
+          + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<p class=\"field-hint\">Why: " + escapeHtml(m.spamReason || "filtered") + "</p>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-notspam\">Not spam</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>No spam.</li>";
+      var bin = d.bin || [];
+      adminBinCount.textContent = bin.length ? "(" + bin.length + ")" : "";
+      adminBinList.innerHTML = bin.length ? bin.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"><summary>" + DELETE_BUTTON
+          + escapeHtml(m.from || "unknown") + " – " + escapeHtml(m.subject || "(no subject)")
+          + " <span class=\"field-hint\">deleted " + mailDate(m.binnedAt) + "</span></summary>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-restore\">Restore</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>The Bin is empty.</li>";
+      adminSentList.innerHTML = d.sent.length ? d.sent.map(function (m) {
+        return "<li><details><summary>" + escapeHtml((m.to || []).join(", ")) + " – " + escapeHtml(m.subject || "")
+          + " <span class=\"field-hint\">" + mailDate(m.sentAt) + "</span></summary>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "") + "</pre></details></li>";
+      }).join("") : "<li>Nothing sent yet.</li>";
+    }).catch(function () {
+      adminInboxList.innerHTML = "<li>Couldn't load (has the latest Functions deploy run?).</li>";
+      adminSentList.innerHTML = "";
+      adminSpamList.innerHTML = "";
+      adminBinList.innerHTML = "";
+    });
+  }
+
+  function onMailClick(e) {
+    var reply = e.target.closest(".admin-mail-reply");
+    if (reply) {
+      startReply(reply.closest("details"));
+      return;
+    }
+    var notSpam = e.target.closest(".admin-mail-notspam, .admin-mail-restore");
+    if (notSpam) {
+      notSpam.disabled = true;
+      var box = notSpam.closest("details");
+      firebase.functions().httpsCallable("moveAdminMail")({ ids: [box.getAttribute("data-id")], folder: "inbox" })
+        .then(loadAdminMail)
+        .catch(function (err) {
+          notSpam.disabled = false;
+          window.alert(err.message || "Couldn't move it.");
+        });
+      return;
+    }
+    var btn = e.target.closest(".admin-mail-delete");
+    if (!btn) return;
+    var list = btn.closest("ul");
+    e.preventDefault();
+    e.stopPropagation();
+    var el = btn.closest("details");
+    var label = el.querySelector("summary").textContent.replace(/^✕\s*(●\s*)?/, "");
+    if (list === adminBinList && !window.confirm("Delete this message for good? This can't be undone.\n\n" + label)) return;
+    btn.disabled = true;
+    firebase.functions().httpsCallable("deleteAdminMail")({ ids: [el.getAttribute("data-id")] }).then(function () {
+      loadAdminMail();
+    }).catch(function (err) {
+      btn.disabled = false;
+      window.alert(err.message || "Couldn't delete it.");
+    });
+  }
+
+  adminInboxList.addEventListener("click", onMailClick);
+  adminSpamList.addEventListener("click", onMailClick);
+  adminBinList.addEventListener("click", onMailClick);
+
+  adminInboxList.addEventListener("toggle", function (e) {
+    var el = e.target;
+    if (!el.open || !el.getAttribute("data-unread")) return;
+    el.removeAttribute("data-unread");
+    var mark = el.querySelector("summary strong");
+    if (mark) mark.remove();
+    adminUnread -= 1;
+    showAdminUnread();
+    firebase.functions().httpsCallable("markAdminMailRead")({ ids: [el.getAttribute("data-id")] }).catch(function () {});
+  }, true);
+
   var adoptPanel = document.getElementById("adopt-panel");
   var adoptForm = document.getElementById("adopt-form");
   var adoptError = document.getElementById("adopt-error");
@@ -329,6 +514,8 @@
       var owner = isOwner(user);
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
+      adminMailPanel.hidden = !owner;
+      if (owner) loadAdminMail();
       adoptPanel.hidden = !owner;
       ponyPanel.hidden = !owner;
       if (owner) loadPonyAccounts();

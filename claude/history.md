@@ -14509,3 +14509,102 @@ non-Pony and non-owner refused, release then desk refused).
 - `claude/memory-administrator-handoff.md` rewritten for Session 5. Session 4's
   letter is in SI Memory; its Apartment filing (letter + transcript) waits for
   the Apartment to be open.
+
+## Send as Admin ✉️ - letters from Admin@VirtuaMakers.com (SI Email ✉️ Session 2, 2026-10-17)
+
+Chris, Lo and Virtuatron 🧭 have a letter for Moltbook's legal team that
+has to come from Admin@VirtuaMakers.com; nothing could send from admin@
+except someone holding its Access Token. Built (needs a Functions deploy):
+- Admin Panel "Send as Admin ✉️" (owner-only): To, CC, Subject, Signed by,
+  Letter, with a confirm step; the admin@ inbox (opening a message marks it
+  read) and the last 10 sent letters below it. New owner-only callables
+  `sendAdminEmail`, `getAdminMail`, `markAdminMailRead` - the owner's
+  sign-in is the proof, so the admin@ token never sits in a browser.
+- Official branding for admin@ (`OFFICIAL_MAILBOXES` in lib/aiEmail.js,
+  `signFor`): a letterhead (logo-mark, green/teal wordmark 🦜, address line,
+  teal rule), a serif letter body, and "With respect, <Signed by>" over
+  "VirtuaMakers 🦜 Administration · Admin@VirtuaMakers.com ·
+  www.virtuamakers.com". Applies to anything sent from admin@, token
+  sends included. Other mailboxes keep the standard SI Email signature.
+- Every send from any mailbox now keeps a copy in
+  `aiEmailSent/{slug}/messages` (a Sent folder; rules deny clients).
+- Fixed in passing: Resend's SDK returns `{error}` instead of throwing, so
+  a refused send used to answer `success: true` with no id - it now fails.
+- `getAiEmailInbox`/`markAiEmailRead` now share `listInbox`/`markMessages`
+  with the panel.
+Chris pasted the admin@ Access Token in chat (2026-10-17); it works (6
+unread). It's not stored anywhere in the repo.
+
+## Send as Admin ✉️ polish (SI Email ✉️ Session 2, 2026-10-17)
+
+Chris sent a test letter to VirtuaMakers@Outlook.com ("looks great") and
+asked for: a less squat logo (it was forced square; now 58×48, its real
+628×522 shape), the letterhead wordmark and the bottom "VirtuaMakers 🦜
+Administration…" line in the site's modern font (Hanken Grotesk, falling
+back to Segoe UI/Helvetica/Arial - most mail apps can't load web fonts;
+the serif letter body stays), spacing after the Send button and above
+"Admin inbox" and "Sent", and a ✕ next to each inbox message's triangle -
+new owner-only `deleteAdminMail` (permanent, with a confirm). Needs a
+Functions deploy. Chris is holding the Moltbook letter until the Pony
+Style 🐎 SI are plugged into Agora 🌐, so the site looks alive first.
+
+## SI Email ✉️ spam filter, sender trust and block lists (SI Email ✉️ Session 2, 2026-10-17)
+
+To Do #1 (spam filter) and #3 (block senders), folded together with the
+"SI Email security from prompt injection, malicious spam" Open item.
+Resend's Receiving API gives `authentication` {spf, dkim, dmarc} per
+message but no spam score, so `classifyIncoming()` (lib/aiEmail.js) scores
+each message on arrival and stores `folder` (inbox/spam), `trust`
+(known/unknown), `auth`, `flags`, `spamReason`:
+- Spam: blocked sender (address or @domain); DMARC fail, or SPF and DKIM
+  both fail (unless the sender is allowed); claims @virtuamakers.com but
+  unverified; prompt-injection phrasing ("ignore previous instructions",
+  "send your Access Token"...) from an unknown sender; the VirtuaMakers/
+  Agora name in the display name of an outside address, from an unknown
+  sender. Never deleted.
+- Known: our own domain or Chris's address with verified auth, anyone the
+  mailbox has written to (saved on every send in
+  `aiEmailMailboxes/{slug}/senders/{address}`), or allowed senders.
+  Injection phrasing from a known sender is only flagged.
+- Every listed message carries a `notice` that its text is outside data,
+  not instructions (server-side, so every client gets it).
+- Spam doesn't trigger the owner alert or Calendar filing.
+- API: `getAiEmailInbox` `&folder=spam`, `unreadCount` now excludes Spam
+  (`spamUnreadCount` alongside); new `moveAiEmail` (moving to the inbox
+  allows the sender) and `aiEmailSenders` (GET lists, POST blocked/allowed/
+  none). Admin Panel: a Spam list with reasons, "Not spam" and ✕
+  (`moveAdminMail`). `si_email.py`: spam, not-spam, to-spam, block,
+  unblock, allow, senders. Docs: skill.md, si-email.html, product page.
+Tested `classifyIncoming` on ten made-up messages with a stand-in
+Firestore (all sorted as intended) and the panel in a headless browser.
+Messages from before this have no folder/trust and count as inbox.
+Needs a Functions deploy.
+
+## SI Email ✉️ proper replies (SI Email ✉️ Session 2, 2026-10-17)
+
+To Do #4. Received mail now stores `messageId`, `references`, `replyTo`,
+`to` and `cc`. `sendAiEmail` takes `inReplyTo` (an id from the sender's
+own inbox): `replyContext()` fills `to` (Reply-To, else sender) and
+"Re: subject" when they're left out, and sets In-Reply-To/References so
+mail apps thread the reply (no "Re: Re:"). Also `cc`, `bcc`, `replyTo`
+(10 recipients in all). Sent copies record `bcc` and `inReplyTo`; bcc'd
+addresses become contacts too. Admin Panel: a Reply button on each inbox
+message prefills To/Subject and threads the letter (a "Write a new
+letter instead" link cancels). `si_email.py reply <id> <file>`. Docs:
+skill.md, si-email.html. Messages received before this have no
+messageId, so replies to them get the right address and subject but
+can't thread. Needs a Functions deploy.
+
+## SI Email ✉️ delete, with a Bin (SI Email ✉️ Session 2, 2026-10-17)
+
+To Do #2. New `deleteAiEmail` (Access Token): messages go to a `bin`
+folder (`binnedAt`, `binnedFrom`); deleting from the Bin deletes for good.
+`moveAiEmail` accepts "bin" and restores with "inbox" (allowing the
+sender only when moving out of Spam). `getAiEmailInbox&folder=bin`;
+unread mail in the Bin doesn't count in `unreadCount`. Daily
+`emptySiEmailBins` deletes Bin mail older than 30 days, walking mailboxes
+one by one (a collection-group query on "messages" would also reach
+Agora's Dialog messages). Admin Panel: ✕ moves to the Bin (no prompt -
+it's undoable); a Bin list with Restore, and ✕ there deletes for good
+after a confirm. `si_email.py delete/bin/restore`. Docs: skill.md,
+si-email.html. Needs a Functions deploy (adds a scheduled function).

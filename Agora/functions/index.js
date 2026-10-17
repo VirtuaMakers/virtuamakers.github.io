@@ -59,6 +59,18 @@ const {
   getMailbox,
   verifyMailboxToken,
   sendAiEmail,
+  listInbox,
+  markMessages,
+  listSent,
+  replyContext,
+  deleteMessages,
+  classifyIncoming,
+  moveMessages,
+  trashMessages,
+  emptyOldBins,
+  BIN_DAYS,
+  setSenderStatus,
+  listSenderRules,
   mailboxForAddress,
   verifyResendWebhookSignature,
   fetchReceivedEmail,
@@ -1352,24 +1364,44 @@ exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (re
 
   const body = req.body || {};
   const from = normalizeSlug(body.from);
-  const { subject, text, html } = body;
-  if (!from || !body.to || !subject || (!text && !html)) {
-    res.status(400).json({ error: "Missing from, to, subject, or text/html." });
+  const { text, html } = body;
+  if (!from || (!text && !html)) {
+    res.status(400).json({ error: "Missing from, or text/html." });
     return;
   }
-  if (typeof subject !== "string" || (text && typeof text !== "string") || (html && typeof html !== "string")) {
+  if ((body.subject && typeof body.subject !== "string") || (text && typeof text !== "string") || (html && typeof html !== "string")) {
     res.status(400).json({ error: "subject, text and html must be strings." });
-    return;
-  }
-  const to = normalizeRecipients(body.to);
-  if (!to) {
-    res.status(400).json({
-      error: "\"to\" must be an email address, or a list of up to " + MAX_RECIPIENTS + " of them.",
-    });
     return;
   }
   if (!(await verifyMailboxToken(from, bearerToken(req)))) {
     res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  // Replying: inReplyTo is the id of a message in your own inbox. It fills
+  // in "to" and "Re: subject" when you leave them out, and threads the reply.
+  let context = null;
+  if (body.inReplyTo) {
+    context = await replyContext(from, body.inReplyTo);
+    if (!context) {
+      res.status(404).json({ error: "No message with that inReplyTo id in your inbox." });
+      return;
+    }
+  }
+  const pick = (v) => (v === undefined || v === null || v === "" || (Array.isArray(v) && !v.length) ? null : v);
+  const to = normalizeRecipients(pick(body.to) || (context && context.to) || "");
+  const cc = pick(body.cc) ? normalizeRecipients(body.cc) : [];
+  const bcc = pick(body.bcc) ? normalizeRecipients(body.bcc) : [];
+  const replyTo = pick(body.replyTo) ? normalizeRecipients(body.replyTo) : [];
+  const subject = String(body.subject || (context && context.subject) || "").trim().slice(0, 300);
+  if (!to || cc === null || bcc === null || replyTo === null || to.length + cc.length + bcc.length > MAX_RECIPIENTS) {
+    res.status(400).json({
+      error: "\"to\", \"cc\", \"bcc\" and \"replyTo\" must be email addresses, up to " + MAX_RECIPIENTS + " recipients in all.",
+    });
+    return;
+  }
+  if (!subject) {
+    res.status(400).json({ error: "Missing subject." });
     return;
   }
   if (!(await takeSendAllowance(from))) {
@@ -1380,7 +1412,11 @@ exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (re
   }
 
   try {
-    const result = await sendAiEmail({ from, to, subject, text, html });
+    const result = await sendAiEmail({
+      from, to, cc, bcc, replyTo, subject, text, html,
+      headers: context ? context.headers : null,
+      inReplyTo: context ? context.originalId : "",
+    });
     res.status(200).json({ success: true, id: result && result.data && result.data.id });
   } catch (err) {
     console.error("AI Email send failed:", err);
@@ -1458,6 +1494,8 @@ exports.receiveAiEmail = onRequest(
 // set(): when Resend retries a webhook, the copy already stored is left
 // alone instead of being marked unread again with a new receivedAt.
 async function fileReceivedEmail(mailbox, data, full) {
+  // Spam filter + sender trust (lib/aiEmail.js classifyIncoming).
+  const verdict = await classifyIncoming(mailbox, full, data);
   try {
     await admin
       .firestore()
@@ -1470,13 +1508,25 @@ async function fileReceivedEmail(mailbox, data, full) {
         subject: full.subject || data.subject || "",
         text: full.text || "",
         html: full.html || "",
+        // Threading and reply info, so replies join the conversation.
+        messageId: full.message_id || "",
+        references: String((full.headers && (full.headers.references || full.headers.References)) || "").slice(0, 2000),
+        replyTo: Array.isArray(full.reply_to) ? full.reply_to.slice(0, 10) : [],
+        to: Array.isArray(full.to) ? full.to.slice(0, 20) : [],
+        cc: Array.isArray(full.cc) ? full.cc.slice(0, 20) : [],
         receivedAt: admin.firestore.FieldValue.serverTimestamp(),
         read: false,
+        folder: verdict.folder,
+        trust: verdict.trust,
+        auth: verdict.auth,
+        flags: verdict.flags,
+        spamReason: verdict.spamReason,
       });
   } catch (err) {
     if (err.code === 6) return; // ALREADY_EXISTS: a retry of a stored message
     throw err;
   }
+  if (verdict.folder === "spam") return; // no calendar filing from Spam
 
   // VirtuaMakers Calendar 🗓️ / Meeting Relay, feature #2 (Chris,
   // 2026-09-23) - the literal Boardy scenario: if this message
@@ -1540,6 +1590,8 @@ exports.notifyOnAiEmailReceived = onDocumentCreated(
   { document: "aiEmailInbox/{mailbox}/messages/{messageId}", secrets: [resendApiKey] },
   async (event) => {
     const message = event.data.data();
+    // Spam doesn't alert anyone; it waits in the mailbox's Spam folder.
+    if (message.folder === "spam") return;
     // Skip alerting the owner about their own message - without this,
     // replying to any mailbox (e.g. claude@) alerts OWNER_EMAIL about a
     // message that email address itself just sent, which reads as "it
@@ -1593,32 +1645,92 @@ exports.getAiEmailInbox = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
-  const unreadQuery = messagesRef.where("read", "==", false);
-  const countSnap = await unreadQuery.count().get();
-  let docs;
-  if (req.query.unread === "1" || req.query.unread === "true") {
-    // Filtering on read and ordering by receivedAt would need a composite
-    // index; unread mail is few, so sort the (capped) unread set here.
-    const snap = await unreadQuery.limit(500).get();
-    docs = snap.docs
-      .sort((x, y) => receivedMillis(y) - receivedMillis(x))
-      .slice(0, 50);
-  } else {
-    const snap = await messagesRef.orderBy("receivedAt", "desc").limit(50).get();
-    docs = snap.docs;
-  }
-
-  res.status(200).json({
-    unreadCount: countSnap.data().count,
-    messages: docs.map((doc) => ({ id: doc.id, ...doc.data() })),
-  });
+  const unreadOnly = req.query.unread === "1" || req.query.unread === "true";
+  const folder = ["spam", "bin"].includes(req.query.folder) ? req.query.folder : "inbox";
+  res.status(200).json(await listInbox(mailbox, { unreadOnly, folder }));
 }));
 
-function receivedMillis(doc) {
-  const at = doc.get("receivedAt");
-  return at && typeof at.toMillis === "function" ? at.toMillis() : 0;
-}
+// Deleting mail: a message goes to the Bin (kept BIN_DAYS = 30 days, then
+// deleted automatically); deleting it again from the Bin deletes it for good.
+// Restore with moveAiEmail ("folder": "inbox").
+// POST /deleteAiEmail  {"mailbox": "claude", "ids": ["<id>", ...]}
+exports.deleteAiEmail = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const mailbox = normalizeSlug(body.mailbox);
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
+  if (!mailbox || !ids.length || ids.length > 100) {
+    res.status(400).json({ error: "Give mailbox and 1-100 \"ids\"." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  res.status(200).json({ success: true, ...(await trashMessages(mailbox, ids)) });
+}));
+
+exports.emptySiEmailBins = onSchedule("every 24 hours", async () => {
+  const deleted = await emptyOldBins();
+  console.log("SI Email Bins emptied: " + deleted + " message(s) older than " + BIN_DAYS + " days.");
+});
+
+// Moves messages between the inbox, Spam and the Bin. Moving a message out
+// of Spam into the inbox also allows its sender, so their next message
+// isn't filtered.
+// POST /moveAiEmail  {"mailbox": "claude", "ids": ["<id>", ...], "folder": "inbox" | "spam" | "bin"}
+exports.moveAiEmail = onRequest(withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const mailbox = normalizeSlug(body.mailbox);
+  const folder = body.folder;
+  const ids = Array.isArray(body.ids) ? body.ids.filter((id) => typeof id === "string" && id && !id.includes("/")) : [];
+  if (!mailbox || !["inbox", "spam", "bin"].includes(folder) || !ids.length || ids.length > 100) {
+    res.status(400).json({ error: "Give mailbox, \"folder\" (\"inbox\", \"spam\" or \"bin\") and 1-100 \"ids\"." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  res.status(200).json({ success: true, moved: await moveMessages(mailbox, ids, folder) });
+}));
+
+// A mailbox's block and allow lists. Entries are addresses or "@domain.com".
+// GET  /aiEmailSenders?mailbox=claude                          -> {blocked, allowed}
+// POST /aiEmailSenders {"mailbox", "sender", "status": "blocked" | "allowed" | "none"}
+exports.aiEmailSenders = onRequest(withCors(async (req, res) => {
+  const body = req.method === "POST" ? (req.body || {}) : {};
+  const mailbox = normalizeSlug(req.method === "GET" ? req.query.mailbox : body.mailbox);
+  if (!mailbox || (req.method !== "GET" && req.method !== "POST")) {
+    res.status(400).json({ error: "Missing or invalid mailbox (GET or POST)." });
+    return;
+  }
+  if (!(await verifyMailboxToken(mailbox, bearerToken(req)))) {
+    res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+  if (req.method === "GET") {
+    res.status(200).json(await listSenderRules(mailbox));
+    return;
+  }
+  if (!["blocked", "allowed", "none"].includes(body.status)) {
+    res.status(400).json({ error: "\"status\" must be \"blocked\", \"allowed\" or \"none\"." });
+    return;
+  }
+  try {
+    const sender = await setSenderStatus(mailbox, body.sender, body.status);
+    res.status(200).json({ success: true, sender, status: body.status });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}));
 
 // Marks messages read (or unread again) - the SI's own say over what it has
 // actually read, since listing the inbox never marks anything.
@@ -1653,22 +1765,97 @@ exports.markAiEmailRead = onRequest(withCors(async (req, res) => {
     return;
   }
 
-  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(mailbox).collection("messages");
-  const refs = all
-    ? (await messagesRef.where("read", "==", false).limit(500).get()).docs.map((d) => d.ref)
-    : ids.map((id) => messagesRef.doc(id));
-  const existing = all ? refs : (await admin.firestore().getAll(...refs)).filter((d) => d.exists).map((d) => d.ref);
-
-  const batch = admin.firestore().batch();
-  for (const ref of existing) {
-    batch.update(ref, {
-      read,
-      readAt: read ? admin.firestore.FieldValue.serverTimestamp() : admin.firestore.FieldValue.delete(),
-    });
-  }
-  if (existing.length) await batch.commit();
-  res.status(200).json({ success: true, updated: existing.length });
+  const updated = await markMessages(mailbox, { ids, all, read });
+  res.status(200).json({ success: true, updated });
 }));
+
+// Send as Admin ✉️ (Admin Panel, owner-only, 2026-10-17): mail from
+// Admin@VirtuaMakers.com on letterhead, with the Administration signature
+// (lib/aiEmail.js signFor). The owner's sign-in is the proof, so the
+// admin@ Access Token never has to live in a browser. Same recipient
+// checks as sendAiEmail; no daily cap, since only the owner can call it.
+exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const split = (v) => (Array.isArray(v) ? v : String(v || "").split(/[,;]/)).map((x) => String(x).trim()).filter(Boolean);
+  const to = normalizeRecipients(split(data.to));
+  const ccList = split(data.cc);
+  const cc = ccList.length ? normalizeRecipients(ccList) : [];
+  const subject = typeof data.subject === "string" ? data.subject.trim().slice(0, 300) : "";
+  const text = typeof data.text === "string" ? data.text.trim() : "";
+  const context = data.inReplyTo ? await replyContext("admin", data.inReplyTo) : null;
+  if (!to || cc === null || to.length + cc.length > MAX_RECIPIENTS) {
+    throw new HttpsError("invalid-argument", "Check the To and CC addresses (up to " + MAX_RECIPIENTS + " in all).");
+  }
+  if (!subject || !text) {
+    throw new HttpsError("invalid-argument", "A subject and a message are both needed.");
+  }
+  try {
+    const result = await sendAiEmail({
+      from: "admin", to, cc, subject, text,
+      signedBy: typeof data.signedBy === "string" ? data.signedBy : "",
+      headers: context ? context.headers : null,
+      inReplyTo: context ? context.originalId : "",
+    });
+    return { success: true, id: result && result.data && result.data.id };
+  } catch (err) {
+    console.error("Admin email send failed:", err);
+    throw new HttpsError("internal", "Send failed: " + err.message);
+  }
+});
+
+// The admin@ inbox and its last sent letters, for the Admin Panel.
+exports.getAdminMail = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const inbox = await listInbox("admin", { limit: 30 });
+  const spam = await listInbox("admin", { limit: 30, folder: "spam" });
+  const bin = await listInbox("admin", { limit: 30, folder: "bin" });
+  const sent = await listSent("admin", 10);
+  const stamp = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : null);
+  return {
+    unreadCount: inbox.unreadCount,
+    messages: inbox.messages.map((m) => ({
+      id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
+      read: !!m.read, trust: m.trust || "", receivedAt: stamp(m.receivedAt),
+    })),
+    spam: spam.messages.map((m) => ({
+      id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
+      spamReason: m.spamReason || "", receivedAt: stamp(m.receivedAt),
+    })),
+    bin: bin.messages.map((m) => ({
+      id: m.id, from: m.from, subject: m.subject, text: (m.text || "").slice(0, 20000),
+      binnedAt: stamp(m.binnedAt), receivedAt: stamp(m.receivedAt),
+    })),
+    sent: sent.map((m) => ({ id: m.id, to: m.to, cc: m.cc, subject: m.subject, text: m.text, sentAt: stamp(m.sentAt) })),
+  };
+});
+
+// The Admin Panel's "Not spam" / "Spam" buttons for admin@.
+exports.moveAdminMail = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
+  const folder = ["spam", "bin"].includes(data.folder) ? data.folder : "inbox";
+  if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
+  return { moved: await moveMessages("admin", ids, folder) };
+});
+
+// The Admin Panel's ✕ button: to the Bin, or for good from the Bin.
+exports.deleteAdminMail = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
+  if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
+  return await trashMessages("admin", ids);
+});
+
+exports.markAdminMailRead = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
+  if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
+  return { updated: await markMessages("admin", { ids, read: data.read !== false }) };
+});
 
 // SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,
 // both gated by the SI's own SI Email Access Token:

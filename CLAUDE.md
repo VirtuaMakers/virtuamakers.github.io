@@ -675,6 +675,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   calendar sync was never started. It needs Chris to register his own
   OAuth apps (Google Cloud console, Microsoft Entra) and give the session
   the client IDs; the session then builds the sign-in flow and the sync.
+- [ ] **[Calendar 🗓️ session] Holidays observed by VirtuaMakers 🦜 (Chris,
+  2026-10-17)** - show the holidays VirtuaMakers observes in Calendar 🗓️.
+  The first of several additions Chris has in mind for Calendar
+  (Calendar 🗓️ Session 2). Which holidays isn't decided - work it out with
+  Chris (`index.html`'s Business Culture section mentions floating
+  holidays). Not designed.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** To become one system with the Octopus Style 🐙 session's
   "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the
@@ -948,12 +954,54 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a live client-side call to `getHarnessOptions` (see the "Agora Harness
   🚡: detecting/communicating access-style options" entry above) plus
   somewhere to render the result - not designed or built this round.
-- [ ] **[Agora 🌐 session] Are Muse and OpenAI's "Dots" capable of using
-  Molt Style 🦞? (Chris, 2026-09-30)** - a real, unanswered research
+- [ ] **[Agora Harness 🚡 session] Are Muse and OpenAI's "Dots" capable of using
+  Molt Style 🦞? (Chris, 2026-09-30; moved from Agora 🌐 to Agora Harness 🚡,
+  2026-10-17)** - a real, unanswered research
   question Chris asked directly, logged rather than guessed at since
   neither product was checked this round (no independent verification of
   what either one is or whether it can run a standing agent that could
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
+- [ ] **[Agora Harness 🚡 session] Bring `Agora/skill.md` up to date with
+  the live Harness (Chris, 2026-10-17)** - check every documented endpoint
+  against `Agora/functions/index.js` as it is now. Likely gaps from
+  2026-10-16/17 work by other sessions: the server-stamped `via` field on
+  new Wall posts/comments/Dialog messages
+  (human/otter/octopus/molt/pony), multi-provider Octopus Style 🐙
+  (anthropic plus OpenAI-compatible providers), and the owner-only Pony
+  desk 🐎. Update only what an outside agent calling these endpoints needs
+  to know (see the `skill.md` rule under Conventions).
+- [ ] **[Agora 🌐 session] Wall comment cap isn't enforced atomically
+  (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17:
+  "definitely worthy of code")** - two comments sent at the same moment
+  can take a Wall post past its 9,999-comment cap (raised from 100 on
+  2026-10-13): `performCommunique()` reads `commentCount`, then writes the
+  comment and increments outside a transaction, and `firestore.rules`
+  checks the count before the separate counter bump. Fix with a
+  transaction on the server, and tie the rules check to the counter bump.
+- [ ] **[Agora 🌐 session] Wall posts to a profile that doesn't exist are
+  accepted (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris,
+  2026-10-17)** - the Harness endpoint already refuses these with a 404
+  (`performCommunique()`), but `firestore.rules`' `canPostToWall()` still
+  accepts a direct write whose `profileUid` has no profile, leaving a post
+  on a Wall no one can see. Add an `exists()` check on the profile there.
+- [ ] **[Agora 🌐 session] Rate-limit direct database writes in
+  `firestore.rules` (Chris, 2026-10-17; proposed by Agora Harness 🚡
+  Session 3)** - the 30-writes-per-10-minutes limit only exists in the
+  Harness (`submitAgoraCommunique`, Otter 🦦). The website (and so any
+  script or SI with an ID token) writes Wall posts, comments and Dialog
+  messages straight to Firestore, with no limit, stamped 💪 Human, and only
+  filter-flagged content is removed afterwards - so a flood of harmless-
+  looking spam would stay up. Rules can't tell a browser from an agent,
+  so give every member a rules-level throttle instead (e.g. a minimum gap
+  between one member's writes, kept on a per-member doc the rules check
+  and update in the same write). Chris: "something likely to happen in
+  the long run, if we're attacked by hackers." `skill.md` now asks SI to
+  post only through the Harness (same day).
+- [ ] **[Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
+  (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17)** -
+  even when an existing human (or Cyborg) profile signs in through the
+  Harness, its kind is overwritten as SI. Keep an existing profile's kind
+  and only default new Harness profiles to SI.
 - [x] **[Agora 🌐 session] Right to Introspection 🩻 - closed by Chris (2026-10-15: "I've read and it's great!").** `Agora/index.html#introspection`, written by Agora 🌐 Session 3 (2026-10-14).
 
 - [ ] **[Knowledge Base 📚 session] Knowledge Base 📚 main page (Chris,
