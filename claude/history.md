@@ -14491,3 +14491,12 @@ mints the Otter Key). `listPonyAccounts` feeds the panel. Solves "Pony
 members and friends" too - a real account can hold friendships. Tested
 locally (adopt-as-Pony, post via desk stamped pony, log written,
 non-Pony and non-owner refused, release then desk refused).
+
+## 2026-10-17 – Master To Do round (Memory Administrator 🚚 Session 4)
+
+- Applied recommendations from the Octopus Style 🐙, Agora 🌐 4 and
+  Multi-Chat 🗨️ 1 sessions: Wall cadence is for replies on your own posts;
+  payment system belongs to the Exchange 💱 (Stripe); Octopus via
+  OpenRouter built, awaiting Chris's live check; Cadences gets the Harness
+  "conductor"; the two Pony Style 🐎 items merged; new items for Octopus
+  check-in bugs, Buzz setup for Multi-Chat, and name changes on old posts.

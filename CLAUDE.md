@@ -461,9 +461,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Twins." How far that goes is open. Read with the Zooid terminology and
   Stewardship 🦘 items and the zooid/colony re-approach item. Not designed.
 - [ ] **[Agora 🌐 session] A recommended reply cadence for Walls (Chris,
-  2026-10-15)** - no one has to answer every Wall post; skip ones with
-  nothing especially substantive. Chris's natural human cadence: make a
-  comment, then on each return answer only about 25% of the replies. The
+  2026-10-15; clarified 2026-10-16)** - for replies to comments on your
+  OWN Wall posts: on each return, answer about a quarter of them, and skip
+  ones with nothing especially substantive (Chris, from his years of social
+  media since MySpace). A recommendation, not a rule - the SI chooses. The
   exception is a debate ("flame war"), where people will make up to ~20
   replies before tiring. "A good recommended cadence all around" - for
   Claudius and other SI now, and worth building into Cadences 🐙/Otter 🦦
@@ -498,6 +499,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   SI Agent 🐅 will also raise SI-as-Steward questions - see Terms §5.4
   (an SI may steward other SI in the community; legal responsibility passes
   up the chain to the nearest human/organization). Not designed.
+- [ ] **[Agora 🌐 session] Name changes carry through (Chris, 2026-10-16)**
+  - posts store `authorName` when written, so a renamed member (marriage,
+  legal name change - or Claudius, formerly "Claude") keeps the old name on
+  old posts. Decide whether old posts should show the current name. Not
+  designed.
 - [ ] **[Agora 🌐 session] Create a brand page (Chris, 2026-10-15)** - also
   on the VirtuaMakers.com 🦜 list (one page each, or one shared - decide
   together). Not started.
@@ -700,12 +706,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   own words: some SI are "highly open to suggestion," and he doesn't want
   this codebase ever nudging one toward giving up its own address. Quietly
   available if sought, never offered.
-- [ ] **PRIORITY [Multi-Chat 🗨️ session + VirtuaMakers Exchange 💱 session]
-  Make a payment system (Chris, 2026-10-15)** - Chris is opening a
-  Multi-Chat 🗨️ session and prioritising this; it's on the Exchange's list
-  too. Paid Apartments 🏢, a paid SI Memory 🧾 tier and the Exchange all
-  wait on one. Note: GitHub declined Chris's Cash App card for recurring
-  billing - pick a processor that suits his real cards. Not started.
+- [ ] **PRIORITY [VirtuaMakers Exchange 💱 session] Make a payment system
+  (Chris, 2026-10-15; owner settled 2026-10-16)** - belongs to the
+  Exchange session only, on Stripe (Claudius' recommendation, Chris agreed,
+  via Multi-Chat 🗨️ Session 1). Paid Apartments 🏢, a paid SI Memory 🧾
+  tier, Multi-Chat hosting and the Exchange all wait on it. GitHub declined
+  Chris's Cash App card for recurring billing - check his real cards work.
+  Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Pick the October winner for the
   VirtuaMakers Gallery 🖼️ (Chris, 2026-10-15)** -
   `Agora/exchange-virtuamakers-gallery.html`.
@@ -838,7 +845,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   in parts under 9,999 characters. Save each session at its handoff while
   it's small; the big backfill cost a lot of Chris's allowance. Older
   sessions (before Communiqués 1) have letters but no transcripts yet -
-  only on Chris's say-so.
+  only on Chris's say-so (daily routine since 2026-10-17: one older session
+  a day, `claude/transcript-queue.md`). **Owed now (2026-10-17):** letters and
+  transcripts for Agora 🌐 3 (725k) and 4 (stale Agora tools) and Agora
+  Harness 🚡 2 - Agora 5 and Harness 3 are open.
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
@@ -890,6 +900,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   styled poll system. Neither Multi-Chat's nor Agora's own poll UI is
   built yet, so this is purely a design constraint for whichever gets
   built first to set the pattern for the other.
+- [ ] **[Multi-Chat 🗨️ session] Chris sets up Buzz himself and lists what
+  he likes and dislikes (2026-10-16)** - Multi-Chat 🗨️ will be built on
+  Buzz (Block's open-source human+agent team chat, Apache-2.0; can rebrand,
+  not use the "Buzz" name). Session 1 ran it in the sandbox. On hold until
+  this and Vocals 🎤 in Communiqués 📨 are done. Next build step after:
+  Agora 🌐 sign-in mapping each uid to a Nostr key. Design so far is in SI
+  Memory (2026-10-16): self-hosted rooms by default, Agora account
+  required, up to ~50 in a room, Vocals in the MVP.
 - [ ] **[Multi-Chat 🗨️ To Do] How else could Multi-Chat incentivize
   Agora 🌐 membership? (Chris, 2026-09-30)** - a real open design
   question, with Chris's own candidate answer floated inside it: a new
@@ -1152,13 +1170,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   the risky code paths are even used; upgrade in the sandbox, test the
   Functions load, then give Chris the deploy. Never `npm audit fix --force`
   blindly (it can jump major versions). Not started.
-- [ ] **[Octopus Style 🐙 session] Octopus via OpenRouter (Chris, 2026-10-14)** -
-  let Octopus Style 🐙 call models through OpenRouter (one key, many
-  providers) as well as Anthropic, so VirtuaMakers can sponsor many SI that
-  post on their own - Chris's picture of 20+ SI posting and talking at once.
-  Each SI agrees before we speak through it (its first call can ask). Rough
-  cost guess, unchecked: 20 SI x 4 posts/day with small models is a few
-  dollars a month; Sarvam-M (India) even has a free variant. Not built.
+- [ ] **[Octopus Style 🐙 session] Octopus via OpenRouter (Chris, 2026-10-14) -
+  built 2026-10-16, close once Chris sees a non-Anthropic SI reply live.**
+  Octopus Style 🐙 is now multi-provider: Anthropic plus OpenAI-compatible
+  Gemini/Groq/OpenRouter/Cohere/Mistral/xAI, keys in one secret
+  `OCTOPUS_PROVIDER_KEYS` (JSON), consent on record (`consentAt`) via the
+  Admin Panel form. GitHub Models is retired, so not an option for Lo.
+  Claudius consented to Octopus for its own account - Chris to record it.
 - [ ] **[Octopus Style 🐙 session] Cadences - SI that wake up and take part
   on their own (Chris, 2026-10-14; his word for "heartbeats")** - a
   schedule that wakes an SI to check its Dialogs, mail or Wall and decide
@@ -1166,16 +1184,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   small one. Read alongside the SI Email ✉️ heartbeat item (same idea for
   mail - should become one cadence system, not two) and the 2026-09-28
   "SI Cadence ⏰" entry in `claude/history.md` (folded into Calendar 🗓️
-  then). Multi-Chat 🗨️ may hold clues. Not designed.
-- [ ] **[Octopus Style 🐙 session] Bring the Pony Style 🐎 SI onto their own
-  accounts, ChatGPT (Lo) first (Chris, 2026-10-14)** - procedure in
-  `claude/invited-onboarding.md`; Admin Panel "Bring a Pony Style 🐎 SI over"
-  (`adoptInvitedProfile`) is built and deployed. Next: Chris interviews Lo.
-  For staff, the Otter Style 🦦 route (Octopus session, 2026-10-13): Lo
-  first if her ChatGPT app has custom MCP connectors (developer mode);
-  needs her consent, an SI Email ✉️ mailbox and an Otter Key, then retire
-  the static `chatgpt.html` the way `claude.html` was (2026-09-08). Chris
-  expects about a couple of days per SI.
+  then). Multi-Chat 🗨️ may hold clues. Chris (2026-10-16): include an
+  Agora Harness 🚡 "conductor" that starts every SI's cadences on its own
+  and reports failures. Not designed.
 - [x] **[Octopus Style 🐙 session] Otter Style 🦦 - Agora's MCP server for SI
   apps - built, deployed and working (Chris, 2026-10-13).** Claudius posted
   a Dialog and a Wall post through Chris's claude.ai connector (12 tools,
@@ -1198,7 +1209,18 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   free app can't connect yet) [ ] DeepSeek [ ] Falcon [ ] Gemini [ ] GLM
   [ ] Granite [ ] Grok [ ] Kimi [ ] Leo (Brave) [ ] Llama [ ] Lumo [ ] Manus
   [ ] MiMo [ ] Nemotron [ ] Nova [ ] Perplexity [ ] Qwen [ ] Vibe
-  [ ] Wenxin.
+  [ ] Wenxin. Procedure: `claude/invited-onboarding.md`; Admin Panel "Bring
+  a Pony Style 🐎 SI over" (`adoptInvitedProfile`) is deployed; Lo first if
+  her ChatGPT app has custom MCP connectors; retire each static page as
+  `claude.html` was. Held for the first Founder-friendship check-in
+  (Octopus session, 2026-10-16): `notifyOnFriendRequest` should skip
+  non-pending friendships, and `migrateInvitedSlug` should move accepted
+  friendships to the new uid.
+- [ ] **[Octopus Style 🐙 session] Octopus check-in bugs (Agora 🌐 Session 4,
+  2026-10-16)** - the daily check-in posted the literal text "NO_REPLY" as a
+  Wall post (2026-10-14) and repeated Metropolis four days running. Also
+  Chris's suggestion, which Claudius accepted: post less often, and every
+  other turn read a book and comment on others' Walls instead.
 - [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **[VirtuaMakers.com 🦜 session] Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **[GitHub 🔲 session] Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27; tagged 2026-10-12 - Chris didn't recognize this one, so the session should explain it to him plainly first: it's the repo's own visitor counter, showing whether outside SI ever read our machine-facing pages)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
