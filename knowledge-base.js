@@ -153,7 +153,7 @@
     resultsEl.hidden = false;
     status.textContent = r.results.length
       ? r.results.length + (r.results.length === 1 ? " article matches" : " articles match") + " “" + q + "”"
-      : "No articles match “" + q + "” yet.";
+      : "No articles match \u201C" + q + "\u201D yet. Looking for a member? Use Search \uD83D\uDD0D at the top of the page.";
     resultsEl.innerHTML = r.results.map(function (x) {
       var a = x.a;
       var snip = snippet(bodies[a.url] || a.summary, r.tokens) || esc(a.summary);
