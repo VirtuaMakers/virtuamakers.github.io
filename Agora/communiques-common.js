@@ -356,14 +356,12 @@
       }).catch(function () {});
   }
 
-  // After a successful edit or delete, keep the parent in step: a comment's
-  // post keeps an accurate commentCount; a message's Dialog keeps an
-  // accurate preview.
+  // After a successful edit or delete, keep the parent in step: a message's
+  // Dialog keeps an accurate preview. (A comment's count is kept in the
+  // same batch as the delete itself - see the Delete button below.)
   function afterContentChange(docRef, deleted) {
     var type = contentTypeOf(docRef);
-    if (type === "wallComment" && deleted) {
-      docRef.parent.parent.update({ commentCount: firebase.firestore.FieldValue.increment(-1) }).catch(function () {});
-    } else if (type === "dialogMessage") {
+    if (type === "dialogMessage") {
       refreshConversationPreview(docRef.parent.parent);
     }
   }
@@ -381,9 +379,22 @@
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", function () {
       if (!window.confirm("Delete this permanently? This can't be undone.")) return;
-      docRef.delete().then(function () {
+      var deleting;
+      if (contentTypeOf(docRef) === "wallComment") {
+        // Delete and count down together, naming the comment (see the
+        // comment batch above and firestore.rules).
+        var batch = firebase.firestore().batch();
+        batch.delete(docRef);
+        batch.update(docRef.parent.parent, {
+          commentCount: firebase.firestore.FieldValue.increment(-1),
+          lastDeletedCommentId: docRef.id,
+        });
+        deleting = batch.commit();
+      } else {
+        deleting = docRef.delete().then(function () { afterContentChange(docRef, true); });
+      }
+      deleting.then(function () {
         container.remove();
-        afterContentChange(docRef, true);
       }).catch(function (err) {
         window.alert(err.message);
       });
@@ -637,7 +648,12 @@
 
         var now = firebase.firestore.FieldValue.serverTimestamp();
         getDisplayName(currentUser).then(function (authorName) {
-          return postRef.collection("comments").add({
+          // The comment and the post's count go in one batch: firestore.rules
+          // only accepts a comment whose count bump keeps the post at or
+          // under the cap, and only a bump that names the comment it's for.
+          var commentRef = postRef.collection("comments").doc();
+          var batch = firebase.firestore().batch();
+          batch.set(commentRef, {
             body: body,
             authorUid: currentUser.uid,
             authorName: authorName,
@@ -645,11 +661,12 @@
             viewCount: 0,
             via: "human", // Human Style 💪 - see styleBadge(); the server has the final word
           });
-        }).then(function (commentRef) {
-          return postRef.update({
+          batch.update(postRef, {
             commentCount: firebase.firestore.FieldValue.increment(1),
             lastActivityAt: now,
-          }).then(function () { return commentRef; });
+            lastCommentId: commentRef.id,
+          });
+          return batch.commit().then(function () { return commentRef; });
         }).then(function (commentRef) {
           toggleBtn.disabled = false;
           status.hidden = true;

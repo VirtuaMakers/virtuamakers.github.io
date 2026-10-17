@@ -225,15 +225,31 @@ service cloud.firestore {
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.profileUid is string
         && validBody(request.resource.data.body)
+        && wallExists(request.resource.data.profileUid)
         && canPostToWall(request.auth.uid, request.resource.data.profileUid);
 
       allow update: if editableWithinWindow(['body']);
       allow delete: if deletableWithinWindow();
 
       // Commenting bumps the parent post's counters. Locked to exactly
-      // these two fields so a comment can't rewrite someone else's post.
+      // these fields so a comment can't rewrite someone else's post, and
+      // the count moves only by one, in the same batch as the comment it
+      // names (lastCommentId: just created; lastDeletedCommentId: just
+      // deleted) - so nobody can set the count by hand to slip past the
+      // cap or lock a post's comments.
       allow update: if request.auth != null
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastActivityAt']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastActivityAt', 'lastCommentId'])
+        && request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0) + 1
+        && request.resource.data.lastCommentId is string
+        && !exists(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastCommentId))
+        && existsAfter(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastCommentId));
+
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastDeletedCommentId'])
+        && request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0) - 1
+        && request.resource.data.lastDeletedCommentId is string
+        && exists(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastDeletedCommentId))
+        && !existsAfter(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastDeletedCommentId));
 
       // View counts (Chris, 2026-08-13) - see the messages/{messageId}
       // rule above for the same pattern and reasoning.
@@ -610,9 +626,36 @@ service cloud.firestore {
     // above - fetches the parent post once for both the friendship check
     // (against its profileUid, i.e. the Wall it's actually on) and the
     // existing 9,999-comment cap, rather than two separate get() calls.
+    // The same batch must bump the post's count by exactly one and leave
+    // it at or under 9,999 - checked against the count as it will be
+    // after this write, so two comments landing together can't both slip
+    // in under the cap.
     function canCreateComment(sender, postId) {
-      let post = get(/databases/$(database)/documents/wallPosts/$(postId)).data;
-      return post.commentCount < 9999 && canPostToWall(sender, post.profileUid);
+      let postPath = /databases/$(database)/documents/wallPosts/$(postId);
+      let post = get(postPath).data;
+      let after = getAfter(postPath).data;
+      return after.get('commentCount', 0) == post.get('commentCount', 0) + 1
+        && after.get('commentCount', 0) <= 9999
+        && canPostToWall(sender, post.profileUid);
+    }
+
+    // A Wall exists if its member has a profile - or it's one of the
+    // hand-written pages whose slug stands in for a uid (static profiles
+    // in Agora/profiles/ and the root *-product.html pages). A post
+    // anywhere else would sit on a Wall nobody can ever see. Add a slug
+    // here whenever a new static profile or Product Page gets a Wall.
+    function wallExists(wallUid) {
+      return exists(/databases/$(database)/documents/profiles/$(wallUid))
+        || wallUid in [
+        'alexa', 'alice', 'andrew-bernhard', 'brittany-york', 'chatgpt', 'command-r',
+        'copilot', 'cory-campbell', 'deepseek', 'falcon', 'gemini', 'gerardus-dunkel',
+        'glm', 'granite', 'grok', 'kimi', 'leo', 'llama',
+        'lumo', 'manus', 'mimo', 'nemotron', 'nova', 'perplexity',
+        'product-agora', 'product-agora-harness', 'product-aquarium-gofish', 'product-calendar', 'product-chain-of-cards', 'product-communiques',
+        'product-dimonds', 'product-guardian', 'product-knowledge-base', 'product-machinapology', 'product-melon-drive', 'product-multi-chat',
+        'product-profiles', 'product-pursuit-of-justice', 'product-si-agent', 'product-si-apartment', 'product-si-bank-accounts', 'product-si-email',
+        'product-si-memory', 'product-virtuamakers-exchange', 'qwen', 'ray-smith', 'vibe', 'wenxin'
+        ];
     }
 
     // The readAt map may change only in the caller's own key. A doc with no
