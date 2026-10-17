@@ -14439,3 +14439,30 @@ body, accent-insensitive, highlights snippets, and keeps `?q=` in the URL
 so searches can be linked. Linked from the homepage hero buttons, the
 header search (`site-search.js` KB_INDEX, v=11 everywhere), `llms.txt`
 and `sitemap.xml`.
+
+## Knowledge Base 📚 round 2 + a second Agora 🌐 advert (Chris, 2026-10-17)
+
+- **One article list:** `kb-articles.json` (types + articles, urls
+  root-relative) replaces the list inside `knowledge-base.js`; the KB page
+  and `Agora/site-search.js` both read it (v=12 on all 82 pages). The
+  header Search now finds every KB article by title (Product Pages stay
+  under "VirtuaMakers Product", not listed twice) and always ends with
+  "Search the Knowledge Base 📚 for “…” →". The KB page's own search
+  covers articles only, not Agora members - the header Search on the same
+  page still finds members.
+- **Categories:** Product Pages 🏷️ (Chris liked the emoji), Machinapology
+  🔬 and Inside VirtuaMakers 🏙️ - the last two hidden until their first
+  article. Chris suggested "Business Elements 🏙️"; Claudius proposed
+  "Inside VirtuaMakers" (it says plainly the articles are about the
+  company itself: origin story, staff pages, Business Culture, The
+  Bureau), keeping his 🏙️ - for Chris to confirm.
+- **`knowledge-base-product.html`** (Product Type: Reference), and a wide
+  `card-featured` card at the end of the homepage's Selected Work:
+  "Enter the Knowledge Base", then "Product Page".
+- **Homepage: Guardian's Playground set aside for now** - the `#guardian`
+  section is commented out in `index.html` (restore by uncommenting) and
+  replaced by `#join-agora`, "Your next stop: Agora 🌐": Agora is the most
+  important thing VirtuaMakers works on, membership is how you belong,
+  head there next. Hero button "Guardian" became "Join Agora 🌐"; the
+  Guardian card's dead "Learn more" link was removed (Product Page stays).
+

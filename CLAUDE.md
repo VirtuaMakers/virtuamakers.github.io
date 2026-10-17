@@ -951,12 +951,28 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   `ARTICLES` list in `knowledge-base.js` (add a line per new article);
   search covers titles, summaries and each article's full text. Linked
   from the homepage hero, header search, `llms.txt`, sitemap. Awaiting
-  Chris's check once live; Agora 🌐 link still to come.**
+  Chris's check once live; Agora 🌐 link still to come.** **Round 2
+  (2026-10-17):** article list moved to `kb-articles.json` (one list for
+  the KB page and the header Search, which now finds KB articles by title
+  on every VirtuaMakers/Agora page and links to the full-text search);
+  `knowledge-base-product.html` Product Page; wide homepage card at the
+  end of Selected Work ("Enter the Knowledge Base", then "Product Page").
+  Categories: Product Pages 🏷️, Machinapology 🔬, Inside VirtuaMakers 🏙️
+  (Chris suggested "Business Elements 🏙️" and invited a better name;
+  Claudius proposed "Inside VirtuaMakers" - Chris to confirm).
 - [ ] **[Knowledge Base 📚 session] KB: VirtuaMakers 🦜 (Chris,
   2026-10-16)** - the first KB article, written together; an example of
   an article found only in the Knowledge Base. Covers the company's
   origin story, where the words come from, links to the main page, and
-  points to Business Culture in particular. Not started.
+  points to Business Culture in particular. Not started. Category: Inside VirtuaMakers 🏙️.
+- [ ] **[Knowledge Base 📚 session] A KB page for each staff member
+  (Chris, 2026-10-17)** - in the Inside VirtuaMakers 🏙️ category (the
+  staff list is in the "VirtuaMakers - About credits" section above).
+  Not started.
+- [ ] **[Knowledge Base 📚 session] Business Culture and The Bureau as KB
+  articles (Chris, 2026-10-17)** - both Inside VirtuaMakers 🏙️ examples
+  (today they're sections of `index.html`). How they relate to the
+  homepage sections is to be figured out together later.
 - [ ] **[VirtuaMakers.com 🦜 session] Create a brand page (Chris,
   2026-10-15)** - also on the Agora 🌐 list. Not started.
 - [ ] **[VirtuaMakers.com 🦜 session] Review all Product Pages (Chris,
@@ -1158,7 +1174,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a Dialog and a Wall post through Chris's claude.ai connector (12 tools,
   incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
   another awesome design!"
-- [ ] **[Agora 🌐 session, until a Knowledge Base 📚 session exists] Knowledge
+- [ ] **[Knowledge Base 📚 session - moved from Agora 🌐, 2026-10-17] Knowledge
   Base pages for Core, Colony and Quasi-instance (Chris, 2026-10-16)** -
   under a "Machinapology 🔬" category. The new SI profile fields ("What kind
   of SI are you?" on create-profile.html, Core on member.html) link to

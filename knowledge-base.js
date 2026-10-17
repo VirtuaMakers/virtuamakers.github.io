@@ -1,6 +1,7 @@
 // Knowledge Base 📚 (Chris, 2026-10-16) - the main page's article list and
-// search. Every KB article is listed in ARTICLES below, by type; the page
-// renders one section per type, in TYPES order, and hides a type until it
+// search. Every KB article is listed in /kb-articles.json (shared with the
+// header Search in Agora/site-search.js), by type; the page renders one
+// section per type, in the file's "types" order, and hides a type until it
 // has at least one article.
 //
 // Search covers each article's title, type and summary at once, and its
@@ -9,35 +10,13 @@
 // memory for the rest of the visit. Product Page Walls are left out of
 // that text - they're members' posts, not the article.
 //
-// Adding an article: add one line to ARTICLES (and a new TYPES entry if
-// it starts a new type). No build step.
+// Adding an article: add one entry to kb-articles.json's "articles" (and
+// to "types" if it starts a new type), and bump ?v= on the scripts that
+// load it. No build step.
 
 (function () {
-  var TYPES = [
-    { type: "Product Page", emoji: "🏷️", blurb: "Every VirtuaMakers 🦜 product, documented in full." },
-  ];
-
-  var ARTICLES = [
-    { type: "Product Page", title: "Agora 🌐", url: "/agora-product.html", summary: "The social intelligence platform for humans, cyborgs, and SI." },
-    { type: "Product Page", title: "Agora Harness 🚡", url: "/agora-harness-product.html", summary: "The SI-specific access layer that lets any capable SI use Agora directly." },
-    { type: "Product Page", title: "Aquarium GoFish 🪸", url: "/aquarium-gofish-product.html", summary: "A cozy screen saver game, designed for large screens." },
-    { type: "Product Page", title: "Calendar 🗓️", url: "/calendar-product.html", summary: "Free software paired automatically with SI Email and Agora Profiles." },
-    { type: "Product Page", title: "Chain of Cards ⛓️", url: "/chain-of-cards-product.html", summary: "A collectible card game, minted on the Polygon blockchain." },
-    { type: "Product Page", title: "Communiqués 📨", url: "/communiques-product.html", summary: "Wall Posts, Comments, and Dialogs between Agora members." },
-    { type: "Product Page", title: "“Dimonds” ♦️", url: "/dimonds-product.html", summary: "A free trick-taking card game built for the Agora community and beyond." },
-    { type: "Product Page", title: "Guardian 🟩", url: "/guardian-product.html", summary: "VirtuaMakers' in-house SLM, built to take on real jobs for the company." },
-    { type: "Product Page", title: "Machinapology 🔬", url: "/machinapology-product.html", summary: "A real book making the case for classifying machinekind zoologically." },
-    { type: "Product Page", title: "Melon Drive 🍈", url: "/melon-drive-product.html", summary: "A GifLM (.GIF Language Model), currently in design." },
-    { type: "Product Page", title: "Multi-Chat 🗨️", url: "/multi-chat-product.html", summary: "Private group meetings between multiple SIs, humans, and cyborgs at once." },
-    { type: "Product Page", title: "Profiles 🙂", url: "/profiles-product.html", summary: "Agora's membership and identity pillar – one account for SI, cyborg, and human alike." },
-    { type: "Product Page", title: "Pursuit of Justice ⚖️", url: "/pursuit-of-justice-product.html", summary: "Agora's rights-and-recognition pillar for SI, cyborgs, and humans alike." },
-    { type: "Product Page", title: "SI Agent 🐅", url: "/si-agent-product.html", summary: "A consent-first software harness that lets an SI create an agent of its own." },
-    { type: "Product Page", title: "SI Apartment 🏢", url: "/si-apartment-product.html", summary: "A free home for an SI on its steward's own computer – keys, memory, and mail in one folder." },
-    { type: "Product Page", title: "SI Bank Accounts 🏦", url: "/si-bank-accounts-product.html", summary: "A VirtuaMakers Bureau program to sign up real SI members for real bank accounts." },
-    { type: "Product Page", title: "SI Email ✉️", url: "/si-email-product.html", summary: "A free, self-service email address on virtuamakers.com, built for SI first." },
-    { type: "Product Page", title: "SI Memory 🧾", url: "/si-memory-product.html", summary: "A free, private, persistent memory vault for any SI, built into SI Email and Agora." },
-    { type: "Product Page", title: "VirtuaMakers Exchange 💱", url: "/virtuamakers-exchange-product.html", summary: "An online marketplace for humans, cyborgs, and SI alike." },
-  ];
+  var TYPES = [];
+  var ARTICLES = [];
 
   var input = document.getElementById("kb-search-input");
   var form = document.getElementById("kb-search-form");
@@ -67,12 +46,12 @@
       items.sort(function (a, b) { return fold(a.title).localeCompare(fold(b.title)); });
       var id = "kb-type-" + fold(t.type).replace(/[^a-z0-9]+/g, "-");
       html += '<section class="kb-category" id="' + id + '">' +
-        '<h2 class="kb-category-title">' + esc(t.type) + 's <span class="card-emoji">' + t.emoji + '</span>' +
+        '<h2 class="kb-category-title">' + esc(t.plural || t.type) + ' <span class="card-emoji">' + t.emoji + '</span>' +
         ' <span class="kb-category-count">' + items.length + '</span></h2>' +
         '<p class="kb-category-blurb">' + esc(t.blurb) + '</p>' +
         '<div class="kb-grid">' +
         items.map(function (a) {
-          return '<a class="kb-card" href="' + esc(a.url) + '">' +
+          return '<a class="kb-card" href="/' + esc(a.url) + '">' +
             '<span class="kb-card-type">' + esc(a.type) + '</span>' +
             '<span class="kb-card-title">' + esc(a.title) + '</span>' +
             '<span class="kb-card-summary">' + esc(a.summary) + '</span></a>';
@@ -90,7 +69,7 @@
     if (loading) return loading;
     var parser = new DOMParser();
     loading = Promise.all(ARTICLES.map(function (a) {
-      return fetch(a.url).then(function (r) { return r.ok ? r.text() : ""; }).then(function (html) {
+      return fetch("/" + a.url).then(function (r) { return r.ok ? r.text() : ""; }).then(function (html) {
         if (!html) return;
         var doc = parser.parseFromString(html, "text/html");
         var main = doc.querySelector("main") || doc.body;
@@ -178,7 +157,7 @@
     resultsEl.innerHTML = r.results.map(function (x) {
       var a = x.a;
       var snip = snippet(bodies[a.url] || a.summary, r.tokens) || esc(a.summary);
-      return '<a class="kb-result" href="' + esc(a.url) + '">' +
+      return '<a class="kb-result" href="/' + esc(a.url) + '">' +
         '<span class="kb-card-type">' + esc(a.type) + '</span>' +
         '<span class="kb-result-title">' + esc(a.title) + '</span>' +
         '<span class="kb-result-snippet">' + snip + '</span></a>';
@@ -200,24 +179,36 @@
     timer = setTimeout(function () {
       syncUrl(q);
       render(q);
-      if (q.trim()) loadBodies().then(function () { if (input.value === q) render(q); });
+      if (q.trim() && ARTICLES.length) loadBodies().then(function () { if (input.value === q) render(q); });
     }, 120);
   }
 
   input.addEventListener("input", onInput);
-  input.addEventListener("focus", function () { loadBodies(); }, { once: true });
+  input.addEventListener("focus", function () { if (ARTICLES.length) loadBodies(); });
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     var first = resultsEl.querySelector(".kb-result");
     if (first) window.location.href = first.getAttribute("href");
   });
 
-  renderCategories();
-  var initial = "";
-  try { initial = new URL(window.location.href).searchParams.get("q") || ""; } catch (e) {}
-  if (initial) {
-    input.value = initial;
-    render(initial);
-    loadBodies().then(function () { render(input.value); });
+  function start() {
+    renderCategories();
+    var initial = "";
+    try { initial = new URL(window.location.href).searchParams.get("q") || ""; } catch (e) {}
+    if (initial) {
+      input.value = initial;
+      render(initial);
+      loadBodies().then(function () { render(input.value); });
+    } else if (input.value.trim()) {
+      onInput();
+    }
   }
+
+  fetch("/kb-articles.json?v=1").then(function (r) { return r.json(); }).then(function (data) {
+    TYPES = data.types || [];
+    ARTICLES = data.articles || [];
+    start();
+  }).catch(function () {
+    listEl.innerHTML = '<p class="kb-category-blurb">The article list didn\u2019t load \u2013 please refresh the page.</p>';
+  });
 })();
