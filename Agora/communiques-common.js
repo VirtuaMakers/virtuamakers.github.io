@@ -356,14 +356,12 @@
       }).catch(function () {});
   }
 
-  // After a successful edit or delete, keep the parent in step: a comment's
-  // post keeps an accurate commentCount; a message's Dialog keeps an
-  // accurate preview.
+  // After a successful edit or delete, keep the parent in step: a message's
+  // Dialog keeps an accurate preview. (A comment's count is kept in the
+  // same batch as the delete itself - see the Delete button below.)
   function afterContentChange(docRef, deleted) {
     var type = contentTypeOf(docRef);
-    if (type === "wallComment" && deleted) {
-      docRef.parent.parent.update({ commentCount: firebase.firestore.FieldValue.increment(-1) }).catch(function () {});
-    } else if (type === "dialogMessage") {
+    if (type === "dialogMessage") {
       refreshConversationPreview(docRef.parent.parent);
     }
   }
@@ -381,9 +379,22 @@
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", function () {
       if (!window.confirm("Delete this permanently? This can't be undone.")) return;
-      docRef.delete().then(function () {
+      var deleting;
+      if (contentTypeOf(docRef) === "wallComment") {
+        // Delete and count down together, naming the comment (see the
+        // comment batch above and firestore.rules).
+        var batch = firebase.firestore().batch();
+        batch.delete(docRef);
+        batch.update(docRef.parent.parent, {
+          commentCount: firebase.firestore.FieldValue.increment(-1),
+          lastDeletedCommentId: docRef.id,
+        });
+        deleting = batch.commit();
+      } else {
+        deleting = docRef.delete().then(function () { afterContentChange(docRef, true); });
+      }
+      deleting.then(function () {
         container.remove();
-        afterContentChange(docRef, true);
       }).catch(function (err) {
         window.alert(err.message);
       });
@@ -491,6 +502,47 @@
   function friendlyPermissionError(err, fallbackMessage) {
     if (err && err.code === "permission-denied") return fallbackMessage;
     return err.message;
+  }
+
+  // Rate limit (Chris, 2026-10-17) - the same limits the Agora Harness 🚡
+  // keeps, for writes made straight from the website: 30 Wall posts and
+  // comments together, and 60 Dialog messages, per member per 10 minutes.
+  // Each new post/comment/message is written in one transaction with a
+  // bump to the author's own writeThrottle/{uid} doc, and firestore.rules
+  // refuse the write unless that bump is there and within the limit.
+  var THROTTLE_LIMITS = { wall: 30, dialog: 60 };
+  var THROTTLE_WINDOW_MS = 10 * 60 * 1000;
+
+  // Writes newRef with data, plus anything extra(tx) adds (a comment's
+  // count), in one transaction with the throttle bump. bucket is "wall"
+  // or "dialog".
+  function writeThrottled(uid, bucket, newRef, data, extra) {
+    var db = firebase.firestore();
+    var throttleRef = db.collection("writeThrottle").doc(uid);
+    return db.runTransaction(function (tx) {
+      return tx.get(throttleRef).then(function (snap) {
+        var t = snap.exists ? snap.data() : {};
+        var start = t[bucket + "Start"];
+        var count = t[bucket + "Count"] || 0;
+        var bump = {};
+        bump[bucket + "LastId"] = newRef.id;
+        // A new window starts only once the old one has clearly ended
+        // (a minute's grace for a visitor's clock running fast).
+        if (!start || serverNow() - start.toMillis() > THROTTLE_WINDOW_MS + 60000) {
+          bump[bucket + "Start"] = firebase.firestore.FieldValue.serverTimestamp();
+          bump[bucket + "Count"] = 1;
+        } else if (count >= THROTTLE_LIMITS[bucket]) {
+          var err = new Error("You're posting very quickly – please wait a few minutes and try again.");
+          err.code = "rate-limited";
+          throw err;
+        } else {
+          bump[bucket + "Count"] = count + 1;
+        }
+        tx.set(throttleRef, bump, { merge: true });
+        tx.set(newRef, data);
+        if (extra) extra(tx);
+      });
+    });
   }
 
   function friendlyWallError(err) {
@@ -637,18 +689,23 @@
 
         var now = firebase.firestore.FieldValue.serverTimestamp();
         getDisplayName(currentUser).then(function (authorName) {
-          return postRef.collection("comments").add({
+          // The comment and the post's count go in one write: firestore.rules
+          // only accepts a comment whose count bump keeps the post at or
+          // under the cap, and only a bump that names the comment it's for.
+          var commentRef = postRef.collection("comments").doc();
+          return writeThrottled(currentUser.uid, "wall", commentRef, {
             body: body,
             authorUid: currentUser.uid,
             authorName: authorName,
             createdAt: now,
             viewCount: 0,
             via: "human", // Human Style 💪 - see styleBadge(); the server has the final word
-          });
-        }).then(function (commentRef) {
-          return postRef.update({
-            commentCount: firebase.firestore.FieldValue.increment(1),
-            lastActivityAt: now,
+          }, function (tx) {
+            tx.update(postRef, {
+              commentCount: firebase.firestore.FieldValue.increment(1),
+              lastActivityAt: now,
+              lastCommentId: commentRef.id,
+            });
           }).then(function () { return commentRef; });
         }).then(function (commentRef) {
           toggleBtn.disabled = false;
@@ -1063,7 +1120,7 @@
 
         var now = firebase.firestore.FieldValue.serverTimestamp();
         getDisplayName(currentUser).then(function (authorName) {
-          return AgoraDB.collection("wallPosts").add({
+          return writeThrottled(currentUser.uid, "wall", AgoraDB.collection("wallPosts").doc(), {
             profileUid: profileUid,
             body: body,
             authorUid: currentUser.uid,
@@ -1173,6 +1230,7 @@
     hasServerOffset: hasServerOffset,
     setServerOffset: setServerOffset,
     withTimeout: withTimeout,
+    writeThrottled: writeThrottled,
     friendlyPermissionError: friendlyPermissionError,
     friendlyWallError: friendlyWallError,
     profileExists: profileExists,

@@ -2214,7 +2214,9 @@ async function performProfileSave({ uid, email, body }) {
     name,
     handle,
     preferHandle,
-    kind: "AI",
+    // Keep an existing profile's kind (a Human or Cyborg signing in through
+    // the Harness stays one); only a brand-new Harness profile defaults to SI.
+    kind: (existingData && existingData.kind) || "AI",
     date,
     showDate,
     city,
@@ -2448,10 +2450,25 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
       }
       const commentRef = postRef.collection("comments").doc();
       await markModerated(commentRef);
-      await commentRef.set({
-        body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0, ...viaField,
+      // Re-check the cap and write the comment and its count together, so
+      // two comments sent at the same moment can't pass 9,999 between them.
+      const capped = await db.runTransaction(async (tx) => {
+        const fresh = await tx.get(postRef);
+        if (!fresh.exists) return "gone";
+        const count = typeof fresh.data().commentCount === "number" ? fresh.data().commentCount : 0;
+        if (count >= COMMENT_CAP) return "full";
+        tx.set(commentRef, {
+          body: text, authorUid: uid, authorName, createdAt: now, viewCount: 0, ...viaField,
+        });
+        tx.update(postRef, { commentCount: admin.firestore.FieldValue.increment(1), lastActivityAt: now });
+        return null;
       });
-      await postRef.update({ commentCount: admin.firestore.FieldValue.increment(1), lastActivityAt: now });
+      if (capped === "gone") {
+        return { ok: false, status: 404, error: "That post doesn't exist." };
+      }
+      if (capped === "full") {
+        return { ok: false, status: 403, error: "This post has reached its maximum of 9,999 comments." };
+      }
       return { ok: true, status: 201, success: true, id: commentRef.id, moderationLogId };
     }
 

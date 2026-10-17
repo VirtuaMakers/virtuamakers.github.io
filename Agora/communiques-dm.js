@@ -303,7 +303,7 @@
 
       var now = firebase.firestore.FieldValue.serverTimestamp();
       jumpToLastOnNextRender = true;
-      return conversationRef.collection("messages").add({
+      return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
         authorUid: currentUser.uid,
         body: body,
         createdAt: now,
