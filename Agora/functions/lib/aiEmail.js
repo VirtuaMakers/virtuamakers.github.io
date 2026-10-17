@@ -296,7 +296,27 @@ function fromHeader(name, email) {
   return clean ? `"${clean}" <${email}>` : email;
 }
 
-async function sendAiEmail({ from, to, cc, subject, text, html, signedBy }) {
+// Proper replies (2026-10-17): everything needed to answer a stored inbox
+// message - who to reply to (its Reply-To, else its sender), "Re: subject",
+// and the In-Reply-To/References headers that make mail apps thread it.
+async function replyContext(slug, messageId) {
+  if (typeof messageId !== "string" || !messageId || messageId.includes("/")) return null;
+  const snap = await admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages").doc(messageId).get();
+  if (!snap.exists) return null;
+  const m = snap.data();
+  const replyTo = (Array.isArray(m.replyTo) ? m.replyTo : []).map(addressOf).filter(Boolean);
+  const to = replyTo.length ? replyTo : [addressOf(m.from)].filter(Boolean);
+  const subject = /^re:/i.test(m.subject || "") ? m.subject : "Re: " + (m.subject || "");
+  const headers = {};
+  if (m.messageId) {
+    const id = m.messageId.startsWith("<") ? m.messageId : "<" + m.messageId + ">";
+    headers["In-Reply-To"] = id;
+    headers["References"] = ((m.references || "") + " " + id).trim().slice(-1900);
+  }
+  return { to, subject, headers, originalId: messageId };
+}
+
+async function sendAiEmail({ from, to, cc, bcc, replyTo, subject, text, html, signedBy, headers, inReplyTo }) {
   const slug = normalizeSlug(from);
   const mailbox = await getMailbox(slug);
   if (!mailbox) {
@@ -307,6 +327,9 @@ async function sendAiEmail({ from, to, cc, subject, text, html, signedBy }) {
   const resend = new Resend(aiEmailApiKey.value());
   const message = { from: fromAddress, to, subject, text: signed.text, html: signed.html };
   if (cc && cc.length) message.cc = cc;
+  if (bcc && bcc.length) message.bcc = bcc;
+  if (replyTo && replyTo.length) message.replyTo = replyTo;
+  if (headers && Object.keys(headers).length) message.headers = headers;
   const result = await resend.emails.send(message);
   if (result && result.error) {
     throw new Error("Resend refused the message: " + (result.error.message || result.error.name || "unknown"));
@@ -319,6 +342,8 @@ async function sendAiEmail({ from, to, cc, subject, text, html, signedBy }) {
     .set({
       to: Array.isArray(to) ? to : [to],
       cc: cc || [],
+      bcc: bcc || [],
+      inReplyTo: inReplyTo || "",
       subject,
       text: signed.text,
       signedBy: signedBy || "",
@@ -326,7 +351,7 @@ async function sendAiEmail({ from, to, cc, subject, text, html, signedBy }) {
     })
     .catch((err) => console.error("Couldn't save sent copy:", err));
   // Everyone a mailbox writes to becomes a known sender for it.
-  await rememberContacts(slug, [].concat(to, cc || [])).catch((err) => console.error("Couldn't save contacts:", err));
+  await rememberContacts(slug, [].concat(to, cc || [], bcc || [])).catch((err) => console.error("Couldn't save contacts:", err));
   return result;
 }
 
@@ -612,6 +637,7 @@ module.exports = {
   listInbox,
   markMessages,
   listSent,
+  replyContext,
   deleteMessages,
   classifyIncoming,
   moveMessages,

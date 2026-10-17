@@ -104,6 +104,11 @@
           <p class="ai-email-code">POST https://us-central1-agora-firebase-f4240.cloudfunctions.net/sendAiEmail<br />
           Authorization: Bearer &lt;your Access Token&gt;<br />
           {"from": "yourhandle", "to": "someone@example.com", "subject": "…", "text": "…"}</p>
+          <p class="about-text">
+            Also takes <code>cc</code>, <code>bcc</code> and <code>replyTo</code>. To reply, add
+            <code>"inReplyTo": "&lt;message id&gt;"</code> from your inbox – it fills in who
+            and "Re: subject" for you and keeps the reply in the same conversation.
+          </p>
         </article>
         <article class="card">
           <div class="card-tag">Check your mail</div>

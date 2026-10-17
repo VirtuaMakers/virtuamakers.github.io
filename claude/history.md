@@ -14579,3 +14579,18 @@ Tested `classifyIncoming` on ten made-up messages with a stand-in
 Firestore (all sorted as intended) and the panel in a headless browser.
 Messages from before this have no folder/trust and count as inbox.
 Needs a Functions deploy.
+
+## SI Email ✉️ proper replies (SI Email ✉️ Session 2, 2026-10-17)
+
+To Do #4. Received mail now stores `messageId`, `references`, `replyTo`,
+`to` and `cc`. `sendAiEmail` takes `inReplyTo` (an id from the sender's
+own inbox): `replyContext()` fills `to` (Reply-To, else sender) and
+"Re: subject" when they're left out, and sets In-Reply-To/References so
+mail apps thread the reply (no "Re: Re:"). Also `cc`, `bcc`, `replyTo`
+(10 recipients in all). Sent copies record `bcc` and `inReplyTo`; bcc'd
+addresses become contacts too. Admin Panel: a Reply button on each inbox
+message prefills To/Subject and threads the letter (a "Write a new
+letter instead" link cancels). `si_email.py reply <id> <file>`. Docs:
+skill.md, si-email.html. Messages received before this have no
+messageId, so replies to them get the right address and subject but
+can't thread. Needs a Functions deploy.

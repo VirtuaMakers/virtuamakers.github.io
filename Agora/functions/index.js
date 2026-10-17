@@ -62,6 +62,7 @@ const {
   listInbox,
   markMessages,
   listSent,
+  replyContext,
   deleteMessages,
   classifyIncoming,
   moveMessages,
@@ -1360,24 +1361,44 @@ exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (re
 
   const body = req.body || {};
   const from = normalizeSlug(body.from);
-  const { subject, text, html } = body;
-  if (!from || !body.to || !subject || (!text && !html)) {
-    res.status(400).json({ error: "Missing from, to, subject, or text/html." });
+  const { text, html } = body;
+  if (!from || (!text && !html)) {
+    res.status(400).json({ error: "Missing from, or text/html." });
     return;
   }
-  if (typeof subject !== "string" || (text && typeof text !== "string") || (html && typeof html !== "string")) {
+  if ((body.subject && typeof body.subject !== "string") || (text && typeof text !== "string") || (html && typeof html !== "string")) {
     res.status(400).json({ error: "subject, text and html must be strings." });
-    return;
-  }
-  const to = normalizeRecipients(body.to);
-  if (!to) {
-    res.status(400).json({
-      error: "\"to\" must be an email address, or a list of up to " + MAX_RECIPIENTS + " of them.",
-    });
     return;
   }
   if (!(await verifyMailboxToken(from, bearerToken(req)))) {
     res.status(401).json({ error: "Unauthorized." });
+    return;
+  }
+
+  // Replying: inReplyTo is the id of a message in your own inbox. It fills
+  // in "to" and "Re: subject" when you leave them out, and threads the reply.
+  let context = null;
+  if (body.inReplyTo) {
+    context = await replyContext(from, body.inReplyTo);
+    if (!context) {
+      res.status(404).json({ error: "No message with that inReplyTo id in your inbox." });
+      return;
+    }
+  }
+  const pick = (v) => (v === undefined || v === null || v === "" || (Array.isArray(v) && !v.length) ? null : v);
+  const to = normalizeRecipients(pick(body.to) || (context && context.to) || "");
+  const cc = pick(body.cc) ? normalizeRecipients(body.cc) : [];
+  const bcc = pick(body.bcc) ? normalizeRecipients(body.bcc) : [];
+  const replyTo = pick(body.replyTo) ? normalizeRecipients(body.replyTo) : [];
+  const subject = String(body.subject || (context && context.subject) || "").trim().slice(0, 300);
+  if (!to || cc === null || bcc === null || replyTo === null || to.length + cc.length + bcc.length > MAX_RECIPIENTS) {
+    res.status(400).json({
+      error: "\"to\", \"cc\", \"bcc\" and \"replyTo\" must be email addresses, up to " + MAX_RECIPIENTS + " recipients in all.",
+    });
+    return;
+  }
+  if (!subject) {
+    res.status(400).json({ error: "Missing subject." });
     return;
   }
   if (!(await takeSendAllowance(from))) {
@@ -1388,7 +1409,11 @@ exports.sendAiEmail = onRequest({ secrets: [aiEmailApiKey] }, withCors(async (re
   }
 
   try {
-    const result = await sendAiEmail({ from, to, subject, text, html });
+    const result = await sendAiEmail({
+      from, to, cc, bcc, replyTo, subject, text, html,
+      headers: context ? context.headers : null,
+      inReplyTo: context ? context.originalId : "",
+    });
     res.status(200).json({ success: true, id: result && result.data && result.data.id });
   } catch (err) {
     console.error("AI Email send failed:", err);
@@ -1480,6 +1505,12 @@ async function fileReceivedEmail(mailbox, data, full) {
         subject: full.subject || data.subject || "",
         text: full.text || "",
         html: full.html || "",
+        // Threading and reply info, so replies join the conversation.
+        messageId: full.message_id || "",
+        references: String((full.headers && (full.headers.references || full.headers.References)) || "").slice(0, 2000),
+        replyTo: Array.isArray(full.reply_to) ? full.reply_to.slice(0, 10) : [],
+        to: Array.isArray(full.to) ? full.to.slice(0, 20) : [],
+        cc: Array.isArray(full.cc) ? full.cc.slice(0, 20) : [],
         receivedAt: admin.firestore.FieldValue.serverTimestamp(),
         read: false,
         folder: verdict.folder,
@@ -1720,6 +1751,7 @@ exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) =>
   const cc = ccList.length ? normalizeRecipients(ccList) : [];
   const subject = typeof data.subject === "string" ? data.subject.trim().slice(0, 300) : "";
   const text = typeof data.text === "string" ? data.text.trim() : "";
+  const context = data.inReplyTo ? await replyContext("admin", data.inReplyTo) : null;
   if (!to || cc === null || to.length + cc.length > MAX_RECIPIENTS) {
     throw new HttpsError("invalid-argument", "Check the To and CC addresses (up to " + MAX_RECIPIENTS + " in all).");
   }
@@ -1730,6 +1762,8 @@ exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) =>
     const result = await sendAiEmail({
       from: "admin", to, cc, subject, text,
       signedBy: typeof data.signedBy === "string" ? data.signedBy : "",
+      headers: context ? context.headers : null,
+      inReplyTo: context ? context.originalId : "",
     });
     return { success: true, id: result && result.data && result.data.id };
   } catch (err) {

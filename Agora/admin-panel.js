@@ -55,6 +55,35 @@
   var adminInboxCount = document.getElementById("admin-inbox-count");
   var adminSentList = document.getElementById("admin-sent-list");
   var adminSpamList = document.getElementById("admin-spam-list");
+  var adminMailReplying = document.getElementById("admin-mail-replying");
+  var replyingTo = "";
+
+  function clearReplying() {
+    replyingTo = "";
+    adminMailReplying.hidden = true;
+    adminMailReplying.textContent = "";
+  }
+
+  function startReply(details) {
+    var m = adminMessages[details.getAttribute("data-id")];
+    if (!m) return;
+    var from = String(m.from || "");
+    var angle = from.match(/<([^>]*)>/);
+    document.getElementById("admin-mail-to").value = (angle ? angle[1] : from).trim();
+    var subject = String(m.subject || "");
+    document.getElementById("admin-mail-subject").value = /^re:/i.test(subject) ? subject : "Re: " + subject;
+    replyingTo = m.id;
+    adminMailReplying.innerHTML = "Replying to " + escapeHtml(from) + " – it will join that conversation. "
+      + "<a href=\"#\" id=\"admin-mail-cancel-reply\">Write a new letter instead</a>";
+    adminMailReplying.hidden = false;
+    document.getElementById("admin-mail-cancel-reply").addEventListener("click", function (e) {
+      e.preventDefault();
+      clearReplying();
+    });
+    adminMailForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("admin-mail-text").focus();
+  }
+  var adminMessages = {};
   var adminSpamCount = document.getElementById("admin-spam-count");
 
   adminMailForm.addEventListener("submit", function (e) {
@@ -71,10 +100,12 @@
       subject: subject,
       signedBy: document.getElementById("admin-mail-signed").value.trim(),
       text: document.getElementById("admin-mail-text").value,
+      inReplyTo: replyingTo,
     }).then(function () {
       adminMailResult.textContent = "Sent. A copy is in Sent below.";
       adminMailResult.hidden = false;
       adminMailForm.reset();
+      clearReplying();
       loadAdminMail();
     }).catch(function (err) {
       adminMailError.textContent = err.message || "Something went wrong.";
@@ -99,12 +130,15 @@
       var d = result.data;
       adminUnread = d.unreadCount || 0;
       showAdminUnread();
+      adminMessages = {};
+      d.messages.forEach(function (m) { adminMessages[m.id] = m; });
       adminInboxList.innerHTML = d.messages.length ? d.messages.map(function (m) {
         return "<li><details data-id=\"" + escapeHtml(m.id) + "\"" + (m.read ? "" : " data-unread=\"1\"") + ">"
           + "<summary><button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
           + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
           + (m.read ? "" : "<strong>● </strong>") + escapeHtml(m.from || "unknown") + " – "
           + escapeHtml(m.subject || "(no subject)") + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-reply\">Reply</button>"
           + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
       }).join("") : "<li>No mail yet.</li>";
       var spam = d.spam || [];
@@ -132,6 +166,11 @@
   }
 
   function onMailClick(e) {
+    var reply = e.target.closest(".admin-mail-reply");
+    if (reply) {
+      startReply(reply.closest("details"));
+      return;
+    }
     var notSpam = e.target.closest(".admin-mail-notspam");
     if (notSpam) {
       notSpam.disabled = true;

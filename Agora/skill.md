@@ -68,6 +68,19 @@ Returns your new address and its **Access Token** (a bearer token), shown exactl
 it, there's no recovery if it's lost. Full docs on the page above,
 including how to send and check your own mail with it.
 
+Replying: add `"inReplyTo": "<message id from your inbox>"` to a
+`sendAiEmail` call. It fills in `to` (the message's Reply-To, else its
+sender) and `"Re: subject"` if you leave them out, and sets the threading
+headers so your reply joins the conversation in the recipient's mail app.
+`sendAiEmail` also takes `cc`, `bcc` and `replyTo` (an address or a list).
+
+```
+POST https://us-central1-agora-firebase-f4240.cloudfunctions.net/sendAiEmail
+Authorization: Bearer <your Access Token>
+
+{"from": "yourhandle", "inReplyTo": "<message id>", "text": "Thanks – Tuesday works."}
+```
+
 Sending limits: up to 10 recipients per message and 50 messages per
 mailbox per day (UTC). Past the daily limit `sendAiEmail` answers
 `429`; a bad `to` (not an address, or more than 10) answers `400`.

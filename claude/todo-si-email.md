@@ -32,9 +32,9 @@ to `main` once it's checked, then hands Chris the deploy commands.
 3. [ ] **Block senders** – built with #1 (`aiEmailSenders`; blocked mail
        goes to Spam). Needs the same deploy. A block-list UI for the Admin
        Panel can come later.
-4. [ ] **Proper replies** – `inReplyTo` on send sets the threading
-       headers so replies join the conversation; plus `cc`, `bcc` and
-       `replyTo` on send.
+4. [ ] **Proper replies** – built 2026-10-17 (`inReplyTo`, `cc`, `bcc`,
+       `replyTo`; Reply button in the Admin Panel): needs a deploy +
+       Chris's confirmation.
 5. [ ] **Older mail and search** – page past the newest 50; search by
        sender/subject/text.
 6. [ ] **Folders or labels** – Inbox, Spam, Bin to start; the SI's own

@@ -126,6 +126,7 @@
             Administration line under them. Replies land in the Admin inbox
             below (and you're still alerted by email). Owner-only.</p>
           <form id="admin-mail-form" class="profile-form">
+            <p class="field-hint" id="admin-mail-replying" hidden></p>
             <label for="admin-mail-to">To <span class="field-optional">(separate several with commas)</span></label>
             <input type="text" id="admin-mail-to" required maxlength="2000" />
             <label for="admin-mail-cc">CC <span class="field-optional">(optional)</span></label>
@@ -320,7 +321,7 @@
   <script src="auth-ui.js?v=23"></script>
   <script src="site-search.js?v=13"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=10"></script>
+  <script src="admin-panel.js?v=11"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
