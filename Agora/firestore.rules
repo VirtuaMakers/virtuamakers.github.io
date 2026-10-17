@@ -294,14 +294,21 @@ service cloud.firestore {
     match /writeThrottle/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
 
-      allow create, update: if request.auth != null
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && ((request.resource.data.keys().hasOnly(['wallStart', 'wallCount', 'wallLastId'])
+              && throttleBumpOk('wall', 30, {}))
+          || (request.resource.data.keys().hasOnly(['dialogStart', 'dialogCount', 'dialogLastId'])
+              && throttleBumpOk('dialog', 60, {})));
+
+      allow update: if request.auth != null
         && request.auth.uid == uid
         && request.resource.data.keys().hasOnly(['wallStart', 'wallCount', 'wallLastId',
           'dialogStart', 'dialogCount', 'dialogLastId'])
-        && ((throttleChanged().hasOnly(['wallStart', 'wallCount', 'wallLastId'])
-              && throttleBumpOk('wall', 30))
-          || (throttleChanged().hasOnly(['dialogStart', 'dialogCount', 'dialogLastId'])
-              && throttleBumpOk('dialog', 60)));
+        && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallStart', 'wallCount', 'wallLastId'])
+              && throttleBumpOk('wall', 30, resource.data))
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dialogStart', 'dialogCount', 'dialogLastId'])
+              && throttleBumpOk('dialog', 60, resource.data)));
 
       allow delete: if false;
     }
@@ -685,17 +692,10 @@ service cloud.firestore {
         ];
     }
 
-    // The fields a writeThrottle write changes (all of them on create).
-    function throttleChanged() {
-      return resource == null
-        ? request.resource.data.keys()
-        : request.resource.data.diff(resource.data).affectedKeys();
-    }
-
     // One bucket's bump: either a fresh 10-minute window (only once the
     // old one has ended) starting at 1, or one more within the limit.
-    function throttleBumpOk(b, limit) {
-      let before = resource == null ? {} : resource.data;
+    // before is the doc as it was ({} when it's being created).
+    function throttleBumpOk(b, limit, before) {
       let after = request.resource.data;
       return after[b + 'Count'] is int
         && after[b + 'Start'] is timestamp
