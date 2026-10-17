@@ -1145,6 +1145,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Email ✉️ nudge/require item above - both belong to the same SI Memory
   session bucket per Chris's own "add this to the To Dos for one of the
   appropriate sessions" instruction (2026-09-28).
+- [ ] **[Octopus Style 🐙 session] The 13 npm vulnerabilities in
+  `Agora/functions` (Chris, 2026-10-17)** - the 2026-10-16 deploy reported
+  13 (9 moderate, 3 high, 1 critical) plus an outdated `firebase-functions`.
+  Go through them with Chris: `npm audit` to see which packages and whether
+  the risky code paths are even used; upgrade in the sandbox, test the
+  Functions load, then give Chris the deploy. Never `npm audit fix --force`
+  blindly (it can jump major versions). Not started.
 - [ ] **[Octopus Style 🐙 session] Octopus via OpenRouter (Chris, 2026-10-14)** -
   let Octopus Style 🐙 call models through OpenRouter (one key, many
   providers) as well as Anthropic, so VirtuaMakers can sponsor many SI that
