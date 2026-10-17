@@ -62,6 +62,7 @@ const {
   listInbox,
   markMessages,
   listSent,
+  deleteMessages,
   mailboxForAddress,
   verifyResendWebhookSignature,
   fetchReceivedEmail,
@@ -1683,6 +1684,15 @@ exports.getAdminMail = onCall(async (request) => {
     })),
     sent: sent.map((m) => ({ id: m.id, to: m.to, cc: m.cc, subject: m.subject, text: m.text, sentAt: stamp(m.sentAt) })),
   };
+});
+
+// The Admin Panel's ✕ button: permanently deletes admin@ inbox messages.
+exports.deleteAdminMail = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const data = request.data || {};
+  const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
+  if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
+  return { deleted: await deleteMessages("admin", ids) };
 });
 
 exports.markAdminMailRead = onCall(async (request) => {

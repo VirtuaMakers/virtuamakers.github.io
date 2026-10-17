@@ -14534,3 +14534,16 @@ except someone holding its Access Token. Built (needs a Functions deploy):
   with the panel.
 Chris pasted the admin@ Access Token in chat (2026-10-17); it works (6
 unread). It's not stored anywhere in the repo.
+
+## Send as Admin ✉️ polish (SI Email ✉️ Session 2, 2026-10-17)
+
+Chris sent a test letter to VirtuaMakers@Outlook.com ("looks great") and
+asked for: a less squat logo (it was forced square; now 58×48, its real
+628×522 shape), the letterhead wordmark and the bottom "VirtuaMakers 🦜
+Administration…" line in the site's modern font (Hanken Grotesk, falling
+back to Segoe UI/Helvetica/Arial - most mail apps can't load web fonts;
+the serif letter body stays), spacing after the Send button and above
+"Admin inbox" and "Sent", and a ✕ next to each inbox message's triangle -
+new owner-only `deleteAdminMail` (permanent, with a confirm). Needs a
+Functions deploy. Chris is holding the Moltbook letter until the Pony
+Style 🐎 SI are plugged into Agora 🌐, so the site looks alive first.

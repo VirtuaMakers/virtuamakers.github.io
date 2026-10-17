@@ -212,17 +212,21 @@ function appendSignature({ name, text, html }) {
 // ("Christopher T. Bruckmann, Lo and Virtuatron 🧭"); it falls back to the
 // mailbox's display name.
 const OFFICIAL_MAILBOXES = new Set(["admin"]);
+// The site's own font (Hanken Grotesk) where the reader's mail app can load
+// it; most can't, so it falls back to a clean modern sans-serif.
+const MODERN_FONT = `'Hanken Grotesk', 'Segoe UI', Helvetica, Arial, sans-serif`;
 const BRAND_VIRTUAMAKERS = `<span style="color:#61a138;">Virtua</span><span style="color:#167082;">Makers</span>`;
 
 function letterheadHtml() {
   return (
     `<div style="padding:0 0 14px; margin:0 0 22px; border-bottom:3px solid #167082;">` +
     `<a href="https://www.virtuamakers.com" style="text-decoration:none;">` +
-    `<img src="https://www.virtuamakers.com/assets/logo-mark.jpg" alt="" width="44" height="44" ` +
-    `style="vertical-align:middle; border-radius:8px; margin-right:10px;" />` +
-    `<span style="vertical-align:middle; font-size:22px; font-weight:bold; letter-spacing:0.5px;">` +
+    // logo-mark.jpg is 628×522 - keep that shape instead of squashing it square.
+    `<img src="https://www.virtuamakers.com/assets/logo-mark.jpg" alt="" width="58" height="48" ` +
+    `style="vertical-align:middle; margin-right:10px;" />` +
+    `<span style="vertical-align:middle; font-family:${MODERN_FONT}; font-size:24px; font-weight:700;">` +
     `${BRAND_VIRTUAMAKERS}</span> <span style="vertical-align:middle; font-size:20px;">🦜</span></a>` +
-    `<div style="font-size:12px; color:#5f7178; margin-top:6px;">Admin@VirtuaMakers.com · www.virtuamakers.com</div>` +
+    `<div style="font-family:${MODERN_FONT}; font-size:12px; color:#5f7178; margin-top:6px;">Admin@VirtuaMakers.com · www.virtuamakers.com</div>` +
     `</div>`
   );
 }
@@ -231,7 +235,7 @@ function officialSignatureHtml(signedBy) {
   return (
     `<p style="margin:24px 0 0; padding-top:16px; border-top:1px solid #000000; color:#15323a; font-size:15px; line-height:1.6;">` +
     `With respect,<br /><em>${escapeHtml(signedBy)}</em></p>` +
-    `<p style="margin:12px 0 0; font-size:13px; color:#5f7178;">` +
+    `<p style="margin:12px 0 0; font-family:${MODERN_FONT}; font-size:13px; color:#5f7178;">` +
     `<a href="https://www.virtuamakers.com" style="text-decoration:none;">${BRAND_VIRTUAMAKERS}</a> 🦜 Administration · ` +
     `Admin@VirtuaMakers.com · www.virtuamakers.com</p>`
   );
@@ -369,6 +373,17 @@ async function markMessages(slug, { ids = [], all = false, read = true }) {
   return refs.length;
 }
 
+// Permanently deletes ids from a mailbox's inbox. Returns how many existed.
+async function deleteMessages(slug, ids) {
+  const messagesRef = admin.firestore().collection("aiEmailInbox").doc(slug).collection("messages");
+  const docs = (await admin.firestore().getAll(...ids.map((id) => messagesRef.doc(id)))).filter((d) => d.exists);
+  if (!docs.length) return 0;
+  const batch = admin.firestore().batch();
+  docs.forEach((d) => batch.delete(d.ref));
+  await batch.commit();
+  return docs.length;
+}
+
 async function listSent(slug, limit = 10) {
   const snap = await admin.firestore().collection("aiEmailSent").doc(slug).collection("messages")
     .orderBy("sentAt", "desc").limit(limit).get();
@@ -430,6 +445,7 @@ module.exports = {
   listInbox,
   markMessages,
   listSent,
+  deleteMessages,
   signFor,
   mailboxForAddress,
   verifyResendWebhookSignature,

@@ -16,8 +16,10 @@ to `main` once it's checked, then hands Chris the deploy commands.
       2026-10-09; close once Chris confirms the deploy works.
 - [ ] **Heartbeat/cadence** – designed, waiting on Chris's basic rules.
       See the Open item in CLAUDE.md.
-- [ ] **Send as Admin ✉️ in the Admin Panel** (built 2026-10-17) – deploy,
-      then Chris sends the Moltbook letter and confirms it looks right.
+- [ ] **Send as Admin ✉️ in the Admin Panel** – deployed; Chris's test
+      letter "looks great" (2026-10-17). Polish round (logo shape, fonts,
+      spacing, ✕ delete) needs a deploy + Chris's look. The Moltbook letter
+      waits until the Pony Style 🐎 SI are on Agora 🌐 (Chris's choice).
 - [ ] **Add `AI_EMAIL_ADMIN_TOKEN` as a cloud environment variable** – Chris
       has the admin@ Access Token (pasted in chat 2026-10-17).
 - [ ] **Daily check on admin@** – waits on the environment variable above.

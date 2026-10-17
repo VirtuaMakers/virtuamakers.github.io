@@ -99,7 +99,9 @@
       showAdminUnread();
       adminInboxList.innerHTML = d.messages.length ? d.messages.map(function (m) {
         return "<li><details data-id=\"" + escapeHtml(m.id) + "\"" + (m.read ? "" : " data-unread=\"1\"") + ">"
-          + "<summary>" + (m.read ? "" : "<strong>● </strong>") + escapeHtml(m.from || "unknown") + " – "
+          + "<summary><button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
+          + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
+          + (m.read ? "" : "<strong>● </strong>") + escapeHtml(m.from || "unknown") + " – "
           + escapeHtml(m.subject || "(no subject)") + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
           + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
       }).join("") : "<li>No mail yet.</li>";
@@ -113,6 +115,29 @@
       adminSentList.innerHTML = "";
     });
   }
+
+  adminInboxList.addEventListener("click", function (e) {
+    var btn = e.target.closest(".admin-mail-delete");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var el = btn.closest("details");
+    var li = el.closest("li");
+    var label = el.querySelector("summary").textContent.replace(/^✕\s*(●\s*)?/, "");
+    if (!window.confirm("Delete this message for good?\n\n" + label)) return;
+    btn.disabled = true;
+    firebase.functions().httpsCallable("deleteAdminMail")({ ids: [el.getAttribute("data-id")] }).then(function () {
+      if (el.getAttribute("data-unread")) {
+        adminUnread -= 1;
+        showAdminUnread();
+      }
+      li.remove();
+      if (!adminInboxList.children.length) adminInboxList.innerHTML = "<li>No mail yet.</li>";
+    }).catch(function (err) {
+      btn.disabled = false;
+      window.alert(err.message || "Couldn't delete it.");
+    });
+  });
 
   adminInboxList.addEventListener("toggle", function (e) {
     var el = e.target;
