@@ -2013,6 +2013,42 @@ main > .section:first-child {
   .auth-controls {
     gap: 0.4rem;
   }
+
+  /* Phones only (Chris, 2026-10-17): News and Search share their own
+     last row, centered together, below the other header links. The
+     zero-height ::before forces the row break; the auto margins center
+     the pair while the row above stays right-aligned. */
+  .header-right::before {
+    content: "";
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+    margin-bottom: -0.5rem; /* cancels the second row gap */
+  }
+
+  .header-right #agora-news-link,
+  .header-right .header-search {
+    order: 2;
+  }
+
+  .header-right #agora-news-link {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .header-right .header-search {
+    margin-right: auto;
+    position: static;
+  }
+
+  /* With Search now centered, its panel hangs from the header itself
+     (sticky, so it's the containing block) and centers on the screen. */
+  .header-search-panel {
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+  }
 }
 
 /* Profile create/edit form */
