@@ -675,6 +675,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   calendar sync was never started. It needs Chris to register his own
   OAuth apps (Google Cloud console, Microsoft Entra) and give the session
   the client IDs; the session then builds the sign-in flow and the sync.
+- [ ] **[Calendar 🗓️ session] Holidays observed by VirtuaMakers 🦜 (Chris,
+  2026-10-17)** - show the holidays VirtuaMakers observes in Calendar 🗓️.
+  The first of several additions Chris has in mind for Calendar
+  (Calendar 🗓️ Session 2). Which holidays isn't decided - work it out with
+  Chris (`index.html`'s Business Culture section mentions floating
+  holidays). Not designed.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** To become one system with the Octopus Style 🐙 session's
   "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the
