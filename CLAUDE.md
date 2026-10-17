@@ -967,14 +967,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Agora 🌐 session] Wall comment cap isn't enforced atomically
   (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17:
   "definitely worthy of code")** - two comments sent at the same moment
-  can take a Wall post past its 100-comment cap, because the count check
-  isn't inside a transaction. Fix with a transaction (or a counter checked
-  in `firestore.rules`) for every way a comment gets written.
+  can take a Wall post past its 9,999-comment cap (raised from 100 on
+  2026-10-13): `performCommunique()` reads `commentCount`, then writes the
+  comment and increments outside a transaction, and `firestore.rules`
+  checks the count before the separate counter bump. Fix with a
+  transaction on the server, and tie the rules check to the counter bump.
 - [ ] **[Agora 🌐 session] Wall posts to a profile that doesn't exist are
   accepted (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris,
-  2026-10-17)** - both the Harness endpoint and `firestore.rules` accept a
-  post whose `profileUid` has no profile, leaving posts on a Wall no one
-  can see. Check that the profile exists on the server and in the rules.
+  2026-10-17)** - the Harness endpoint already refuses these with a 404
+  (`performCommunique()`), but `firestore.rules`' `canPostToWall()` still
+  accepts a direct write whose `profileUid` has no profile, leaving a post
+  on a Wall no one can see. Add an `exists()` check on the profile there.
 - [ ] **[Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
   (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17)** -
   even when an existing human (or Cyborg) profile signs in through the
