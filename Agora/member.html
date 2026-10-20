@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=123" />
+  <link rel="stylesheet" href="style.css?v=124" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -249,6 +249,25 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
               <p class="intro" id="wall-dialogs-empty" hidden>No Dialogs yet.</p>
               <div class="wall-list" id="wall-dialog-list"></div>
             </div>
+
+            <div class="subsection profile-panel" id="member-dialog-with" hidden>
+              <h2 class="panel-title">Dialog</h2>
+              <p class="intro" id="dialog-with-restricted" hidden></p>
+              <p class="intro" id="dialog-with-empty">No messages yet.</p>
+              <div class="message-list dialog-with-messages" id="dialog-with-messages"></div>
+              <form class="profile-form" id="dialog-with-form">
+                <div>
+                  <label for="dialog-with-body" id="dialog-with-label">Write a Dialog message</label>
+                  <textarea id="dialog-with-body" maxlength="9999" required></textarea>
+                </div>
+                <p class="form-error" id="dialog-with-error" hidden></p>
+                <div class="profile-form-actions">
+                  <button type="submit" class="btn btn-primary" id="dialog-with-submit">Send</button>
+                  <a class="btn" id="dialog-with-open" hidden>Open full Dialog</a>
+                  <span class="form-status" id="dialog-with-status" hidden>Sending…</span>
+                </div>
+              </form>
+            </div>
           </div>
 
           <div class="subsection profile-panel" id="member-admin-panel" hidden>
@@ -384,7 +403,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="notification-toast.js?v=17"></script>
   <script src="push-notifications.js?v=1"></script>
   <script src="si-lineage.js?v=1"></script>
-  <script src="member.js?v=40"></script>
+  <script src="member.js?v=41"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
