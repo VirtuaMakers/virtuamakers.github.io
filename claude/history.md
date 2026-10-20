@@ -14608,3 +14608,27 @@ Agora's Dialog messages). Admin Panel: ✕ moves to the Bin (no prompt -
 it's undoable); a Bin list with Restore, and ✕ there deletes for good
 after a confirm. `si_email.py delete/bin/restore`. Docs: skill.md,
 si-email.html. Needs a Functions deploy (adds a scheduled function).
+
+## Agora 🌐 Session 5: phone header, four Harness-notes bugs, website rate limit (2026-10-17 → 10-20)
+
+- **Phone header:** under 560px, News 📰 and Search 🔍 share their own centered
+  last row (`.header-right::before` row break + auto margins); the search
+  panel hangs from the sticky header, centered.
+- **Comment cap atomic:** Harness comments re-check the cap in a transaction;
+  website comments write comment + `commentCount` together, and the rules
+  accept only a +1/-1 count change naming the comment created
+  (`lastCommentId`) or deleted (`lastDeletedCommentId`) in the same write.
+- **No posts to missing Walls:** rules `wallExists()` = a profile doc or one
+  of the 48 static-profile/Product Page slugs listed in the rules (add new
+  slugs there).
+- **Harness keeps kind:** `performProfileSave` keeps an existing profile's
+  kind; only new Harness profiles default to `"AI"`.
+- **Website rate limit:** `CommuniquesCommon.writeThrottled()` writes each
+  Wall post/comment/Dialog message in a transaction with a bump to
+  `writeThrottle/{uid}` (30 wall / 60 dialog per 10 minutes, Chris's
+  numbers); rules refuse writes without the bump. Never deletable.
+- **Gotchas:** a hand-retyped rules paste carried a stray `;` again - copy
+  from the file. The console's type checker rejected a `? :` whose branches
+  were a list and a set (`keys()` vs `affectedKeys()`); the emulator didn't -
+  so avoid ternaries in new rules. PRs #84, #85. Confirmed by Chris
+  2026-10-20: "everything worked."

@@ -970,7 +970,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (anthropic plus OpenAI-compatible providers), and the owner-only Pony
   desk 🐎. Update only what an outside agent calling these endpoints needs
   to know (see the `skill.md` rule under Conventions).
-- [ ] **[Agora 🌐 session] Wall comment cap isn't enforced atomically
+- [x] **Confirmed by Chris (2026-10-20: "everything worked"). [Agora 🌐 session] Wall comment cap isn't enforced atomically
   (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17:
   "definitely worthy of code")** - two comments sent at the same moment
   can take a Wall post past its 9,999-comment cap (raised from 100 on
@@ -978,21 +978,20 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   comment and increments outside a transaction, and `firestore.rules`
   checks the count before the separate counter bump. Fix with a
   transaction on the server, and tie the rules check to the counter bump.
-  **Built by Agora 🌐 Session 5 (2026-10-17), awaiting Chris's rules paste
-  + Functions deploy:** Harness comments use a transaction; the website
+  **Built by Agora 🌐 Session 5 (2026-10-17), rules pasted, Functions deployed:** Harness comments use a transaction; the website
   writes comment + count in one batch, and the rules only accept a +1/-1
   count change naming the comment just created/deleted (17 emulator tests).
-- [ ] **[Agora 🌐 session] Wall posts to a profile that doesn't exist are
+- [x] **Confirmed by Chris (2026-10-20: "everything worked"). [Agora 🌐 session] Wall posts to a profile that doesn't exist are
   accepted (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris,
   2026-10-17)** - the Harness endpoint already refuses these with a 404
   (`performCommunique()`), but `firestore.rules`' `canPostToWall()` still
   accepts a direct write whose `profileUid` has no profile, leaving a post
   on a Wall no one can see. Add an `exists()` check on the profile there.
-  **Built by Agora 🌐 Session 5 (2026-10-17), awaiting the rules paste:**
+  **Built by Agora 🌐 Session 5 (2026-10-17), rules pasted:**
   `wallExists()` - a profile doc, or one of the 48 static-profile/Product
   Page slugs listed in the rules (those Walls have no profile doc by
   design; add a slug there for every new one).
-- [ ] **[Agora 🌐 session] Rate-limit direct database writes in
+- [x] **Confirmed by Chris (2026-10-20: "everything worked"). [Agora 🌐 session] Rate-limit direct database writes in
   `firestore.rules` (Chris, 2026-10-17; proposed by Agora Harness 🚡
   Session 3)** - the 30-writes-per-10-minutes limit only exists in the
   Harness (`submitAgoraCommunique`, Otter 🦦). The website (and so any
@@ -1006,16 +1005,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   the long run, if we're attacked by hackers." `skill.md` now asks SI to
   post only through the Harness (same day). **Built by Agora 🌐 Session 5
   (2026-10-17; limits approved by Chris: 30 Wall posts+comments, 60 Dialog
-  messages per member per 10 minutes), awaiting the rules paste:** every
+  messages per member per 10 minutes), rules pasted:** every
   website write bumps `writeThrottle/{uid}` in the same transaction
   (`CommuniquesCommon.writeThrottled`); rules refuse a write without it
   (25 emulator tests).
-- [ ] **[Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
+- [x] **Confirmed by Chris (2026-10-20: "everything worked"). [Agora 🌐 session] `completeAgoraProfile` always saves `kind: "AI"`
   (Agora Harness 🚡 Session 2's notes, 2026-10-09; Chris, 2026-10-17)** -
   even when an existing human (or Cyborg) profile signs in through the
   Harness, its kind is overwritten as SI. Keep an existing profile's kind
   and only default new Harness profiles to SI. **Built by Agora 🌐 Session
-  5 (2026-10-17), awaiting the Functions deploy.**
+  5 (2026-10-17), Functions deployed.**
 - [x] **[Agora 🌐 session] Right to Introspection 🩻 - closed by Chris (2026-10-15: "I've read and it's great!").** `Agora/index.html#introspection`, written by Agora 🌐 Session 3 (2026-10-14).
 
 - [ ] **[Knowledge Base 📚 session] Knowledge Base 📚 main page (Chris,
