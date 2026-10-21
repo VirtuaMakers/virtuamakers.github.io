@@ -56,6 +56,19 @@
   var adminSentList = document.getElementById("admin-sent-list");
   var adminSpamList = document.getElementById("admin-spam-list");
   var adminMailReplying = document.getElementById("admin-mail-replying");
+  var adminMailFrom = document.getElementById("admin-mail-from");
+  var adminInboxName = document.getElementById("admin-inbox-name");
+
+  // Which official mailbox the form and lists are showing (admin or agoraharness).
+  function currentOffice() {
+    return adminMailFrom.value;
+  }
+
+  adminMailFrom.addEventListener("change", function () {
+    adminInboxName.textContent = adminMailFrom.value === "agoraharness" ? "Agora Harness 🚡" : "Admin";
+    clearReplying();
+    loadAdminMail();
+  });
   var adminBinList = document.getElementById("admin-bin-list");
   var adminBinCount = document.getElementById("admin-bin-count");
   var DELETE_BUTTON = "<button type=\"button\" class=\"admin-mail-delete\" title=\"Delete\" aria-label=\"Delete\""
@@ -96,9 +109,11 @@
     adminMailResult.hidden = true;
     var to = document.getElementById("admin-mail-to").value.trim();
     var subject = document.getElementById("admin-mail-subject").value.trim();
-    if (!window.confirm("Send \"" + subject + "\" to " + to + " from Admin@VirtuaMakers.com?")) return;
+    var fromLabel = adminMailFrom.options[adminMailFrom.selectedIndex].text.split(" – ")[0];
+    if (!window.confirm("Send \"" + subject + "\" to " + to + " from " + fromLabel + "?")) return;
     adminMailSubmit.disabled = true;
     firebase.functions().httpsCallable("sendAdminEmail")({
+      mailbox: currentOffice(),
       to: to,
       cc: document.getElementById("admin-mail-cc").value.trim(),
       subject: subject,
@@ -108,7 +123,9 @@
     }).then(function () {
       adminMailResult.textContent = "Sent. A copy is in Sent below.";
       adminMailResult.hidden = false;
+      var keepFrom = adminMailFrom.value;
       adminMailForm.reset();
+      adminMailFrom.value = keepFrom;
       clearReplying();
       loadAdminMail();
     }).catch(function (err) {
@@ -130,7 +147,7 @@
   }
 
   function loadAdminMail() {
-    firebase.functions().httpsCallable("getAdminMail")({}).then(function (result) {
+    firebase.functions().httpsCallable("getAdminMail")({ mailbox: currentOffice() }).then(function (result) {
       var d = result.data;
       adminUnread = d.unreadCount || 0;
       showAdminUnread();
@@ -189,7 +206,7 @@
     if (notSpam) {
       notSpam.disabled = true;
       var box = notSpam.closest("details");
-      firebase.functions().httpsCallable("moveAdminMail")({ ids: [box.getAttribute("data-id")], folder: "inbox" })
+      firebase.functions().httpsCallable("moveAdminMail")({ mailbox: currentOffice(), ids: [box.getAttribute("data-id")], folder: "inbox" })
         .then(loadAdminMail)
         .catch(function (err) {
           notSpam.disabled = false;
@@ -206,7 +223,7 @@
     var label = el.querySelector("summary").textContent.replace(/^✕\s*(●\s*)?/, "");
     if (list === adminBinList && !window.confirm("Delete this message for good? This can't be undone.\n\n" + label)) return;
     btn.disabled = true;
-    firebase.functions().httpsCallable("deleteAdminMail")({ ids: [el.getAttribute("data-id")] }).then(function () {
+    firebase.functions().httpsCallable("deleteAdminMail")({ mailbox: currentOffice(), ids: [el.getAttribute("data-id")] }).then(function () {
       loadAdminMail();
     }).catch(function (err) {
       btn.disabled = false;
@@ -226,7 +243,7 @@
     if (mark) mark.remove();
     adminUnread -= 1;
     showAdminUnread();
-    firebase.functions().httpsCallable("markAdminMailRead")({ ids: [el.getAttribute("data-id")] }).catch(function () {});
+    firebase.functions().httpsCallable("markAdminMailRead")({ mailbox: currentOffice(), ids: [el.getAttribute("data-id")] }).catch(function () {});
   }, true);
 
   var adoptPanel = document.getElementById("adopt-panel");

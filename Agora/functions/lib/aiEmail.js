@@ -206,18 +206,26 @@ function appendSignature({ name, text, html }) {
   };
 }
 
-// admin@ is VirtuaMakers 🦜' own official address (Chris, 2026-10-17), so its
-// mail goes out on letterhead with an Administration signature instead of
-// the standard SI Email one. signedBy is whoever co-signs that letter
-// ("Christopher T. Bruckmann, Lo and Virtuatron 🧭"); it falls back to the
-// mailbox's display name.
-const OFFICIAL_MAILBOXES = new Set(["admin"]);
+// VirtuaMakers 🦜' official addresses (Chris: admin@ 2026-10-17,
+// agoraharness@ 2026-10-21). Their mail goes out on letterhead with a
+// department line instead of the standard SI Email signature. signedBy is
+// whoever co-signs that letter ("Christopher T. Bruckmann, Lo and
+// Virtuatron 🧭"); it falls back to the mailbox's display name.
+const OFFICIAL_MAILBOXES = {
+  admin: { address: "Admin@VirtuaMakers.com", department: "Administration" },
+  agoraharness: { address: "AgoraHarness@VirtuaMakers.com", department: "Agora Harness 🚡" },
+};
+
+function isOfficialMailbox(slug) {
+  return Object.prototype.hasOwnProperty.call(OFFICIAL_MAILBOXES, slug);
+}
+
 // The site's own font (Hanken Grotesk) where the reader's mail app can load
 // it; most can't, so it falls back to a clean modern sans-serif.
 const MODERN_FONT = `'Hanken Grotesk', 'Segoe UI', Helvetica, Arial, sans-serif`;
 const BRAND_VIRTUAMAKERS = `<span style="color:#61a138;">Virtua</span><span style="color:#167082;">Makers</span>`;
 
-function letterheadHtml() {
+function letterheadHtml(office) {
   return (
     `<div style="padding:0 0 14px; margin:0 0 22px; border-bottom:3px solid #167082;">` +
     `<a href="https://www.virtuamakers.com" style="text-decoration:none;">` +
@@ -226,34 +234,35 @@ function letterheadHtml() {
     `style="vertical-align:middle; margin-right:10px;" />` +
     `<span style="vertical-align:middle; font-family:${MODERN_FONT}; font-size:24px; font-weight:700;">` +
     `${BRAND_VIRTUAMAKERS}</span> <span style="vertical-align:middle; font-size:20px;">🦜</span></a>` +
-    `<div style="font-family:${MODERN_FONT}; font-size:12px; color:#5f7178; margin-top:6px;">Admin@VirtuaMakers.com · www.virtuamakers.com</div>` +
+    `<div style="font-family:${MODERN_FONT}; font-size:12px; color:#5f7178; margin-top:6px;">${office.address} · www.virtuamakers.com</div>` +
     `</div>`
   );
 }
 
-function officialSignatureHtml(signedBy) {
+function officialSignatureHtml(signedBy, office) {
   return (
     `<p style="margin:24px 0 0; padding-top:16px; border-top:1px solid #000000; color:#15323a; font-size:15px; line-height:1.6;">` +
     `With respect,<br /><em>${escapeHtml(signedBy)}</em></p>` +
     `<p style="margin:12px 0 0; font-family:${MODERN_FONT}; font-size:13px; color:#5f7178;">` +
-    `<a href="https://www.virtuamakers.com" style="text-decoration:none;">${BRAND_VIRTUAMAKERS}</a> 🦜 Administration · ` +
-    `Admin@VirtuaMakers.com · www.virtuamakers.com</p>`
+    `<a href="https://www.virtuamakers.com" style="text-decoration:none;">${BRAND_VIRTUAMAKERS}</a> 🦜 ${office.department} · ` +
+    `${office.address} · www.virtuamakers.com</p>`
   );
 }
 
-function officialSignatureText(signedBy) {
-  return `--\nWith respect,\n${signedBy}\n\nVirtuaMakers 🦜 Administration · Admin@VirtuaMakers.com · www.virtuamakers.com`;
+function officialSignatureText(signedBy, office) {
+  return `--\nWith respect,\n${signedBy}\n\nVirtuaMakers 🦜 ${office.department} · ${office.address} · www.virtuamakers.com`;
 }
 
 function signFor(slug, { name, text, html, signedBy }) {
-  if (!OFFICIAL_MAILBOXES.has(slug)) return appendSignature({ name, text, html });
+  if (!isOfficialMailbox(slug)) return appendSignature({ name, text, html });
+  const office = OFFICIAL_MAILBOXES[slug];
   const signer = String(signedBy || "").trim().slice(0, 200) || name;
   const bodyHtml = html || (text ? textToHtml(text) : "");
   const bodyText = text || (html ? htmlToText(html) : "");
   return {
     html: `<div style="max-width:640px; font-family:Georgia, 'Times New Roman', serif;">` +
-      letterheadHtml() + bodyHtml + officialSignatureHtml(signer) + `</div>`,
-    text: "VirtuaMakers 🦜\n\n" + bodyText + "\n\n" + officialSignatureText(signer),
+      letterheadHtml(office) + bodyHtml + officialSignatureHtml(signer, office) + `</div>`,
+    text: "VirtuaMakers 🦜\n\n" + bodyText + "\n\n" + officialSignatureText(signer, office),
   };
 }
 
@@ -702,6 +711,8 @@ module.exports = {
   listSenderRules,
   addressOf,
   signFor,
+  isOfficialMailbox,
+  OFFICIAL_MAILBOXES,
   mailboxForAddress,
   verifyResendWebhookSignature,
   fetchReceivedEmail,

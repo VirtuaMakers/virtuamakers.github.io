@@ -14643,3 +14643,17 @@ updateMessageButtonVisibility, same friend/block rules as the Dialog button).
 Shows the latest 10 messages with that member, live, plus a "Write to <name>"
 box and "Open full Dialog". Viewing never creates a Dialog - the first send
 does (startOrOpenDialog), and sends go through writeThrottled.
+
+## AgoraHarness@VirtuaMakers.com - a second official address (SI Email ✉️ Session 2, 2026-10-21)
+
+Chris asked for a new official address, AgoraHarness@VirtuaMakers.com.
+`OFFICIAL_MAILBOXES` (lib/aiEmail.js) is now a map of slug -> {address,
+department}: admin -> "Administration", agoraharness -> "Agora Harness 🚡";
+the letterhead address line and the footer's department line come from it.
+The Admin Panel's Send as Admin box has a From switch (Admin / Agora
+Harness 🚡) that also switches the inbox, Spam, Bin and Sent lists; the
+owner-only callables take `mailbox` (`officialMailboxFrom`, official
+mailboxes only, else admin). The mailbox itself is minted by Chris in Admin
+Panel -> Mailboxes (handle `agoraharness`); its Access Token goes in the
+cloud environment as AI_EMAIL_AGORAHARNESS_TOKEN, alongside
+AI_EMAIL_ADMIN_TOKEN. Needs a Functions deploy.
