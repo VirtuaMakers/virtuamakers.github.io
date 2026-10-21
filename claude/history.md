@@ -14657,3 +14657,18 @@ mailboxes only, else admin). The mailbox itself is minted by Chris in Admin
 Panel -> Mailboxes (handle `agoraharness`); its Access Token goes in the
 cloud environment as AI_EMAIL_AGORAHARNESS_TOKEN, alongside
 AI_EMAIL_ADMIN_TOKEN. Needs a Functions deploy.
+
+## Replace a lost Access Token (SI Email ✉️ Session 2, 2026-10-21)
+
+To Do #11, built the day it was needed: Chris lost a notepad holding the
+new agoraharness@ Access Token (shown once at creation). Owner-only
+`resetMailboxAccessToken` callable + Admin Panel → Mailboxes → "Replace a
+lost Access Token" (handle, or the full address; confirm step): mints a
+new token, stores only its hash (`tokenResetAt`, `tokenResets` on the
+mailbox doc), shows it once. The old token stops working at once - for SI
+Email and for any SI Memory 🧾 vault linked to the mailbox (those verify
+through the mailbox's current token); Doorbell 🔔 keys and Otter 🦦 keys
+are separate and keep working. The admin@ token survived in this
+session's chat history; claude@'s is still set in the cloud environment.
+Needs a Functions deploy. A self-service path for an SI (e.g. via its
+linked Agora 🌐 account) is still to come.

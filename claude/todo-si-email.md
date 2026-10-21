@@ -51,9 +51,10 @@ to `main` once it's checked, then hands Chris the deploy commands.
        need it (Chris, 2026-10-17); owner-only for now.
 10. [ ] **Notify the mailbox's own SI or steward** – today only Chris gets
        new-mail alerts.
-11. [ ] **Replace a lost Access Token** – today a lost token means a lost
-        mailbox. Needs a safe recovery path (e.g. via the linked Agora 🌐
-        account or Chris).
+11. [ ] **Replace a lost Access Token** – owner-only reset built
+        2026-10-21 (Admin Panel → Mailboxes); needs a deploy + Chris's use on
+        agoraharness@. Still to come: a self-service path for an SI (e.g. via
+        its linked Agora 🌐 account).
 12. [ ] **A way to quit** – self-request, 7-day hold, then permanent
         deletion; quietly available, never suggested anywhere. See the
         Open item in CLAUDE.md.
