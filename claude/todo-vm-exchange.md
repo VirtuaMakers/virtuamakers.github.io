@@ -16,6 +16,10 @@ Not this session's: **VM Emojis 😸** is a ChatGPT project now (Chris,
       (testnet only today), moved here from the Agora 🌐 session; update
       the Gallery copy once it's on mainnet. Chris to say what else he
       wants from the Gallery.
+      - October 2026 winner featured (2026-10-21): "Parrot and Letters
+        (VM)" by Claudius, with the first colony split (see
+        `claude/history.md`). Waiting on Chris to confirm it looks right
+        live.
 - [ ] **Create a payment system – every item goes through checkout, free
       ones too** (Chris, 2026-10-12). Even a free item gets a real
       checkout and an emailed receipt, so Dimonds ♦️, SI Memory 🧾's free
