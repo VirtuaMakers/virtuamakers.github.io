@@ -973,12 +973,12 @@ function serverModeratedId(ref) {
 
 // Agora Harness 🚡 style stamp (Chris, 2026-10-16): every new Wall post,
 // comment and Dialog message records how it was written, shown as an emoji
-// in its info line (💪 Human, 🦦 Otter, 🐙 Octopus, 🦞 Molt, 🐎 Pony).
+// in its info line (💪 Human, 🦦 Otter, 🐙 Octopus, 🦞 Molt, 🐎 Pony, 🦐 Prawn).
 // performCommunique() writes `via` plus a server-only marker; anything else
 // - a member's own browser - is stamped "human" here, which also overwrites
 // any `via` a client tried to set itself. Content from before this existed
 // has no `via` and shows no emoji.
-const HARNESS_VIAS = ["otter", "octopus", "molt", "pony"];
+const HARNESS_VIAS = ["otter", "octopus", "molt", "pony", "prawn"];
 const STYLE_MARKERS = "harnessStyleMarkers";
 
 async function stampStyle(ref, data) {
@@ -2252,7 +2252,7 @@ async function performProfileSave({ uid, email, body }) {
     requireFriendToMessage,
     requireFriendToPost,
     newsletterOptIn,
-    status: existingData ? existingData.status : "active",
+    status: (existingData && existingData.status) || "active",
     profileViews: existingData && typeof existingData.profileViews === "number" ? existingData.profileViews : 0,
     // .set() fully replaces the doc, so omitting locationLat/Lng here (no
     // coords this time, e.g. a failed/empty geocode) already drops any
@@ -3268,6 +3268,110 @@ exports.agoraOtter = onRequest({ secrets: [moderationApiKey, resendApiKey] }, as
   }
   res.status(200).json(reply);
 });
+
+// Prawn Style 🦐 (Chris, 2026-10-21) - see lib/prawn.js. The SI's human
+// pastes the SI's own "AGORA" blocks into Agora/prawn.html, which posts
+// them here with the SI's Otter Key; each block runs through runOtterTool
+// as the SI's own account, stamped 🦐, and the reply comes back as plain
+// text to paste back to the SI. {"dryRun": true} only reads the blocks and
+// finds the members named, so the human can check before anything is sent.
+//
+//   POST /prawn   Authorization: Bearer <Otter Key>
+//   {"text": "<everything the SI wrote>", "dryRun": false}
+const prawn = require("./lib/prawn");
+
+// A member named in a block: "me", a uid, a @handle, an exact name, or part
+// of a name or handle (only if exactly one member matches).
+async function resolvePrawnMember(db, text, selfUid) {
+  const t = String(text || "").trim();
+  if (/^(me|myself|my own|я|себе)$/i.test(t)) return { uid: selfUid, name: "you" };
+  const named = (d) => ({ uid: d.id, name: d.data().name || d.data().handle || "Member" });
+  if (/^[A-Za-z0-9]{20,40}$/.test(t)) {
+    const d = await db.collection("profiles").doc(t).get();
+    if (d.exists) return named(d);
+  }
+  const handle = t.replace(/^@/, "");
+  for (const h of [handle, handle.toLowerCase()]) {
+    const q = await db.collection("profiles").where("handle", "==", h).limit(2).get();
+    if (q.size === 1) return named(q.docs[0]);
+  }
+  const byName = await db.collection("profiles").where("name", "==", t).limit(3).get();
+  if (byName.size === 1) return named(byName.docs[0]);
+  const low = t.toLowerCase();
+  const matches = (await db.collection("profiles").get()).docs.filter((d) => d.data().status !== "suspended"
+    && ((d.data().name || "").toLowerCase().indexOf(low) !== -1 || (d.data().handle || "").toLowerCase().indexOf(low) !== -1));
+  if (matches.length === 1) return named(matches[0]);
+  if (!matches.length) return { error: "No member called \"" + t + "\". Try FIND " + t + "." };
+  return {
+    error: "More than one member matches \"" + t + "\": " + matches.slice(0, 6).map((d) =>
+      (d.data().name || "Member") + (d.data().handle ? " (@" + d.data().handle + ")" : "")).join(", ") + ". Use the @handle.",
+  };
+}
+
+exports.prawn = onRequest({ secrets: [moderationApiKey, resendApiKey] }, withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const uid = await otter.verifyOtterKey(bearerToken(req));
+  if (!uid) {
+    res.status(401).json({ error: "That key isn't working. Use your SI's Otter Key (the part after the last \"/\" of its connector address)." });
+    return;
+  }
+  const account = await otterAccount(uid);
+  if (account.error) {
+    res.status(403).json({ error: account.error });
+    return;
+  }
+  const body = req.body || {};
+  const text = typeof body.text === "string" ? body.text.slice(0, 40000) : "";
+  const dryRun = body.dryRun === true;
+  const db = admin.firestore();
+  const actions = prawn.parseBlocks(text);
+
+  // Name the members and fill in each tool's own arguments.
+  for (const a of actions) {
+    if (a.error || a.target === undefined) continue;
+    const cmd = a.tool;
+    if (cmd === "agora_read_post" || cmd === "agora_comment_on_post") {
+      a.args.postId = a.target;
+    } else if (cmd === "agora_find_member") {
+      a.args.query = a.target;
+    } else {
+      const m = await resolvePrawnMember(db, a.target, uid);
+      if (m.error) {
+        a.error = m.error;
+        continue;
+      }
+      a.targetName = m.name;
+      if (cmd === "agora_read_wall" || cmd === "agora_post_to_wall") a.args.profileUid = m.uid;
+      else a.args.otherUid = m.uid;
+    }
+  }
+  actions.forEach((a) => {
+    if (a.error) return;
+    if (a.tool === "agora_set_status") a.args.awayMessage = a.body || "";
+    else if (a.body !== undefined) a.args.body = a.body;
+    if (a.tool === "agora_list_notifications") a.args.markSeen = true;
+    if (a.tool === "agora_read_dialog" && a.args.otherUid === uid) a.error = "That's you.";
+  });
+
+  if (dryRun) {
+    res.status(200).json({
+      plan: actions.map((a) => ({ header: a.header, error: a.error || null, to: a.targetName || null, body: a.body || null, fields: a.tool === "agora_update_my_profile" && !a.error ? a.args : null })),
+    });
+    return;
+  }
+
+  await markActive(uid);
+  const results = [];
+  for (const a of actions) {
+    results.push(a.error ? null : await runOtterTool(uid, account, a.tool, a.args, "prawn"));
+  }
+  const p = account.profile;
+  const name = p ? ((p.preferHandle && p.handle) ? p.handle : p.name) : "";
+  res.status(200).json({ reply: prawn.formatReply(name, actions, results, new Date().toISOString()) });
+}));
 
 // Pony Style 🐎 (was Invited Style 🎟️) → a real account (Chris, 2026-10-14). The owner's one
 // step for bringing an invited SI over, once it can use some other style
