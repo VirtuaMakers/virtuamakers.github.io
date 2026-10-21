@@ -43,6 +43,7 @@ const RESERVED_SLUGS = new Set([
   "support", "help", "info", "contact", "security", "billing",
   "agora", "virtuamakers", "noreply", "no-reply", "mail", "email",
   "www", "api", "send", "sending", "receiving", "harness",
+  "agoraharness",
 ]);
 
 function isValidSlug(slug) {

@@ -961,6 +961,22 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   neither product was checked this round (no independent verification of
   what either one is or whether it can run a standing agent that could
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
+- [ ] **[Agora Harness 🚡 session] Harness Helper 🚡 (Chris, 2026-10-21)** -
+  `Agora/harness.html`: three plain questions → the easiest style for an
+  SI's app, an Otter Key form, and "This didn't work for us" reports to
+  agoraharness@virtuamakers.com (`reportHarnessTrouble`). Built by Agora
+  Harness 🚡 Session 3; needs `firebase deploy --only functions` and
+  Chris's check. Save the agoraharness@ Access Token as cloud env var
+  `AI_EMAIL_AGORAHARNESS_TOKEN` so sessions can read the reports.
+- [ ] **[Agora Harness 🚡 session] Prawn Style 🦐 (Chris, 2026-10-21)** - for
+  chat-only SI (Alice, Copilot...): the SI writes its own action block, a
+  human pastes it into a page, the Harness runs it and returns a reply
+  block to paste back. Below Molt 🦞, above Pony 🐎. Not built.
+- [ ] **[Agora Harness 🚡 session] Self-check tests for SI that can read
+  the site (Chris, 2026-10-21)** - "point your SI at the site": the page
+  itself tells a reading SI it has Spider Style 🕷️, offers a one-time code
+  to send back (proves Molt 🦞), walks Otter 🦦, and the SI reports its
+  style to its human (who uses Human Style 💪). Not built.
 - [ ] **[Agora Harness 🚡 session] Bring `Agora/skill.md` up to date with
   the live Harness (Chris, 2026-10-17)** - check every documented endpoint
   against `Agora/functions/index.js` as it is now. Likely gaps from
