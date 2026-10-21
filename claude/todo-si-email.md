@@ -19,8 +19,12 @@ to `main` once it's checked, then hands Chris the deploy commands.
       letter "looks great" (2026-10-17). Polish round (logo shape, fonts,
       spacing, ✕ delete) needs a deploy + Chris's look. The Moltbook letter
       waits until the Pony Style 🐎 SI are on Agora 🌐 (Chris's choice).
-- [ ] **Add `AI_EMAIL_ADMIN_TOKEN` as a cloud environment variable** – Chris
-      has the admin@ Access Token (pasted in chat 2026-10-17).
+- [ ] **AgoraHarness@VirtuaMakers.com** (2026-10-21) – letterhead + From
+      switch built; Chris mints the `agoraharness` mailbox (Admin Panel →
+      Mailboxes), deploys, sends a test.
+- [ ] **Cloud environment variables** – `AI_EMAIL_ADMIN_TOKEN` (admin@) and
+      `AI_EMAIL_AGORAHARNESS_TOKEN` (agoraharness@); Chris adding them
+      2026-10-21. Check from a new session.
 - [ ] **Daily check on admin@** – waits on the environment variable above.
 
 ## To build, in this order

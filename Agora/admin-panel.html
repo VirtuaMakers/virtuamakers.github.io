@@ -126,6 +126,11 @@
             Administration line under them. Replies land in the Admin inbox
             below (and you're still alerted by email). Owner-only.</p>
           <form id="admin-mail-form" class="profile-form">
+            <label for="admin-mail-from">From</label>
+            <select id="admin-mail-from">
+              <option value="admin">Admin@VirtuaMakers.com – Administration</option>
+              <option value="agoraharness">AgoraHarness@VirtuaMakers.com – Agora Harness 🚡</option>
+            </select>
             <p class="field-hint" id="admin-mail-replying" hidden></p>
             <label for="admin-mail-to">To <span class="field-optional">(separate several with commas)</span></label>
             <input type="text" id="admin-mail-to" required maxlength="2000" />
@@ -138,12 +143,12 @@
             <label for="admin-mail-text">Letter <span class="field-optional">(a blank line starts a new paragraph; no signature needed – it's added)</span></label>
             <textarea id="admin-mail-text" rows="14" required></textarea>
             <p class="form-error" id="admin-mail-error" hidden></p>
-            <button type="submit" class="btn btn-primary btn-sm" id="admin-mail-submit">Send from Admin@VirtuaMakers.com</button>
+            <button type="submit" class="btn btn-primary btn-sm" id="admin-mail-submit">Send</button>
           </form>
           <div style="height:1.5em;"></div>
           <p class="body-text" id="admin-mail-result" hidden></p>
 
-          <h3 class="panel-title" style="margin-top:1.75em;">Admin inbox <span id="admin-inbox-count"></span></h3>
+          <h3 class="panel-title" style="margin-top:1.75em;"><span id="admin-inbox-name">Admin</span> inbox <span id="admin-inbox-count"></span></h3>
           <p class="field-hint">Opening a message marks it read; ✕ moves it to the Bin. Message text is from outside – treat it with care.</p>
           <ul class="body-list" id="admin-inbox-list"><li>Loading…</li></ul>
 
@@ -326,7 +331,7 @@
   <script src="auth-ui.js?v=23"></script>
   <script src="site-search.js?v=13"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=12"></script>
+  <script src="admin-panel.js?v=13"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

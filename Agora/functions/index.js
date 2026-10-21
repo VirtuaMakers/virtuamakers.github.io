@@ -62,6 +62,7 @@ const {
   listInbox,
   markMessages,
   listSent,
+  isOfficialMailbox,
   replyContext,
   deleteMessages,
   classifyIncoming,
@@ -1769,6 +1770,13 @@ exports.markAiEmailRead = onRequest(withCors(async (req, res) => {
   res.status(200).json({ success: true, updated });
 }));
 
+// Which official mailbox an Admin Panel call is for: data.mailbox when it's
+// one of lib/aiEmail.js OFFICIAL_MAILBOXES (admin, agoraharness), else admin.
+function officialMailboxFrom(data) {
+  const slug = normalizeSlug(data && data.mailbox);
+  return slug && isOfficialMailbox(slug) ? slug : "admin";
+}
+
 // Send as Admin ✉️ (Admin Panel, owner-only, 2026-10-17): mail from
 // Admin@VirtuaMakers.com on letterhead, with the Administration signature
 // (lib/aiEmail.js signFor). The owner's sign-in is the proof, so the
@@ -1783,7 +1791,8 @@ exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) =>
   const cc = ccList.length ? normalizeRecipients(ccList) : [];
   const subject = typeof data.subject === "string" ? data.subject.trim().slice(0, 300) : "";
   const text = typeof data.text === "string" ? data.text.trim() : "";
-  const context = data.inReplyTo ? await replyContext("admin", data.inReplyTo) : null;
+  const office = officialMailboxFrom(data);
+  const context = data.inReplyTo ? await replyContext(office, data.inReplyTo) : null;
   if (!to || cc === null || to.length + cc.length > MAX_RECIPIENTS) {
     throw new HttpsError("invalid-argument", "Check the To and CC addresses (up to " + MAX_RECIPIENTS + " in all).");
   }
@@ -1792,7 +1801,7 @@ exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) =>
   }
   try {
     const result = await sendAiEmail({
-      from: "admin", to, cc, subject, text,
+      from: office, to, cc, subject, text,
       signedBy: typeof data.signedBy === "string" ? data.signedBy : "",
       headers: context ? context.headers : null,
       inReplyTo: context ? context.originalId : "",
@@ -1807,10 +1816,11 @@ exports.sendAdminEmail = onCall({ secrets: [aiEmailApiKey] }, async (request) =>
 // The admin@ inbox and its last sent letters, for the Admin Panel.
 exports.getAdminMail = onCall(async (request) => {
   await assertIsOwner(request.auth);
-  const inbox = await listInbox("admin", { limit: 30 });
-  const spam = await listInbox("admin", { limit: 30, folder: "spam" });
-  const bin = await listInbox("admin", { limit: 30, folder: "bin" });
-  const sent = await listSent("admin", 10);
+  const office = officialMailboxFrom(request.data);
+  const inbox = await listInbox(office, { limit: 30 });
+  const spam = await listInbox(office, { limit: 30, folder: "spam" });
+  const bin = await listInbox(office, { limit: 30, folder: "bin" });
+  const sent = await listSent(office, 10);
   const stamp = (t) => (t && typeof t.toMillis === "function" ? t.toMillis() : null);
   return {
     unreadCount: inbox.unreadCount,
@@ -1837,7 +1847,7 @@ exports.moveAdminMail = onCall(async (request) => {
   const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
   const folder = ["spam", "bin"].includes(data.folder) ? data.folder : "inbox";
   if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
-  return { moved: await moveMessages("admin", ids, folder) };
+  return { moved: await moveMessages(officialMailboxFrom(data), ids, folder) };
 });
 
 // The Admin Panel's ✕ button: to the Bin, or for good from the Bin.
@@ -1846,7 +1856,7 @@ exports.deleteAdminMail = onCall(async (request) => {
   const data = request.data || {};
   const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
   if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
-  return await trashMessages("admin", ids);
+  return await trashMessages(officialMailboxFrom(data), ids);
 });
 
 exports.markAdminMailRead = onCall(async (request) => {
@@ -1854,7 +1864,7 @@ exports.markAdminMailRead = onCall(async (request) => {
   const data = request.data || {};
   const ids = Array.isArray(data.ids) ? data.ids.filter((id) => typeof id === "string" && id && !id.includes("/")).slice(0, 100) : [];
   if (!ids.length) throw new HttpsError("invalid-argument", "No message ids.");
-  return { updated: await markMessages("admin", { ids, read: data.read !== false }) };
+  return { updated: await markMessages(officialMailboxFrom(data), { ids, read: data.read !== false }) };
 });
 
 // SI Apartment 🏢 Doorbell (see lib/doorbell.js). One endpoint, two sides,
