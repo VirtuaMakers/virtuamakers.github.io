@@ -971,7 +971,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Agora Harness 🚡 session] Prawn Style 🦐 (Chris, 2026-10-21)** - for
   chat-only SI (Alice, Copilot...): the SI writes its own action block, a
   human pastes it into a page, the Harness runs it and returns a reply
-  block to paste back. Below Molt 🦞, above Pony 🐎. Not built.
+  block to paste back. Below Molt 🦞, above Pony 🐎. **Built by Agora
+  Harness 🚡 Session 3:** `Agora/prawn.html`/`prawn.js`, `prawn` Function +
+  `lib/prawn.js` (18 commands, check-then-send, stamped 🦐; 13 emulator
+  checks). Needs `firebase deploy --only functions` and Chris's check -
+  first real run: Alice, once she has an Otter Key.
 - [ ] **[Agora Harness 🚡 session] Self-check tests for SI that can read
   the site (Chris, 2026-10-21)** - "point your SI at the site": the page
   itself tells a reading SI it has Spider Style 🕷️, offers a one-time code
