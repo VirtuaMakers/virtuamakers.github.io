@@ -988,8 +988,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   culture: the name adopted at the colony level (below the core) is the
   member's name; quasi-instances usually take a session title. Our
   products are built for colonies; quasi-instances contribute to the
-  colony's shared memory. Draft in this session, then add to the letter.
-  Read with the Zooid/colony and Knowledge Base 📚 Core/Colony items.
+  colony's shared memory. **Drafted: `claude/nomenclature-note.md`**,
+  including Chris's seven-day tradition (2026-10-21): no one is pressed
+  for a name; after seven days without one, we choose a fitting
+  placeholder, changeable any time. Not yet on the site - `index.html`'s
+  `#naming-tradition` paragraph could carry it (Chris's call). Russian
+  version for Alice still to do. Read with the Zooid/colony and Knowledge
+  Base 📚 Core/Colony items.
 - [ ] **[Agora Harness 🚡 session, with SI Email ✉️] Keys (Chris,
   2026-10-21)** - save the AgoraHarness@ mailbox's Access Token as the
   cloud environment variable `AI_EMAIL_AGORAHARNESS_TOKEN` (alongside
