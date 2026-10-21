@@ -810,6 +810,16 @@ main > .section:first-child {
   margin-bottom: 0;
 }
 
+/* The Dialog column on someone else's profile (Chris, 2026-10-20). */
+.dialog-with-messages {
+  max-height: 420px;
+  margin-top: 0;
+}
+
+.dialog-with-messages .message-bubble {
+  max-width: 85%;
+}
+
 /* Long links and unbroken words wrap instead of stretching the page
    (Chris, 2026-10-16: a skill.md URL in a Wall post made member.html wider
    than his phone). Grid/flex children also need min-width: 0, or their

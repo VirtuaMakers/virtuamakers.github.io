@@ -572,6 +572,7 @@
   var messageBtn = document.getElementById("message-btn");
 
   function updateMessageButtonVisibility() {
+    updateDialogWithPanel();
     if (!currentUser || !profileData || !uid || currentUser.uid === uid) {
       messageBtn.hidden = true;
       return;
@@ -628,6 +629,159 @@
 
   dialogsSearch.addEventListener("input", function () {
     renderDialogsSearchResults(dialogsSearch.value);
+  });
+
+  // Dialog column on someone else's profile (Chris, 2026-10-20) - sits
+  // beside their Wall the way "Dialogs" sits beside your own: your latest
+  // messages with this member, live, and a box to write to them. Viewing
+  // a profile never creates a Dialog; the first message sent does (same
+  // startOrOpenDialog() the Dialog button uses).
+  var dialogWith = document.getElementById("member-dialog-with");
+  var dialogWithRestricted = document.getElementById("dialog-with-restricted");
+  var dialogWithEmpty = document.getElementById("dialog-with-empty");
+  var dialogWithMessages = document.getElementById("dialog-with-messages");
+  var dialogWithForm = document.getElementById("dialog-with-form");
+  var dialogWithLabel = document.getElementById("dialog-with-label");
+  var dialogWithBody = document.getElementById("dialog-with-body");
+  var dialogWithError = document.getElementById("dialog-with-error");
+  var dialogWithSubmit = document.getElementById("dialog-with-submit");
+  var dialogWithOpen = document.getElementById("dialog-with-open");
+  var dialogWithStatus = document.getElementById("dialog-with-status");
+  var DIALOG_WITH_LIMIT = 10;
+  var dialogWithKey = null;
+  var dialogWithUnsub = null;
+  var dialogWithViewed = {};
+
+  function profileDisplayName() {
+    return (profileData && profileData.preferHandle && profileData.handle)
+      ? profileData.handle : ((profileData && (profileData.name || profileData.handle)) || "Member");
+  }
+
+  function stopDialogWith() {
+    if (dialogWithUnsub) dialogWithUnsub();
+    dialogWithUnsub = null;
+    dialogWithKey = null;
+  }
+
+  function renderDialogWith(docs) {
+    dialogWithMessages.textContent = "";
+    dialogWithEmpty.hidden = docs.length > 0;
+    dialogWithOpen.hidden = docs.length === 0;
+    var participants = [currentUser.uid, uid];
+    docs.forEach(function (doc) {
+      var data = doc.data();
+      var isOwn = data.authorUid === currentUser.uid;
+      var colorClass = C.interlocutorColorClass(participants, data.authorUid);
+      var bubble = document.createElement("div");
+      bubble.className = "message-bubble " + (isOwn ? "message-own" : "message-other");
+
+      var sender = document.createElement("p");
+      sender.className = "message-sender " + colorClass;
+      sender.textContent = isOwn ? "You" : profileDisplayName();
+      bubble.appendChild(sender);
+
+      var body = document.createElement("p");
+      body.className = "message-body";
+      C.sanitizeBody(body, data.body);
+      bubble.appendChild(body);
+
+      var time = document.createElement("p");
+      time.className = "message-time " + colorClass;
+      time.textContent = C.formatDate(data.createdAt, true);
+      if (C.prependStyleBadge) C.prependStyleBadge(time, data);
+      bubble.appendChild(time);
+
+      dialogWithMessages.appendChild(bubble);
+      if (!dialogWithViewed[doc.id]) {
+        dialogWithViewed[doc.id] = true;
+        C.recordView(doc.ref);
+      }
+    });
+    dialogWithMessages.scrollTop = dialogWithMessages.scrollHeight;
+    // Seeing the latest message here counts as reading the Dialog.
+    if (docs.length) C.markDialogRead(dialogWithKey, currentUser.uid, docs[docs.length - 1].id);
+  }
+
+  function updateDialogWithPanel() {
+    var other = !!(currentUser && profileData && uid && currentUser.uid !== uid);
+    dialogWith.hidden = !other;
+    if (!other) {
+      stopDialogWith();
+      return;
+    }
+    var isFriend = !document.getElementById("friend-status-accepted").hidden;
+    var canWrite = !viewerHasBlocked && (!profileData.requireFriendToMessage || isFriend);
+    dialogWithForm.hidden = !canWrite;
+    dialogWithRestricted.hidden = canWrite;
+    dialogWithRestricted.textContent = viewerHasBlocked
+      ? "You've blocked this member – unblock them to write to them."
+      : "This member only accepts Dialogs from friends.";
+    dialogWithLabel.textContent = "Write to " + profileDisplayName();
+
+    var key = C.conversationIdFor(currentUser.uid, uid);
+    if (dialogWithKey === key) return;
+    stopDialogWith();
+    dialogWithKey = key;
+    dialogWithOpen.href = "communiques-dm.html?c=" + encodeURIComponent(key);
+    dialogWithUnsub = AgoraDB.collection("conversations").doc(key).collection("messages")
+      .orderBy("createdAt", "desc")
+      .limit(DIALOG_WITH_LIMIT)
+      .onSnapshot(function (snap) {
+        renderDialogWith(snap.docs.slice().reverse());
+      }, function () {});
+  }
+
+  dialogWithForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var body = dialogWithBody.value.trim();
+    if (!body || !currentUser || !uid) return;
+    dialogWithError.hidden = true;
+    dialogWithSubmit.disabled = true;
+    dialogWithStatus.hidden = false;
+
+    var blocked = false;
+    var sendChain = AgoraModeration.checkText(body, "dialogMessage", { conversationId: dialogWithKey }).then(function (result) {
+      if (result.decision === "block") {
+        blocked = true;
+        AgoraModeration.showBlocked(dialogWithError, result.logId);
+        return;
+      }
+      return C.startOrOpenDialog(currentUser, uid, profileDisplayName()).then(function (conversationId) {
+        var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
+          authorUid: currentUser.uid,
+          body: body,
+          createdAt: now,
+          viewCount: 0,
+          via: "human", // Human Style 💪 - the server has the final word
+        }).then(function () {
+          return conversationRef.update({
+            lastMessage: body,
+            lastMessageAt: now,
+            lastMessageAuthorUid: currentUser.uid,
+          });
+        });
+      }).then(function () {
+        dialogWithBody.value = "";
+      });
+    });
+
+    C.withTimeout(sendChain, 20000, "Sending is taking longer than expected… check your connection and try again.")
+      .then(function () {
+        dialogWithSubmit.disabled = false;
+        dialogWithStatus.hidden = true;
+      })
+      .catch(function (err) {
+        dialogWithSubmit.disabled = false;
+        dialogWithStatus.hidden = true;
+        if (!blocked) {
+          dialogWithError.textContent = err
+            ? C.friendlyPermissionError(err, "This member isn't accepting Dialogs from you right now.")
+            : "Something went wrong sending this message.";
+          dialogWithError.hidden = false;
+        }
+      });
   });
 
   messageBtn.addEventListener("click", function () {

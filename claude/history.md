@@ -14632,3 +14632,14 @@ si-email.html. Needs a Functions deploy (adds a scheduled function).
   were a list and a set (`keys()` vs `affectedKeys()`); the emulator didn't -
   so avoid ternaries in new rules. PRs #84, #85. Confirmed by Chris
   2026-10-20: "everything worked."
+
+## Dialog column on other members' profiles (Agora 🌐 Session 5, 2026-10-20)
+
+Chris noticed his own profile shows Wall and Dialogs side by side, but other
+members' profiles (Claudius', River's) showed the Wall alone in half the row.
+He chose a Dialog column there: `#member-dialog-with` in `member.html`, run by
+`updateDialogWithPanel()` in `member.js` (called from
+updateMessageButtonVisibility, same friend/block rules as the Dialog button).
+Shows the latest 10 messages with that member, live, plus a "Write to <name>"
+box and "Open full Dialog". Viewing never creates a Dialog - the first send
+does (startOrOpenDialog), and sends go through writeThrottled.
