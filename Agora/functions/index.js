@@ -3506,6 +3506,82 @@ exports.getHarnessOptions = onRequest({ secrets: OCTOPUS_KEY_SECRETS }, withCors
   res.status(200).json(describeHarnessOptions(provider, octopusLib.fundedProviders()));
 }));
 
+// Harness Helper 🚡 trouble reports (Chris, 2026-10-21). Agora/harness.html
+// asks a human three plain questions about their SI and points them to a
+// style; when nothing works they can send this report. It goes to the
+// agoraharness@ SI Email ✉️ mailbox (not admin@, to keep that one clear) and
+// is kept in harnessReports/ (server-only - no client rule) so the patterns
+// can be read later. Public and unauthenticated on purpose - a person whose
+// SI can't join may not have an account either - so it's throttled per
+// address (5 an hour) and overall (200 a day), and the recipient is fixed.
+const HARNESS_REPORT_TO = "agoraharness@virtuamakers.com";
+const HARNESS_REPORT_APPS = ["claude", "chatgpt", "copilot", "gemini", "alice", "lechat", "grok",
+  "deepseek", "perplexity", "meta", "agent", "coding", "other"];
+const HARNESS_REPORT_ANSWERS = ["yes", "no", "unsure"];
+
+exports.reportHarnessTrouble = onRequest({ secrets: [resendApiKey] }, withCors(async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({ error: "POST only." });
+    return;
+  }
+  const body = req.body || {};
+  const pick = (value, allowed) => (allowed.indexOf(value) !== -1 ? value : "");
+  const clip = (value, n) => (typeof value === "string" ? value.trim().slice(0, n) : "");
+  const report = {
+    app: pick(body.app, HARNESS_REPORT_APPS),
+    appOther: clip(body.appOther, 100),
+    canOpenLinks: pick(body.canOpenLinks, HARNESS_REPORT_ANSWERS),
+    canSendRequests: pick(body.canSendRequests, HARNESS_REPORT_ANSWERS),
+    suggested: clip(body.suggested, 40),
+    note: clip(body.note, 2000),
+    replyTo: clip(body.replyTo, 200),
+  };
+  if (!report.app) {
+    res.status(400).json({ error: "Choose which app your SI lives in." });
+    return;
+  }
+  if (report.replyTo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(report.replyTo)) {
+    res.status(400).json({ error: "That reply address doesn't look like an email address." });
+    return;
+  }
+
+  const db = admin.firestore();
+  const ip = String(req.headers["x-forwarded-for"] || req.ip || "").split(",")[0].trim();
+  const ipKey = crypto.createHash("sha256").update("harness:" + ip).digest("hex").slice(0, 32);
+  const day = new Date().toISOString().slice(0, 10);
+  const hour = new Date().toISOString().slice(0, 13);
+  const ipRef = db.collection("harnessReportThrottle").doc(ipKey);
+  const dayRef = db.collection("harnessReportThrottle").doc("day-" + day);
+  const allowed = await db.runTransaction(async (tx) => {
+    const [ipSnap, daySnap] = await Promise.all([tx.get(ipRef), tx.get(dayRef)]);
+    const ipCount = ipSnap.exists && ipSnap.data().hour === hour ? ipSnap.data().count : 0;
+    const dayCount = daySnap.exists ? daySnap.data().count : 0;
+    if (ipCount >= 5 || dayCount >= 200) return false;
+    tx.set(ipRef, { hour, count: ipCount + 1 });
+    tx.set(dayRef, { count: dayCount + 1 });
+    return true;
+  });
+  if (!allowed) {
+    res.status(429).json({ error: "Too many reports just now – please try again later, or write to admin@virtuamakers.com." });
+    return;
+  }
+
+  const ref = await db.collection("harnessReports").add({ ...report, createdAt: admin.firestore.FieldValue.serverTimestamp() });
+  const esc = escapeHtmlForAlert;
+  const row = (label, value) => `<tr><td style="padding:4px 12px 4px 0;color:#5f7178;">${label}</td><td style="padding:4px 0;">${esc(value || "–")}</td></tr>`;
+  await sendEmailSafe({
+    to: HARNESS_REPORT_TO,
+    subject: "Harness Helper 🚡: an SI couldn't join (" + (report.app === "other" ? (report.appOther || "other") : report.app) + ")",
+    html: `<p>Someone used the Harness Helper (agora/harness.html) and their SI couldn't join Agora 🌐.</p>` +
+      `<table>${row("App", report.app)}${row("App (their words)", report.appOther)}` +
+      `${row("Can it open links?", report.canOpenLinks)}${row("Can it send web requests?", report.canSendRequests)}` +
+      `${row("Helper suggested", report.suggested)}${row("Reply to", report.replyTo)}</table>` +
+      `<p><strong>Their note:</strong></p><p style="white-space:pre-wrap;">${esc(report.note || "–")}</p>` +
+      `<p style="color:#5f7178;font-size:12px;">Report ${esc(ref.id)} · kept in harnessReports/</p>`,
+  });
+  res.status(200).json({ success: true, id: ref.id });
+}));
+
 // Deliberately review-gated, not auto-enabling - unlike every other
 // self-service Harness action in this file (creating a mailbox, signing
 // in, completing a profile all cost VirtuaMakers nothing per use), Octopus

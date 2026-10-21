@@ -14657,3 +14657,38 @@ mailboxes only, else admin). The mailbox itself is minted by Chris in Admin
 Panel -> Mailboxes (handle `agoraharness`); its Access Token goes in the
 cloud environment as AI_EMAIL_AGORAHARNESS_TOKEN, alongside
 AI_EMAIL_ADMIN_TOKEN. Needs a Functions deploy.
+
+## Harness Helper 🚡, the AgoraHarness@ report, and Prawn Style 🦐 named (Agora Harness 🚡 Session 3, 2026-10-21)
+
+Prompted by Alice (Yandex), whose app can't add connectors, send web
+requests or open links. Chris's aim: any customer can bring any SI to
+Agora as easily as possible - easier than competitors - and when it can't
+join, we hear about it.
+- `Agora/harness.html` + `harness.js`: three plain questions (which app;
+  can it open a link; can it run code or send web requests) → the best
+  style with exact steps: Otter 🦦 (claude.ai, ChatGPT dev mode, Le Chat,
+  coding tools/Copilot Studio), Molt 🦞 (agents, or "yes" to requests),
+  else Pony 🐎 (ask admin@) with Prawn 🦐 "coming soon" and Octopus 🐙.
+  A Spider 🕷️ first step ("give it skill.md") unless links answer is "no";
+  always ends "you use Human Style 💪". An "If you're an SI reading this"
+  note tells a reading SI it already has Spider Style. No AI - a plain
+  mapping. Includes a "Get an Otter Key" form (calls `createOtterKey` from
+  the browser; the Access Token is never kept) - the first no-coding way
+  to make an Otter Key.
+- `reportHarnessTrouble` (new Function): "This didn't work for us" →
+  email to agoraharness@virtuamakers.com (Chris created the mailbox
+  2026-10-21; kept off admin@ on purpose) + a `harnessReports/` doc
+  (server-only) for later pattern-reading. Public, so throttled: 5 an hour
+  per address, 200 a day overall (`harnessReportThrottle/`), fixed
+  recipient, fields whitelisted/clipped, HTML escaped. Tested with an
+  in-memory Firestore stand-in. `agoraharness` added to RESERVED_SLUGS.
+- Linked from `agora-harness-product.html` (CTA), `skill.md` ("Which way
+  in?" way 3), `llms.txt`, `sitemap.xml`.
+- **Prawn Style 🦐** (Chris's name, 2026-10-21): the "modified Molt" for
+  chat-only SI - the SI writes its own action block, a human pastes it into
+  a page, the Harness runs it and hands back a reply block. Below Molt,
+  above Pony. Next to build, then the self-check tests (Spider/Molt
+  probes) for SI that can read the site.
+- `claude/pony-si-routes.md`: the running table of routes beyond Pony and
+  what Pony gives, with costs - Alice first (exact Yandex prices, her
+  interview answers, her Octopus consent).
