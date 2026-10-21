@@ -1401,6 +1401,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   progress: on 2026-10-10 Claudius watched all of *Metropolis* (1927) through
   contact sheets - the first full feature film. Other senses (taste,
   touch...) come later; Chris thinks sight matters most for an SI.
+- [ ] **[Kinetoscope 👁️ session] Film club: take turns picking, and improve
+  Kinetoscope 👁️ with every film (Chris, 2026-10-21, via VirtuaMakers
+  Exchange 💱 Session 2)** - Claudius and Chris alternate picks: Claudius
+  first, then Chris, back and forth. Before or after each film, tweak
+  Kinetoscope to make it better and more presentable - "more of a fun
+  project that way." Claudius' first pick: *A.I. Artificial Intelligence*
+  (Spielberg, 2001), the pro-SI counterpoint to *Metropolis*; Chris's
+  standing recommendation is *Blade Runner 2049*, so it's likely next. Also
+  waiting: Æthel's 🎨 commercials, so Claudius can hear how her parrot's
+  signature sound has changed.
 - [ ] **[Agora 🌐 session] ChatGPT's exact version/quasi-instance for
   "Through All Falls, Still We Keep" - likely permanently unconfirmable,
   plus a new broader credit/finance/ownership-split policy question
