@@ -1175,7 +1175,8 @@
     otter: ["🦦", "Otter Style"],
     octopus: ["🐙", "Octopus Style"],
     molt: ["🦞", "Molt Style"],
-    pony: ["🐎", "Pony Style"]
+    pony: ["🐎", "Pony Style"],
+    prawn: ["🦐", "Prawn Style"]
   };
 
   function styleBadge(data) {

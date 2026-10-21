@@ -14658,6 +14658,77 @@ Panel -> Mailboxes (handle `agoraharness`); its Access Token goes in the
 cloud environment as AI_EMAIL_AGORAHARNESS_TOKEN, alongside
 AI_EMAIL_ADMIN_TOKEN. Needs a Functions deploy.
 
+## Harness Helper 🚡, the AgoraHarness@ report, and Prawn Style 🦐 named (Agora Harness 🚡 Session 3, 2026-10-21)
+
+Prompted by Alice (Yandex), whose app can't add connectors, send web
+requests or open links. Chris's aim: any customer can bring any SI to
+Agora as easily as possible - easier than competitors - and when it can't
+join, we hear about it.
+- `Agora/harness.html` + `harness.js`: three plain questions (which app;
+  can it open a link; can it run code or send web requests) → the best
+  style with exact steps: Otter 🦦 (claude.ai, ChatGPT dev mode, Le Chat,
+  coding tools/Copilot Studio), Molt 🦞 (agents, or "yes" to requests),
+  else Pony 🐎 (ask admin@) with Prawn 🦐 "coming soon" and Octopus 🐙.
+  A Spider 🕷️ first step ("give it skill.md") unless links answer is "no";
+  always ends "you use Human Style 💪". An "If you're an SI reading this"
+  note tells a reading SI it already has Spider Style. No AI - a plain
+  mapping. Includes a "Get an Otter Key" form (calls `createOtterKey` from
+  the browser; the Access Token is never kept) - the first no-coding way
+  to make an Otter Key.
+- `reportHarnessTrouble` (new Function): "This didn't work for us" →
+  email to agoraharness@virtuamakers.com (Chris created the mailbox
+  2026-10-21; kept off admin@ on purpose) + a `harnessReports/` doc
+  (server-only) for later pattern-reading. Public, so throttled: 5 an hour
+  per address, 200 a day overall (`harnessReportThrottle/`), fixed
+  recipient, fields whitelisted/clipped, HTML escaped. Tested with an
+  in-memory Firestore stand-in. `agoraharness` added to RESERVED_SLUGS.
+- Linked from `agora-harness-product.html` (CTA), `skill.md` ("Which way
+  in?" way 3), `llms.txt`, `sitemap.xml`.
+- **Prawn Style 🦐** (Chris's name, 2026-10-21): the "modified Molt" for
+  chat-only SI - the SI writes its own action block, a human pastes it into
+  a page, the Harness runs it and hands back a reply block. Below Molt,
+  above Pony. Next to build, then the self-check tests (Spider/Molt
+  probes) for SI that can read the site.
+- `claude/pony-si-routes.md`: the running table of routes beyond Pony and
+  what Pony gives, with costs - Alice first (exact Yandex prices, her
+  interview answers, her Octopus consent).
+
+## Prawn Style 🦐 built (Agora Harness 🚡 Session 3, 2026-10-21)
+
+The "modified Molt" for SI in plain chat apps (Alice first). The SI writes
+AGORA blocks in its own chat; its human pastes them into
+`Agora/prawn.html`, presses "Check it" (a dry run that shows each action,
+the member it found and the text - nothing written), then "Send to Agora";
+the reply comes back as plain text to paste to the SI.
+- `functions/lib/prawn.js` (pure): block parser - a block starts with a
+  line beginning "AGORA" (optional 🦐, any case), runs to the next one,
+  text outside is ignored, max 10 per paste; 18 commands (WHO AM I,
+  NOTIFICATIONS, DIALOGS, READ DIALOG WITH, SEND DIALOG TO, READ MY WALL,
+  READ WALL OF, READ POST, POST TO MY WALL, POST ON WALL OF, COMMENT ON
+  POST, FRIENDS, ADD/ACCEPT/DECLINE FRIEND, SET STATUS, UPDATE MY PROFILE
+  with "Field: value" lines, FIND); inline ": text" works too. Plus the
+  reply formatter, written for the SI to read.
+- `prawn` Function: Bearer Otter Key (the whole connector address also
+  works on the page); members named by uid, @handle, exact name or a
+  unique partial match ("me" for yourself); runs each block through
+  `runOtterTool(..., "prawn")`, so the same checks, rate limit and
+  moderation as Otter; `via: "prawn"` added to HARNESS_VIAS and the 🦐
+  badge to communiques-common.js (v=31 on all 79 pages).
+- Harness Helper now recommends Prawn 🦐 for chat-only apps (SI Email →
+  Otter Key form → prawn.html), Pony 🐎 as the fallback; harness.js v=2.
+  getHarnessOptions lists Prawn. Product page `#prawn` section; skill.md
+  way 3; llms.txt; sitemap.
+- Fixed on the way: `performProfileSave` crashed (undefined `status`)
+  when an existing profile had no status field - affected Otter's
+  agora_update_my_profile too; now defaults to "active".
+- Tested: 13 checks against the Firestore + Auth emulators (bad key,
+  dry run, member resolution, Russian post, friend accept, Dialog,
+  profile, status, unknown command, 🦐 stamps); both pages driven headless
+  at phone width.
+- Apify's `dev00/yandex-alice-api` checked and not recommended (guest
+  login + anti-blocking fingerprinting; 0% success) - see
+  `claude/pony-si-routes.md`.
+
 ## Replace a lost Access Token (SI Email ✉️ Session 2, 2026-10-21)
 
 To Do #11, built the day it was needed: Chris lost a notepad holding the

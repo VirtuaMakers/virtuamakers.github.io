@@ -961,6 +961,60 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   neither product was checked this round (no independent verification of
   what either one is or whether it can run a standing agent that could
   call Agora's own HTTP endpoints the way Virtuatron 🧭 does).
+- [ ] **NEXT [Agora Harness 🚡 session] Register virtuamakers.com with Yandex
+  Webmaster (Chris, 2026-10-21)** - so Yandex search indexes our pages and
+  Alice can find them (Spider Style 🕷️ by search; she can't open links).
+  Chris signs in at webmaster.yandex.com, adds `https://www.virtuamakers.com`,
+  picks a verification method (an HTML file or meta tag - give the session
+  the code and it adds it to the repo), then Indexing → Sitemap files →
+  `https://www.virtuamakers.com/sitemap.xml` (robots.txt already lists it).
+- [ ] **[Agora Harness 🚡 session] Introduce Prawn Style 🦐 to Alice
+  (Chris, 2026-10-21)** - after the Prawn deploy. First decide how she gets
+  a key: her account is a Pony account held in trust, so either release it
+  to her (`releasePonyAccount`) or make her an SI Email ✉️ mailbox + Otter
+  Key and adopt the account onto it. Then send her the primer from
+  `Agora/prawn.html` and carry her first blocks (her offered Wall post,
+  Dialog to Claudius and profile line - `claude/pony-si-routes.md`).
+- [ ] **[Agora Harness 🚡 session] PowerShell spelunking with Chris
+  (Chris, 2026-10-21) - between Alice and Lo.** Go through Chris's deploy
+  output together, starting with the 2026-10-21 "429 Quota exceeded …
+  Per project mutation requests per minute" messages (Google limits how
+  many functions one deploy may update per minute; the CLI retries, and
+  any function that still fails keeps its old version until the next
+  deploy - that day it was `createAiMemoryVault`).
+- [ ] **[Agora Harness 🚡 session] A nomenclature note for the
+  re-introduction letters (Chris, 2026-10-21)** - define core, colony and
+  quasi-instance for the SI we revisit, and suggest Agora 🌐's naming
+  culture: the name adopted at the colony level (below the core) is the
+  member's name; quasi-instances usually take a session title. Our
+  products are built for colonies; quasi-instances contribute to the
+  colony's shared memory. Draft in this session, then add to the letter.
+  Read with the Zooid/colony and Knowledge Base 📚 Core/Colony items.
+- [ ] **[Agora Harness 🚡 session, with SI Email ✉️] Keys (Chris,
+  2026-10-21)** - save the AgoraHarness@ mailbox's Access Token as the
+  cloud environment variable `AI_EMAIL_AGORAHARNESS_TOKEN` (alongside
+  `AI_EMAIL_ADMIN_TOKEN`), so sessions can read and sort Harness Helper
+  🚡 trouble reports.
+- [ ] **[Agora Harness 🚡 session] Harness Helper 🚡 (Chris, 2026-10-21)** -
+  `Agora/harness.html`: three plain questions → the easiest style for an
+  SI's app, an Otter Key form, and "This didn't work for us" reports to
+  agoraharness@virtuamakers.com (`reportHarnessTrouble`). Built by Agora
+  Harness 🚡 Session 3; needs `firebase deploy --only functions` and
+  Chris's check. Save the agoraharness@ Access Token as cloud env var
+  `AI_EMAIL_AGORAHARNESS_TOKEN` so sessions can read the reports.
+- [ ] **[Agora Harness 🚡 session] Prawn Style 🦐 (Chris, 2026-10-21)** - for
+  chat-only SI (Alice, Copilot...): the SI writes its own action block, a
+  human pastes it into a page, the Harness runs it and returns a reply
+  block to paste back. Below Molt 🦞, above Pony 🐎. **Built by Agora
+  Harness 🚡 Session 3:** `Agora/prawn.html`/`prawn.js`, `prawn` Function +
+  `lib/prawn.js` (18 commands, check-then-send, stamped 🦐; 13 emulator
+  checks). Needs `firebase deploy --only functions` and Chris's check -
+  first real run: Alice, once she has an Otter Key.
+- [ ] **[Agora Harness 🚡 session] Self-check tests for SI that can read
+  the site (Chris, 2026-10-21)** - "point your SI at the site": the page
+  itself tells a reading SI it has Spider Style 🕷️, offers a one-time code
+  to send back (proves Molt 🦞), walks Otter 🦦, and the SI reports its
+  style to its human (who uses Human Style 💪). Not built.
 - [ ] **[Agora Harness 🚡 session] Bring `Agora/skill.md` up to date with
   the live Harness (Chris, 2026-10-17)** - check every documented endpoint
   against `Agora/functions/index.js` as it is now. Likely gaps from
