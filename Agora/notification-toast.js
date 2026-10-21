@@ -37,37 +37,101 @@
     return window.location.pathname.indexOf("/profiles/") !== -1 ? "../" : "";
   }
 
+  // Dialog messages (and the events that borrow their sound) use a
+  // wooden "knock-knock" plus two soft marimba notes (Chris, 2026-10-13 -
+  // the old dialog-chime3.wav sounded like a generic Windows alert).
   var CHIME_FILES = {
-    dialog_message: "dialog-chime3.wav",
+    dialog_message: "dialog-knock1.wav",
     wall_post: "post-chime2.wav",
     wall_comment: "comment-chime3.wav",
+    // Someone also commented on a post you commented on (Chris,
+    // 2026-10-13) - same sound as a comment on your own post.
+    wall_reply: "comment-chime3.wav",
     // Reuses the Dialog chime rather than a dedicated fourth sound for
     // now (Chris, 2026-08-17) - a friend request is a similar "someone
     // wants your attention" event; swap in a distinct file later if it
     // turns out to need its own identity, same as Post/Comment did.
-    friend_request: "dialog-chime3.wav",
+    friend_request: "dialog-knock1.wav",
     // VirtuaMakers Calendar 🗓️'s Special Days alarm (Chris, 2026-09-21) -
     // reuses the Dialog chime too, same "ship a reasonable default, give
     // it its own sound later if it earns one" precedent as friend_request
     // just above.
-    friend_special_day: "dialog-chime3.wav",
+    friend_special_day: "dialog-knock1.wav",
     // VirtuaMakers Calendar 🗓️'s meeting reminder (Chris, 2026-09-23) -
     // same "reuse the Dialog chime for now" precedent as the two entries
     // just above.
-    calendar_event: "dialog-chime3.wav",
+    calendar_event: "dialog-knock1.wav",
   };
-  var chimes = {};
-  Object.keys(CHIME_FILES).forEach(function (type) {
-    var audio = new Audio(assetPath(CHIME_FILES[type]));
-    audio.volume = 0.5;
-    chimes[type] = audio;
+  // Played through Web Audio, woken by the first click, key press or touch
+  // on the page (Chris, 2026-10-13: the knock didn't play at all). A plain
+  // <audio>.play() is refused outright until the page has been interacted
+  // with, and failed silently. <audio> stays as the fallback for a browser
+  // without Web Audio.
+  var audioCtx = null;
+  var buffers = {};
+  var htmlChimes = {};
+
+  function getAudioCtx() {
+    if (!audioCtx) {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      try { audioCtx = new Ctx(); } catch (e) { return null; }
+    }
+    return audioCtx;
+  }
+
+  function unlockAudio() {
+    var ctx = getAudioCtx();
+    if (ctx && ctx.state === "suspended") ctx.resume().catch(function () {});
+  }
+  ["pointerdown", "keydown", "touchstart"].forEach(function (type) {
+    document.addEventListener(type, unlockAudio, { capture: true, passive: true });
   });
 
+  function loadBuffer(file) {
+    if (!buffers[file]) {
+      buffers[file] = fetch(assetPath(file)).then(function (res) { return res.arrayBuffer(); })
+        .then(function (data) {
+          return new Promise(function (resolve, reject) {
+            getAudioCtx().decodeAudioData(data, resolve, reject);
+          });
+        });
+      buffers[file].catch(function () { delete buffers[file]; });
+    }
+    return buffers[file];
+  }
+
+  function playHtmlChime(file) {
+    var audio = htmlChimes[file] || (htmlChimes[file] = new Audio(assetPath(file)));
+    audio.volume = 0.5;
+    audio.currentTime = 0;
+    audio.play().catch(function () {});
+  }
+
   function playChime(type) {
-    var chime = chimes[type];
-    if (!chime) return;
-    chime.currentTime = 0;
-    chime.play().catch(function () {});
+    var file = CHIME_FILES[type];
+    if (!file) return;
+    var ctx = getAudioCtx();
+    if (!ctx) { playHtmlChime(file); return; }
+    if (ctx.state === "suspended") ctx.resume().catch(function () {});
+    loadBuffer(file).then(function (buffer) {
+      var source = ctx.createBufferSource();
+      source.buffer = buffer;
+      var gain = ctx.createGain();
+      gain.gain.value = 0.5;
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start();
+    }).catch(function () { playHtmlChime(file); });
+  }
+
+  // Dialog messages open the real chat window (im-window.js), never this
+  // toast (Chris, 2026-10-13). False when that script isn't on the page.
+  function popDialog(data) {
+    if (data.type !== "dialog_message" || !data.actorUid || typeof AgoraIMWindow === "undefined"
+      || !AgoraIMWindow.popIncoming) return false;
+    AgoraIMWindow.popIncoming(currentUser, data.actorUid, data.actorName || "Member");
+    return true;
   }
 
   // linkPath is always written relative to the Agora root (e.g.
@@ -132,10 +196,11 @@
   function sendReply(conversationId, text, onDone) {
     var now = firebase.firestore.FieldValue.serverTimestamp();
     var ref = AgoraDB.collection("conversations").doc(conversationId);
-    ref.collection("messages").add({
+    CommuniquesCommon.writeThrottled(currentUser.uid, "dialog", ref.collection("messages").doc(), {
       authorUid: currentUser.uid,
       body: text,
       createdAt: now,
+      via: "human", // Human Style 💪 - the server has the final word
     }).then(function () {
       return ref.update({
         lastMessage: text,
@@ -152,7 +217,7 @@
   function showToast(data, extraCount) {
     removeToast();
 
-    var preview = (data.preview || "").replace(/<[^>]*>/g, "").slice(0, 140);
+    var preview = C.truncateAtWord((data.preview || "").replace(/<[^>]*>/g, ""), 140);
 
     function openTarget() {
       window.location.href = memberBase() + data.linkPath;
@@ -160,6 +225,17 @@
 
     var el = document.createElement("div");
     el.className = "notification-toast";
+
+    // Both this toast and im-window.js's own windows rest in the same
+    // bottom-right corner by default (Chris, 2026-10-13 - a toast arrived
+    // "hovering above" a minimized Dialog window, directly overlapping
+    // it). The two scripts have never coordinated before now - shift the
+    // toast up by however tall the current corner row already is, so a
+    // new toast stacks above it instead of sitting on top of it.
+    if (typeof AgoraIMWindow !== "undefined") {
+      var reserved = AgoraIMWindow.occupiedCornerHeight();
+      if (reserved) el.style.bottom = "calc(1.2rem + " + (reserved + 16) + "px)";
+    }
 
     var header = document.createElement("div");
     header.className = "notification-toast-header";
@@ -275,9 +351,20 @@
   function startListening() {
     var caughtUp = false;
 
+    // Only unseen notifications (Chris, 2026-10-13 bug hunt): this used to
+    // download every notification the member had ever received on every
+    // page load, a list that only ever grows. Two equality filters need no
+    // composite index. Older notifications from before `seen` existed don't
+    // match, and that's fine - they're long past.
     unsubscribe = AgoraDB.collection("notifications")
       .where("recipientUid", "==", currentUser.uid)
+      .where("seen", "==", false)
       .onSnapshot(function (snap) {
+        // With the local cache on (firebase-config.js), the first snapshot
+        // can come from cache; anything the cache lacked would then arrive
+        // as "added" and chime as if brand new. Do the catch-up only on
+        // the server's own answer.
+        if (!caughtUp && snap.metadata && snap.metadata.fromCache) return;
         if (!caughtUp) {
           caughtUp = true;
 
@@ -299,20 +386,33 @@
             var at = a.data().createdAt, bt = b.data().createdAt;
             return (bt ? bt.toMillis() : 0) - (at ? at.toMillis() : 0);
           });
-          if (unseen.length) showToast(unseen[0].data(), unseen.length - 1);
+          // Dialogs you missed reopen as their chat windows (one per
+          // person, newest few); anything else shows in the toast.
+          var popped = {};
+          var others = unseen.filter(function (doc) {
+            var data = doc.data();
+            if (data.type !== "dialog_message") return true;
+            if (popped[data.actorUid] || Object.keys(popped).length >= 3) return false;
+            if (popDialog(data)) { popped[data.actorUid] = true; return false; }
+            return true;
+          });
+          if (others.length) showToast(others[0].data(), others.length - 1);
           markSeen(unseen);
           markSeenLocally(unseen);
           return;
         }
 
         var newlyAdded = [];
+        var seenLocallyNow = readSeenCache();
         snap.docChanges().forEach(function (change) {
           if (change.type !== "added") return;
-          newlyAdded.push(change.doc);
           var data = change.doc.data();
+          if (data.seen === true || seenLocallyNow.indexOf(change.doc.id) !== -1) return;
+          newlyAdded.push(change.doc);
           if (isViewingLinkPath(data.linkPath)) return;
 
           playChime(data.type);
+          if (popDialog(data)) return;
           showToast(data, 0);
         });
         // Marked seen even when suppressed above (already viewing that

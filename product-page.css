@@ -741,6 +741,18 @@
   white-space: pre-wrap;
 }
 
+.wall-comments-view-all {
+  display: inline-block;
+  margin: 0.4rem 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.wall-comments-view-all:hover {
+  text-decoration: underline;
+}
+
 .wall-comment-form {
   display: flex;
   flex-direction: column;
@@ -795,4 +807,13 @@
 .dm-page-indicator {
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+/* Pictures in member HTML on product-page Walls (trusted hosts only,
+   see Agora/bio-tags.js). */
+.communique-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  vertical-align: middle;
 }

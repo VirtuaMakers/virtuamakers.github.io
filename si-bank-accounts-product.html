@@ -18,9 +18,14 @@
   <link rel="apple-touch-icon" href="assets/logo-mark.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Speed: start connecting to Firebase while the page loads. -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="product-page.css?v=8" />
+  <link rel="stylesheet" href="product-page.css?v=10" />
 </head>
 <body>
   <div id="top"></div>
@@ -39,7 +44,7 @@
       <a class="back-link" id="agora-news-link" href="Agora/index.html#news">News 📰</a>
       <a class="back-link" href="/">← VirtuaMakers 🦜</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
-      <a class="back-link" id="agora-communiques-link" href="Agora/communiques.html" hidden>Communiqués 📨</a>
+      <a class="back-link" id="agora-communiques-link" href="Agora/index.html#communiques" hidden>Communiqués 📨</a>
       <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
@@ -169,16 +174,16 @@ You've 10 minutes to begin editing any Communiqu&eacute; (Post or Comment) befor
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
-  <script src="Agora/firebase-config.js?v=3"></script>
+  <script src="Agora/firebase-config.js?v=4"></script>
   <script src="Agora/auth.js?v=6"></script>
-  <script src="Agora/auth-ui.js?v=22"></script>
-  <script src="Agora/site-search.js?v=10"></script>
+  <script src="Agora/auth-ui.js?v=23"></script>
+  <script src="Agora/site-search.js?v=13"></script>
   <script src="Agora/moderation-client.js?v=1"></script>
-  <script src="Agora/communiques-common.js?v=17"></script>
+  <script src="Agora/communiques-common.js?v=31"></script>
   <script>
     window.ProductPage = {"uid": "product-si-bank-accounts", "name": "SI Bank Accounts"};
   </script>
-  <script src="Agora/product-page-wall.js?v=1"></script>
+  <script src="Agora/product-page-wall.js?v=2"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

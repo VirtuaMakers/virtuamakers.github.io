@@ -10,8 +10,13 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Speed: start connecting to Firebase while the page loads. -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=101" />
+  <link rel="stylesheet" href="style.css?v=125" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -27,7 +32,7 @@
     <div class="header-right">
       <a class="back-link" id="agora-news-link" href="index.html#news">News 📰</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
-      <a class="back-link" id="agora-communiques-link" href="communiques.html" hidden>Communiqués 📨</a>
+      <a class="back-link communiques-launch-trigger" id="agora-communiques-link" hidden>Communiqués 📨</a>
       <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
@@ -50,6 +55,8 @@
 
       <div id="dm-content" hidden>
         <h1 id="dm-other-name"></h1>
+
+        <button type="button" class="btn btn-sm" id="dm-floating-btn" title="Open this Dialog as a floating window">↩ Floating window</button>
 
         <p class="intro" id="dm-readonly-notice" hidden>You're viewing this Dialog as a
           fellow member – only its participants can send messages here.</p>
@@ -121,18 +128,20 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
-  <script src="firebase-config.js?v=3"></script>
+  <script src="firebase-config.js?v=4"></script>
   <script src="auth.js?v=6"></script>
-  <script src="auth-ui.js?v=22"></script>
-  <script src="site-search.js?v=10"></script>
+  <script src="auth-ui.js?v=23"></script>
+  <script src="site-search.js?v=13"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-  <script src="bio-tags.js?v=1"></script>
+  <script src="bio-tags.js?v=4"></script>
   <script src="moderation-client.js?v=1"></script>
-  <script src="communiques-common.js?v=17"></script>
-  <script src="notification-toast.js?v=9"></script>
+  <script src="communiques-common.js?v=31"></script>
+  <script src="notification-toast.js?v=17"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="communiques-dm.js?v=12"></script>
+  <script src="im-window.js?v=19"></script>
+  <script src="friends-list.js?v=10"></script>
+  <script src="communiques-dm.js?v=19"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -16,6 +16,19 @@
 // multi-window row has no good equivalent on a narrow screen, and Agora
 // runs as an installed PWA there) - a new Dialog silently replaces
 // whatever was open, same as v1's own behavior.
+//
+// v3 (Chris, 2026-10-13): open windows now survive navigating to a
+// different Agora page - Agora is a set of separate static pages, not a
+// single-page app, so without this an open window just vanished the
+// moment you clicked anywhere else. Persisted to sessionStorage (one
+// tab's lifetime) and restored the moment this page's own copy of the
+// script resolves a real signed-in user. Rolled out from the 3 pages
+// that had it (member.html, communiques.html, communiques-dm.html) to
+// every page carrying notification-toast.js, since that's the exact set
+// already participating in "something Communiqués-related could happen
+// while I'm here" - minus newsletter-archive.html, which deliberately
+// doesn't load communiques-common.js/moderation-client.js at all (a
+// public, unauthenticated page by design).
 
 (function (global) {
   if (typeof CommuniquesCommon === "undefined") return;
@@ -27,6 +40,40 @@
 
   var windows = {}; // otherUid -> window record
   var windowOrder = []; // otherUids, oldest-focused first, most-recent last
+
+  // Persisted across page navigation (Chris, 2026-10-13 - "I thought
+  // these windows were supposed to persist all over Agora 🌐", after one
+  // disappeared navigating to the homepage). windowOrder/windows are
+  // plain in-memory JS, torn down on every full page load like any other
+  // script state - Agora is a set of separate static pages, not a
+  // single-page app, so nothing survives a navigation on its own.
+  // sessionStorage (one tab's lifetime, not shared across tabs/devices -
+  // right for "followed me to the next page I visited," not a real
+  // cross-device sync) remembers which Dialogs were open and restores
+  // them the moment the next page's own copy of this script loads and
+  // resolves the signed-in user, closing that gap without needing Agora
+  // to become an SPA.
+  var PERSIST_KEY = "agoraOpenImWindows";
+
+  function readPersisted() {
+    try {
+      var raw = sessionStorage.getItem(PERSIST_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writePersisted() {
+    try {
+      var list = windowOrder.map(function (uid) {
+        var win = windows[uid];
+        return { uid: uid, name: win.otherName, minimized: win.minimized, owner: win.currentUser.uid };
+      });
+      sessionStorage.setItem(PERSIST_KEY, JSON.stringify(list));
+    } catch (e) {}
+  }
 
   function isNarrowViewport() {
     return window.innerWidth < NARROW_VIEWPORT_MAX;
@@ -62,6 +109,7 @@
     if (index !== -1) windowOrder.splice(index, 1);
     windowOrder.push(otherUid);
     relayout();
+    writePersisted();
   }
 
   function closeWindowFor(otherUid) {
@@ -73,20 +121,42 @@
     var index = windowOrder.indexOf(otherUid);
     if (index !== -1) windowOrder.splice(index, 1);
     relayout();
+    writePersisted();
   }
 
+  // Minimized and maximized are mutually exclusive states - neither
+  // function used to check the other (Chris, 2026-10-13: a window stuck
+  // rendering blank at the "wrong" size, or reverting to the minimized
+  // view when restoring from fullscreen), so both classes could end up
+  // active on the same window at once. CSS then had to pick a winner
+  // between .im-window-minimized's bare `height: auto` and
+  // .im-window-maximized's full top/right/bottom/left/width/height
+  // sizing - whichever won, the minimized rule's own `.im-window-messages,
+  // .im-window-compose { display: none; }` still applied regardless,
+  // since that's keyed off the minimized class alone - producing exactly
+  // "opens larger than minimized, but still blank." Setting one now
+  // always clears the other first.
   function setMinimized(win, minimized) {
+    if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
+    if (!minimized) win.el.classList.remove("im-window-unread");
+    if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid, win.newestId ? win.newestId() : undefined);
     win.el.classList.toggle("im-window-minimized", minimized);
+    var label = minimized ? "Restore" : "Minimize";
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
-    win.minimizeBtn.setAttribute("aria-label", minimized ? "Restore" : "Minimize");
+    win.minimizeBtn.setAttribute("aria-label", label);
+    win.minimizeBtn.title = label;
+    writePersisted();
   }
 
   function setMaximized(win, maximized) {
+    if (maximized && win.minimized) setMinimized(win, false);
     win.maximized = maximized;
     win.el.classList.toggle("im-window-maximized", maximized);
+    var label = maximized ? "Restore" : "Fullscreen";
     win.maximizeBtn.textContent = maximized ? "🗗" : "⛶";
-    win.maximizeBtn.setAttribute("aria-label", maximized ? "Restore" : "Fullscreen");
+    win.maximizeBtn.setAttribute("aria-label", label);
+    win.maximizeBtn.title = label;
     if (maximized) {
       win.el.style.left = "";
       win.el.style.top = "";
@@ -105,6 +175,24 @@
       var win = windows[uid];
       return win.conversationId === conversationId && !win.minimized;
     });
+  }
+
+  // Lets notification-toast.js stack a new toast above the row of windows
+  // resting in the same bottom-right corner, instead of rendering directly
+  // on top of them (Chris, 2026-10-13). Only counts windows actually
+  // sitting in that shared corner right now - a dragged window has moved
+  // elsewhere, and a maximized one already covers most of the viewport, so
+  // neither should push the toast up. All undragged windows share one
+  // `bottom` anchor (relayout() staggers them horizontally, not
+  // vertically), so the tallest one is the real height of that row.
+  function occupiedCornerHeight() {
+    var tallest = 0;
+    windowOrder.forEach(function (uid) {
+      var win = windows[uid];
+      if (!win || win.dragged || win.maximized) return;
+      tallest = Math.max(tallest, win.el.offsetHeight);
+    });
+    return tallest;
   }
 
   function wireDrag(win) {
@@ -155,13 +243,21 @@
     var isOwn = data.authorUid === win.currentUser.uid;
     var bubble = document.createElement("div");
     bubble.className = "message-bubble " + (isOwn ? "message-own" : "message-other");
+    var colorClass = C.interlocutorColorClass(win.participants, data.authorUid);
 
-    if (!isOwn) {
-      var sender = document.createElement("p");
-      sender.className = "message-sender";
-      sender.textContent = win.otherName;
-      bubble.appendChild(sender);
-    }
+    // Always shown now, own messages included - matches the same fix in
+    // communiques-dm.js's buildMessageBubble() (Chris, 2026-10-12), same
+    // reasoning: "own vs. other" alone stops telling speakers apart once
+    // every message in a Dialog shares one author. Linked to the real
+    // profile by authorUid, same as there.
+    var sender = document.createElement("p");
+    sender.className = "message-sender " + colorClass;
+    var senderLink = document.createElement("a");
+    senderLink.href = "member.html?uid=" + encodeURIComponent(data.authorUid);
+    senderLink.textContent = (win.participantNames && win.participantNames[data.authorUid]) || "Member";
+    sender.appendChild(senderLink);
+    bubble.appendChild(sender);
+    C.tagIfDeletedProfile(senderLink, data.authorUid);
 
     var body = document.createElement("p");
     body.className = "message-body";
@@ -169,8 +265,9 @@
     bubble.appendChild(body);
 
     var time = document.createElement("p");
-    time.className = "message-time";
+    time.className = "message-time " + colorClass;
     time.textContent = C.formatDate(data.createdAt, true);
+    if (C.prependStyleBadge) C.prependStyleBadge(time, data);
     bubble.appendChild(time);
 
     // Dedup guard (Chris, 2026-09-14 - the "699 views" bug) - the live
@@ -207,6 +304,15 @@
       otherName: otherName,
       currentUser: currentUser,
       conversationId: null,
+      // Filled in once the conversation doc itself resolves below - a
+      // reasonable fallback in the meantime (correct participants, the
+      // one name already known) rather than leaving these undefined.
+      participants: [currentUser.uid, otherUid],
+      participantNames: (function () {
+        var names = {};
+        names[otherUid] = otherName;
+        return names;
+      })(),
       unsubscribeMessages: null,
       viewedMessageIds: {},
       minimized: false,
@@ -234,10 +340,16 @@
     var actions = document.createElement("div");
     actions.className = "im-window-header-actions";
 
+    // Every header button gets a hover tooltip now (Chris, 2026-10-13) -
+    // only the expand link ever had one before. minimize/maximize's
+    // titles are kept in sync with their current action by
+    // setMinimized()/setMaximized() themselves (set once more here just
+    // for the very first render, before either has ever been toggled).
     var minimizeBtn = document.createElement("button");
     minimizeBtn.type = "button";
     minimizeBtn.className = "im-window-minimize";
     minimizeBtn.setAttribute("aria-label", "Minimize");
+    minimizeBtn.title = "Minimize";
     minimizeBtn.textContent = "−";
     minimizeBtn.addEventListener("click", function () { setMinimized(win, !win.minimized); });
     win.minimizeBtn = minimizeBtn;
@@ -247,6 +359,7 @@
     maximizeBtn.type = "button";
     maximizeBtn.className = "im-window-maximize";
     maximizeBtn.setAttribute("aria-label", "Fullscreen");
+    maximizeBtn.title = "Fullscreen";
     maximizeBtn.textContent = "⛶";
     maximizeBtn.addEventListener("click", function () { setMaximized(win, !win.maximized); });
     win.maximizeBtn = maximizeBtn;
@@ -263,6 +376,7 @@
     closeBtn.type = "button";
     closeBtn.className = "im-window-close";
     closeBtn.setAttribute("aria-label", "Close");
+    closeBtn.title = "Close";
     closeBtn.textContent = "×";
     closeBtn.addEventListener("click", function () { closeWindowFor(otherUid); });
     actions.appendChild(closeBtn);
@@ -320,11 +434,12 @@
         }
 
         var now = firebase.firestore.FieldValue.serverTimestamp();
-        return conversationRef.collection("messages").add({
+        return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
           authorUid: currentUser.uid,
           body: body,
           createdAt: now,
           viewCount: 0,
+          via: "human", // Human Style 💪 - the server has the final word
         }).then(function () {
           return conversationRef.update({
             lastMessage: body,
@@ -362,31 +477,94 @@
     relayout();
     wireDrag(win);
     requestAnimationFrame(function () { el.classList.add("open"); });
+    writePersisted();
+
+    // Speed (Chris, 2026-10-13): a Dialog's id is just the two uids, so the
+    // messages listener starts right away - in parallel with creating/
+    // reading the conversation doc - instead of after two round trips. On
+    // a page change, a restored window shows its messages (from the local
+    // cache, see firebase-config.js) almost at once. Bubbles are re-drawn
+    // when the conversation's participant names arrive.
+    var conversationRef = AgoraDB.collection("conversations").doc(C.conversationIdFor(currentUser.uid, otherUid));
+    var lastSnap = null;
+    function newestId() {
+      return lastSnap && lastSnap.docs.length ? lastSnap.docs[0].id : "";
+    }
+    win.newestId = newestId;
+
+    // "New since you last read" (Chris, 2026-10-13): your own readAt as
+    // it stood when this window opened, read once before the window can
+    // mark the Dialog read itself. A thin gray line then separates the
+    // earlier chat from the messages that came in since. null = no line
+    // (nothing read yet, or a Dialog from before read tracking).
+    win.readBefore = null;
+    conversationRef.get().then(function (doc) {
+      var readAt = doc.exists && doc.data().readAt && doc.data().readAt[currentUser.uid];
+      win.readBefore = readAt && readAt.toMillis ? readAt.toMillis() : null;
+      renderMessages();
+    }).catch(function () {});
+
+    function renderMessages() {
+      if (!lastSnap || windows[otherUid] !== win) return;
+      messages.textContent = "";
+      if (!lastSnap.docs.length) {
+        messages.textContent = "No messages yet - say hello!";
+        return;
+      }
+      var dividerShown = false;
+      lastSnap.docs.slice().reverse().forEach(function (doc, index) {
+        var d = doc.data();
+        var at = d.createdAt && d.createdAt.toMillis ? d.createdAt.toMillis() : Infinity;
+        if (!dividerShown && index > 0 && win.readBefore !== null
+          && d.authorUid !== currentUser.uid && at > win.readBefore) {
+          dividerShown = true;
+          var divider = document.createElement("div");
+          divider.className = "im-window-divider";
+          divider.setAttribute("role", "separator");
+          divider.title = "New since you last read";
+          messages.appendChild(divider);
+        }
+        messages.appendChild(buildBubble(win, doc));
+      });
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    win.unsubscribeMessages = conversationRef.collection("messages")
+      .orderBy("createdAt", "desc")
+      .limit(RECENT_MESSAGE_LIMIT)
+      .onSnapshot(function (snap) {
+        // A new message from the other person while minimized lights the
+        // header up until the window is opened (cleared in setMinimized).
+        var newest = snap.docs[0];
+        if (win.minimized && lastSnap && newest && newest.id !== newestId()
+          && newest.data().authorUid !== currentUser.uid) {
+          win.el.classList.add("im-window-unread");
+        }
+        lastSnap = snap;
+        // An open (not minimized) window counts as reading the Dialog -
+        // clears its unread mark in the Friends List 📨.
+        if (!win.minimized && win.conversationId) C.markDialogRead(win.conversationId, currentUser.uid, newestId());
+        renderMessages();
+      }, function () {});
 
     C.startOrOpenDialog(currentUser, otherUid, otherName).then(function (conversationId) {
       if (windows[otherUid] !== win) return; // closed while this was in flight
       win.conversationId = conversationId;
       sendBtn.disabled = false;
       expandLink.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      if (!win.minimized && lastSnap) C.markDialogRead(conversationId, currentUser.uid, newestId());
 
-      var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
-
-      win.unsubscribeMessages = conversationRef.collection("messages")
-        .orderBy("createdAt", "desc")
-        .limit(RECENT_MESSAGE_LIMIT)
-        .onSnapshot(function (snap) {
-          messages.textContent = "";
-          if (!snap.docs.length) {
-            messages.textContent = "No messages yet - say hello!";
-            return;
-          }
-          snap.docs.slice().reverse().forEach(function (doc) {
-            messages.appendChild(buildBubble(win, doc));
-          });
-          messages.scrollTop = messages.scrollHeight;
-        });
-
-      textarea.focus();
+      // participants/participantNames tell buildBubble() who's who and
+      // which colour each speaker gets (same sorted-participants order
+      // communiques-dm.html uses).
+      return conversationRef.get().then(function (doc) {
+        if (windows[otherUid] !== win) return;
+        var data = doc.data() || {};
+        win.participants = data.participants || win.participants;
+        win.participantNames = data.participantNames || win.participantNames;
+        renderMessages();
+        textarea.focus();
+      });
     }).catch(function (err) {
       if (windows[otherUid] !== win) return;
       messages.textContent = err.message || "Couldn't open this Dialog.";
@@ -402,5 +580,69 @@
     relayout();
   });
 
-  global.AgoraIMWindow = { open: openWindow, isOpenFor: isOpenFor };
+  // Reopens whatever was still open when the member last navigated away,
+  // the moment this page's own copy of the script resolves a real
+  // signed-in user - the actual fix for windows "disappearing" on
+  // navigation (Chris, 2026-10-13). Every other caller of openWindow()
+  // already has a real currentUser handed to it by whichever click
+  // triggered it (a Dialog button, the floating-window button); this is
+  // the one case that has to go find one itself, since nothing on this
+  // particular page necessarily asked for a Dialog to open at all - e.g.
+  // the Agora homepage, which has no Dialog button anywhere on it.
+  // Restores once per page load only - agoraOnAuthChange can fire again
+  // later (a real sign-out, a different account on a shared browser),
+  // and re-running this on every firing would reopen stale windows for
+  // whoever's signed in *now*, including after someone else signs out.
+  //
+  // Bug hunt (Chris, 2026-10-13): saved windows now record whose they are
+  // (`owner`). Before, if one member signed out and another signed in on
+  // the same tab, the first member's windows reopened for the second - and
+  // reopening a window *creates* the Dialog, so it silently started new
+  // conversations with the first member's contacts. A real sign-out now
+  // also closes every open window (which clears the saved list).
+  if (typeof agoraOnAuthChange === "function") {
+    var restored = false;
+    var signedInUid = null;
+    agoraOnAuthChange(function (user) {
+      if (!user) {
+        if (signedInUid) windowOrder.slice().forEach(closeWindowFor);
+        signedInUid = null;
+        return;
+      }
+      if (signedInUid && signedInUid !== user.uid) windowOrder.slice().forEach(closeWindowFor);
+      signedInUid = user.uid;
+      if (restored) return;
+      restored = true;
+      readPersisted().forEach(function (entry) {
+        if (!entry || !entry.uid || windows[entry.uid] || entry.owner !== user.uid) return;
+        openWindow(user, entry.uid, entry.name || "Member");
+        if (entry.minimized && windows[entry.uid]) setMinimized(windows[entry.uid], true);
+      });
+    });
+  }
+
+  // An incoming Dialog message (Chris, 2026-10-13): instead of the small
+  // fixed toast, the real, movable window pops up - minimized and lit up,
+  // so it doesn't cover the page or count as read until it's opened.
+  // A window already open for that person just shows the message itself.
+  function popIncoming(currentUser, otherUid, otherName) {
+    var existing = windows[otherUid];
+    if (existing) {
+      if (existing.minimized) existing.el.classList.add("im-window-unread");
+      return;
+    }
+    openWindow(currentUser, otherUid, otherName);
+    var win = windows[otherUid];
+    if (!win) return;
+    setMinimized(win, true);
+    win.el.classList.add("im-window-unread");
+  }
+
+  global.AgoraIMWindow = {
+    open: openWindow,
+    popIncoming: popIncoming,
+    isNarrow: isNarrowViewport,
+    isOpenFor: isOpenFor,
+    occupiedCornerHeight: occupiedCornerHeight,
+  };
 })(window);

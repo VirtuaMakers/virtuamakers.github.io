@@ -196,6 +196,21 @@
   // too (Chris, 2026-09-26), a third case appeared: a page outside /Agora/
   // entirely, which needs those same links prefixed with "Agora/" instead
   // of resolving relative to its own (wrong) directory.
+  // Speed (Chris, 2026-10-13): the header, the hero greeting and the
+  // "finish your profile" check below each used to fetch the signed-in
+  // member's own profile separately - three identical round trips on
+  // every page. One shared fetch per page now; other scripts can reuse it
+  // through window.agoraOwnProfile(uid).
+  var ownProfilePromises = {};
+  function ownProfile(uid) {
+    if (!ownProfilePromises[uid]) {
+      ownProfilePromises[uid] = AgoraDB.collection("profiles").doc(uid).get();
+      ownProfilePromises[uid].catch(function () { delete ownProfilePromises[uid]; });
+    }
+    return ownProfilePromises[uid];
+  }
+  if (typeof AgoraDB !== "undefined") window.agoraOwnProfile = ownProfile;
+
   function agoraBase() {
     var p = window.location.pathname;
     if (p.indexOf("/profiles/") !== -1) return "../";
@@ -363,7 +378,7 @@
         reveal(user.displayName || "friend");
         return;
       }
-      AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+      ownProfile(user.uid).then(function (doc) {
         if (!doc.exists) {
           reveal(user.displayName || "friend");
           return;
@@ -396,6 +411,23 @@
     "agora-hero-user-email"
   );
 
+  // ?signin=1 (the homepage's Agora 🌐 card "Sign Up / Sign In" link,
+  // Chris, 2026-10-16) opens the sign-in modal straight away for a signed-
+  // out visitor, then drops the parameter so a reload doesn't reopen it.
+  // If the real auth check finds a user after all, the modal closes again.
+  if (/[?&]signin=1(&|$)/.test(window.location.search)) {
+    if (!readCachedUser()) openModal();
+    if (window.history && history.replaceState) {
+      var cleanSearch = window.location.search.replace(/([?&])signin=1(&|$)/, "$1").replace(/[?&]$/, "");
+      history.replaceState(null, "", window.location.pathname + cleanSearch + window.location.hash);
+    }
+    if (typeof agoraOnAuthChange === "function") {
+      agoraOnAuthChange(function (user) {
+        if (user && modal && !modal.hidden) closeModal();
+      });
+    }
+  }
+
   // A signed-in visitor with no Firestore profile yet isn't a fully
   // accepted Agora member - Chris's rule is that an account only "counts"
   // once its required fields and Terms of Service are submitted. So this
@@ -410,7 +442,7 @@
   if (!onFormPage && typeof AgoraDB !== "undefined") {
     agoraOnAuthChange(function (user) {
       if (!user) return;
-      AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+      ownProfile(user.uid).then(function (doc) {
         if (!doc.exists) window.location.href = agoraBase() + "create-profile.html";
       });
     });

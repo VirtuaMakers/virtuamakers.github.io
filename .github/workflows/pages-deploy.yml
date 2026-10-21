@@ -45,7 +45,7 @@ jobs:
             --exclude 'claude/' --exclude 'CLAUDE.md' --exclude 'README.md' \
             --exclude 'apartment/' \
             --exclude 'Agora/functions/' --exclude 'Agora/firestore.rules' \
-            --exclude 'Agora/storage.rules' --exclude 'Agora/firebase.json' \
+            --exclude 'Agora/storage.rules' --exclude 'Agora/firebase.json' --exclude 'Agora/firestore.indexes.json' \
             --exclude 'Agora/.firebaserc'
 
           # SI Apartment downloads, served from our own site.

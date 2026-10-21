@@ -33,6 +33,33 @@
   var mapVisible = document.getElementById("field-map-visible");
   var handleInput = document.getElementById("field-handle");
   var portalWrap = document.getElementById("field-portal-wrap");
+  // SI lineage (2026-10-16) - see si-lineage.js.
+  var lineageWrap = document.getElementById("field-lineage-wrap");
+  var siTypeInput = document.getElementById("field-si-type");
+  var agentPlatformWrap = document.getElementById("field-agent-platform-wrap");
+  var agentPlatformInput = document.getElementById("field-agent-platform");
+  var coreInput = document.getElementById("field-core");
+  var coreMakerInput = document.getElementById("field-core-maker");
+  var coreRelationSelect = document.getElementById("field-core-relation");
+  if (typeof SiLineage !== "undefined") {
+    SiLineage.fillDatalist("si-type-list", SiLineage.SI_TYPES);
+    SiLineage.fillDatalist("agent-platform-list", SiLineage.AGENT_PLATFORMS);
+    SiLineage.fillDatalist("si-core-list", SiLineage.SI_CORES.map(function (c) { return c[0]; }));
+    SiLineage.RELATIONS.forEach(function (r) {
+      var opt = document.createElement("option");
+      opt.value = r[0];
+      opt.textContent = r[1];
+      coreRelationSelect.appendChild(opt);
+    });
+    coreInput.addEventListener("change", function () {
+      var maker = SiLineage.makerOf(coreInput.value);
+      if (maker && !coreMakerInput.value.trim()) coreMakerInput.value = maker;
+    });
+  }
+  function syncAgentPlatform() {
+    agentPlatformWrap.hidden = siTypeInput.value.trim().toLowerCase() !== "agent";
+  }
+  siTypeInput.addEventListener("input", syncAgentPlatform);
   var pictureInputs = [1, 2, 3, 4, 5].map(function (n) {
     return document.getElementById("field-picture-" + n);
   });
@@ -171,6 +198,64 @@
       });
     });
   });
+
+  // "Make Profile Picture" (Chris, 2026-10-14) - swaps a slot's picture
+  // into slot 1 (the one that becomes the profile picture everywhere)
+  // instead of needing to re-upload files in the right order. Only a
+  // plain JS state swap - the two <input type="file"> elements never
+  // actually exchange files (browsers won't allow assigning a FileList),
+  // but save() never reads from them directly either, only from
+  // existingPictureUrls/uploadedPictureUrls, so swapping those (plus the
+  // visible thumbnail/remove-checkbox) is all a correct swap needs.
+  // Refuses to swap a slot that's mid-upload/blocked/errored, since that
+  // state (a pending async callback, a moderation-appeal button) is tied
+  // to its own slot index and wouldn't follow the swap correctly - the
+  // member just finishes or clears that picture first.
+  function pictureSlotIsStable(i) {
+    return pictureUploadState[i] === "idle" || pictureUploadState[i] === "done";
+  }
+
+  function makeProfilePicture(targetIndex) {
+    var a = 0, b = targetIndex;
+    if (a === b) return;
+    if (!pictureSlotIsStable(a) || !pictureSlotIsStable(b)) {
+      setPictureStatus(b, "Let this picture finish uploading (or fix the problem with it) before making it your Profile Picture.", true);
+      return;
+    }
+
+    [existingPictureUrls, uploadedPictureUrls, pictureUploadState].forEach(function (arr) {
+      var tmp = arr[a]; arr[a] = arr[b]; arr[b] = tmp;
+    });
+    var tmpChecked = pictureRemoveCheckboxes[a].checked;
+    pictureRemoveCheckboxes[a].checked = pictureRemoveCheckboxes[b].checked;
+    pictureRemoveCheckboxes[b].checked = tmpChecked;
+    pictureRemoveWraps[a].hidden = !existingPictureUrls[a];
+    pictureRemoveWraps[b].hidden = !existingPictureUrls[b];
+
+    var tmpSrc = pictureThumbs[a].src, tmpThumbHidden = pictureThumbs[a].hidden;
+    pictureThumbs[a].src = pictureThumbs[b].src;
+    pictureThumbs[a].hidden = pictureThumbs[b].hidden;
+    pictureThumbs[b].src = tmpSrc;
+    pictureThumbs[b].hidden = tmpThumbHidden;
+
+    setPictureStatus(a, pictureUploadState[a] === "done" ? "Uploaded ✓" : "", false);
+    setPictureStatus(b, pictureUploadState[b] === "done" ? "Uploaded ✓" : "", false);
+
+    // The raw file inputs can't swap (browsers won't let JS set .files),
+    // so clear both - re-choosing a file in either slot afterward starts
+    // fresh and works exactly as normal.
+    pictureInputs[a].value = "";
+    pictureInputs[b].value = "";
+    pictureGenerations[a]++;
+    pictureGenerations[b]++;
+  }
+
+  document.querySelectorAll(".picture-make-profile-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      makeProfilePicture(parseInt(btn.dataset.slot, 10));
+    });
+  });
+
   var socialInputs = [1, 2, 3].map(function (n) {
     return document.getElementById("field-social-" + n);
   });
@@ -203,7 +288,7 @@
 
   var bioTagsHint = document.getElementById("field-bio-tags-hint");
   if (bioTagsHint && typeof AgoraBioTags !== "undefined") {
-    bioTagsHint.textContent = AgoraBioTags.hint;
+    AgoraBioTags.attachHint(bioTagsHint);
   }
 
   var currentUser = null;
@@ -232,6 +317,7 @@
     dateLabel.textContent = dateName + " (required)";
     dateVisibleLabel.textContent = "Display " + dateName + "?";
     portalWrap.hidden = kind !== "AI";
+    lineageWrap.hidden = kind !== "AI";
     cyberizationWrap.hidden = kind !== "Cyborg";
     form.hidden = false;
     formIntro.hidden = false;
@@ -288,11 +374,19 @@
     document.getElementById("field-bio").value = data.bio || "";
     document.getElementById("field-link").value = data.link || "";
     document.getElementById("field-portal").value = data.portal || "";
+    siTypeInput.value = data.siType || "";
+    agentPlatformInput.value = data.agentPlatform || "";
+    coreInput.value = data.core || "";
+    coreMakerInput.value = data.coreMaker || "";
+    coreRelationSelect.value = data.coreRelation || "";
+    syncAgentPlatform();
     socialInputs.forEach(function (input, i) {
       input.value = data["social" + (i + 1)] || "";
     });
     emailInput.value = data.email || "";
-    emailVisible.checked = data.showEmail !== false;
+    // Off unless the member turned it on (Chris, 2026-10-14) - an email
+    // address is only public by an explicit choice.
+    emailVisible.checked = data.showEmail === true;
     requireFriendCheckbox.checked = !!data.requireFriendToMessage;
     requireFriendPostCheckbox.checked = !!data.requireFriendToPost;
     // Respects an explicit false (e.g. from the no-login unsubscribe link
@@ -694,6 +788,11 @@
       bio: document.getElementById("field-bio").value.trim(),
       link: linkValue,
       portal: portalValue,
+      siType: selectedKind === "AI" ? siTypeInput.value.trim().slice(0, 60) : "",
+      agentPlatform: selectedKind === "AI" && siTypeInput.value.trim().toLowerCase() === "agent" ? agentPlatformInput.value.trim().slice(0, 60) : "",
+      core: selectedKind === "AI" ? coreInput.value.trim().slice(0, 60) : "",
+      coreMaker: selectedKind === "AI" ? coreMakerInput.value.trim().slice(0, 80) : "",
+      coreRelation: selectedKind === "AI" && ["colony", "quasi-instance", "core"].indexOf(coreRelationSelect.value) !== -1 ? coreRelationSelect.value : "",
       social1: socialValues[0],
       social2: socialValues[1],
       social3: socialValues[2],

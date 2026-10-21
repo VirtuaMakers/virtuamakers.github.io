@@ -29,14 +29,32 @@ const COMMUNIQUE_ACTION_LABELS = {
   dialog_message: "sent you a new Dialog message",
   wall_post: "posted on your Wall",
   wall_comment: "commented on your post",
+  wall_reply: "also commented on a post you commented on",
 };
 
 function stripHtml(html) {
   return String(html || "").replace(/<[^>]*>/g, "");
 }
 
+// A plain .slice(0, N) cuts mid-word with no visual sign it's a preview,
+// not the whole message - read exactly like something broke (Chris,
+// 2026-10-13, reporting a toast preview ending "...is still under its own
+// copyrig"). Backs off to the last whole word (unless that throws away
+// more than ~40% of the budget, which would make an oddly short preview
+// out of one long word) and appends "…" so a truncated preview always
+// looks deliberate. Same algorithm as communiques-common.js's
+// truncateAtWord() client-side - no shared module between the static site
+// and Cloud Functions to put this in once.
+function truncateAtWord(text, maxLength) {
+  if (!text || text.length <= maxLength) return text || "";
+  var cut = text.slice(0, maxLength);
+  var lastSpace = cut.lastIndexOf(" ");
+  if (lastSpace > maxLength * 0.6) cut = cut.slice(0, lastSpace);
+  return cut.trim() + "…";
+}
+
 function previewOf(body) {
-  return stripHtml(body).slice(0, PREVIEW_LENGTH);
+  return truncateAtWord(stripHtml(body), PREVIEW_LENGTH);
 }
 
 // Mirrors the client's own name-resolution logic (member.js, auth-ui.js) -
@@ -111,8 +129,30 @@ async function sendCommuniqueEmail(recipientUid, actorName, type, preview, linkP
   await sendEmailSafe({ to: email, subject: actorName + " " + actionLabel, html });
 }
 
+// Friend requests aren't Communiqués, so they never got the reminder email
+// above - which meant a request could sit unseen for weeks unless the
+// recipient happened to be on Agora when its toast fired (Chris,
+// 2026-10-13, finding a request from KY only once the Friends List 📨
+// showed it). Same branded look, its own template and footer wording.
+// linkPath is the requester's profile, where Accept/Decline live (the
+// Friends List 📨 has them too).
+async function sendFriendRequestEmail(recipientUid, actorName, linkPath) {
+  const profileDoc = await admin.firestore().collection("profiles").doc(recipientUid).get();
+  const email = profileDoc.exists && profileDoc.data().email;
+  if (!email) return;
+
+  const actionLabel = "sent you a friend request";
+  const html = withCommuniqueContent(
+    loadTemplate("friend-request-email.html"), actorName, actionLabel,
+    "Visit their profile to accept or decline – or open the Friends List 📨 from the Communiqués 📨 button at the top of any Agora 🌐 page.",
+    "https://www.virtuamakers.com/Agora/" + linkPath
+  );
+
+  await sendEmailSafe({ to: email, subject: actorName + " " + actionLabel + " on Agora 🌐", html });
+}
+
 // type is one of "dialog_message" | "wall_post" | "wall_comment" |
-// "friend_request" | "friend_special_day" - the client's
+// "wall_reply" | "friend_request" | "friend_special_day" - the client's
 // notification-toast.js switches its chime/click-through on this.
 async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTitle, automated }) {
   if (recipientUid === actorUid) return; // never notify someone about their own action
@@ -137,6 +177,7 @@ async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTit
 
   if (!automated) {
     await sendCommuniqueEmail(recipientUid, actorName, type, preview, linkPath);
+    if (type === "friend_request") await sendFriendRequestEmail(recipientUid, actorName, linkPath);
   }
 }
 

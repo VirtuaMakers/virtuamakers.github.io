@@ -2,18 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, machinekind, cyborgs, VirtuaMakers, Agora, Communiqués" />
+  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, AJI, artificial jagged intelligence, machinekind, cyborgs, VirtuaMakers, Agora" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Communiqués · Agora</title>
-  <meta name="description" content="Communiqués 📨 - your Agora Dialogs and Wall activity, in one place. Install it as its own app, or keep it open right here." />
+  <title>Post · Communiqués · Agora</title>
+  <meta name="description" content="A Wall post on Agora and all of its comments." />
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%93%A8</text></svg>" />
-  <link rel="manifest" href="communiques-manifest.json" />
-  <meta name="theme-color" content="#2b57d6" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Speed: start connecting to Firebase while the page loads. -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=101" />
+  <link rel="stylesheet" href="style.css?v=125" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -29,7 +32,7 @@
     <div class="header-right">
       <a class="back-link" id="agora-news-link" href="index.html#news">News 📰</a>
       <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
-      <a class="back-link" id="agora-communiques-link" href="communiques.html" hidden>Communiqués 📨</a>
+      <a class="back-link communiques-launch-trigger" id="agora-communiques-link" hidden>Communiqués 📨</a>
       <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
       <div class="auth-controls" id="agora-auth-controls">
         <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
@@ -47,50 +50,35 @@
   <script src="header-height.js?v=1"></script>
 
   <main>
-    <section class="section" id="communiques-hub">
-      <h1 class="page-title">Communiqués 📨</h1>
-      <p class="lede">Every Dialog and Wall activity waiting for you, in one place - the
-        same way opening Messenger from Facebook opens a dedicated space for your
-        messages, except here Agora 🌐 actually does the hand-off.</p>
+    <section class="section" id="post-page">
+      <p id="post-notice" hidden></p>
 
-      <p id="communiques-signed-out-notice" class="lede" hidden>
-        <button type="button" class="auth-link" id="communiques-signin-btn">Sign in</button>
-        to see your Communiqués 📨.
-      </p>
+      <div id="post-content" hidden>
+        <p class="post-page-back"><a id="post-back-link" href="index.html">← Back to the Wall</a></p>
+        <h1 id="post-heading">Post</h1>
 
-      <div id="communiques-install-wrap" class="profile-panel" hidden>
-        <h2 class="panel-title">Install Communiqués</h2>
-        <p class="body-text">Keep Communiqués 📨 in its own window, separate from the rest
-          of Agora 🌐 - closable any time, and one click to reopen.</p>
-        <button type="button" class="btn btn-primary" id="communiques-install-btn">Install Communiqués 📨</button>
-        <p class="field-hint" id="communiques-install-hint" hidden>Already installed, or your
-          browser doesn't offer an install prompt here - look for "Install app" in your
-          browser's own menu instead.</p>
-      </div>
+        <div class="wall-post" id="post-item"></div>
 
-      <div id="communiques-content" hidden>
-        <div class="profile-panel">
-          <h2 class="panel-title">New Message</h2>
-          <div class="search-picker">
-            <input type="text" id="communiques-new-message-search" class="friend-search-input"
-              placeholder="Search members to Dialog…" autocomplete="off" />
-            <div class="dm-list" id="communiques-new-message-results"></div>
-          </div>
+        <h2 class="post-page-comments-title" id="post-comments-title">Comments</h2>
+
+        <div class="dm-pagination" id="post-pagination-top" hidden>
+          <button type="button" class="btn" id="post-page-prev-top">← Earlier</button>
+          <span class="dm-page-indicator" id="post-page-indicator-top"></span>
+          <button type="button" class="btn" id="post-page-next-top">Later →</button>
         </div>
 
-        <div class="profile-panel">
-          <h2 class="panel-title">Dialogs</h2>
-          <p class="form-status" id="communiques-dialogs-empty" hidden>No Dialogs yet - search
-            above to start one.</p>
-          <div class="dm-list" id="communiques-dialogs-list"></div>
+        <div class="wall-comments" id="post-comments"></div>
+        <p class="communique-item-meta" id="post-comments-empty" hidden>No comments yet.</p>
+        <p class="communique-item-meta" id="post-cap-notice" hidden></p>
+
+        <div class="dm-pagination" id="post-pagination-bottom" hidden>
+          <button type="button" class="btn" id="post-page-prev-bottom">← Earlier</button>
+          <span class="dm-page-indicator" id="post-page-indicator-bottom"></span>
+          <button type="button" class="btn" id="post-page-next-bottom">Later →</button>
         </div>
 
-        <div class="profile-panel">
-          <h2 class="panel-title">Recent Wall Activity</h2>
-          <p class="form-status" id="communiques-activity-empty" hidden>Nothing yet - Wall
-            posts and comments involving you will show up here.</p>
-          <div class="dm-list" id="communiques-activity-list"></div>
-        </div>
+        <div id="post-comment-form-slot"></div>
+        <p class="intro" id="post-signin-notice" hidden>Sign in to read and write comments.</p>
       </div>
     </section>
   </main>
@@ -135,20 +123,20 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
-  <script src="firebase-config.js?v=3"></script>
+  <script src="firebase-config.js?v=4"></script>
   <script src="auth.js?v=6"></script>
-  <script src="auth-ui.js?v=22"></script>
-  <script src="site-search.js?v=10"></script>
+  <script src="auth-ui.js?v=23"></script>
+  <script src="site-search.js?v=13"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-  <script src="bio-tags.js?v=1"></script>
+  <script src="bio-tags.js?v=4"></script>
   <script src="moderation-client.js?v=1"></script>
-  <script src="communiques-common.js?v=17"></script>
-  <script src="notification-toast.js?v=9"></script>
+  <script src="communiques-common.js?v=31"></script>
+  <script src="notification-toast.js?v=17"></script>
   <script src="push-notifications.js?v=1"></script>
-  <script src="im-window.js?v=5"></script>
-  <script src="pwa-register.js?v=1"></script>
-  <script src="communiques.js?v=1"></script>
+  <script src="im-window.js?v=19"></script>
+  <script src="friends-list.js?v=10"></script>
+  <script src="post.js?v=3"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

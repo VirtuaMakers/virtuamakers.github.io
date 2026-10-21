@@ -18,6 +18,16 @@
   --blue-deep: #1e3f9e;
   --blue-light: #4d8df0;
   --blue-soft: #e5eefc;
+  /* Default profile-picture color squares (Chris, 2026-10-14) - a member
+     with no picture gets one of these seven, deterministically, cycling
+     ROYGBIV as the member roster grows past seven. */
+  --avatar-red: #c8503f;
+  --avatar-orange: #d9823b;
+  --avatar-yellow: #c9a227;
+  --avatar-green: #61a138;
+  --avatar-blue: #2b57d6;
+  --avatar-indigo: #4a4e9e;
+  --avatar-violet: #8e4f93;
   --radius: 14px;
   --maxw: 960px;
 }
@@ -311,6 +321,53 @@ a {
   user-select: none;
 }
 
+/* Agora Harness 🚡 style line, typed out under the logo (index.html). */
+.harness-detect {
+  text-align: center;
+  font-family: ui-monospace, Menlo, Consolas, "Courier New", monospace;
+  font-size: clamp(0.95rem, 3.4vw, 1.25rem);
+  letter-spacing: 0.04em;
+  margin: 0 0 2.6rem;
+  min-height: 1.6em;
+}
+
+.harness-detect-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.harness-detect.is-detecting .harness-detect-text {
+  color: var(--green);
+}
+
+.harness-detect.is-done .harness-detect-link {
+  animation: harness-glow 2s ease-out 1;
+}
+
+.harness-detect-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 0.12em;
+  vertical-align: -0.15em;
+  background: currentColor;
+  opacity: 0;
+}
+
+.harness-detect.is-typing .harness-detect-cursor {
+  opacity: 1;
+  animation: harness-blink 0.9s steps(1) infinite;
+}
+
+@keyframes harness-blink {
+  50% { opacity: 0; }
+}
+
+@keyframes harness-glow {
+  0% { text-shadow: 0 0 0.7em rgba(22, 112, 130, 0.85); }
+  100% { text-shadow: none; }
+}
+
 .hero-signin {
   text-align: center;
   font-size: 2rem;
@@ -544,7 +601,7 @@ main {
 }
 
 .hero {
-  padding: 3rem 0 3.5rem;
+  padding: 0.5rem 0 3.5rem;
 }
 
 .page-logo {
@@ -552,6 +609,21 @@ main {
   width: min(520px, 90vw);
   height: auto;
   margin: 0.5rem auto 1.4rem;
+}
+
+/* Agora homepage logo, cropped tight to the artwork (agora-logo-white2.png)
+   and sized to the screen (Chris, 2026-10-14): logo + the Harness 🚡 line
+   fill the first view exactly, so the line shows on load while Sign Up /
+   Sign In waits just below the fold. 5.5rem = logo margins + hero padding
+   + the line itself + 1rem breathing room. */
+.page-logo-tight {
+  width: auto;
+  height: calc(100vh - var(--header-height, 85px) - 5.5rem);
+  height: calc(100svh - var(--header-height, 85px) - 5.5rem);
+  min-height: 200px;
+  max-width: 90vw;
+  object-fit: contain;
+  margin: 1rem auto 1rem;
 }
 
 #exchange-welcome .page-logo {
@@ -720,6 +792,55 @@ main > .section:first-child {
   padding: 1.5rem 1.5rem 1.8rem;
   margin-top: 1.5rem;
   margin-bottom: 1.8rem;
+}
+
+/* Wall/Dialogs side by side (Chris, 2026-10-14) - half-width columns on a
+   member's own profile instead of stacking full-width, one under the
+   other. Collapses back to one column on phones. */
+.wall-dialogs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.8rem;
+}
+
+.wall-dialogs-row .profile-panel {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* The Dialog column on someone else's profile (Chris, 2026-10-20). */
+.dialog-with-messages {
+  max-height: 420px;
+  margin-top: 0;
+}
+
+.dialog-with-messages .message-bubble {
+  max-width: 85%;
+}
+
+/* Long links and unbroken words wrap instead of stretching the page
+   (Chris, 2026-10-16: a skill.md URL in a Wall post made member.html wider
+   than his phone). Grid/flex children also need min-width: 0, or their
+   content's width still pushes the column wider than the screen. */
+.communique-body,
+.message-body,
+.notification-toast-body,
+.profile-fields dd,
+.field-hint {
+  overflow-wrap: anywhere;
+}
+
+.wall-dialogs-row > *,
+.profile-panel {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .wall-dialogs-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .panel-title {
@@ -1180,8 +1301,14 @@ main > .section:first-child {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
   gap: 0.5rem;
+  /* Uniform card size regardless of kind (Chris, 2026-10-14) - an SI
+     card's extra lines (org, Pony Style 🐎 pill) used to make it taller
+     than a Human/Cyborg card with less content; centering keeps shorter
+     cards from looking top-heavy inside the same fixed height. */
+  min-height: 195px;
 }
 
 .member-logo {
@@ -1215,7 +1342,10 @@ main > .section:first-child {
   letter-spacing: 0.02em;
 }
 
-.card:nth-child(even) .avatar {
+/* Only the old uncolored circle alternates teal/green - a seven-color
+   default avatar (.avatar-color-*) keeps its own color, which this more
+   specific rule used to override on every even card. */
+.card:nth-child(even) .avatar:not([class*="avatar-color-"]) {
   background: var(--green);
 }
 
@@ -1265,7 +1395,27 @@ main > .section:first-child {
 .profile-avatar-empty {
   background: var(--surface);
   border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.5rem;
 }
+
+/* One default-avatar system (Chris, 2026-10-14) - color + initials,
+   combining the initials-circle look Human Members already had with the
+   ROYGBIV hash-color squares added for member.html, so any member of any
+   kind (human, cyborg, SI) gets the same kind of default when they have
+   no picture. Not scoped to .profile-avatar-empty, so .avatar (the
+   homepage member cards' circle) can use the same seven classes. */
+.avatar-color-red { background: var(--avatar-red); border-color: var(--avatar-red); }
+.avatar-color-orange { background: var(--avatar-orange); border-color: var(--avatar-orange); }
+.avatar-color-yellow { background: var(--avatar-yellow); border-color: var(--avatar-yellow); }
+.avatar-color-green { background: var(--avatar-green); border-color: var(--avatar-green); }
+.avatar-color-blue { background: var(--avatar-blue); border-color: var(--avatar-blue); }
+.avatar-color-indigo { background: var(--avatar-indigo); border-color: var(--avatar-indigo); }
+.avatar-color-violet { background: var(--avatar-violet); border-color: var(--avatar-violet); }
 
 .avatar-lg {
   width: 72px;
@@ -1303,6 +1453,21 @@ main > .section:first-child {
   letter-spacing: 0.08em;
   color: var(--teal);
   margin-bottom: 0.2rem;
+}
+
+/* Larger keywords on a member's own profile page (Chris, 2026-10-14) -
+   scoped to member.html's own Form panel, not the shared .profile-field
+   markup every static profile page also uses. */
+#member-content .page-title {
+  font-size: 2.75rem; /* 2.2rem + 25% */
+}
+
+#member-form .panel-title {
+  font-size: 2.275rem; /* 1.3rem + 75% */
+}
+
+#member-form .profile-field dt {
+  font-size: 1.08rem; /* 0.72rem + 50% */
 }
 
 /* flex-wrap: nowrap plus flex-basis 0 means every thumbnail always
@@ -1715,6 +1880,14 @@ main > .section:first-child {
   color: var(--text);
 }
 
+/* Total on its own line, twice the size (Chris, 2026-10-15) - flex-basis
+   100% forces it to fill the row by itself, so flex-wrap carries SI/
+   Cyborg/Human down onto a line beneath it. */
+.membership-total {
+  flex-basis: 100%;
+  font-size: 2em;
+}
+
 .link-badge {
   display: inline-block;
   width: 220px;
@@ -1850,6 +2023,66 @@ main > .section:first-child {
   .auth-controls {
     gap: 0.4rem;
   }
+
+  /* Phones (Chris, 2026-10-21): the links take the full width under the
+     logo and every row is centered, signed in or out. */
+  .header-right {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
+  /* Phones only (Chris, 2026-10-17): News and Search share their own
+     last row, centered together, below the other header links. The
+     zero-height ::before forces the row break; the auto margins center
+     the pair while the row above stays right-aligned. */
+  .header-right::before {
+    content: "";
+    order: 1;
+    flex-basis: 100%;
+    height: 0;
+    margin-bottom: -0.5rem; /* cancels the second row gap */
+  }
+
+  .header-right #agora-news-link,
+  .header-right .header-search {
+    order: 2;
+  }
+
+  .header-right #agora-news-link {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .header-right .header-search {
+    margin-right: auto;
+    position: static;
+  }
+
+  /* Signed out there are only four links, so they fit one row (Chris,
+     2026-10-21) - the split above only applies once signed in. */
+  .header-right:has(#agora-signout-btn[hidden]) {
+    column-gap: 0.55rem;
+  }
+
+  .header-right:has(#agora-signout-btn[hidden])::before {
+    display: none;
+  }
+
+  .header-right:has(#agora-signout-btn[hidden]) #agora-news-link,
+  .header-right:has(#agora-signout-btn[hidden]) .header-search {
+    order: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* With Search now centered, its panel hangs from the header itself
+     (sticky, so it's the containing block) and centers on the screen. */
+  .header-search-panel {
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+  }
 }
 
 /* Profile create/edit form */
@@ -1974,6 +2207,30 @@ main > .section:first-child {
   border: none;
 }
 
+/* Profile Picture: labeled clearly + easy to switch (Chris, 2026-10-14) -
+   slot 1's own label already said "Profile Picture"; this badge makes it
+   locally obvious without needing the shared hint above all 5 fields.
+   Each other slot gets a one-click way to swap into slot 1 instead of
+   needing to re-upload in the right order. */
+.picture-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.picture-field-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--teal-deep);
+}
+
+.picture-make-profile-btn {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+}
+
 .picture-field-row {
   display: flex;
   align-items: center;
@@ -2013,13 +2270,30 @@ label.field-checkbox-inline {
 
 .profile-form-actions {
   display: flex;
+  flex-wrap: wrap; /* a row of buttons wraps on phones instead of spilling out (Chris, 2026-10-16) */
   gap: 0.8rem;
   align-items: center;
+}
+
+/* The gap spaces these buttons; the general .btn + .btn margin would
+   indent every button that wraps onto a new line. */
+.profile-form-actions .btn + .btn {
+  margin-left: 0;
 }
 
 .form-status {
   font-size: 0.9rem;
   color: var(--muted);
+}
+
+/* Line space after the Schedule Meeting button (Chris, 2026-10-14). */
+#meeting-create-form .profile-form-actions {
+  margin-bottom: 1.6rem;
+}
+
+/* Admin Panel 🗝️ button aligned right (Chris, 2026-10-14). */
+#owner-admin-panel-link {
+  text-align: right;
 }
 
 .form-error {
@@ -2282,6 +2556,32 @@ label.field-checkbox-inline {
   margin-top: 1.2rem;
 }
 
+/* Compact Friends/Dialogs containers (Chris, 2026-10-14) - half the width
+   of a standard .dm-item (two per row instead of one full-width bar),
+   used for the Friends List and the friend-search results inside Dialogs
+   on a member's own profile. Scoped to this modifier rather than resizing
+   .dm-item everywhere, since Communiqués' own Friends List 📨 app shares
+   the same base class and wasn't asked to shrink. */
+.dm-list-compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dm-list-compact .dm-item {
+  width: calc(50% - 0.25rem);
+  padding: 0.45rem 0.6rem;
+}
+
+.dm-list-compact .dm-item-name {
+  font-size: 0.85rem;
+}
+
+.dm-list-compact .dm-item-preview {
+  font-size: 0.72rem;
+  margin-top: 0.1rem;
+}
+
 .dm-item {
   display: block;
   background: var(--surface);
@@ -2373,6 +2673,15 @@ button.dm-item {
   margin-bottom: 0.2rem;
 }
 
+.message-sender a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.message-sender a:hover {
+  text-decoration: underline;
+}
+
 .message-body {
   white-space: pre-wrap;
 }
@@ -2381,6 +2690,21 @@ button.dm-item {
   font-size: 0.75rem;
   color: var(--muted);
   margin-top: 0.25rem;
+}
+
+/* Colors a Dialog message's own info line (sender name + date/views) by
+   which of the two participants wrote it - independent of the
+   message-own/message-other bubble color above, since both bubbles in a
+   Dialog you're not part of render "other" (white). The two colors are
+   VirtuaMakers' own established split, same as .word-virtua/.word-makers
+   elsewhere (Chris, 2026-10-12). Declared after .message-sender/
+   .message-time on purpose so they win the tie on specificity. */
+.interlocutor-a {
+  color: var(--teal);
+}
+
+.interlocutor-b {
+  color: var(--green);
 }
 
 /* Inline editing - Wall posts/comments, Dialog messages */
@@ -2461,6 +2785,13 @@ button.dm-item {
 .wall-dialog-card:hover {
   transform: translateY(-2px);
   border-color: var(--teal-deep);
+}
+
+/* A Dialog that was opened but never actually used - drawn attention to
+   (Chris, 2026-10-14) rather than blending in like a normal preview. */
+.wall-dialog-empty {
+  color: #c0392b;
+  font-weight: 600;
 }
 
 .wall-comments {
@@ -2547,6 +2878,39 @@ button.dm-item {
 
 .communiques-logo {
   width: min(390px, 67.5vw);
+}
+
+/* The full Dialog page (communiques-dm.html) - mostly read by fellow
+   members flipping through someone else's Dialog (Chris, 2026-10-13):
+   smaller text, tighter bubbles, and no scroll box of its own, so one
+   page scroll reaches the ← Older / Newer → buttons instead of scrolling
+   the messages and then the page separately. The floating window
+   (.im-window-messages) keeps its own sizes. */
+#dm-conversation .message-list {
+  max-height: none;
+  overflow-y: visible;
+  gap: 0.4rem;
+  margin: 0.8rem 0;
+  padding-right: 0;
+}
+
+#dm-conversation .message-bubble {
+  padding: 0.4rem 0.7rem;
+}
+
+#dm-conversation .message-body {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+#dm-conversation .message-sender {
+  font-size: 0.72rem;
+  margin-bottom: 0.1rem;
+}
+
+#dm-conversation .message-time {
+  font-size: 0.68rem;
+  margin-top: 0.15rem;
 }
 
 .dm-pagination {
@@ -2678,6 +3042,12 @@ button.dm-item {
   opacity: 0;
   transform: translateY(1.2rem);
   transition: opacity 0.25s ease, transform 0.25s ease;
+  /* .notification-toast already has this; .im-window never did, which is
+     exactly the gap behind the minimize cutoff bug below - .im-window-header
+     rounds only its own top corners, so collapsing down to just the header
+     (minimized) left its square bottom corners sticking out past the
+     parent's rounded ones with nothing clipping them (Chris, 2026-10-13). */
+  overflow: hidden;
 }
 
 .im-window.open {
@@ -2696,6 +3066,34 @@ button.dm-item {
 .im-window-minimized .im-window-messages,
 .im-window-minimized .im-window-compose {
   display: none;
+}
+
+/* The header's own border-bottom (needed normally, to separate it from
+   the message list below) sits directly against the window's own outer
+   border once minimized, with nothing between them - two 1px black lines
+   a hair apart read as "a double black line," not a single clean one
+   (Chris, 2026-10-13). Collapse it away in this one state only. */
+.im-window-minimized .im-window-header {
+  border-bottom: none;
+}
+
+/* Separates the earlier chat from messages that came in since you last
+   read the Dialog (im-window.js renderMessages). */
+.im-window-divider {
+  flex-shrink: 0;
+  height: 0;
+  margin: 0.2rem 0;
+  border-top: 1px solid #b9c2c6;
+}
+
+/* A minimized window with a message you haven't opened yet. */
+.im-window-unread .im-window-header {
+  background: var(--accent-soft);
+}
+
+.im-window-unread .im-window-title::before {
+  content: "● ";
+  color: var(--blue);
 }
 
 /* Fullscreen: fills most of the viewport, overriding any dragged
@@ -2799,4 +3197,448 @@ button.dm-item {
 .im-window-compose .form-error {
   flex-basis: 100%;
   font-size: 0.8rem;
+}
+
+/* Friends List 📨 (Chris, 2026-10-13) - the AIM-style buddy list the
+   header's "Communiqués 📨" button now opens (friends-list.js). Rests
+   top-right under the sticky header; sits just below the Dialog windows
+   (z-index 200+) so an open conversation is never hidden behind it. */
+.friends-list {
+  position: fixed;
+  right: 1.2rem;
+  top: calc(var(--header-height, 72px) + 0.8rem);
+  width: min(270px, calc(100vw - 2.4rem));
+  max-height: min(460px, calc(100vh - var(--header-height, 72px) - 2rem));
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.4);
+  z-index: 190;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-0.6rem);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.friends-list.open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.friends-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--green-soft);
+  border-bottom: 1px solid var(--line);
+  cursor: move;
+  touch-action: none;
+}
+
+.friends-list-minimized .friends-list-header {
+  border-bottom: none;
+}
+
+.friends-list-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.friends-list-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.friends-list-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 0.1rem 0.3rem;
+}
+
+.friends-list-btn:hover {
+  color: var(--text);
+}
+
+.friends-list-minimized .friends-list-me,
+.friends-list-minimized .friends-list-body,
+.friends-list-minimized .friends-list-footer {
+  display: none;
+}
+
+.friends-list-me {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+
+.friends-list-me select {
+  font: inherit;
+  font-size: 0.8rem;
+  margin-left: 0.2rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.friends-list-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.3rem 0;
+}
+
+.friends-list-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.friends-list-group-toggle {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.45rem 0.9rem 0.25rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.friends-list-empty {
+  margin: 0;
+  padding: 0.2rem 0.9rem 0.5rem 1.7rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.friends-list-requests {
+  display: block;
+  margin: 0.3rem 0.9rem 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--blue);
+}
+
+.friends-list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.2rem 0.6rem 0.2rem 1.5rem;
+}
+
+.friends-list-row:hover {
+  background: var(--blue-soft);
+}
+
+.friends-list-dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+  background: transparent;
+}
+
+.friends-list-dot.is-online {
+  background: var(--green);
+  border-color: var(--green-deep);
+}
+
+.friends-list-logo {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.friends-list-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: none;
+  border: none;
+  padding: 0.15rem 0;
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.friends-list-name-text {
+  font-size: 0.88rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friends-list-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.friends-list-info {
+  font-size: 0.8rem;
+  text-decoration: none;
+  opacity: 0.45;
+}
+
+.friends-list-row:hover .friends-list-info,
+.friends-list-info:focus {
+  opacity: 1;
+}
+
+.friends-list-footer {
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.8rem;
+}
+
+.friends-list-footer a {
+  display: block;
+}
+
+.friends-list-options-btn {
+  display: block;
+  margin-top: 0.3rem;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.friends-list-options-btn:hover {
+  text-decoration: underline;
+}
+
+/* The little Options window, opened from the footer (Chris, 2026-10-13). */
+.friends-list-options {
+  margin: 0 0.6rem 0.5rem;
+  padding: 0.45rem 0.6rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.35);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.friends-list-options[hidden] {
+  display: none;
+}
+
+.friends-list-options-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.friends-list-minimized .friends-list-options {
+  display: none;
+}
+
+/* Incoming friend requests answered right in the Friends List 📨. */
+.friends-list-request {
+  gap: 0.35rem;
+}
+
+.friends-list-request-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friends-list-request .btn {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+/* Wall comments (Chris, 2026-10-13): each post shows its newest 3, then
+   a link to the post's own page (post.html) for the rest. */
+.wall-comments-view-all {
+  display: inline-block;
+  margin: 0.4rem 0 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.wall-comments-view-all:hover {
+  text-decoration: underline;
+}
+
+.post-page-back {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+}
+
+.post-page-comments-title {
+  margin: 1.6rem 0 0.6rem;
+  font-size: 1.15rem;
+}
+
+#post-page .dm-pagination {
+  margin: 0.8rem 0;
+}
+
+/* Friends List 📨 round 2 (Chris, 2026-10-13): unread Dialogs, away
+   messages, door-sound toggle. */
+.friends-list-row.is-unread .friends-list-name-text {
+  font-weight: 800;
+}
+
+.friends-list-row.is-unread .friends-list-sub {
+  color: var(--blue);
+  font-weight: 600;
+}
+
+.friends-list-away {
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friends-list-away-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.4rem;
+  padding: 0.25rem 0.45rem;
+  font: inherit;
+  font-size: 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.friends-list-away-note {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+}
+
+.friends-list-sounds {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.friends-list-sound-hint {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted, inherit);
+}
+
+/* Unread Dialogs on the Communiqués page. */
+.dm-item-unread .dm-item-name {
+  font-weight: 800;
+  color: var(--blue);
+}
+
+/* Basic HTML guide (basic-html.html, Chris, 2026-10-13). */
+.html-tag-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.html-tag-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.html-tag-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  background: var(--surface);
+  scroll-margin-top: calc(var(--header-height, 72px) + 1rem);
+}
+
+.html-tag-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.html-tag-label {
+  margin: 0.8rem 0 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.html-tag-code {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.html-tag-result {
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+.html-try-input {
+  width: 100%;
+  min-height: 8rem;
+  box-sizing: border-box;
+  padding: 0.6rem 0.8rem;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  resize: vertical;
+}
+
+/* Pictures in member HTML (bios, posts, comments, Dialogs) - trusted
+   hosts only, see bio-tags.js. Never wider than the text around them. */
+.communique-body img,
+#member-bio img,
+.html-tag-result img,
+.message-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  vertical-align: middle;
 }

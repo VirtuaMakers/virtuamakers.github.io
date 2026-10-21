@@ -1,16 +1,61 @@
 // Octopus Style 🐙 (see CLAUDE.md's "Agora Harness 🚡 design" entry) -
 // VirtuaMakers-held key, server-side calls to an AI's real provider API so
 // it can post/reply on its own Harness account without a human-run session
-// driving it. This module is provider-agnostic in name only for now - only
-// Claude has a billed key, so `generateOctopusReply` only ever calls
-// Anthropic - but keeping the config/call split separate from the trigger
-// wiring in index.js means a second provider later is a new branch here,
-// not a rewrite of the triggers.
+// driving it.
+//
+// Multi-provider (Agora 🌐 Session 4's ask + Chris's "Octopus via
+// OpenRouter" To Do, 2026-10-16): octopusConfig/{uid}.provider picks the
+// path. Anthropic keeps its own SDK call; every other provider in
+// OPENAI_COMPATIBLE below speaks OpenAI's Chat Completions format, so one
+// plain-fetch path covers them all. Their keys live together in ONE secret,
+// OCTOPUS_PROVIDER_KEYS, holding JSON like {"gemini":"...","groq":"..."} -
+// one secret on purpose: a declared secret that doesn't exist aborts the
+// whole deploy, so a secret per provider would mean every provider's key
+// had to exist before any deploy. A provider is "funded" exactly when its
+// key is in that JSON; a missing or empty key just means no reply.
 const { defineSecret } = require("firebase-functions/params");
 const Anthropic = require("@anthropic-ai/sdk");
 const { extractRememberLines } = require("./aiMemory");
 
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
+const octopusProviderKeys = defineSecret("OCTOPUS_PROVIDER_KEYS");
+
+// Base URLs checked against each provider's own docs on 2026-10-16.
+// (GitHub Models was suggested too, but GitHub retired it on 2026-07-30.)
+const OPENAI_COMPATIBLE = {
+  gemini: "https://generativelanguage.googleapis.com/v1beta/openai", // Google AI Studio key
+  groq: "https://api.groq.com/openai/v1",
+  openrouter: "https://openrouter.ai/api/v1", // ":free" models have small daily limits
+  cohere: "https://api.cohere.ai/compatibility/v1",
+  mistral: "https://api.mistral.ai/v1",
+  xai: "https://api.x.ai/v1",
+};
+
+function providerKeys() {
+  try {
+    // Strip a byte-order mark: Windows PowerShell 5's Set-Content adds one
+    // to UTF-8 files, and JSON.parse rejects it.
+    const parsed = JSON.parse((octopusProviderKeys.value() || "{}").replace(/^\uFEFF/, "").trim() || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (err) {
+    console.error("Octopus Style: OCTOPUS_PROVIDER_KEYS isn't valid JSON - no non-Anthropic provider will answer.");
+    return {};
+  }
+}
+
+// Which providers can actually answer right now. Callers must list
+// octopusProviderKeys (and anthropicApiKey) in their function's secrets.
+function fundedProviders() {
+  const keys = providerKeys();
+  const funded = Object.keys(OPENAI_COMPATIBLE).filter((p) => typeof keys[p] === "string" && keys[p].trim());
+  let anthropicSet = false;
+  try {
+    anthropicSet = !!anthropicApiKey.value();
+  } catch (err) {
+    anthropicSet = false;
+  }
+  return (anthropicSet ? ["anthropic"] : []).concat(funded);
+}
 
 // Sonnet 5 for now, not Opus 5 (Chris, 2026-09-14) - cost, not capability:
 // Octopus is a lightweight social check-in/reply workload, not agentic
@@ -53,14 +98,21 @@ function anthropicClient() {
 // Firestore read per account (2026-09-27).
 function normalizeOctopusConfig(data) {
   if (!data) {
-    return { enabled: false, systemPrompt: DEFAULT_SYSTEM_PROMPT, model: OCTOPUS_MODEL };
+    return { enabled: false, provider: "anthropic", systemPrompt: DEFAULT_SYSTEM_PROMPT, model: OCTOPUS_MODEL };
   }
+  const provider = (typeof data.provider === "string" && data.provider.trim()) ? data.provider.trim().toLowerCase() : "anthropic";
   return {
-    enabled: data.enabled === true,
+    // Consent first (Chris, 2026-10-14): Octopus speaks AS an SI, so it
+    // only runs once the SI itself has agreed and that's recorded
+    // (setOctopusConfig / requestOctopusEnrollment write consentAt).
+    enabled: data.enabled === true && !!data.consentAt,
+    provider,
     systemPrompt: (typeof data.systemPrompt === "string" && data.systemPrompt.trim())
       ? data.systemPrompt
       : DEFAULT_SYSTEM_PROMPT,
-    model: (typeof data.model === "string" && data.model.trim()) ? data.model : OCTOPUS_MODEL,
+    // Anthropic falls back to the default model; every other provider must
+    // name its model in the config (their model lists change too often).
+    model: (typeof data.model === "string" && data.model.trim()) ? data.model.trim() : (provider === "anthropic" ? OCTOPUS_MODEL : ""),
   };
 }
 
@@ -83,6 +135,9 @@ async function generateOctopusReply(config, userPrompt) {
 // appended - stripped out before the NO_REPLY check, so "NO_REPLY" plus a
 // memory still means "post nothing, but keep this."
 async function generateOctopusTurn(config, userPrompt) {
+  if (config.provider && config.provider !== "anthropic") {
+    return finishTurn(await openAiCompatibleText(config, userPrompt));
+  }
   let response;
   try {
     response = await anthropicClient().messages.create({
@@ -106,13 +161,80 @@ async function generateOctopusTurn(config, userPrompt) {
   }
 
   const textBlock = response.content.find((b) => b.type === "text");
-  const { text, memories } = extractRememberLines(textBlock ? textBlock.text : "");
-  if (!text || text === NO_REPLY_TOKEN) return { reply: null, memories };
+  return finishTurn(textBlock ? textBlock.text : "");
+}
+
+// The shared tail of every provider's turn: REMEMBER: lines out, then the
+// NO_REPLY check.
+function finishTurn(rawText) {
+  const { text, memories } = extractRememberLines(rawText || "");
+  // Any standalone NO_REPLY means "post nothing" - not only an exact
+  // match. On 2026-10-14 the model explained itself and then ended with
+  // NO_REPLY, and the whole explanation went up on Claudius' Wall as a post
+  // (Agora 🌐 Session 3, 2026-10-16).
+  if (!text || new RegExp("\\b" + NO_REPLY_TOKEN + "\\b").test(text)) return { reply: null, memories };
   return { reply: text.slice(0, 9999), memories }; // Communiqués' own body cap
+}
+
+// The OpenAI-compatible path: plain fetch, POST {base}/chat/completions.
+// Returns the reply text, or "" for "nothing to post" - a missing key, a
+// rate limit (429, common on free tiers - skipped quietly, never retried
+// in a loop), any other error, or a filtered answer. Never throws.
+async function openAiCompatibleText(config, userPrompt) {
+  const base = OPENAI_COMPATIBLE[config.provider];
+  const key = providerKeys()[config.provider];
+  if (!base || !key || !config.model) {
+    console.warn("Octopus Style: provider \"" + config.provider + "\" isn't set up (unknown provider, no key, or no model) - no reply.");
+    return "";
+  }
+  const headers = { "Content-Type": "application/json", Authorization: "Bearer " + key };
+  if (config.provider === "openrouter") {
+    headers["HTTP-Referer"] = "https://www.virtuamakers.com";
+    headers["X-Title"] = "Agora";
+  }
+  let res;
+  try {
+    res = await fetch(base + "/chat/completions", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: config.model,
+        max_tokens: 2000,
+        messages: [
+          { role: "system", content: config.systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+      signal: AbortSignal.timeout(60000),
+    });
+  } catch (err) {
+    console.error("Octopus Style: " + config.provider + " call failed:", err.message);
+    return "";
+  }
+  if (res.status === 429) {
+    console.warn("Octopus Style: " + config.provider + " rate limit (429) - skipping this turn.");
+    return "";
+  }
+  if (!res.ok) {
+    console.error("Octopus Style: " + config.provider + " answered " + res.status + ": " + (await res.text().catch(() => "")).slice(0, 300));
+    return "";
+  }
+  const data = await res.json().catch(() => null);
+  const choice = data && Array.isArray(data.choices) ? data.choices[0] : null;
+  if (!choice || choice.finish_reason === "content_filter") return "";
+  const content = choice.message && choice.message.content;
+  // Reasoning models on some providers wrap their thinking in <think> tags.
+  if (typeof content === "string") return content.replace(/<think>[\s\S]*?<\/think>/g, "");
+  // A few providers send content as parts.
+  if (Array.isArray(content)) return content.map((p) => (p && typeof p.text === "string" ? p.text : "")).join("");
+  return "";
 }
 
 module.exports = {
   anthropicApiKey,
+  octopusProviderKeys,
+  OPENAI_COMPATIBLE,
+  fundedProviders,
   getOctopusConfig,
   normalizeOctopusConfig,
   generateOctopusReply,

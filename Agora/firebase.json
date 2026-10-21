@@ -4,11 +4,14 @@
       "source": "functions",
       "codebase": "default",
       "runtime": "nodejs22",
-      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" ci"]
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" ci"
+      ]
     }
   ],
   "firestore": {
-    "rules": "firestore.rules"
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   },
   "storage": {
     "rules": "storage.rules"

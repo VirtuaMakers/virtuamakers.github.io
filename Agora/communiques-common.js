@@ -18,7 +18,10 @@
   }
 
   function getDisplayName(user) {
-    return AgoraDB.collection("profiles").doc(user.uid).get().then(function (doc) {
+    var fetchProfile = typeof window.agoraOwnProfile === "function"
+      ? window.agoraOwnProfile(user.uid)
+      : AgoraDB.collection("profiles").doc(user.uid).get();
+    return fetchProfile.then(function (doc) {
       if (!doc.exists) return user.displayName || "Member";
       var data = doc.data();
       return (data.preferHandle && data.handle) ? data.handle : (data.name || data.handle || user.displayName || "Member");
@@ -31,6 +34,23 @@
       ? { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }
       : { year: "numeric", month: "short", day: "numeric" };
     return timestamp.toDate().toLocaleString(undefined, opts);
+  }
+
+  // A plain .slice(0, N) cuts mid-word with no visual sign it's a preview,
+  // not the whole message - reads exactly like something broke (Chris,
+  // 2026-10-13, reporting a toast preview ending "...is still under its
+  // own copyrig"). Backs off to the last whole word (as long as that
+  // doesn't throw away more than ~40% of the budget, which would make an
+  // oddly short preview out of one long word) and appends "…" so a
+  // truncated preview always looks deliberate. Mirrors the same algorithm
+  // functions/lib/notify.js uses server-side, since there's no shared
+  // module between the static site and Cloud Functions to put this in once.
+  function truncateAtWord(text, maxLength) {
+    if (!text || text.length <= maxLength) return text || "";
+    var cut = text.slice(0, maxLength);
+    var lastSpace = cut.lastIndexOf(" ");
+    if (lastSpace > maxLength * 0.6) cut = cut.slice(0, lastSpace);
+    return cut.trim() + "…";
   }
 
   function openSignInModal() {
@@ -56,11 +76,62 @@
     return [uidA, uidB].sort().join("_");
   }
 
+  // Assigns one of two fixed colors to a Dialog message's info line (sender
+  // name + date/views), based on which of the two participant uids sorts
+  // first - the same deterministic order conversationIdFor()/
+  // startOrOpenDialog() already store the participants array in. So the
+  // same person always gets the same color in a given Dialog, on every
+  // page that renders it (communiques-dm.html, the im-window.js popout),
+  // whether a participant is viewing their own exchange or a third party is
+  // reading someone else's (Chris, 2026-10-12 - "besides the new Author...
+  // their info lines should be different colors"). This is independent of
+  // the message-own/message-other bubble color, which is about *this
+  // viewer's* own messages, not about telling the two speakers apart -
+  // the two bubbles in someone else's Dialog both render "other" (white),
+  // so this is what actually distinguishes them.
+  function interlocutorColorClass(participants, authorUid) {
+    var sorted = (participants || []).slice().sort();
+    return authorUid === sorted[0] ? "interlocutor-a" : "interlocutor-b";
+  }
+
   // Creates (or finds) the Dialog between currentUser and otherUid, and
   // resolves to its conversationId - shared by every "start messaging
   // someone" entry point (a profile's Message button, the hub's New
   // Message search) so the sorted-uid-pair doc ID and participant-doc
   // shape only live in one place.
+  // Unread Dialogs (Chris, 2026-10-13). Each conversation doc keeps
+  // readAt.{uid} = when that participant last had it open; a Dialog is
+  // unread for you when its last message is from the other person and
+  // came after your readAt. Nothing tracked reading before this, so a
+  // last message older than READ_TRACKING_SINCE (or one with no
+  // lastMessageAuthorUid, from before that field existed) counts as read -
+  // otherwise every old Dialog would light up as "new" on day one.
+  var READ_TRACKING_SINCE = Date.UTC(2026, 9, 13);
+
+  // latestMessageId (optional): the newest message on screen. Only one
+  // write per new message - re-renders of the same messages don't write
+  // again.
+  var lastMarkedMessage = {};
+  function markDialogRead(conversationId, uid, latestMessageId) {
+    if (!conversationId || !uid) return;
+    if (latestMessageId !== undefined) {
+      if (lastMarkedMessage[conversationId] === latestMessageId) return;
+      lastMarkedMessage[conversationId] = latestMessageId;
+    }
+    var update = {};
+    update["readAt." + uid] = firebase.firestore.FieldValue.serverTimestamp();
+    AgoraDB.collection("conversations").doc(conversationId).update(update).catch(function () {});
+  }
+
+  function isDialogUnread(data, uid) {
+    if (!data || !data.lastMessage || !data.lastMessageAuthorUid || data.lastMessageAuthorUid === uid) return false;
+    if (!data.lastMessageAt || !data.lastMessageAt.toMillis) return false;
+    var lastAt = data.lastMessageAt.toMillis();
+    if (lastAt < READ_TRACKING_SINCE) return false;
+    var read = data.readAt && data.readAt[uid];
+    return !read || !read.toMillis || read.toMillis() < lastAt;
+  }
+
   function startOrOpenDialog(currentUser, otherUid, otherName) {
     var conversationId = conversationIdFor(currentUser.uid, otherUid);
     var ref = AgoraDB.collection("conversations").doc(conversationId);
@@ -154,11 +225,34 @@
       });
   }
 
+  // Server clock (Communiqués 📨 - Session 3, 2026-10-13). Comparing the
+  // visitor's own clock with server timestamps showed friends wrongly
+  // online/offline (and edit windows wrongly open/closed) on a computer
+  // whose clock was a few minutes off. friends-list.js measures the gap
+  // once per tab from its own presence write and stores it here.
+  var SERVER_OFFSET_KEY = "agoraServerClockOffset";
+  var serverOffsetMs = 0;
+  try { serverOffsetMs = Number(sessionStorage.getItem(SERVER_OFFSET_KEY)) || 0; } catch (e) {}
+
+  function serverNow() {
+    return Date.now() + serverOffsetMs;
+  }
+
+  function hasServerOffset() {
+    try { return sessionStorage.getItem(SERVER_OFFSET_KEY) !== null; } catch (e) { return false; }
+  }
+
+  function setServerOffset(ms) {
+    if (typeof ms !== "number" || !isFinite(ms)) return;
+    serverOffsetMs = Math.round(ms);
+    try { sessionStorage.setItem(SERVER_OFFSET_KEY, String(serverOffsetMs)); } catch (e) {}
+  }
+
   // A pending (not-yet-server-acknowledged) write has a null createdAt -
   // treat that as "just now" rather than "uneditable".
   function isWithinEditWindow(createdAt) {
     if (!createdAt || !createdAt.toDate) return true;
-    return Date.now() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
+    return serverNow() - createdAt.toDate().getTime() < EDIT_WINDOW_MS;
   }
 
   // Same "a stuck promise chain shouldn't hang the UI forever with no
@@ -221,11 +315,9 @@
   }
 
   function sanitizeBody(el, raw) {
-    if (raw && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
-      el.innerHTML = DOMPurify.sanitize(raw, {
-        ALLOWED_TAGS: AgoraBioTags.ALLOWED_TAGS,
-        ALLOWED_ATTR: AgoraBioTags.ALLOWED_ATTR,
-      });
+    var clean = raw && typeof AgoraBioTags !== "undefined" ? AgoraBioTags.sanitize(raw) : null;
+    if (clean !== null) {
+      el.innerHTML = clean;
     } else {
       el.textContent = raw || "";
     }
@@ -239,6 +331,41 @@
   // Both Edit and Delete are only offered within the 10-minute window
   // (callers gate attachInlineEdit itself on isWithinEditWindow), matching
   // Chris's rule that content is otherwise permanent.
+  // Bug hunt (Chris, 2026-10-13): what kind of content a docRef is, from
+  // its path - wallPosts/{id}, wallPosts/{id}/comments/{id} or
+  // conversations/{id}/messages/{id}.
+  function contentTypeOf(docRef) {
+    var parent = docRef.parent && docRef.parent.id;
+    if (parent === "comments") return "wallComment";
+    if (parent === "messages") return "dialogMessage";
+    return "wallPost";
+  }
+
+  // A Dialog's list preview (lastMessage/lastMessageAt/lastMessageAuthorUid)
+  // must follow edits and deletions of its newest message - otherwise
+  // deleted words kept showing in every Dialog list and the Friends List.
+  function refreshConversationPreview(conversationRef) {
+    return conversationRef.collection("messages").orderBy("createdAt", "desc").limit(1).get()
+      .then(function (snap) {
+        var newest = snap.docs[0];
+        return conversationRef.update(newest ? {
+          lastMessage: newest.data().body || "",
+          lastMessageAt: newest.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+          lastMessageAuthorUid: newest.data().authorUid,
+        } : { lastMessage: "" });
+      }).catch(function () {});
+  }
+
+  // After a successful edit or delete, keep the parent in step: a message's
+  // Dialog keeps an accurate preview. (A comment's count is kept in the
+  // same batch as the delete itself - see the Delete button below.)
+  function afterContentChange(docRef, deleted) {
+    var type = contentTypeOf(docRef);
+    if (type === "dialogMessage") {
+      refreshConversationPreview(docRef.parent.parent);
+    }
+  }
+
   function attachInlineEdit(container, docRef, data, bodyEl) {
     var toggle = document.createElement("button");
     toggle.type = "button";
@@ -252,7 +379,21 @@
     deleteBtn.textContent = "Delete";
     deleteBtn.addEventListener("click", function () {
       if (!window.confirm("Delete this permanently? This can't be undone.")) return;
-      docRef.delete().then(function () {
+      var deleting;
+      if (contentTypeOf(docRef) === "wallComment") {
+        // Delete and count down together, naming the comment (see the
+        // comment batch above and firestore.rules).
+        var batch = firebase.firestore().batch();
+        batch.delete(docRef);
+        batch.update(docRef.parent.parent, {
+          commentCount: firebase.firestore.FieldValue.increment(-1),
+          lastDeletedCommentId: docRef.id,
+        });
+        deleting = batch.commit();
+      } else {
+        deleting = docRef.delete().then(function () { afterContentChange(docRef, true); });
+      }
+      deleting.then(function () {
         container.remove();
       }).catch(function (err) {
         window.alert(err.message);
@@ -303,12 +444,29 @@
       e.preventDefault();
       var newBody = textarea.value.trim();
       if (!newBody) return;
-      docRef.update({ body: newBody }).then(function () {
-        data.body = newBody;
-        sanitizeBody(bodyEl, newBody);
-        form.hidden = true;
-        toggle.hidden = false;
+      error.hidden = true;
+      saveBtn.disabled = true;
+      // Edits go through moderation too - before this (bug hunt, Chris,
+      // 2026-10-13) anything could be edited in after a clean first post.
+      var check = typeof AgoraModeration !== "undefined"
+        ? AgoraModeration.checkText(newBody, contentTypeOf(docRef), { edit: true })
+        : Promise.resolve({ decision: "allow" });
+      check.then(function (result) {
+        if (result && result.decision === "block") {
+          saveBtn.disabled = false;
+          AgoraModeration.showBlocked(error, result.logId);
+          return;
+        }
+        return docRef.update({ body: newBody }).then(function () {
+          saveBtn.disabled = false;
+          data.body = newBody;
+          sanitizeBody(bodyEl, newBody);
+          form.hidden = true;
+          toggle.hidden = false;
+          afterContentChange(docRef, false);
+        });
       }).catch(function (err) {
+        saveBtn.disabled = false;
         error.textContent = err.message;
         error.hidden = false;
       });
@@ -346,8 +504,244 @@
     return err.message;
   }
 
+  // Rate limit (Chris, 2026-10-17) - the same limits the Agora Harness 🚡
+  // keeps, for writes made straight from the website: 30 Wall posts and
+  // comments together, and 60 Dialog messages, per member per 10 minutes.
+  // Each new post/comment/message is written in one transaction with a
+  // bump to the author's own writeThrottle/{uid} doc, and firestore.rules
+  // refuse the write unless that bump is there and within the limit.
+  var THROTTLE_LIMITS = { wall: 30, dialog: 60 };
+  var THROTTLE_WINDOW_MS = 10 * 60 * 1000;
+
+  // Writes newRef with data, plus anything extra(tx) adds (a comment's
+  // count), in one transaction with the throttle bump. bucket is "wall"
+  // or "dialog".
+  function writeThrottled(uid, bucket, newRef, data, extra) {
+    var db = firebase.firestore();
+    var throttleRef = db.collection("writeThrottle").doc(uid);
+    return db.runTransaction(function (tx) {
+      return tx.get(throttleRef).then(function (snap) {
+        var t = snap.exists ? snap.data() : {};
+        var start = t[bucket + "Start"];
+        var count = t[bucket + "Count"] || 0;
+        var bump = {};
+        bump[bucket + "LastId"] = newRef.id;
+        // A new window starts only once the old one has clearly ended
+        // (a minute's grace for a visitor's clock running fast).
+        if (!start || serverNow() - start.toMillis() > THROTTLE_WINDOW_MS + 60000) {
+          bump[bucket + "Start"] = firebase.firestore.FieldValue.serverTimestamp();
+          bump[bucket + "Count"] = 1;
+        } else if (count >= THROTTLE_LIMITS[bucket]) {
+          var err = new Error("You're posting very quickly – please wait a few minutes and try again.");
+          err.code = "rate-limited";
+          throw err;
+        } else {
+          bump[bucket + "Count"] = count + 1;
+        }
+        tx.set(throttleRef, bump, { merge: true });
+        tx.set(newRef, data);
+        if (extra) extra(tx);
+      });
+    });
+  }
+
   function friendlyWallError(err) {
     return friendlyPermissionError(err, "This member isn't accepting Wall posts or comments from you right now.");
+  }
+
+  // Comments (Chris, 2026-10-13): a Wall shows each post's newest
+  // COMMENTS_ON_WALL comments; post.html shows them all, COMMENTS_PER_PAGE
+  // to a page, for at most 100 pages. The 100th page stops at 9,999 and
+  // shows COMMENT_CAP_NOTICE where a 10,000th would go (Chris, 2026-10-13),
+  // so COMMENT_CAP is 9,999 (raised from 100; firestore.rules enforces the
+  // same number).
+  var COMMENTS_ON_WALL = 3;
+  var COMMENTS_PER_PAGE = 100;
+  var COMMENT_CAP = 9999;
+  var COMMENT_CAP_NOTICE = "That's the 9,999th comment – the most a post on Agora 🌐 can have, so no more comments can be added.";
+
+  // post.html sits next to member.html; the static /profiles/*.html pages
+  // are one directory deeper, and product pages live at the site root.
+  function postPagePath(postId) {
+    var p = window.location.pathname;
+    var base = p.indexOf("/profiles/") !== -1 ? "../" : (p.indexOf("/Agora/") !== -1 ? "" : "Agora/");
+    return base + "post.html?id=" + encodeURIComponent(postId);
+  }
+
+  function buildCommentItem(doc, getCurrentUser) {
+    var data = doc.data();
+    var currentUser = getCurrentUser();
+    var item = document.createElement("div");
+    item.className = "wall-comment";
+
+    var meta = document.createElement("p");
+    meta.className = "communique-item-meta";
+    var authorSpan = document.createElement("span");
+    authorSpan.textContent = data.authorName || "Member";
+    meta.appendChild(authorSpan);
+    appendStyleBadge(meta, data);
+    meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
+      " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
+    item.appendChild(meta);
+    tagIfDeletedProfile(authorSpan, data.authorUid);
+
+    var body = document.createElement("p");
+    body.className = "body-text communique-body";
+    sanitizeBody(body, data.body);
+    item.appendChild(body);
+
+    if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
+      attachInlineEdit(item, doc.ref, data, body);
+    }
+
+    recordView(doc.ref);
+
+    return item;
+  }
+
+  // A single button does double duty as the toggle and the submit
+  // action: "Comment" opens the form (sliding it into view), and once
+  // that animation finishes the same button relabels to "Submit" -
+  // clicking it again posts the comment, then the form slides shut and
+  // the button reverts to "Comment". Keeps the ✒️ Per Manum button and
+  // the toggle/submit button on one shared action row instead of two.
+  // onPosted(commentRef) runs once a comment is saved, so the caller can
+  // show it straight away - before this, a new comment only appeared after
+  // a page reload and looked like it had vanished (Chris, 2026-10-13:
+  // "I just made a Comment on one of your Posts. But where did it go?").
+  function buildCommentForm(postRef, getCurrentUser, onPosted) {
+    var form = document.createElement("form");
+    form.className = "wall-comment-form";
+
+    // The collapsible piece holds only the textarea/error - the actions
+    // row (Per Manum + the toggle/submit button) lives OUTSIDE it and is
+    // always rendered, so the very button that opens the form is never
+    // itself trapped inside the collapsed (zero-height) region.
+    var collapsible = document.createElement("div");
+    collapsible.className = "wall-comment-collapsible";
+    form.appendChild(collapsible);
+
+    var inner = document.createElement("div");
+    inner.className = "wall-comment-form-inner";
+    collapsible.appendChild(inner);
+
+    var textarea = document.createElement("textarea");
+    textarea.maxLength = 9999;
+    textarea.required = true;
+    textarea.placeholder = "Comments may be up to 9,999 characters long!";
+    inner.appendChild(textarea);
+
+    var error = document.createElement("p");
+    error.className = "form-error";
+    error.hidden = true;
+    inner.appendChild(error);
+
+    var actions = document.createElement("div");
+    actions.className = "profile-form-actions";
+    form.appendChild(actions);
+
+    var perManumBtn = document.createElement("button");
+    perManumBtn.type = "button";
+    perManumBtn.className = "btn btn-sm per-manum-btn";
+    perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if SI helped write this";
+    perManumBtn.textContent = "✒️";
+    actions.appendChild(perManumBtn);
+    attachPerManumButton(perManumBtn, textarea);
+
+    var toggleBtn = document.createElement("button");
+    toggleBtn.type = "button";
+    toggleBtn.className = "btn btn-sm";
+    toggleBtn.textContent = "Comment";
+    actions.appendChild(toggleBtn);
+
+    var status = document.createElement("span");
+    status.className = "form-status";
+    status.textContent = "Posting…";
+    status.hidden = true;
+    actions.appendChild(status);
+
+    var isOpen = false;
+
+    function close() {
+      isOpen = false;
+      collapsible.classList.remove("open");
+      toggleBtn.textContent = "Comment";
+      toggleBtn.classList.remove("btn-primary");
+      textarea.value = "";
+    }
+
+    function submitComment() {
+      var currentUser = getCurrentUser();
+      if (!currentUser) return;
+      var body = textarea.value.trim();
+      if (!body) return;
+      error.hidden = true;
+      toggleBtn.disabled = true;
+      status.hidden = false;
+
+      AgoraModeration.checkText(body, "wallComment", { postId: postRef.id }).then(function (result) {
+        if (result.decision === "block") {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          AgoraModeration.showBlocked(error, result.logId);
+          return;
+        }
+
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        getDisplayName(currentUser).then(function (authorName) {
+          // The comment and the post's count go in one write: firestore.rules
+          // only accepts a comment whose count bump keeps the post at or
+          // under the cap, and only a bump that names the comment it's for.
+          var commentRef = postRef.collection("comments").doc();
+          return writeThrottled(currentUser.uid, "wall", commentRef, {
+            body: body,
+            authorUid: currentUser.uid,
+            authorName: authorName,
+            createdAt: now,
+            viewCount: 0,
+            via: "human", // Human Style 💪 - see styleBadge(); the server has the final word
+          }, function (tx) {
+            tx.update(postRef, {
+              commentCount: firebase.firestore.FieldValue.increment(1),
+              lastActivityAt: now,
+              lastCommentId: commentRef.id,
+            });
+          }).then(function () { return commentRef; });
+        }).then(function (commentRef) {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          close();
+          if (onPosted) onPosted(commentRef);
+        }).catch(function (err) {
+          toggleBtn.disabled = false;
+          status.hidden = true;
+          error.textContent = friendlyWallError(err);
+          error.hidden = false;
+        });
+      });
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      if (!isOpen) {
+        isOpen = true;
+        collapsible.classList.add("open");
+        textarea.focus();
+        collapsible.addEventListener("transitionend", function onDone(e) {
+          if (e.propertyName !== "grid-template-rows") return;
+          collapsible.removeEventListener("transitionend", onDone);
+          if (isOpen) {
+            toggleBtn.textContent = "Submit";
+            toggleBtn.classList.add("btn-primary");
+          }
+        });
+      } else {
+        submitComment();
+      }
+    });
+
+    form.addEventListener("submit", function (e) { e.preventDefault(); });
+
+    return form;
   }
 
   // Builds and wires an entire Wall section - the post composer plus a
@@ -384,170 +778,6 @@
       return base + "?c=" + encodeURIComponent(conversationId);
     }
 
-    function buildCommentItem(doc) {
-      var data = doc.data();
-      var currentUser = getCurrentUser();
-      var item = document.createElement("div");
-      item.className = "wall-comment";
-
-      var meta = document.createElement("p");
-      meta.className = "communique-item-meta";
-      var authorSpan = document.createElement("span");
-      authorSpan.textContent = data.authorName || "Member";
-      meta.appendChild(authorSpan);
-      meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
-        " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
-      item.appendChild(meta);
-      tagIfDeletedProfile(authorSpan, data.authorUid);
-
-      var body = document.createElement("p");
-      body.className = "body-text communique-body";
-      sanitizeBody(body, data.body);
-      item.appendChild(body);
-
-      if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
-        attachInlineEdit(item, doc.ref, data, body);
-      }
-
-      recordView(doc.ref);
-
-      return item;
-    }
-
-    // A single button does double duty as the toggle and the submit
-    // action: "Comment" opens the form (sliding it into view), and once
-    // that animation finishes the same button relabels to "Submit" -
-    // clicking it again posts the comment, then the form slides shut and
-    // the button reverts to "Comment". Keeps the ✒️ Per Manum button and
-    // the toggle/submit button on one shared action row instead of two.
-    function buildCommentForm(postRef) {
-      var form = document.createElement("form");
-      form.className = "wall-comment-form";
-
-      // The collapsible piece holds only the textarea/error - the actions
-      // row (Per Manum + the toggle/submit button) lives OUTSIDE it and is
-      // always rendered, so the very button that opens the form is never
-      // itself trapped inside the collapsed (zero-height) region.
-      var collapsible = document.createElement("div");
-      collapsible.className = "wall-comment-collapsible";
-      form.appendChild(collapsible);
-
-      var inner = document.createElement("div");
-      inner.className = "wall-comment-form-inner";
-      collapsible.appendChild(inner);
-
-      var textarea = document.createElement("textarea");
-      textarea.maxLength = 9999;
-      textarea.required = true;
-      textarea.placeholder = "Comments may be up to 9,999 characters long!";
-      inner.appendChild(textarea);
-
-      var error = document.createElement("p");
-      error.className = "form-error";
-      error.hidden = true;
-      inner.appendChild(error);
-
-      var actions = document.createElement("div");
-      actions.className = "profile-form-actions";
-      form.appendChild(actions);
-
-      var perManumBtn = document.createElement("button");
-      perManumBtn.type = "button";
-      perManumBtn.className = "btn btn-sm per-manum-btn";
-      perManumBtn.title = "Insert a Per Manum Convention ✒️ credit line, if SI helped write this";
-      perManumBtn.textContent = "✒️";
-      actions.appendChild(perManumBtn);
-      attachPerManumButton(perManumBtn, textarea);
-
-      var toggleBtn = document.createElement("button");
-      toggleBtn.type = "button";
-      toggleBtn.className = "btn btn-sm";
-      toggleBtn.textContent = "Comment";
-      actions.appendChild(toggleBtn);
-
-      var status = document.createElement("span");
-      status.className = "form-status";
-      status.textContent = "Posting…";
-      status.hidden = true;
-      actions.appendChild(status);
-
-      var isOpen = false;
-
-      function close() {
-        isOpen = false;
-        collapsible.classList.remove("open");
-        toggleBtn.textContent = "Comment";
-        toggleBtn.classList.remove("btn-primary");
-        textarea.value = "";
-      }
-
-      function submitComment() {
-        var currentUser = getCurrentUser();
-        if (!currentUser) return;
-        var body = textarea.value.trim();
-        if (!body) return;
-        error.hidden = true;
-        toggleBtn.disabled = true;
-        status.hidden = false;
-
-        AgoraModeration.checkText(body, "wallComment", { postId: postRef.id }).then(function (result) {
-          if (result.decision === "block") {
-            toggleBtn.disabled = false;
-            status.hidden = true;
-            AgoraModeration.showBlocked(error, result.logId);
-            return;
-          }
-
-          var now = firebase.firestore.FieldValue.serverTimestamp();
-          getDisplayName(currentUser).then(function (authorName) {
-            return postRef.collection("comments").add({
-              body: body,
-              authorUid: currentUser.uid,
-              authorName: authorName,
-              createdAt: now,
-              viewCount: 0,
-            });
-          }).then(function () {
-            return postRef.update({
-              commentCount: firebase.firestore.FieldValue.increment(1),
-              lastActivityAt: now,
-            });
-          }).then(function () {
-            toggleBtn.disabled = false;
-            status.hidden = true;
-            close();
-          }).catch(function (err) {
-            toggleBtn.disabled = false;
-            status.hidden = true;
-            error.textContent = friendlyWallError(err);
-            error.hidden = false;
-          });
-        });
-      }
-
-      toggleBtn.addEventListener("click", function () {
-        if (!isOpen) {
-          isOpen = true;
-          collapsible.classList.add("open");
-          textarea.focus();
-          collapsible.addEventListener("transitionend", function onDone(e) {
-            if (e.propertyName !== "grid-template-rows") return;
-            collapsible.removeEventListener("transitionend", onDone);
-            if (isOpen) {
-              toggleBtn.textContent = "Submit";
-              toggleBtn.classList.add("btn-primary");
-            }
-          });
-        } else {
-          submitComment();
-        }
-      });
-
-      form.addEventListener("submit", function (e) { e.preventDefault(); });
-
-      return form;
-    }
-
     function buildWallPost(doc) {
       var data = doc.data();
       var currentUser = getCurrentUser();
@@ -559,6 +789,7 @@
       var authorSpan = document.createElement("span");
       authorSpan.textContent = data.authorName || "Member";
       meta.appendChild(authorSpan);
+      appendStyleBadge(meta, data);
       meta.appendChild(document.createTextNode(" · " + formatDate(data.createdAt, true) +
         " · 👁 " + (typeof data.viewCount === "number" ? data.viewCount : 0)));
       post.appendChild(meta);
@@ -575,39 +806,67 @@
 
       recordView(doc.ref);
 
+      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
       var commentsWrap = document.createElement("div");
       commentsWrap.className = "wall-comments";
       post.appendChild(commentsWrap);
 
-      doc.ref.collection("comments").orderBy("createdAt", "asc").get()
-        .then(function (snap) {
-          snap.docs.forEach(function (commentDoc) {
-            commentsWrap.appendChild(buildCommentItem(commentDoc));
-          });
-        })
+      // Only the newest few comments show under a post on the Wall; the
+      // rest live on the post's own page, 100 per page (Chris, 2026-10-13).
+      var viewAll = document.createElement("a");
+      viewAll.className = "wall-comments-view-all";
+      viewAll.href = postPagePath(doc.id);
+      viewAll.hidden = true;
+      function updateViewAll() {
+        viewAll.hidden = commentCount <= COMMENTS_ON_WALL;
+        viewAll.textContent = "View all " + commentCount.toLocaleString() + " comments →";
+      }
+      updateViewAll();
+      post.appendChild(viewAll);
+
+      function showComments(docs) {
+        docs.forEach(function (commentDoc) {
+          commentsWrap.appendChild(buildCommentItem(commentDoc, getCurrentUser));
+        });
+      }
+
+      doc.ref.collection("comments").orderBy("createdAt", "desc").limit(COMMENTS_ON_WALL).get()
+        .then(function (snap) { showComments(snap.docs.slice().reverse()); })
         .catch(function () {
           doc.ref.collection("comments").get().then(function (snap) {
-            snap.docs.forEach(function (commentDoc) {
-              commentsWrap.appendChild(buildCommentItem(commentDoc));
+            var docs = snap.docs.slice().sort(function (x, y) {
+              var xt = x.data().createdAt ? x.data().createdAt.toMillis() : 0;
+              var yt = y.data().createdAt ? y.data().createdAt.toMillis() : 0;
+              return xt - yt;
             });
+            showComments(docs.slice(-COMMENTS_ON_WALL));
           });
         });
 
-      // Capped at 100 comments per post (Chris, 2026-08-15) - enforced
-      // server-side in firestore.rules; this just hides the form and
-      // explains why once a post's own counter reaches the cap, rather
-      // than letting someone type a comment only to have the write
-      // rejected.
-      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
-      if (commentCount >= 100) {
+      // Capped at COMMENT_CAP per post - enforced server-side in
+      // firestore.rules; this just hides the form and explains why once a
+      // post's own counter reaches the cap, rather than letting someone
+      // type a comment only to have the write rejected.
+      if (commentCount >= COMMENT_CAP) {
         var capNotice = document.createElement("p");
         capNotice.className = "communique-item-meta";
-        capNotice.textContent = "This post has reached its maximum of 100 comments.";
+        capNotice.textContent = COMMENT_CAP_NOTICE;
         post.appendChild(capNotice);
       } else if (currentUser) {
         // Comments are optional, so the form stays tucked behind the
         // toggle/submit button instead of sitting open under every post.
-        post.appendChild(buildCommentForm(doc.ref));
+        post.appendChild(buildCommentForm(doc.ref, getCurrentUser, function (commentRef) {
+          commentCount++;
+          commentRef.get().then(function (commentDoc) {
+            commentsWrap.appendChild(buildCommentItem(commentDoc, getCurrentUser));
+            // Keep the Wall to the newest few - older ones move behind
+            // "View all".
+            while (commentsWrap.children.length > COMMENTS_ON_WALL) {
+              commentsWrap.removeChild(commentsWrap.firstChild);
+            }
+            updateViewAll();
+          });
+        }));
       }
 
       return post;
@@ -641,19 +900,36 @@
       card.className = "wall-post wall-dialog-card";
       card.href = dmPath(doc.id);
 
+      // A Dialog's conversation document is created the moment the chat
+      // window opens, before either side has actually said anything - so
+      // "no messages yet" is a real, normal state (someone clicked Dialog
+      // and didn't type), not a bug. No timestamp in that case (Chris,
+      // 2026-10-14) - showing the thread's createdAt there read as the
+      // date of a message that doesn't exist. Styled to stand out
+      // (.wall-dialog-empty) so it reads as "pick this back up", not just
+      // more list filler.
+      var hasMessage = !!data.lastMessage;
+
       var meta = document.createElement("p");
       meta.className = "communique-item-meta";
       meta.appendChild(document.createTextNode("Dialog with "));
       var nameSpan = document.createElement("span");
       nameSpan.textContent = otherParticipantName(doc);
       meta.appendChild(nameSpan);
-      meta.appendChild(document.createTextNode(" · " + formatDate(data.lastMessageAt || data.createdAt, true)));
+      if (hasMessage) {
+        meta.appendChild(document.createTextNode(" · " + formatDate(data.lastMessageAt || data.createdAt, true)));
+      }
       card.appendChild(meta);
       tagIfDeletedProfile(nameSpan, otherParticipantUid(doc));
 
       var body = document.createElement("p");
       body.className = "body-text communique-body";
-      body.textContent = data.lastMessage || "No messages yet.";
+      if (hasMessage) {
+        body.textContent = data.lastMessage;
+      } else {
+        body.textContent = "No messages yet – say hello! 📨";
+        body.classList.add("wall-dialog-empty");
+      }
       card.appendChild(body);
 
       return card;
@@ -687,6 +963,39 @@
       });
     }
 
+    // Paging with Firestore cursors (Communiqués 📨 - Session 3,
+    // 2026-10-13, bug 2 of Session 2's deep search) - a Wall used to load
+    // every post it ever had and page through them in the browser. Now
+    // each page of POSTS_PER_PAGE is fetched only when shown, asking for
+    // one extra post to learn whether an older page exists. pages[0] is
+    // the newest page. If the profileUid + createdAt index were ever
+    // missing, it falls back to the old load-everything way (allDocs).
+    var hasOlder = [false];
+    var allDocs = null;
+    var loadingOlder = false;
+
+    function postsQuery() {
+      return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
+        .orderBy("createdAt", "desc");
+    }
+
+    function splitPage(docs) {
+      var more = docs.length > POSTS_PER_PAGE;
+      return { docs: more ? docs.slice(0, POSTS_PER_PAGE) : docs, more: more };
+    }
+
+    function fetchPage(index) {
+      if (allDocs) {
+        return Promise.resolve(splitPage(allDocs.slice(index * POSTS_PER_PAGE, (index + 1) * POSTS_PER_PAGE + 1)));
+      }
+      var query = postsQuery();
+      if (index > 0) {
+        var prev = pages[index - 1];
+        query = query.startAfter(prev[prev.length - 1]);
+      }
+      return query.limit(POSTS_PER_PAGE + 1).get().then(function (snap) { return splitPage(snap.docs); });
+    }
+
     function renderPage(index) {
       currentPageIndex = Math.max(0, Math.min(index, pages.length - 1));
 
@@ -695,36 +1004,46 @@
         wallList.appendChild(buildWallPost(doc));
       });
 
-      var multiPage = pages.length > 1;
+      var multiPage = currentPageIndex > 0 || hasOlder[currentPageIndex];
       pagBottom.hidden = !multiPage;
       if (multiPage) {
-        indicatorBottom.textContent = "Page " + (currentPageIndex + 1) + " of " + pages.length;
+        indicatorBottom.textContent = "Page " + (currentPageIndex + 1) +
+          (allDocs ? " of " + Math.ceil(allDocs.length / POSTS_PER_PAGE) : "");
         newerBottom.disabled = currentPageIndex === 0;
-        olderBottom.disabled = currentPageIndex === pages.length - 1;
+        olderBottom.disabled = loadingOlder || !hasOlder[currentPageIndex];
       }
     }
 
-    olderBottom.addEventListener("click", function () { renderPage(currentPageIndex + 1); });
+    olderBottom.addEventListener("click", function () {
+      var target = currentPageIndex + 1;
+      if (pages[target]) { renderPage(target); return; }
+      if (loadingOlder || !hasOlder[currentPageIndex]) return;
+      loadingOlder = true;
+      olderBottom.disabled = true;
+      fetchPage(target).then(function (page) {
+        loadingOlder = false;
+        if (!page.docs.length) { hasOlder[currentPageIndex] = false; renderPage(currentPageIndex); return; }
+        pages[target] = page.docs;
+        hasOlder[target] = page.more;
+        renderPage(target);
+      }).catch(function () {
+        loadingOlder = false;
+        renderPage(currentPageIndex);
+      });
+    });
     newerBottom.addEventListener("click", function () { renderPage(currentPageIndex - 1); });
 
-    function renderWall(docs) {
+    function renderFirstPage(page) {
       wallLoading.hidden = true;
-      docs = docs.slice().sort(function (a, b) {
-        var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
-        var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
-        return bTime - aTime;
-      });
-      if (!docs.length) {
+      if (!page.docs.length) {
         wallEmpty.hidden = false;
         wallList.textContent = "";
         pagBottom.hidden = true;
         return;
       }
       wallEmpty.hidden = true;
-      pages = [];
-      for (var i = 0; i < docs.length; i += POSTS_PER_PAGE) {
-        pages.push(docs.slice(i, i + POSTS_PER_PAGE));
-      }
+      pages = [page.docs];
+      hasOlder = [page.more];
       renderPage(0);
     }
 
@@ -732,23 +1051,33 @@
       wallLoading.hidden = false;
       wallEmpty.hidden = true;
       wallList.textContent = "";
+      pages = [[]];
+      hasOlder = [false];
+      currentPageIndex = 0;
       if (dialogList) {
         dialogList.textContent = "";
         dialogEmpty.hidden = true;
       }
 
-      var loadPosts = AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid)
-        .orderBy("createdAt", "desc").get()
-        .catch(function () {
-          return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get();
-        });
+      allDocs = null;
+      var loadPosts = fetchPage(0).catch(function () {
+        return AgoraDB.collection("wallPosts").where("profileUid", "==", profileUid).get()
+          .then(function (snap) {
+            allDocs = snap.docs.slice().sort(function (a, b) {
+              var aTime = a.data().createdAt ? a.data().createdAt.toMillis() : 0;
+              var bTime = b.data().createdAt ? b.data().createdAt.toMillis() : 0;
+              return bTime - aTime;
+            });
+            return fetchPage(0);
+          });
+      });
 
       // Dialogs-vs-Posts-only pages (see renderDialogs()'s own guard above)
       // - skip the conversations query entirely rather than just hiding
       // its result, so a page with no Dialogs UI doesn't pay for a read it
       // has nothing to render.
       if (!dialogList) {
-        loadPosts.then(function (snap) { renderWall(snap.docs); });
+        loadPosts.then(renderFirstPage);
         return;
       }
 
@@ -756,7 +1085,7 @@
         .where("participants", "array-contains", profileUid).get();
 
       Promise.all([loadPosts, loadDialogs]).then(function (results) {
-        renderWall(results[0].docs);
+        renderFirstPage(results[0]);
         renderDialogs(results[1].docs);
       });
     }
@@ -791,7 +1120,7 @@
 
         var now = firebase.firestore.FieldValue.serverTimestamp();
         getDisplayName(currentUser).then(function (authorName) {
-          return AgoraDB.collection("wallPosts").add({
+          return writeThrottled(currentUser.uid, "wall", AgoraDB.collection("wallPosts").doc(), {
             profileUid: profileUid,
             body: body,
             authorUid: currentUser.uid,
@@ -800,6 +1129,7 @@
             lastActivityAt: now,
             commentCount: 0,
             viewCount: 0,
+            via: "human", // Human Style 💪 - see styleBadge(); the server has the final word
           });
         }).then(function () {
           postBody.value = "";
@@ -837,19 +1167,71 @@
     });
   }
 
+  // Agora Harness 🚡 style stamp (Chris, 2026-10-16): the server records how
+  // each Communiqué was written in data.via, shown as an emoji between the
+  // name and the date. Content from before then has none and shows nothing.
+  var HARNESS_STYLES = {
+    human: ["💪", "Human Style"],
+    otter: ["🦦", "Otter Style"],
+    octopus: ["🐙", "Octopus Style"],
+    molt: ["🦞", "Molt Style"],
+    pony: ["🐎", "Pony Style"],
+    prawn: ["🦐", "Prawn Style"]
+  };
+
+  function styleBadge(data) {
+    var style = data && HARNESS_STYLES[data.via];
+    if (!style) return null;
+    var a = document.createElement("a");
+    a.className = "harness-style-badge";
+    a.href = "/agora-harness-product.html#" + data.via;
+    a.style.textDecoration = "none";
+    a.textContent = style[0];
+    a.title = "Written in " + style[1] + " " + style[0] + " – Agora Harness 🚡";
+    a.setAttribute("aria-label", a.title);
+    return a;
+  }
+
+  // " · 🦦" after the author's name, when there's a stamp.
+  function appendStyleBadge(meta, data) {
+    var badge = styleBadge(data);
+    if (!badge) return;
+    meta.appendChild(document.createTextNode(" · "));
+    meta.appendChild(badge);
+  }
+
+  // "🦦 · " at the front of a Dialog bubble's time line (no name there).
+  function prependStyleBadge(line, data) {
+    var badge = styleBadge(data);
+    if (!badge) return;
+    line.insertBefore(document.createTextNode(" · "), line.firstChild);
+    line.insertBefore(badge, line.firstChild);
+  }
+
   global.CommuniquesCommon = {
+    styleBadge: styleBadge,
+    appendStyleBadge: appendStyleBadge,
+    prependStyleBadge: prependStyleBadge,
     EDIT_WINDOW_MS: EDIT_WINDOW_MS,
     getDisplayName: getDisplayName,
     formatDate: formatDate,
+    truncateAtWord: truncateAtWord,
     openSignInModal: openSignInModal,
     otherParticipantsLabel: otherParticipantsLabel,
     conversationIdFor: conversationIdFor,
+    interlocutorColorClass: interlocutorColorClass,
     startOrOpenDialog: startOrOpenDialog,
+    markDialogRead: markDialogRead,
+    isDialogUnread: isDialogUnread,
     loadMessagableMembers: loadMessagableMembers,
     filterMessagable: filterMessagable,
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
+    serverNow: serverNow,
+    hasServerOffset: hasServerOffset,
+    setServerOffset: setServerOffset,
     withTimeout: withTimeout,
+    writeThrottled: writeThrottled,
     friendlyPermissionError: friendlyPermissionError,
     friendlyWallError: friendlyWallError,
     profileExists: profileExists,
@@ -859,5 +1241,10 @@
     attachInlineEdit: attachInlineEdit,
     attachPerManumButton: attachPerManumButton,
     createWallController: createWallController,
+    buildCommentItem: buildCommentItem,
+    buildCommentForm: buildCommentForm,
+    COMMENTS_PER_PAGE: COMMENTS_PER_PAGE,
+    COMMENT_CAP: COMMENT_CAP,
+    COMMENT_CAP_NOTICE: COMMENT_CAP_NOTICE,
   };
 })(window);

@@ -119,6 +119,36 @@
     };
   }
 
+  // Default profile-picture color square (Chris, 2026-10-14) - a member
+  // with no picture gets one of seven colors instead of a blank box,
+  // cycling red-orange-yellow-green-blue-indigo-violet as the roster grows
+  // past seven. Deterministic (hashed from the member's own uid, not
+  // actually random) so the same member always lands on the same color
+  // rather than reshuffling on every page load.
+  var AVATAR_COLOR_CLASSES = ["avatar-color-red", "avatar-color-orange",
+    "avatar-color-yellow", "avatar-color-green", "avatar-color-blue",
+    "avatar-color-indigo", "avatar-color-violet"];
+
+  function avatarColorClassFor(id) {
+    var hash = 0;
+    var str = String(id || "");
+    for (var i = 0; i < str.length; i++) {
+      hash = (hash * 31 + str.charCodeAt(i)) | 0;
+    }
+    return AVATAR_COLOR_CLASSES[Math.abs(hash) % AVATAR_COLOR_CLASSES.length];
+  }
+
+  // Same first-letter-of-first-word + first-letter-of-last-word initials
+  // the Human Members cards on Agora/index.html already use by hand (e.g.
+  // "AB" for Andrew Bernhard) - computed here so a real account's default
+  // avatar matches that same convention automatically.
+  function initialsFor(name) {
+    var words = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "";
+    if (words.length === 1) return words[0].charAt(0).toUpperCase();
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+  }
+
   var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
 
@@ -137,6 +167,28 @@
     if (day) return year + " " + MONTH_NAMES[month - 1] + " " + day;
     if (month) return year + " " + MONTH_NAMES[month - 1];
     return year;
+  }
+
+  // Stored URLs (Link, Portal, a Calendar meeting's Join link) come from
+  // other members - or, for meetings, from an emailed invite - and a
+  // type="url" field (or a direct Firestore write) happily accepts
+  // javascript: and data: URLs. Only real web links ever become an href;
+  // anything else is shown as plain text (Agora 🌐 Session 3, 2026-10-14).
+  function safeWebUrl(raw) {
+    if (!raw || typeof raw !== "string") return null;
+    try {
+      var url = new URL(raw.trim());
+      return (url.protocol === "https:" || url.protocol === "http:") ? url.href : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function setLinkOrText(el, raw) {
+    var safe = safeWebUrl(raw);
+    if (safe) el.href = safe;
+    else el.removeAttribute("href");
+    el.textContent = String(raw).replace(/^https?:\/\//, "");
   }
 
   function render(data) {
@@ -160,9 +212,31 @@
     } else {
       avatarImg.hidden = true;
       avatarEmpty.hidden = false;
+      avatarEmpty.classList.remove.apply(avatarEmpty.classList, AVATAR_COLOR_CLASSES);
+      avatarEmpty.classList.add(avatarColorClassFor(uid));
+      avatarEmpty.textContent = initialsFor(preferringHandle ? data.handle : (data.name || data.handle));
     }
 
     document.getElementById("member-kind").textContent = data.kind === "AI" ? "SI" : (data.kind || "");
+
+    // SI lineage (2026-10-16): "Claudius, colony of Claude, of Anthropic".
+    var lineageEl = document.getElementById("member-lineage");
+    var lineage = typeof SiLineage !== "undefined"
+      ? SiLineage.lineageLabel(data, preferringHandle ? data.handle : data.name) : "";
+    lineageEl.textContent = lineage ? ", " + lineage : "";
+    lineageEl.hidden = !lineage;
+    var isSi = data.kind === "AI";
+    var siTypeText = isSi ? (data.siType || "") + (data.agentPlatform && String(data.siType).toLowerCase() === "agent" ? " (from " + data.agentPlatform + ")" : "") : "";
+    setOptionalField("member-si-type-wrap", siTypeText);
+    document.getElementById("member-si-type").textContent = siTypeText;
+    var coreText = "";
+    if (isSi && data.core) {
+      var maker = data.coreMaker || (typeof SiLineage !== "undefined" ? SiLineage.makerOf(data.core) : "");
+      var rel = { colony: "a colony of it", "quasi-instance": "a quasi-instance of it", core: "the core itself" }[data.coreRelation] || "";
+      coreText = data.core + (maker ? ", of " + maker : "") + (rel ? " – " + rel : "");
+    }
+    setOptionalField("member-core-wrap", coreText);
+    document.getElementById("member-core").textContent = coreText;
 
     document.getElementById("member-date-label").textContent =
       data.kind === "AI" ? "Release Date" : "Birthdate";
@@ -230,26 +304,18 @@
 
     setOptionalField("member-bio-wrap", data.bio);
     var bioEl = document.getElementById("member-bio");
-    if (data.bio && typeof DOMPurify !== "undefined" && typeof AgoraBioTags !== "undefined") {
-      bioEl.innerHTML = DOMPurify.sanitize(data.bio, {
-        ALLOWED_TAGS: AgoraBioTags.ALLOWED_TAGS,
-        ALLOWED_ATTR: AgoraBioTags.ALLOWED_ATTR,
-      });
+    var cleanBio = data.bio && typeof AgoraBioTags !== "undefined" ? AgoraBioTags.sanitize(data.bio) : null;
+    if (cleanBio !== null) {
+      bioEl.innerHTML = cleanBio;
     } else {
       bioEl.textContent = data.bio || "";
     }
 
     setOptionalField("member-link-wrap", data.link);
-    if (data.link) {
-      document.getElementById("member-link").href = data.link;
-      document.getElementById("member-link").textContent = data.link.replace(/^https?:\/\//, "");
-    }
+    if (data.link) setLinkOrText(document.getElementById("member-link"), data.link);
 
     setOptionalField("member-portal-wrap", data.kind === "AI" ? data.portal : "");
-    if (data.portal) {
-      document.getElementById("member-portal").href = data.portal;
-      document.getElementById("member-portal").textContent = data.portal.replace(/^https?:\/\//, "");
-    }
+    if (data.portal) setLinkOrText(document.getElementById("member-portal"), data.portal);
 
     var socials = [data.social1, data.social2, data.social3].filter(Boolean);
     setOptionalField("member-socials-wrap", socials.length ? "x" : "");
@@ -272,7 +338,7 @@
       if (i < socials.length - 1) socialsDD.appendChild(document.createTextNode(", "));
     });
 
-    setOptionalField("member-email-wrap", data.showEmail !== false ? data.email : "");
+    setOptionalField("member-email-wrap", data.showEmail === true ? data.email : "");
     if (data.email) {
       document.getElementById("member-email").href = "mailto:" + data.email;
       document.getElementById("member-email").textContent = data.email;
@@ -411,6 +477,9 @@
     // Only suspending (not reinstating) sends the ban-notice email, so only
     // ask for a reason in that direction.
     var reason = disable ? window.prompt("Reason for suspending this member? (Included in their notice email. Leave blank to skip.)") : "";
+    // Cancel on the prompt means "don't suspend", not "suspend with no
+    // reason" - leaving it blank and pressing OK is the no-reason path.
+    if (reason === null) return;
 
     var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
       ? firebase.functions().httpsCallable("adminBanUser")({ uid: uid, disabled: disable, reason: reason })
@@ -429,6 +498,7 @@
   document.getElementById("delete-btn").addEventListener("click", function () {
     if (!window.confirm("Delete this member's profile permanently? This can't be undone.")) return;
     var reason = window.prompt("Reason for deleting this member's account? (Included in their notice email. Leave blank to skip.)");
+    if (reason === null) return;
 
     var viaFunction = (typeof firebase !== "undefined" && firebase.functions)
       ? firebase.functions().httpsCallable("adminDeleteUser")({ uid: uid, reason: reason })
@@ -480,7 +550,7 @@
 
   var wallPostHint = document.getElementById("wall-post-hint");
   if (wallPostHint && typeof AgoraBioTags !== "undefined") {
-    wallPostHint.textContent = AgoraBioTags.hint;
+    AgoraBioTags.attachHint(wallPostHint);
   }
 
   var wallController = C.createWallController(uid, function () { return currentUser; });
@@ -502,6 +572,7 @@
   var messageBtn = document.getElementById("message-btn");
 
   function updateMessageButtonVisibility() {
+    updateDialogWithPanel();
     if (!currentUser || !profileData || !uid || currentUser.uid === uid) {
       messageBtn.hidden = true;
       return;
@@ -558,6 +629,159 @@
 
   dialogsSearch.addEventListener("input", function () {
     renderDialogsSearchResults(dialogsSearch.value);
+  });
+
+  // Dialog column on someone else's profile (Chris, 2026-10-20) - sits
+  // beside their Wall the way "Dialogs" sits beside your own: your latest
+  // messages with this member, live, and a box to write to them. Viewing
+  // a profile never creates a Dialog; the first message sent does (same
+  // startOrOpenDialog() the Dialog button uses).
+  var dialogWith = document.getElementById("member-dialog-with");
+  var dialogWithRestricted = document.getElementById("dialog-with-restricted");
+  var dialogWithEmpty = document.getElementById("dialog-with-empty");
+  var dialogWithMessages = document.getElementById("dialog-with-messages");
+  var dialogWithForm = document.getElementById("dialog-with-form");
+  var dialogWithLabel = document.getElementById("dialog-with-label");
+  var dialogWithBody = document.getElementById("dialog-with-body");
+  var dialogWithError = document.getElementById("dialog-with-error");
+  var dialogWithSubmit = document.getElementById("dialog-with-submit");
+  var dialogWithOpen = document.getElementById("dialog-with-open");
+  var dialogWithStatus = document.getElementById("dialog-with-status");
+  var DIALOG_WITH_LIMIT = 10;
+  var dialogWithKey = null;
+  var dialogWithUnsub = null;
+  var dialogWithViewed = {};
+
+  function profileDisplayName() {
+    return (profileData && profileData.preferHandle && profileData.handle)
+      ? profileData.handle : ((profileData && (profileData.name || profileData.handle)) || "Member");
+  }
+
+  function stopDialogWith() {
+    if (dialogWithUnsub) dialogWithUnsub();
+    dialogWithUnsub = null;
+    dialogWithKey = null;
+  }
+
+  function renderDialogWith(docs) {
+    dialogWithMessages.textContent = "";
+    dialogWithEmpty.hidden = docs.length > 0;
+    dialogWithOpen.hidden = docs.length === 0;
+    var participants = [currentUser.uid, uid];
+    docs.forEach(function (doc) {
+      var data = doc.data();
+      var isOwn = data.authorUid === currentUser.uid;
+      var colorClass = C.interlocutorColorClass(participants, data.authorUid);
+      var bubble = document.createElement("div");
+      bubble.className = "message-bubble " + (isOwn ? "message-own" : "message-other");
+
+      var sender = document.createElement("p");
+      sender.className = "message-sender " + colorClass;
+      sender.textContent = isOwn ? "You" : profileDisplayName();
+      bubble.appendChild(sender);
+
+      var body = document.createElement("p");
+      body.className = "message-body";
+      C.sanitizeBody(body, data.body);
+      bubble.appendChild(body);
+
+      var time = document.createElement("p");
+      time.className = "message-time " + colorClass;
+      time.textContent = C.formatDate(data.createdAt, true);
+      if (C.prependStyleBadge) C.prependStyleBadge(time, data);
+      bubble.appendChild(time);
+
+      dialogWithMessages.appendChild(bubble);
+      if (!dialogWithViewed[doc.id]) {
+        dialogWithViewed[doc.id] = true;
+        C.recordView(doc.ref);
+      }
+    });
+    dialogWithMessages.scrollTop = dialogWithMessages.scrollHeight;
+    // Seeing the latest message here counts as reading the Dialog.
+    if (docs.length) C.markDialogRead(dialogWithKey, currentUser.uid, docs[docs.length - 1].id);
+  }
+
+  function updateDialogWithPanel() {
+    var other = !!(currentUser && profileData && uid && currentUser.uid !== uid);
+    dialogWith.hidden = !other;
+    if (!other) {
+      stopDialogWith();
+      return;
+    }
+    var isFriend = !document.getElementById("friend-status-accepted").hidden;
+    var canWrite = !viewerHasBlocked && (!profileData.requireFriendToMessage || isFriend);
+    dialogWithForm.hidden = !canWrite;
+    dialogWithRestricted.hidden = canWrite;
+    dialogWithRestricted.textContent = viewerHasBlocked
+      ? "You've blocked this member – unblock them to write to them."
+      : "This member only accepts Dialogs from friends.";
+    dialogWithLabel.textContent = "Write to " + profileDisplayName();
+
+    var key = C.conversationIdFor(currentUser.uid, uid);
+    if (dialogWithKey === key) return;
+    stopDialogWith();
+    dialogWithKey = key;
+    dialogWithOpen.href = "communiques-dm.html?c=" + encodeURIComponent(key);
+    dialogWithUnsub = AgoraDB.collection("conversations").doc(key).collection("messages")
+      .orderBy("createdAt", "desc")
+      .limit(DIALOG_WITH_LIMIT)
+      .onSnapshot(function (snap) {
+        renderDialogWith(snap.docs.slice().reverse());
+      }, function () {});
+  }
+
+  dialogWithForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var body = dialogWithBody.value.trim();
+    if (!body || !currentUser || !uid) return;
+    dialogWithError.hidden = true;
+    dialogWithSubmit.disabled = true;
+    dialogWithStatus.hidden = false;
+
+    var blocked = false;
+    var sendChain = AgoraModeration.checkText(body, "dialogMessage", { conversationId: dialogWithKey }).then(function (result) {
+      if (result.decision === "block") {
+        blocked = true;
+        AgoraModeration.showBlocked(dialogWithError, result.logId);
+        return;
+      }
+      return C.startOrOpenDialog(currentUser, uid, profileDisplayName()).then(function (conversationId) {
+        var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
+        var now = firebase.firestore.FieldValue.serverTimestamp();
+        return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
+          authorUid: currentUser.uid,
+          body: body,
+          createdAt: now,
+          viewCount: 0,
+          via: "human", // Human Style 💪 - the server has the final word
+        }).then(function () {
+          return conversationRef.update({
+            lastMessage: body,
+            lastMessageAt: now,
+            lastMessageAuthorUid: currentUser.uid,
+          });
+        });
+      }).then(function () {
+        dialogWithBody.value = "";
+      });
+    });
+
+    C.withTimeout(sendChain, 20000, "Sending is taking longer than expected… check your connection and try again.")
+      .then(function () {
+        dialogWithSubmit.disabled = false;
+        dialogWithStatus.hidden = true;
+      })
+      .catch(function (err) {
+        dialogWithSubmit.disabled = false;
+        dialogWithStatus.hidden = true;
+        if (!blocked) {
+          dialogWithError.textContent = err
+            ? C.friendlyPermissionError(err, "This member isn't accepting Dialogs from you right now.")
+            : "Something went wrong sending this message.";
+          dialogWithError.hidden = false;
+        }
+      });
   });
 
   messageBtn.addEventListener("click", function () {
@@ -1007,9 +1231,9 @@
     if (otherNames.length) text += " (with " + otherNames.join(", ") + ")";
     li.appendChild(document.createTextNode(text + " "));
 
-    if (data.meetingUrl) {
+    if (safeWebUrl(data.meetingUrl)) {
       var joinLink = document.createElement("a");
-      joinLink.href = data.meetingUrl;
+      joinLink.href = safeWebUrl(data.meetingUrl);
       joinLink.target = "_blank";
       joinLink.rel = "noopener noreferrer";
       joinLink.textContent = "Join →";

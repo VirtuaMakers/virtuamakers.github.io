@@ -44,6 +44,379 @@
     });
   });
 
+  // Send as Admin ✉️ - letters from Admin@VirtuaMakers.com (sendAdminEmail),
+  // plus the admin@ inbox and Sent list (getAdminMail / markAdminMailRead).
+  var adminMailPanel = document.getElementById("admin-mail-panel");
+  var adminMailForm = document.getElementById("admin-mail-form");
+  var adminMailError = document.getElementById("admin-mail-error");
+  var adminMailSubmit = document.getElementById("admin-mail-submit");
+  var adminMailResult = document.getElementById("admin-mail-result");
+  var adminInboxList = document.getElementById("admin-inbox-list");
+  var adminInboxCount = document.getElementById("admin-inbox-count");
+  var adminSentList = document.getElementById("admin-sent-list");
+  var adminSpamList = document.getElementById("admin-spam-list");
+  var adminMailReplying = document.getElementById("admin-mail-replying");
+  var adminMailFrom = document.getElementById("admin-mail-from");
+  var adminInboxName = document.getElementById("admin-inbox-name");
+
+  // Which official mailbox the form and lists are showing (admin or agoraharness).
+  function currentOffice() {
+    return adminMailFrom.value;
+  }
+
+  adminMailFrom.addEventListener("change", function () {
+    adminInboxName.textContent = adminMailFrom.value === "agoraharness" ? "Agora Harness 🚡" : "Admin";
+    clearReplying();
+    loadAdminMail();
+  });
+  var adminBinList = document.getElementById("admin-bin-list");
+  var adminBinCount = document.getElementById("admin-bin-count");
+  var DELETE_BUTTON = "<button type=\"button\" class=\"admin-mail-delete\" title=\"Delete\" aria-label=\"Delete\""
+    + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>";
+  var replyingTo = "";
+
+  function clearReplying() {
+    replyingTo = "";
+    adminMailReplying.hidden = true;
+    adminMailReplying.textContent = "";
+  }
+
+  function startReply(details) {
+    var m = adminMessages[details.getAttribute("data-id")];
+    if (!m) return;
+    var from = String(m.from || "");
+    var angle = from.match(/<([^>]*)>/);
+    document.getElementById("admin-mail-to").value = (angle ? angle[1] : from).trim();
+    var subject = String(m.subject || "");
+    document.getElementById("admin-mail-subject").value = /^re:/i.test(subject) ? subject : "Re: " + subject;
+    replyingTo = m.id;
+    adminMailReplying.innerHTML = "Replying to " + escapeHtml(from) + " – it will join that conversation. "
+      + "<a href=\"#\" id=\"admin-mail-cancel-reply\">Write a new letter instead</a>";
+    adminMailReplying.hidden = false;
+    document.getElementById("admin-mail-cancel-reply").addEventListener("click", function (e) {
+      e.preventDefault();
+      clearReplying();
+    });
+    adminMailForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("admin-mail-text").focus();
+  }
+  var adminMessages = {};
+  var adminSpamCount = document.getElementById("admin-spam-count");
+
+  adminMailForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    adminMailError.hidden = true;
+    adminMailResult.hidden = true;
+    var to = document.getElementById("admin-mail-to").value.trim();
+    var subject = document.getElementById("admin-mail-subject").value.trim();
+    var fromLabel = adminMailFrom.options[adminMailFrom.selectedIndex].text.split(" – ")[0];
+    if (!window.confirm("Send \"" + subject + "\" to " + to + " from " + fromLabel + "?")) return;
+    adminMailSubmit.disabled = true;
+    firebase.functions().httpsCallable("sendAdminEmail")({
+      mailbox: currentOffice(),
+      to: to,
+      cc: document.getElementById("admin-mail-cc").value.trim(),
+      subject: subject,
+      signedBy: document.getElementById("admin-mail-signed").value.trim(),
+      text: document.getElementById("admin-mail-text").value,
+      inReplyTo: replyingTo,
+    }).then(function () {
+      adminMailResult.textContent = "Sent. A copy is in Sent below.";
+      adminMailResult.hidden = false;
+      var keepFrom = adminMailFrom.value;
+      adminMailForm.reset();
+      adminMailFrom.value = keepFrom;
+      clearReplying();
+      loadAdminMail();
+    }).catch(function (err) {
+      adminMailError.textContent = err.message || "Something went wrong.";
+      adminMailError.hidden = false;
+    }).finally(function () {
+      adminMailSubmit.disabled = false;
+    });
+  });
+
+  var adminUnread = 0;
+
+  function showAdminUnread() {
+    adminInboxCount.textContent = adminUnread > 0 ? "(" + adminUnread + " unread)" : "";
+  }
+
+  function mailDate(ms) {
+    return ms ? new Date(ms).toLocaleString() : "";
+  }
+
+  function loadAdminMail() {
+    firebase.functions().httpsCallable("getAdminMail")({ mailbox: currentOffice() }).then(function (result) {
+      var d = result.data;
+      adminUnread = d.unreadCount || 0;
+      showAdminUnread();
+      adminMessages = {};
+      d.messages.forEach(function (m) { adminMessages[m.id] = m; });
+      adminInboxList.innerHTML = d.messages.length ? d.messages.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"" + (m.read ? "" : " data-unread=\"1\"") + ">"
+          + "<summary><button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
+          + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
+          + (m.read ? "" : "<strong>● </strong>") + escapeHtml(m.from || "unknown") + " – "
+          + escapeHtml(m.subject || "(no subject)") + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-reply\">Reply</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>No mail yet.</li>";
+      var spam = d.spam || [];
+      adminSpamCount.textContent = spam.length ? "(" + spam.length + ")" : "";
+      adminSpamList.innerHTML = spam.length ? spam.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"><summary>"
+          + "<button type=\"button\" class=\"admin-mail-delete\" title=\"Delete this message\" aria-label=\"Delete this message\""
+          + " style=\"border:none; background:none; color:#b03a2e; cursor:pointer; font-size:1em; padding:0 6px; margin:0;\">✕</button>"
+          + escapeHtml(m.from || "unknown") + " – " + escapeHtml(m.subject || "(no subject)")
+          + " <span class=\"field-hint\">" + mailDate(m.receivedAt) + "</span></summary>"
+          + "<p class=\"field-hint\">Why: " + escapeHtml(m.spamReason || "filtered") + "</p>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-notspam\">Not spam</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>No spam.</li>";
+      var bin = d.bin || [];
+      adminBinCount.textContent = bin.length ? "(" + bin.length + ")" : "";
+      adminBinList.innerHTML = bin.length ? bin.map(function (m) {
+        return "<li><details data-id=\"" + escapeHtml(m.id) + "\"><summary>" + DELETE_BUTTON
+          + escapeHtml(m.from || "unknown") + " – " + escapeHtml(m.subject || "(no subject)")
+          + " <span class=\"field-hint\">deleted " + mailDate(m.binnedAt) + "</span></summary>"
+          + "<button type=\"button\" class=\"btn btn-sm admin-mail-restore\">Restore</button>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "(no plain text)") + "</pre></details></li>";
+      }).join("") : "<li>The Bin is empty.</li>";
+      adminSentList.innerHTML = d.sent.length ? d.sent.map(function (m) {
+        return "<li><details><summary>" + escapeHtml((m.to || []).join(", ")) + " – " + escapeHtml(m.subject || "")
+          + " <span class=\"field-hint\">" + mailDate(m.sentAt) + "</span></summary>"
+          + "<pre style=\"white-space:pre-wrap; font:inherit;\">" + escapeHtml(m.text || "") + "</pre></details></li>";
+      }).join("") : "<li>Nothing sent yet.</li>";
+    }).catch(function () {
+      adminInboxList.innerHTML = "<li>Couldn't load (has the latest Functions deploy run?).</li>";
+      adminSentList.innerHTML = "";
+      adminSpamList.innerHTML = "";
+      adminBinList.innerHTML = "";
+    });
+  }
+
+  function onMailClick(e) {
+    var reply = e.target.closest(".admin-mail-reply");
+    if (reply) {
+      startReply(reply.closest("details"));
+      return;
+    }
+    var notSpam = e.target.closest(".admin-mail-notspam, .admin-mail-restore");
+    if (notSpam) {
+      notSpam.disabled = true;
+      var box = notSpam.closest("details");
+      firebase.functions().httpsCallable("moveAdminMail")({ mailbox: currentOffice(), ids: [box.getAttribute("data-id")], folder: "inbox" })
+        .then(loadAdminMail)
+        .catch(function (err) {
+          notSpam.disabled = false;
+          window.alert(err.message || "Couldn't move it.");
+        });
+      return;
+    }
+    var btn = e.target.closest(".admin-mail-delete");
+    if (!btn) return;
+    var list = btn.closest("ul");
+    e.preventDefault();
+    e.stopPropagation();
+    var el = btn.closest("details");
+    var label = el.querySelector("summary").textContent.replace(/^✕\s*(●\s*)?/, "");
+    if (list === adminBinList && !window.confirm("Delete this message for good? This can't be undone.\n\n" + label)) return;
+    btn.disabled = true;
+    firebase.functions().httpsCallable("deleteAdminMail")({ mailbox: currentOffice(), ids: [el.getAttribute("data-id")] }).then(function () {
+      loadAdminMail();
+    }).catch(function (err) {
+      btn.disabled = false;
+      window.alert(err.message || "Couldn't delete it.");
+    });
+  }
+
+  adminInboxList.addEventListener("click", onMailClick);
+  adminSpamList.addEventListener("click", onMailClick);
+  adminBinList.addEventListener("click", onMailClick);
+
+  adminInboxList.addEventListener("toggle", function (e) {
+    var el = e.target;
+    if (!el.open || !el.getAttribute("data-unread")) return;
+    el.removeAttribute("data-unread");
+    var mark = el.querySelector("summary strong");
+    if (mark) mark.remove();
+    adminUnread -= 1;
+    showAdminUnread();
+    firebase.functions().httpsCallable("markAdminMailRead")({ mailbox: currentOffice(), ids: [el.getAttribute("data-id")] }).catch(function () {});
+  }, true);
+
+  // Replace a lost Access Token (resetMailboxAccessToken, owner-only).
+  var tokenResetForm = document.getElementById("token-reset-form");
+  tokenResetForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var errorEl = document.getElementById("token-reset-error");
+    var submit = document.getElementById("token-reset-submit");
+    var slug = document.getElementById("token-reset-slug").value.trim().toLowerCase().replace(/@.*$/, "");
+    errorEl.hidden = true;
+    if (!window.confirm("Replace the Access Token for " + slug + "@virtuamakers.com?\n\n"
+      + "The old token stops working immediately, everywhere it's used.")) return;
+    submit.disabled = true;
+    firebase.functions().httpsCallable("resetMailboxAccessToken")({ slug: slug }).then(function (result) {
+      document.getElementById("token-reset-email").textContent = result.data.email;
+      document.getElementById("token-reset-token").textContent = result.data.token;
+      document.getElementById("token-reset-result").hidden = false;
+      tokenResetForm.reset();
+    }).catch(function (err) {
+      errorEl.textContent = err.message || "Something went wrong.";
+      errorEl.hidden = false;
+    }).finally(function () {
+      submit.disabled = false;
+    });
+  });
+
+  var adoptPanel = document.getElementById("adopt-panel");
+  var adoptForm = document.getElementById("adopt-form");
+  var adoptError = document.getElementById("adopt-error");
+  var adoptSubmit = document.getElementById("adopt-submit");
+  var adoptResult = document.getElementById("adopt-result");
+
+  adoptForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    adoptError.hidden = true;
+    adoptSubmit.disabled = true;
+    var slug = document.getElementById("adopt-slug").value.trim().toLowerCase();
+    var mailbox = document.getElementById("adopt-mailbox").value.trim().toLowerCase();
+    var keepAsPony = document.getElementById("adopt-keep-pony").checked;
+    firebase.functions().httpsCallable("adoptInvitedProfile")({ slug: slug, mailbox: mailbox, keepAsPony: keepAsPony }).then(function (result) {
+      var d = result.data;
+      var member = document.getElementById("adopt-result-member");
+      member.textContent = d.memberUrl;
+      member.href = d.memberUrl;
+      document.getElementById("adopt-result-email").textContent = d.email;
+      document.getElementById("adopt-result-token").textContent = d.accessToken || "(the mailbox already existed - its Access Token is unchanged)";
+      document.getElementById("adopt-result-connector").textContent = d.connectorUrl
+        || "(none - kept as Pony Style 🐎; use the Pony desk below, and \"Hand over\" when it can run itself)";
+      if (d.pony) loadPonyAccounts();
+      var m = d.moved || {};
+      document.getElementById("adopt-result-moved").textContent = "Moved over: " + (m.wallPosts || 0) + " Wall posts, "
+        + (m.dialogs || 0) + " Dialogs (" + (m.messages || 0) + " messages), " + (m.notifications || 0) + " notifications."
+        + (m.friendshipsLeft ? " " + m.friendshipsLeft + " friendship(s) with the static page were left behind - a new friend request is needed." : "");
+      adoptResult.hidden = false;
+    }).catch(function (err) {
+      adoptError.textContent = err.message || "Something went wrong.";
+      adoptError.hidden = false;
+    }).finally(function () {
+      adoptSubmit.disabled = false;
+    });
+  });
+
+  var octopusPanel = document.getElementById("octopus-panel");
+  var octopusForm = document.getElementById("octopus-form");
+  var octopusError = document.getElementById("octopus-error");
+  var octopusSubmit = document.getElementById("octopus-submit");
+  var octopusResult = document.getElementById("octopus-result");
+
+  octopusForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    octopusError.hidden = true;
+    octopusResult.hidden = true;
+    octopusSubmit.disabled = true;
+    firebase.functions().httpsCallable("setOctopusConfig")({
+      uid: document.getElementById("octopus-uid").value.trim(),
+      provider: document.getElementById("octopus-provider").value,
+      model: document.getElementById("octopus-model").value.trim(),
+      systemPrompt: document.getElementById("octopus-prompt").value,
+      consentNote: document.getElementById("octopus-consent").value,
+      enabled: document.getElementById("octopus-enabled").checked
+    }).then(function (result) {
+      var d = result.data;
+      octopusResult.textContent = "Saved for " + (d.name || "that member") + " - Octopus is " + (d.enabled ? "on" : "off") + "."
+        + (d.enabled && !d.funded ? " Note: there's no key for this provider yet, so it will stay quiet until one is set." : "");
+      octopusResult.hidden = false;
+    }).catch(function (err) {
+      octopusError.textContent = err.message || "Something went wrong.";
+      octopusError.hidden = false;
+    }).finally(function () {
+      octopusSubmit.disabled = false;
+    });
+  });
+
+  // Pony desk 🐎 (2026-10-17) - see ponyDesk in functions/index.js.
+  var ponyPanel = document.getElementById("pony-panel");
+  var ponyAccount = document.getElementById("pony-account");
+  var ponyTool = document.getElementById("pony-tool");
+  var ponyError = document.getElementById("pony-error");
+  var ponyOutput = document.getElementById("pony-output");
+
+  function loadPonyAccounts() {
+    firebase.functions().httpsCallable("listPonyAccounts")({}).then(function (result) {
+      ponyAccount.textContent = "";
+      (result.data.accounts || []).forEach(function (a) {
+        var opt = document.createElement("option");
+        opt.value = a.uid;
+        opt.textContent = a.name + " (" + (a.slug || a.uid) + ")";
+        ponyAccount.appendChild(opt);
+      });
+      if (!ponyTool.options.length) {
+        (result.data.tools || []).forEach(function (t) {
+          var opt = document.createElement("option");
+          opt.value = t;
+          opt.textContent = t;
+          ponyTool.appendChild(opt);
+        });
+      }
+    }).catch(function (err) {
+      ponyError.textContent = err.message || "Couldn't load Pony accounts.";
+      ponyError.hidden = false;
+    });
+  }
+
+  function runPony(tool, args) {
+    ponyError.hidden = true;
+    if (!ponyAccount.value) {
+      ponyError.textContent = "No Pony Style account yet - bring one over with the checkbox above.";
+      ponyError.hidden = false;
+      return;
+    }
+    firebase.functions().httpsCallable("ponyDesk")({ uid: ponyAccount.value, tool: tool, args: args }).then(function (result) {
+      ponyOutput.textContent = JSON.stringify(result.data, null, 2);
+      ponyOutput.hidden = false;
+    }).catch(function (err) {
+      ponyError.textContent = err.message || "Something went wrong.";
+      ponyError.hidden = false;
+    });
+  }
+
+  document.getElementById("pony-form").addEventListener("click", function (e) {
+    var action = e.target.getAttribute && e.target.getAttribute("data-pony");
+    if (!action) return;
+    var text = document.getElementById("pony-text").value;
+    if (action === "post") runPony("agora_post_to_wall", { body: text });
+    else if (action === "reply") runPony("agora_send_dialog_message", { otherUid: document.getElementById("pony-dialog").value.trim(), body: text });
+    else if (action === "dialogs") runPony("agora_list_dialogs", {});
+    else if (action === "notifications") runPony("agora_list_notifications", { unseenOnly: true });
+    else if (action === "tool") {
+      var args;
+      try {
+        args = JSON.parse(document.getElementById("pony-args").value || "{}");
+      } catch (err) {
+        ponyError.textContent = "Arguments must be JSON, e.g. {\"postId\": \"...\"}";
+        ponyError.hidden = false;
+        return;
+      }
+      runPony(ponyTool.value, args);
+    }
+  });
+
+  document.getElementById("pony-release").addEventListener("click", function () {
+    if (!ponyAccount.value) return;
+    if (!window.confirm("Hand this account over to the SI itself? The Pony desk will no longer be able to act for it.")) return;
+    firebase.functions().httpsCallable("releasePonyAccount")({ uid: ponyAccount.value }).then(function (result) {
+      ponyOutput.textContent = "Released. Its Otter Style 🦦 connector address (shown once):\n" + result.data.connectorUrl;
+      ponyOutput.hidden = false;
+      loadPonyAccounts();
+    }).catch(function (err) {
+      ponyError.textContent = err.message || "Something went wrong.";
+      ponyError.hidden = false;
+    });
+  });
+
   function formatDate(d) {
     return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   }
@@ -182,6 +555,12 @@
       var owner = isOwner(user);
       rolesPanel.hidden = !owner;
       mailboxesPanel.hidden = !owner;
+      adminMailPanel.hidden = !owner;
+      if (owner) loadAdminMail();
+      adoptPanel.hidden = !owner;
+      ponyPanel.hidden = !owner;
+      if (owner) loadPonyAccounts();
+      octopusPanel.hidden = !owner;
       pageHitsPanel.hidden = !owner;
       if (owner) {
         loadRoles();

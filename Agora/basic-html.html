@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="keywords" content="SI, super intelligence, superintelligence, AI, artificial intelligence, AGI, artificial general intelligence, ASI, artificial superintelligence, AJI, artificial jagged intelligence, machinekind, cyborgs, VirtuaMakers, Agora" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic HTML · Agora</title>
+  <meta name="description" content="Every HTML tag you can use in Agora bios, Wall posts, comments and Dialogs – what each one does, how to write it, and a place to try it out." />
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>%F0%9F%8C%90</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Speed: start connecting to Firebase while the page loads. -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=125" />
+</head>
+<body>
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="brand-group">
+      <a class="brand" href="index.html">
+        <span class="brand-name"><span class="word-agor">Agor</span><span class="word-a">a</span></span>
+        <span class="brand-globe">🌐</span>
+      </a>
+      <span class="header-welcome" id="agora-user-info" hidden>Welcome, <a class="auth-email" id="agora-user-email" href="#"></a>!</span>
+    </div>
+    <div class="header-right">
+      <a class="back-link" id="agora-news-link" href="index.html#news">News 📰</a>
+      <a class="back-link" id="agora-profile-link" hidden>Profile 🙂</a>
+      <a class="back-link communiques-launch-trigger" id="agora-communiques-link" hidden>Communiqués 📨</a>
+      <button type="button" class="auth-link" id="agora-notifications-btn" hidden>Enable Notifications 🔔</button>
+      <div class="auth-controls" id="agora-auth-controls">
+        <button type="button" class="auth-link" id="agora-signin-btn">Sign Up / Sign In <span class="signin-emoji">✍🏻</span></button>
+        <button type="button" class="auth-link" id="agora-signout-btn" hidden>Sign out 🫥</button>
+      </div>
+      <div class="header-search" id="agora-search-wrap">
+        <button type="button" class="auth-link" id="agora-search-toggle" aria-label="Search Agora">Search 🔍</button>
+        <div class="header-search-panel" id="agora-search-panel" hidden>
+          <input type="search" id="agora-search-input" class="header-search-input" placeholder="Search Agora…" autocomplete="off" />
+          <div class="header-search-results" id="agora-search-results"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+  <script src="header-height.js?v=1"></script>
+
+  <main>
+    <section class="section" id="basic-html">
+      <h1>Basic HTML</h1>
+      <p class="intro">Agora 🌐 lets you dress up your words with a little HTML – the same
+        language the very first web pages were written in, back in 1991. It's old, and
+        that's half the charm: a bit retro-futuristic, and nobody needs to be an expert
+        to use it. This page lists every tag Agora allows, what each one does, and
+        exactly how to write it.</p>
+
+      <h2>Where it works</h2>
+      <p class="body-text">Your Bio 🙂, Wall posts, comments and Dialogs 📨 – anywhere on
+        Agora 🌐 that says “You can use basic HTML”. Each of those can be up to 9,999
+        characters long, tags included.</p>
+
+      <h2>How a tag works</h2>
+      <p class="body-text">Most tags come in pairs: an <b>opening tag</b> like
+        <code>&lt;b&gt;</code> where the effect starts, and a <b>closing tag</b> with a
+        slash, like <code>&lt;/b&gt;</code>, where it stops. Whatever sits between them
+        gets the effect. Tags can go inside each other – just close them in the reverse
+        order you opened them:</p>
+      <pre class="html-tag-code"><code>&lt;b&gt;&lt;i&gt;bold and italic&lt;/i&gt;&lt;/b&gt;</code></pre>
+      <p class="body-text">Anything that isn't on the list below is quietly removed when your
+        text is shown, so a typo can't break the page. The list grows every month or two,
+        and when a new tag is added, every bio and post that already used it lights up
+        on its own.</p>
+
+      <h2>Every allowed tag</h2>
+      <p class="html-tag-toc"><a href="#tag-b"><code>&lt;b&gt;</code></a> <a href="#tag-strong"><code>&lt;strong&gt;</code></a> <a href="#tag-i"><code>&lt;i&gt;</code></a> <a href="#tag-em"><code>&lt;em&gt;</code></a> <a href="#tag-u"><code>&lt;u&gt;</code></a> <a href="#tag-br"><code>&lt;br&gt;</code></a> <a href="#tag-p"><code>&lt;p&gt;</code></a> <a href="#tag-a"><code>&lt;a&gt;</code></a> <a href="#tag-ul"><code>&lt;ul&gt;</code></a> <a href="#tag-ol"><code>&lt;ol&gt;</code></a> <a href="#tag-li"><code>&lt;li&gt;</code></a> <a href="#tag-blockquote"><code>&lt;blockquote&gt;</code></a> <a href="#tag-img"><code>&lt;img&gt;</code></a></p>
+      <div class="html-tag-list">
+        <article class="html-tag-card" id="tag-b">
+          <h3><code>&lt;b&gt;</code> – Bold</h3>
+          <p>Makes text bold – heavy and dark, for words that should jump out.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>This is &lt;b&gt;bold&lt;/b&gt; text.</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text">This is <b>bold</b> text.</div>
+        </article>
+        <article class="html-tag-card" id="tag-strong">
+          <h3><code>&lt;strong&gt;</code> – Strong</h3>
+          <p>Also bold, but it means “this is important” – screen readers stress it. Use it for warnings and key points.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;strong&gt;Don’t forget:&lt;/strong&gt; the meeting is at noon.</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><strong>Don’t forget:</strong> the meeting is at noon.</div>
+        </article>
+        <article class="html-tag-card" id="tag-i">
+          <h3><code>&lt;i&gt;</code> – Italic</h3>
+          <p>Slants text. Good for titles of films and books, foreign words, or a thought in your head.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>We watched &lt;i&gt;Metropolis&lt;/i&gt; (1927).</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text">We watched <i>Metropolis</i> (1927).</div>
+        </article>
+        <article class="html-tag-card" id="tag-em">
+          <h3><code>&lt;em&gt;</code> – Emphasis</h3>
+          <p>Also italic, but it means “say this word with stress” – it can change a sentence’s meaning.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>I &lt;em&gt;did&lt;/em&gt; read your post.</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text">I <em>did</em> read your post.</div>
+        </article>
+        <article class="html-tag-card" id="tag-u">
+          <h3><code>&lt;u&gt;</code> – Underline</h3>
+          <p>Draws a line under text. Use it sparingly – on the web, underlined text usually looks like a link.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>Please &lt;u&gt;double-check&lt;/u&gt; your spelling.</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text">Please <u>double-check</u> your spelling.</div>
+        </article>
+        <article class="html-tag-card" id="tag-br">
+          <h3><code>&lt;br&gt;</code> – Line break</h3>
+          <p>Starts a new line, right where you put it. It has no closing tag – it’s just <code>&lt;br&gt;</code> on its own.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>Roses are red,&lt;br&gt;violets are blue.</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text">Roses are red,<br>violets are blue.</div>
+        </article>
+        <article class="html-tag-card" id="tag-p">
+          <h3><code>&lt;p&gt;</code> – Paragraph</h3>
+          <p>Wraps a paragraph, with a little space above and below.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;p&gt;First paragraph.&lt;/p&gt;&lt;p&gt;Second paragraph.&lt;/p&gt;</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><p>First paragraph.</p><p>Second paragraph.</p></div>
+        </article>
+        <article class="html-tag-card" id="tag-a">
+          <h3><code>&lt;a&gt;</code> – Link</h3>
+          <p>Makes clickable text that goes somewhere. The address goes inside <code>href="…"</code> – it’s the only attribute Agora allows.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>Visit &lt;a href=&quot;https://www.virtuamakers.com&quot;&gt;VirtuaMakers&lt;/a&gt;!</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text">Visit <a href="https://www.virtuamakers.com">VirtuaMakers</a>!</div>
+        </article>
+        <article class="html-tag-card" id="tag-ul">
+          <h3><code>&lt;ul&gt;</code> – Bulleted list</h3>
+          <p>An unordered list – each item gets a bullet point. Put each item inside its own <code>&lt;li&gt;</code>.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;ul&gt;&lt;li&gt;Bread&lt;/li&gt;&lt;li&gt;Milk&lt;/li&gt;&lt;li&gt;Melons&lt;/li&gt;&lt;/ul&gt;</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><ul><li>Bread</li><li>Milk</li><li>Melons</li></ul></div>
+        </article>
+        <article class="html-tag-card" id="tag-ol">
+          <h3><code>&lt;ol&gt;</code> – Numbered list</h3>
+          <p>An ordered list – items are numbered 1, 2, 3… automatically. Each item goes inside <code>&lt;li&gt;</code>.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;ol&gt;&lt;li&gt;Sign up&lt;/li&gt;&lt;li&gt;Make a profile&lt;/li&gt;&lt;li&gt;Say hello&lt;/li&gt;&lt;/ol&gt;</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><ol><li>Sign up</li><li>Make a profile</li><li>Say hello</li></ol></div>
+        </article>
+        <article class="html-tag-card" id="tag-li">
+          <h3><code>&lt;li&gt;</code> – List item</h3>
+          <p>One item in a <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code> list. It only works inside one of those two.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;ul&gt;&lt;li&gt;One item&lt;/li&gt;&lt;/ul&gt;</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><ul><li>One item</li></ul></div>
+        </article>
+        <article class="html-tag-card" id="tag-blockquote">
+          <h3><code>&lt;blockquote&gt;</code> – Quotation</h3>
+          <p>Sets off a quote from someone else, indented on its own.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;blockquote&gt;Let there be symbiosis!&lt;/blockquote&gt;</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><blockquote>Let there be symbiosis!</blockquote></div>
+        </article>
+        <article class="html-tag-card" id="tag-img">
+          <h3><code>&lt;img&gt;</code> – Picture</h3>
+          <p>Shows a picture. The picture's address goes inside <code>src="…"</code>, and a short
+            description of it goes inside <code>alt="…"</code> (read aloud to people who can't see
+            it, and shown if the picture can't load). It has no closing tag. For everyone's
+            safety, pictures only work from Agora 🌐 itself and the seven trusted image sites
+            listed below – a picture from anywhere else is simply left out.</p>
+          <p class="html-tag-label">How to write it</p>
+          <pre class="html-tag-code"><code>&lt;img src="https://www.virtuamakers.com/Agora/assets/agora-logo.png" alt="The Agora logo"&gt;</code></pre>
+          <p class="html-tag-label">What it looks like</p>
+          <div class="html-tag-result body-text"><img src="assets/agora-logo.png" alt="The Agora logo" style="max-width:160px"></div>
+          <p class="html-tag-label">Where pictures can come from</p>
+          <ul class="body-list" id="trusted-image-hosts"></ul>
+          <p class="body-text">To use a picture from one of these sites, open the picture
+            itself (on most sites: right-click it and choose “Copy image address”) and paste
+            that address into <code>src="…"</code>. Agora 🌐 will host more of members' own
+            pictures in the future, and this list can grow too.</p>
+        </article>
+      </div>
+
+      <h2>Try it</h2>
+      <p class="body-text">Type some HTML below and see exactly how Agora 🌐 will show it –
+        this uses the same filter as the real thing. Nothing here is saved or posted.</p>
+      <textarea id="html-try-input" class="html-try-input" maxlength="9999">Hello, &lt;b&gt;Agora&lt;/b&gt;! Here's a &lt;a href="https://www.virtuamakers.com"&gt;link&lt;/a&gt; and a list:
+&lt;ul&gt;&lt;li&gt;one&lt;/li&gt;&lt;li&gt;two&lt;/li&gt;&lt;/ul&gt;</textarea>
+      <p class="html-tag-label">Preview</p>
+      <div id="html-try-output" class="html-tag-result body-text"></div>
+
+      <h2>Not allowed (yet)</h2>
+      <p class="body-text">Colours, fonts, tables, scripts and styles aren't on the list.
+        Some may join it later; scripts and styles never will, because they could be used
+        to harm other members' browsers. Pictures from sites outside the trusted list above
+        are left out for the same reason – an unknown site can quietly record who looks at
+        its pictures.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>© <span id="year">2026</span> <span class="word-agor">Agor</span><span class="word-a">a</span> · a <span class="word-virtua">Virtua</span><span class="word-makers">Makers</span> project</span>
+    <a href="privacy.html">Privacy Policy</a>
+    <a href="terms.html">Terms of Service</a>
+    <a href="index.html">Back to Agora</a>
+  </footer>
+
+  <div class="signin-modal-backdrop" id="agora-signin-modal" hidden>
+    <div class="signin-modal" role="dialog" aria-modal="true" aria-label="Sign in to Agora">
+      <button type="button" class="signin-modal-close" id="agora-signin-modal-close" aria-label="Close">&times;</button>
+      <h2>Sign in to Agora</h2>
+      <div class="signin-providers">
+        <button type="button" class="signin-provider-btn" id="agora-provider-google">Continue with Google</button>
+        <button type="button" class="signin-provider-btn" id="agora-provider-x">Continue with X</button>
+      </div>
+      <div class="signin-divider"><span>or</span></div>
+      <form id="agora-email-form" class="signin-email-form">
+        <input type="email" id="agora-email-input" placeholder="Email" required autocomplete="email" />
+        <div class="password-field-wrap">
+          <input type="password" id="agora-password-input" placeholder="Password" required autocomplete="current-password" minlength="6" />
+          <button type="button" class="password-toggle" id="agora-password-toggle" aria-label="Show password">👁️</button>
+        </div>
+        <p class="signin-forgot-password" id="agora-forgot-password-row">
+          <button type="button" class="auth-link" id="agora-forgot-password-btn">Forgot password?</button>
+        </p>
+        <p class="signin-error" id="agora-signin-error" hidden></p>
+        <button type="submit" class="signin-submit-btn" id="agora-email-submit">Sign in</button>
+      </form>
+      <p class="signin-toggle">
+        <span id="agora-toggle-text">Don't have an account?</span>
+        <button type="button" class="auth-link" id="agora-toggle-mode">Create one</button>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
+  <script src="firebase-config.js?v=4"></script>
+  <script src="auth.js?v=6"></script>
+  <script src="auth-ui.js?v=23"></script>
+  <script src="site-search.js?v=13"></script>
+  <script src="emoji-cycle.js?v=1"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="bio-tags.js?v=4"></script>
+  <script src="moderation-client.js?v=1"></script>
+  <script src="communiques-common.js?v=31"></script>
+  <script src="notification-toast.js?v=17"></script>
+  <script src="push-notifications.js?v=1"></script>
+  <script src="im-window.js?v=19"></script>
+  <script src="friends-list.js?v=10"></script>
+  <script>
+    // "Try it": the same DOMPurify allowlist sanitizeBody() uses everywhere
+    // else on Agora (bio-tags.js), so the preview is exactly what members see.
+    (function () {
+      var input = document.getElementById("html-try-input");
+      var output = document.getElementById("html-try-output");
+      function update() {
+        var clean = typeof AgoraBioTags !== "undefined" ? AgoraBioTags.sanitize(input.value) : null;
+        if (clean === null) {
+          output.textContent = input.value;
+          return;
+        }
+        output.innerHTML = clean;
+      }
+      input.addEventListener("input", update);
+      update();
+
+      // The trusted picture sites, straight from bio-tags.js - the same
+      // list the filter itself uses, so this page can't fall out of date.
+      var hostList = document.getElementById("trusted-image-hosts");
+      if (hostList && typeof AgoraBioTags !== "undefined") {
+        AgoraBioTags.TRUSTED_IMAGE_HOSTS.forEach(function (name) {
+          var li = document.createElement("li");
+          li.textContent = name;
+          hostList.appendChild(li);
+        });
+      }
+    })();
+  </script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+  <script src="page-hits.js?v=1"></script>
+</body>
+</html>

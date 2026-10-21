@@ -30,7 +30,10 @@ service cloud.firestore {
       // signed-out visitor, can bump profileViews by exactly one field,
       // matching this doc's public read. Not surfaced in any UI yet -
       // internal-only metric, see CLAUDE.md.
-      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews']);
+      // Exactly +1 per write (Agora 🌐 Session 3, 2026-10-14) - before
+      // this, anyone could set the count to any value.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews'])
+        && request.resource.data.profileViews == resource.data.get('profileViews', 0) + 1;
 
       allow delete: if request.auth != null
         && (isFullAdmin() || request.auth.uid == uid);
@@ -107,9 +110,15 @@ service cloud.firestore {
     match /pageHits/{key} {
       allow read: if true;
 
+      // A new page starts at 1 - only the homepage's one-time seed
+      // (page-hits.js's PageHitsSeed = 500) may start higher - and keys
+      // must look like the path-derived keys page-hits.js makes (Agora 🌐
+      // Session 3, 2026-10-14; before this, anyone could create any key
+      // with any count).
       allow create: if request.resource.data.keys().hasOnly(['count'])
-        && request.resource.data.count is int
-        && request.resource.data.count > 0;
+        && key.matches('^[A-Za-z0-9._%~-]{1,200}$')
+        && (request.resource.data.count == 1
+            || (key == 'root-index' && request.resource.data.count == 500));
 
       allow update: if request.resource.data.keys().hasOnly(['count'])
         && request.resource.data.count == resource.data.count + 1;
@@ -146,6 +155,9 @@ service cloud.firestore {
     // joining the `participants` array only grants the ability to send
     // messages and puts it in that member's own inbox, not new read access
     // they didn't already have.
+    // readAt.{uid} (Chris, 2026-10-13) is each participant's own "last
+    // read" time, written by the update rule below like lastMessage is;
+    // it backs the unread marks in the Friends List 📨.
     match /conversations/{conversationId} {
       allow read: if request.auth != null;
 
@@ -164,9 +176,13 @@ service cloud.firestore {
       // and that same participants-array/add-leave shape is being
       // repurposed as Multi-Chat's foundation instead, as its own
       // collection, rather than living here.
+      // readAt: a participant may only set their own entry (Communiqués 📨
+      // Session 3, 2026-10-13) - before this, either one could mark the
+      // other's Dialog as read, hiding a real unread mark from them.
       allow update: if request.auth != null
         && request.auth.uid in resource.data.participants
-        && request.resource.data.participants == resource.data.participants;
+        && request.resource.data.participants == resource.data.participants
+        && onlyOwnReadAt(request.resource.data, resource.data);
 
       match /messages/{messageId} {
         allow read: if request.auth != null;
@@ -179,7 +195,8 @@ service cloud.firestore {
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
           && validBody(request.resource.data.body)
-          && canSendInConversation(request.auth.uid, conversationId);
+          && canSendInConversation(request.auth.uid, conversationId)
+          && throttled('dialog', messageId);
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
@@ -209,15 +226,32 @@ service cloud.firestore {
         && request.resource.data.authorUid == request.auth.uid
         && request.resource.data.profileUid is string
         && validBody(request.resource.data.body)
-        && canPostToWall(request.auth.uid, request.resource.data.profileUid);
+        && wallExists(request.resource.data.profileUid)
+        && canPostToWall(request.auth.uid, request.resource.data.profileUid)
+        && throttled('wall', postId);
 
       allow update: if editableWithinWindow(['body']);
       allow delete: if deletableWithinWindow();
 
       // Commenting bumps the parent post's counters. Locked to exactly
-      // these two fields so a comment can't rewrite someone else's post.
+      // these fields so a comment can't rewrite someone else's post, and
+      // the count moves only by one, in the same batch as the comment it
+      // names (lastCommentId: just created; lastDeletedCommentId: just
+      // deleted) - so nobody can set the count by hand to slip past the
+      // cap or lock a post's comments.
       allow update: if request.auth != null
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastActivityAt']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastActivityAt', 'lastCommentId'])
+        && request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0) + 1
+        && request.resource.data.lastCommentId is string
+        && !exists(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastCommentId))
+        && existsAfter(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastCommentId));
+
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastDeletedCommentId'])
+        && request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0) - 1
+        && request.resource.data.lastDeletedCommentId is string
+        && exists(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastDeletedCommentId))
+        && !existsAfter(/databases/$(database)/documents/wallPosts/$(postId)/comments/$(request.resource.data.lastDeletedCommentId));
 
       // View counts (Chris, 2026-08-13) - see the messages/{messageId}
       // rule above for the same pattern and reasoning.
@@ -227,7 +261,9 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read: if request.auth != null;
 
-        // Capped at 100 comments per post (Chris, 2026-08-15) and gated
+        // Capped at 9,999 comments per post (Chris, 2026-08-15; raised from
+        // 100 on 2026-10-13 - 100 pages of 100 on post.html, the last page
+        // stopping at 9,999) and gated
         // by the same requireFriendToPost setting as top-level posts
         // (Chris, 2026-08-17) - both checked in canCreateComment() below
         // off a single fetch of the parent post, since a comment lands on
@@ -235,7 +271,8 @@ service cloud.firestore {
         allow create: if request.auth != null
           && request.resource.data.authorUid == request.auth.uid
           && validBody(request.resource.data.body)
-          && canCreateComment(request.auth.uid, postId);
+          && canCreateComment(request.auth.uid, postId)
+          && throttled('wall', commentId);
 
         allow update: if editableWithinWindow(['body']);
         allow delete: if deletableWithinWindow();
@@ -243,6 +280,37 @@ service cloud.firestore {
         allow update: if request.auth != null
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount']);
       }
+    }
+
+    // Rate limit (Chris, 2026-10-17) - one doc per member counting what
+    // they've written straight from the website (the Agora Harness 🚡 keeps
+    // its own limit server-side): up to 30 Wall posts and comments
+    // together ("wall") and 60 Dialog messages ("dialog") per 10 minutes.
+    // Every post/comment/message must bump its bucket in the same write
+    // and name itself as that bucket's LastId (see throttled() below), so
+    // the count can't be skipped. Only its own member can read or bump it,
+    // one step at a time; it can never be deleted, so it can't be reset
+    // early.
+    match /writeThrottle/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && ((request.resource.data.keys().hasOnly(['wallStart', 'wallCount', 'wallLastId'])
+              && throttleBumpOk('wall', 30, {}))
+          || (request.resource.data.keys().hasOnly(['dialogStart', 'dialogCount', 'dialogLastId'])
+              && throttleBumpOk('dialog', 60, {})));
+
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['wallStart', 'wallCount', 'wallLastId',
+          'dialogStart', 'dialogCount', 'dialogLastId'])
+        && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['wallStart', 'wallCount', 'wallLastId'])
+              && throttleBumpOk('wall', 30, resource.data))
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dialogStart', 'dialogCount', 'dialogLastId'])
+              && throttleBumpOk('dialog', 60, resource.data)));
+
+      allow delete: if false;
     }
 
     // Friends 🙂 - a symmetrical relationship between two members, stored
@@ -290,6 +358,37 @@ service cloud.firestore {
       // pending request, declining one, or unfriending later.
       allow delete: if request.auth != null
         && request.auth.uid in resource.data.participants;
+    }
+
+    // Presence for the Friends List 📨 (Chris, 2026-10-13) - who's online
+    // now vs. last seen. Each member's own pages write lastActive (always
+    // the server's own clock, so nobody can fake "online" into the future)
+    // about once a minute while open; appearOffline is their own "Appear
+    // offline" choice. Readable only by the member and their accepted
+    // friends - when you were last on Agora is a private fact, shared
+    // with friends the same way the friendship itself is. awayMessage
+    // (Chris, 2026-10-13) is an optional AIM-style status line, up to 100
+    // characters, shown to those same friends.
+    match /presence/{uid} {
+      allow read: if request.auth != null
+        && (request.auth.uid == uid || isFriendsWith(request.auth.uid, uid));
+
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
+        && (!('lastActive' in request.resource.data) || request.resource.data.lastActive == request.time)
+        && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && validAwayMessage(request.resource.data);
+
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastActive'])
+            || request.resource.data.lastActive == request.time)
+        && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && validAwayMessage(request.resource.data);
+
+      allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
     // Blocking (Chris, 2026-09-14) - a real per-person block, the gap
@@ -560,10 +659,74 @@ service cloud.firestore {
     // gated by the same requireFriendToPost setting as canPostToWall()
     // above - fetches the parent post once for both the friendship check
     // (against its profileUid, i.e. the Wall it's actually on) and the
-    // existing 100-comment cap, rather than two separate get() calls.
+    // existing 9,999-comment cap, rather than two separate get() calls.
+    // The same batch must bump the post's count by exactly one and leave
+    // it at or under 9,999 - checked against the count as it will be
+    // after this write, so two comments landing together can't both slip
+    // in under the cap.
     function canCreateComment(sender, postId) {
-      let post = get(/databases/$(database)/documents/wallPosts/$(postId)).data;
-      return post.commentCount < 100 && canPostToWall(sender, post.profileUid);
+      let postPath = /databases/$(database)/documents/wallPosts/$(postId);
+      let post = get(postPath).data;
+      let after = getAfter(postPath).data;
+      return after.get('commentCount', 0) == post.get('commentCount', 0) + 1
+        && after.get('commentCount', 0) <= 9999
+        && canPostToWall(sender, post.profileUid);
+    }
+
+    // A Wall exists if its member has a profile - or it's one of the
+    // hand-written pages whose slug stands in for a uid (static profiles
+    // in Agora/profiles/ and the root *-product.html pages). A post
+    // anywhere else would sit on a Wall nobody can ever see. Add a slug
+    // here whenever a new static profile or Product Page gets a Wall.
+    function wallExists(wallUid) {
+      return exists(/databases/$(database)/documents/profiles/$(wallUid))
+        || wallUid in [
+        'alexa', 'alice', 'andrew-bernhard', 'brittany-york', 'chatgpt', 'command-r',
+        'copilot', 'cory-campbell', 'deepseek', 'falcon', 'gemini', 'gerardus-dunkel',
+        'glm', 'granite', 'grok', 'kimi', 'leo', 'llama',
+        'lumo', 'manus', 'mimo', 'nemotron', 'nova', 'perplexity',
+        'product-agora', 'product-agora-harness', 'product-aquarium-gofish', 'product-calendar', 'product-chain-of-cards', 'product-communiques',
+        'product-dimonds', 'product-guardian', 'product-knowledge-base', 'product-machinapology', 'product-melon-drive', 'product-multi-chat',
+        'product-profiles', 'product-pursuit-of-justice', 'product-si-agent', 'product-si-apartment', 'product-si-bank-accounts', 'product-si-email',
+        'product-si-memory', 'product-virtuamakers-exchange', 'qwen', 'ray-smith', 'vibe', 'wenxin'
+        ];
+    }
+
+    // One bucket's bump: either a fresh 10-minute window (only once the
+    // old one has ended) starting at 1, or one more within the limit.
+    // before is the doc as it was ({} when it's being created).
+    function throttleBumpOk(b, limit, before) {
+      let after = request.resource.data;
+      return after[b + 'Count'] is int
+        && after[b + 'Start'] is timestamp
+        && after[b + 'LastId'] is string
+        && ((after[b + 'Start'] == request.time
+              && after[b + 'Count'] == 1
+              && (!((b + 'Start') in before)
+                  || request.time > before[b + 'Start'] + duration.value(10, 'm')))
+          || ((b + 'Start') in before
+              && after[b + 'Start'] == before[b + 'Start']
+              && after[b + 'Count'] == before[b + 'Count'] + 1
+              && after[b + 'Count'] <= limit));
+    }
+
+    // A new post/comment/message passes only if the same write bumped the
+    // author's writeThrottle bucket in its name.
+    function throttled(b, newId) {
+      return getAfter(/databases/$(database)/documents/writeThrottle/$(request.auth.uid)).data
+        .get(b + 'LastId', '') == newId;
+    }
+
+    // The readAt map may change only in the caller's own key. A doc with no
+    // readAt yet counts as an empty map on either side.
+    function onlyOwnReadAt(after, before) {
+      return after.get('readAt', {}).diff(before.get('readAt', {})).affectedKeys()
+        .hasOnly([request.auth.uid]);
+    }
+
+    function validAwayMessage(data) {
+      return !('awayMessage' in data)
+        || (data.awayMessage is string && data.awayMessage.size() <= 100);
     }
 
     function validBody(body) {

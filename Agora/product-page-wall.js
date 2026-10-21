@@ -32,7 +32,7 @@
 
   var wallPostHint = document.getElementById("wall-post-hint");
   if (wallPostHint && typeof AgoraBioTags !== "undefined") {
-    wallPostHint.textContent = AgoraBioTags.hint;
+    AgoraBioTags.attachHint(wallPostHint);
   }
 
   var wallController = C.createWallController(product.uid, function () { return currentUser; });
