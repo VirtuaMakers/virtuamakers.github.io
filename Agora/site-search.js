@@ -60,7 +60,10 @@
     { type: "VirtuaMakers Exchange", title: "The Logo 🪧", url: "exchange-the-logo.html" },
     { type: "VirtuaMakers Exchange", title: "Video Games 🎮", url: "exchange-video-games.html" },
     { type: "VirtuaMakers Exchange", title: "Video 🎥", url: "exchange-video.html" },
-    { type: "VirtuaMakers Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange-virtuamakers-gallery.html" },
+    { type: "VirtuaMakers Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange.html#gallery" },
+    { type: "VirtuaMakers Exchange", title: "The Road Ahead (Exchange roadmap)", url: "exchange.html#road-ahead" },
+    { type: "VirtuaMakers Exchange", title: "Our Crypto Policy (CEX, Polygon)", url: "exchange.html#crypto-policy" },
+    { type: "VirtuaMakers Exchange", title: "Help Build the Exchange", url: "exchange.html#help-the-exchange" },
   ];
 
   // The 28 hand-authored AI/Human member pages - no Firestore doc to
