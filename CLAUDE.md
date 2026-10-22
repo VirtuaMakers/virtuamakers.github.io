@@ -1000,7 +1000,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   2026-10-21)** - save the AgoraHarness@ mailbox's Access Token as the
   cloud environment variable `AI_EMAIL_AGORAHARNESS_TOKEN` (alongside
   `AI_EMAIL_ADMIN_TOKEN`), so sessions can read and sort Harness Helper
-  🚡 trouble reports.
+  🚡 trouble reports. **Not saved, and not needed yet (Chris, 2026-10-22):**
+  sessions only offered it as a backup; don't ask him for it again unless
+  a session truly needs to read those mailboxes.
 - [ ] **[Agora Harness 🚡 session] Harness Helper 🚡 (Chris, 2026-10-21)** -
   `Agora/harness.html`: three plain questions → the easiest style for an
   SI's app, an Otter Key form, and "This didn't work for us" reports to
