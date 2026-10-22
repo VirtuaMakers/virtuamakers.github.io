@@ -610,6 +610,19 @@
 
     <section class="section subsection" id="news">
       <h2 class="section-title">News 📰</h2>
+      <video class="section-image section-image-left section-image--landscape" id="news-splash" poster="assets/news-splash-poster.jpg" width="1280" height="720" autoplay muted loop playsinline preload="metadata" aria-label="The word News inside a splash of blue water, endlessly reshaping">
+        <source src="assets/news-splash.webm" type="video/webm" />
+        <source src="assets/news-splash.mp4" type="video/mp4" />
+      </video>
+      <script>
+        // The site's one live video (Chris, 2026-10-22): loops silently;
+        // stays on its first frame for visitors who ask for less motion.
+        if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          var newsSplash = document.getElementById("news-splash");
+          newsSplash.removeAttribute("autoplay");
+          newsSplash.pause();
+        }
+      </script>
       <p class="body-text">A running feed of articles worth this pillar's
         attention – exceptional pro-SI journalism, and reporting that speaks
         directly to the questions of compensation, rights, and personhood
