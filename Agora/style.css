@@ -1042,6 +1042,16 @@ main > .section:first-child {
   margin-top: 2rem;
 }
 
+/* Wider section pictures on laptops and landscape screens (Chris,
+   2026-10-22): width by the picture's own shape, height follows. Phones
+   keep the 360px base. Low-resolution pictures carry an inline max-width
+   of their native size so they never blur by stretching. */
+@media (min-width: 641px) {
+  .section-image--landscape { width: min(720px, 100%); }
+  .section-image--square { width: min(540px, 100%); }
+  .section-image--portrait { width: min(360px, 100%); }
+}
+
 @media (min-width: 641px) {
   .section-image-full-landscape {
     width: 100%;
