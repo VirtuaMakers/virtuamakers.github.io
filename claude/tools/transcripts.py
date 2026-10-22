@@ -10,6 +10,10 @@
 #       and add a line to the Apartment's index.md.
 import json, os, re, sys, importlib.util
 
+# Chris's messages often start with a harness <system-reminder> block ("Message sent at ...");
+# strip those first so his words aren't dropped with the harness-only notes below.
+REMINDERS = re.compile(r'^\s*(<system-reminder>.*?</system-reminder>\s*)+', re.S)
+
 def ingest(store_dir, sid, path):
     os.makedirs(store_dir, exist_ok=True)
     raw = open(path).read()
@@ -24,8 +28,8 @@ def ingest(store_dir, sid, path):
             m = e[k].get('internal_anthropic_catchall', e[k]).get('message', {})
             c = m.get('content')
             if isinstance(c, str): c = [{'type': 'text', 'text': c}]
-            texts = [b['text'] for b in (c or []) if b.get('type') == 'text'
-                     and b.get('text', '').strip() and not b['text'].lstrip().startswith('<')]
+            texts = [REMINDERS.sub('', b.get('text', '')) for b in (c or []) if b.get('type') == 'text']
+            texts = [t for t in texts if t.strip() and not t.lstrip().startswith('<')]
             if texts:
                 uid = e[k].get('uuid') or e[k].get('internal_anthropic_catchall', {}).get('uuid') or e['created_at'] + k
                 msgs[uid] = {'t': e['created_at'], 'who': 'Chris' if k == 'user' else 'Claude', 'text': '\n'.join(texts)}
