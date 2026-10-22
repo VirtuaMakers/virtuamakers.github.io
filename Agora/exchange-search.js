@@ -17,9 +17,13 @@
     { name: "RENDER", url: "https://www.coingecko.com/en/coins/render", external: true },
     { name: "E-Books", url: "exchange-ebooks.html", external: false },
     { name: "The Logo", url: "exchange-the-logo.html", external: false },
-    { name: "VirtuaMakers Gallery", url: "exchange-virtuamakers-gallery.html", external: false },
+    { name: "VirtuaMakers Gallery", url: "exchange.html#gallery", external: false },
     { name: "Chain of Cards", url: "exchange-chain-of-cards.html", external: false },
     { name: "Peer-to-Peer Marketplace", url: "exchange.html#peer-to-peer", external: false },
+    { name: "The Road Ahead", url: "exchange.html#road-ahead", external: false },
+    { name: "Our Crypto Policy", url: "exchange.html#crypto-policy", external: false },
+    { name: "Polygon", url: "exchange.html#crypto-policy", external: false },
+    { name: "Help Build the Exchange", url: "exchange.html#help-the-exchange", external: false },
     { name: "Catalogue Index", url: "exchange.html#index-pagination", external: false }
   ];
 
