@@ -429,6 +429,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   6. Rules: either Dialog participant can write the other's `readAt`.
      Minor.
   7. Deleting a Wall post leaves its comments stored, orphaned.
+- [ ] **[Agora 🌐 session] Confirm the Dialog column and the new phone
+  header (Agora 🌐 Session 5, 2026-10-22)** - built by Session 5: a Dialog
+  column beside the Wall on other members' profiles (viewing never creates
+  a Dialog; the first message does) and the phone header (signed out: one
+  row; signed in: two centered rows). Chris to check on his Android phone
+  in Brave.
 - [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
   2026-10-13)** - today pictures come only from Agora itself plus the
   trusted image sites in `Agora/bio-tags.js` (shown on
