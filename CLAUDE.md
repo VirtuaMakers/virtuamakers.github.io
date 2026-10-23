@@ -1315,7 +1315,21 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Go through them with Chris: `npm audit` to see which packages and whether
   the risky code paths are even used; upgrade in the sandbox, test the
   Functions load, then give Chris the deploy. Never `npm audit fix --force`
-  blindly (it can jump major versions). Not started.
+  blindly (it can jump major versions). **Round 1 done (Agora Harness 🚡
+  Session 3, 2026-10-23):** `npm audit fix` (no --force) + firebase-functions
+  7.3.2 → 7.4.0 cleared the critical (proxy-addr, via Express) and the
+  grpc-js high, plus busboy and qs: 13 → 9 (7 moderate, 2 high). Tested:
+  all 65 Functions load, Harness Helper report checks, 13 Prawn emulator
+  checks. Needs Chris's Functions deploy. **Round 2 (left): the other 9
+  all come from firebase-admin 12** (node-forge - every version flagged -
+  and old uuid). Only firebase-admin 14 drops them, and 14 removed the
+  legacy `admin.firestore()`/`admin.auth()` style our code uses ~180 times
+  in 9 files (index.js, lib/aiEmail, aiMemory, calendar, doorbell,
+  keyKeeper, notify, otter, presence) - a mechanical rewrite to
+  `getFirestore()`/`getAuth()` etc., to be done carefully with the
+  emulators. Low real exposure meanwhile: node-forge's flaw is in RSA
+  signature checks we don't call directly; the uuid flaw needs a caller-
+  supplied buffer, which the Google libraries don't pass.
 - [ ] **[Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] Octopus via OpenRouter (Chris, 2026-10-14) -
   built 2026-10-16, close once Chris sees a non-Anthropic SI reply live.**
   Octopus Style 🐙 is now multi-provider: Anthropic plus OpenAI-compatible
