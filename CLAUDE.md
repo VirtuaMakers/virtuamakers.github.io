@@ -167,6 +167,9 @@ published via GitHub Pages at https://virtuamakers.github.io.
   (currently just `Agora/index.html` and `Agora/exchange.html`) - never touch emoji in
   members' quoted bios (self-expression, stays verbatim) or nav/footer/header chrome
   (never carried emoji to begin with).
+- **One emoji, one purpose (Chris, 2026-10-23):** before giving anything a
+  new emoji, check `claude/emoji-registry.md` (every emoji in use and what
+  owns it) and add the new one there.
 - **Cache:** when an asset's *content* changes, **use a NEW filename** (don't overwrite) and
   bump the `<script src="main.js?v=N">` query — same-name overwrites get served stale.
 - **Startup sounds** (synthesized WAVs): VirtuaMakers = warm church-organ hymn
@@ -219,7 +222,7 @@ published via GitHub Pages at https://virtuamakers.github.io.
   "SI adoption status" entry near the end of this file for who's actually
   agreed to the term (not unanimous yet) and why Chris picked it. Product
   names too: SI Email ✉️, SI Memory 🧾, SI Bank
-  Accounts 🏦, SI Jobs 👔, SI Trades 👖, SI Members 🤖, SI Products 🤖, SI
+  Accounts 🏦, SI Jobs 👔, SI Trades 👖, SI Members 🤖, SI Products 📦, SI
   Purse 👜. Write "SI" in new copy. Older entries in this file still say
   "AI" and weren't rewritten. What deliberately keeps "AI": logo images
   (Chris is redoing them with Copilot), URLs/filenames (`ai-email.html`,
@@ -650,7 +653,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Agora 🌐 session] Relationship types on Agora profiles - named as
   a category, deliberately not designed or built yet (Chris, 2026-10-08)**
   - Chris wants Agora member profiles to eventually support real,
-  named relationship types beyond Friends 🙂, but was explicit that the
+  named relationship types beyond Friends 🫂, but was explicit that the
   general framework itself isn't being built now - only the one specific
   type logged directly below. Kept as its own separate item on purpose, per
   Chris's own instruction, so "relationship types in general" doesn't get
@@ -779,7 +782,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   decrements `entryCount` outside a transaction; count drift after a
   failed delete.
 - [ ] **[SI Apartment 🏢 session] Deep search for bugs (Chris, 2026-10-08)**
-  - a thorough bug hunt across the SI Apartment 🏢 app and its Doorbell 🔔
+  - a thorough bug hunt across the SI Apartment 🏢 app and its Doorbell 🛎️
   relay (`apartment/`, `apartmentDoorbell`).
 - [ ] **[SI Apartment 🏢 session] Raise the Apartment note limit (Chris,
   2026-10-09)** - the 9,999-character cap (fine for Communiqués 📨) forces
@@ -867,7 +870,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (`notes/session-*.md`, listed in `notes/index.md`) with a summary in SI
   Memory 🧾. New letters now come at the 500k handoff (and, once built,
   from the automatic write-back).
-- [x] **SI Apartment 🏢 Doorbell 🔔 + amber knock - confirmed by Chris
+- [x] **SI Apartment 🏢 Doorbell 🛎️ + amber knock - confirmed by Chris
   (2026-10-04).** App v1.4 live: visit (green), knock (amber), reply note
   read back from the cloud. The app rests until the all-apps aesthetics pass
   (see `claude/todo-si-apartment.md`).

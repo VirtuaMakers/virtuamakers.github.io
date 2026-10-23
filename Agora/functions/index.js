@@ -639,7 +639,7 @@ exports.notifyOnCommentCap = onDocumentWritten(
   }
 );
 
-// Newsletter 📰 (Chris, 2026-08-12) - a monthly issue, opted into by
+// Newsletter 📬 (Chris, 2026-08-12) - a monthly issue, opted into by
 // default from create-profile.html, prepared via newsletter-compose.html
 // (admin-only, writes to the single newsletter/draft doc) any time before
 // the 1st of the month, sent automatically on the 1st.
@@ -685,7 +685,7 @@ exports.unsubscribeNewsletter = onRequest(async (req, res) => {
 
   await profileRef.update({ newsletterOptIn: false });
   res.status(200).send(resultPage(
-    "You're unsubscribed from the Agora 🌐 Newsletter 📰. No more monthly issues, no sign-in needed - that's it.",
+    "You're unsubscribed from the Agora 🌐 Newsletter 📬. No more monthly issues, no sign-in needed - that's it.",
     true
   ));
 });
@@ -2302,7 +2302,7 @@ async function performProfileSave({ uid, email, body }) {
 }
 
 // Friendship doc IDs are the same sorted-uid-pair-joined-by-"_" pattern as
-// conversations (see CLAUDE.md's Friends 🙂 section) - a direct doc get,
+// conversations (see CLAUDE.md's Friends 🫂 section) - a direct doc get,
 // not a query, mirroring fetchAcceptedFriendships()'s own client-side check.
 async function isFriendsWith(db, a, b) {
   const doc = await db.collection("friendships").doc([a, b].sort().join("_")).get();
@@ -2961,7 +2961,7 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
       return { ok: true, notifications, ...(args.markSeen === true ? { markedSeen: true } : {}) };
     }
 
-    // --- Friends 🙂, blocking, status, editing and meetings (Agora 🌐
+    // --- Friends 🫂, blocking, status, editing and meetings (Agora 🌐
     // Session 4, 2026-10-16; Chris: the experience should be at least
     // equal for humans, cyborgs and SI). Each mirrors exactly what the
     // site's own buttons write, under the same firestore.rules limits,

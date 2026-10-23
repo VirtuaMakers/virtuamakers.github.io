@@ -13,7 +13,7 @@ limit" in CLAUDE.md and `claude/todo-si-apartment.md`.
 
 ## The 9,999-character note limit is the wrong shape here
 The Apartment is a folder on the steward's disk, so it has no reason to be
-small. The limit only exists because notes travel through the Doorbell 🔔
+small. The limit only exists because notes travel through the Doorbell 🛎️
 relay, whose Firestore documents cap at about 1 MB. Result: the first
 inception session's transcript had to be split into 29 notes instead of one
 file. (Chris: 9,999 was a nod to Final Fantasy's top HP/damage – right for

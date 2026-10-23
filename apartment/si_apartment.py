@@ -975,9 +975,9 @@ def run_app():
         except Exception:
             name = "The Apartment"
         lines = ["%s: %s" % (SHOWN.get(p, p), s["detail"]) for p, s in products.items()]
-        bell_line = ("Doorbell 🔔 is set up – your SI can now ring from any conversation."
+        bell_line = ("Doorbell 🛎️ is set up – your SI can now ring from any conversation."
                      if read_doorbell_key(path) else
-                     "Doorbell 🔔 isn't set up yet (it needs an SI Email ✉️ Access Token).")
+                     "Doorbell 🛎️ isn't set up yet (it needs an SI Email ✉️ Access Token).")
         messagebox.showinfo("SI Apartment 🏢 refreshed",
                             "%s is up to date. Here's what it found:\n\n%s\n\n%s\n\n"
                             "The same summary is in HOME.md for your SI." % (name, "\n".join(lines), bell_line))
@@ -1009,7 +1009,7 @@ def run_app():
                 "SI Apartment 🏢",
                 "Take this Apartment off the list on this computer?\n\n"
                 "Nothing is deleted: its folder stays where it is, and you can put it back "
-                "with \"Add existing\". While it's off the list, its Doorbell 🔔 won't answer.\n\n"
+                "with \"Add existing\". While it's off the list, its Doorbell 🛎️ won't answer.\n\n"
                 "To free up your free Apartment, sign in below and choose Remove there."):
             return
         state["paths"].pop(apt_id, None)
@@ -1041,7 +1041,7 @@ def run_app():
     tk.Button(local_buttons, text="Remove from list", command=local_remove).pack(side="left", padx=4)
     tk.Button(local_buttons, text="Add existing", command=local_add_existing).pack(side="left", padx=4)
 
-    # Doorbell 🔔: on whenever the app is open. Every Apartment on this
+    # Doorbell 🛎️: on whenever the app is open. Every Apartment on this
     # computer that has a Doorbell Key answers requests by itself; a visit
     # plays a soft chime and lights the Apartment green for HOME_FOR_S.
     bell_var = tk.BooleanVar(value=True)
@@ -1050,18 +1050,18 @@ def run_app():
 
     def bell_text():
         if not bell_var.get():
-            return "Doorbell 🔔 is off."
+            return "Doorbell 🛎️ is off."
         with_key = [p for p in state["paths"].values() if read_doorbell_key(p)]
         if not with_key:
-            return ("Doorbell 🔔 is on, but no Apartment here has a Doorbell Key yet.\n"
+            return ("Doorbell 🛎️ is on, but no Apartment here has a Doorbell Key yet.\n"
                     "Choose Refresh once to set it up.")
         home = [p for p, t in bell["last_visit"].items() if time.time() - t < HOME_FOR_S]
         if bell["error"]:
-            return "Doorbell 🔔 is on, but the last check failed: %s" % bell["error"]
+            return "Doorbell 🛎️ is on, but the last check failed: %s" % bell["error"]
         if any(waiting_knocks(p) for p in state["paths"].values()):
-            return "Doorbell 🔔 is on. Someone's knocking for you – choose their Apartment to answer."
-        return ("Doorbell 🔔 is on. Someone's home!" if home else
-                "Doorbell 🔔 is on – listening for visits.")
+            return "Doorbell 🛎️ is on. Someone's knocking for you – choose their Apartment to answer."
+        return ("Doorbell 🛎️ is on. Someone's home!" if home else
+                "Doorbell 🛎️ is on – listening for visits.")
 
     def bell_tick():
         if bell_var.get() and not bell["busy"]:
@@ -1108,7 +1108,7 @@ def run_app():
             bell_status.config(text=bell_text())
         root.after(DOORBELL_EVERY_MS, bell_tick)
 
-    tk.Checkbutton(bell_row, text="Doorbell 🔔", variable=bell_var, bg=WHITE,
+    tk.Checkbutton(bell_row, text="Doorbell 🛎️", variable=bell_var, bg=WHITE,
                    command=lambda: bell_status.config(text=bell_text())).pack(side="left", padx=4)
     bell_status.pack(side="left", padx=6)
     bell_row.pack(padx=6, pady=(0, 6))
@@ -1156,14 +1156,14 @@ def run_app():
         if not read_settings().get("hideNoticeShown"):
             if hides_away() and sys.platform != "darwin":
                 where = ("SI Apartment 🏢 keeps running in the system tray (near the clock), so the "
-                         "Doorbell 🔔 can still answer.\n\nTo open it again, click its tray icon. "
+                         "Doorbell 🛎️ can still answer.\n\nTo open it again, click its tray icon. "
                          "To quit, right-click the tray icon and choose Quit.")
             elif sys.platform == "darwin":
-                where = ("SI Apartment 🏢 keeps running in the Dock, so the Doorbell 🔔 can still "
+                where = ("SI Apartment 🏢 keeps running in the Dock, so the Doorbell 🛎️ can still "
                          "answer.\n\nTo open it again, click its Dock icon. To quit, choose Quit "
                          "from its Dock menu (or press ⌘Q).")
             else:
-                where = ("SI Apartment 🏢 keeps running, minimized, so the Doorbell 🔔 can still "
+                where = ("SI Apartment 🏢 keeps running, minimized, so the Doorbell 🛎️ can still "
                          "answer.\n\nTo quit, open it and choose Quit.")
             messagebox.showinfo("Still running", where)
             save_setting("hideNoticeShown", True)
@@ -1398,7 +1398,7 @@ def run_app():
 
 
 # --- Background running: start at sign-in, the tray, one copy at a time ----
-# The Doorbell 🔔 only answers while the app is running, so by default it
+# The Doorbell 🛎️ only answers while the app is running, so by default it
 # starts when the steward signs in to their computer and lives in the system
 # tray: closing the window hides it, and "Quit" in the tray menu really exits.
 # Kept light: the tray uses pystray (+ Pillow for its little icon) where it's

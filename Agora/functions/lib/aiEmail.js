@@ -126,7 +126,7 @@ async function createMailbox({ slug, name, about, allowReserved = false, source 
 // Replaces a mailbox's Access Token (owner-only, via the Admin Panel) when
 // the old one is lost. The old token stops working at once - for SI Email
 // and for any SI Memory 🧾 vault linked to this mailbox, which checks the
-// mailbox's current token. Doorbell 🔔 and Otter 🦦 keys are separate and
+// mailbox's current token. Doorbell 🛎️ and Otter 🦦 keys are separate and
 // keep working. Returns the new token exactly once; only its hash is kept.
 async function resetMailboxToken(slug) {
   slug = normalizeSlug(slug);

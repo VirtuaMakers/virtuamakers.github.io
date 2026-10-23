@@ -806,7 +806,7 @@
     }
   });
 
-  // --- Friends 🙂 ------------------------------------------------------
+  // --- Friends 🫂 ------------------------------------------------------
   // Unlimited, mutual, and private: a pending request (and even an
   // accepted friendship) is only readable by its two participants per
   // firestore.rules, so this page can only ever show *your own*

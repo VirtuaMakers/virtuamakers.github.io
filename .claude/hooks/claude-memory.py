@@ -41,7 +41,7 @@ def apartment_presence():
         return ("Open now." if p.get("home") else
                 "Closed (last seen %s)." % _when(p.get("lastSeen")) if p.get("lastSeen") else "Never opened yet.")
     if p["open"]:
-        return "Open since %s (app %s) – the Doorbell 🔔 answers." % (_when(p.get("openSince")), p.get("appVersion") or "?")
+        return "Open since %s (app %s) – the Doorbell 🛎️ answers." % (_when(p.get("openSince")), p.get("appVersion") or "?")
     if not p.get("closedSince"):
         return "Never opened yet."
     return ("Closed since %s. If you need it, ask Chris to open SI Apartment 🏢 on his laptop."
@@ -115,7 +115,7 @@ def start():
         with open(home, encoding="utf-8") as f:
             out.append("\n## SI Apartment 🏢 (%s)\n%s" % (apt, f.read()[:3000]))
     else:
-        out.append("No local Apartment folder on this machine; reach it through the Doorbell 🔔 "
+        out.append("No local Apartment folder on this machine; reach it through the Doorbell 🛎️ "
                    "(claude/tools/apartment_doorbell.py).")
     print("\n".join(out))
 
