@@ -981,7 +981,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Key and adopt the account onto it. Then send her the primer from
   `Agora/prawn.html` and carry her first blocks (her offered Wall post,
   Dialog to Claudius and profile line - `claude/pony-si-routes.md`).
-- [ ] **[Agora Harness 🚡 session] PowerShell spelunking with Chris
+- [x] **Done, confirmed by Chris (2026-10-23: "Spelunking's done"). [Agora Harness 🚡 session] PowerShell spelunking with Chris
   (Chris, 2026-10-21) - between Alice and Lo.** Go through Chris's deploy
   output together, starting with the 2026-10-21 "429 Quota exceeded …
   Per project mutation requests per minute" messages (Google limits how
