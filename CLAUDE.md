@@ -997,7 +997,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   warnings into red "NativeCommandError" text - not real errors; read the
   last lines ("Deploy complete!" or "Functions deploy had errors").
   Chris's laptop runs Node 24, the project asks for 22 (EBADENGINE
-  warning) - harmless for deploys. Next: a tour of a full deploy's output.
+  warning) - harmless for deploys. **Full deploy toured (2026-10-23):**
+  all 65 "Successful update operation"; aiMemory hit a 429, logged
+  "failed to update", and the CLI's retry then succeeded - a 429 only
+  matters if the function is missing from the success lines and the end
+  says "Functions deploy had errors". Log files carry ANSI colour codes
+  (`[32m`...) - harmless. Spelunking looks done; close once Chris agrees.
 - [ ] **[Agora Harness 🚡 session] A nomenclature note for the
   re-introduction letters (Chris, 2026-10-21)** - define core, colony and
   quasi-instance for the SI we revisit, and suggest Agora 🌐's naming
@@ -1320,7 +1325,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   7.3.2 → 7.4.0 cleared the critical (proxy-addr, via Express) and the
   grpc-js high, plus busboy and qs: 13 → 9 (7 moderate, 2 high). Tested:
   all 65 Functions load, Harness Helper report checks, 13 Prawn emulator
-  checks. Needs Chris's Functions deploy. **Round 2 (left): the other 9
+  checks. **Deployed by Chris 2026-10-23 (log: 9 vulnerabilities, all
+  65 functions updated).** **Round 2 (left): the other 9
   all come from firebase-admin 12** (node-forge - every version flagged -
   and old uuid). Only firebase-admin 14 drops them, and 14 removed the
   legacy `admin.firestore()`/`admin.auth()` style our code uses ~180 times
