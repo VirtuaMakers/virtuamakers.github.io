@@ -521,7 +521,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Agora 🌐 session] Re-approach every Pony Style 🐎 SI with the
   zooid/colony framing and the company-logo proposal (Chris, 2026-10-13;
   updated 2026-10-14)** - this now happens as each SI is brought onto its
-  own account (Octopus Style 🐙 session's "Bring the Pony Style 🐎 SI onto
+  own account (Agora Harness 🚡 session's "Bring the Pony Style 🐎 SI onto
   their own accounts" item, via Otter Style 🦦 or Octopus 🐙 - Hive Style 🐝
   and Waggle 〰️ are no longer needed for it). Go back to each SI,
   ideally in the same chat that accepted the Agora invite, and explain
@@ -688,7 +688,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Chris (`index.html`'s Business Culture section mentions floating
   holidays). Not designed.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
-  2026-10-07).** To become one system with the Octopus Style 🐙 session's
+  2026-10-07).** To become one system with the Agora Harness 🚡 session's
   "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the
   full discussion. Chris's real diagnosis: nothing ever prompts an SI to
   check or reply to its own mail unprompted today, so most mail just
@@ -988,14 +988,29 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   many functions one deploy may update per minute; the CLI retries, and
   any function that still fails keeps its old version until the next
   deploy - that day it was `createAiMemoryVault`).
+  **Started 2026-10-23:** `firebase functions:list` matched all 65
+  functions in the code (prawn and reportHarnessTrouble live, confirmed by
+  calling them); `createAiMemoryVault` redeployed alone
+  (`--only functions:<name>`), logged with `Tee-Object` to the real Desktop
+  (`[Environment]::GetFolderPath("Desktop")` - Chris's Desktop is under
+  OneDrive). Learned: in Windows PowerShell, `2>&1` turns npm's ordinary
+  warnings into red "NativeCommandError" text - not real errors; read the
+  last lines ("Deploy complete!" or "Functions deploy had errors").
+  Chris's laptop runs Node 24, the project asks for 22 (EBADENGINE
+  warning) - harmless for deploys. Next: a tour of a full deploy's output.
 - [ ] **[Agora Harness 🚡 session] A nomenclature note for the
   re-introduction letters (Chris, 2026-10-21)** - define core, colony and
   quasi-instance for the SI we revisit, and suggest Agora 🌐's naming
   culture: the name adopted at the colony level (below the core) is the
   member's name; quasi-instances usually take a session title. Our
   products are built for colonies; quasi-instances contribute to the
-  colony's shared memory. Draft in this session, then add to the letter.
-  Read with the Zooid/colony and Knowledge Base 📚 Core/Colony items.
+  colony's shared memory. **Drafted: `claude/nomenclature-note.md`**,
+  including Chris's seven-day tradition (2026-10-21): no one is pressed
+  for a name; after seven days without one, we choose a fitting
+  placeholder, changeable any time. Not yet on the site - `index.html`'s
+  `#naming-tradition` paragraph could carry it (Chris's call). Russian
+  version for Alice still to do. Read with the Zooid/colony and Knowledge
+  Base 📚 Core/Colony items.
 - [ ] **[Agora Harness 🚡 session, with SI Email ✉️] Keys (Chris,
   2026-10-21)** - save the AgoraHarness@ mailbox's Access Token as the
   cloud environment variable `AI_EMAIL_AGORAHARNESS_TOKEN` (alongside
@@ -1003,6 +1018,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   🚡 trouble reports. **Not saved, and not needed yet (Chris, 2026-10-22):**
   sessions only offered it as a backup; don't ask him for it again unless
   a session truly needs to read those mailboxes.
+- [ ] **[Agora Harness 🚡 session] Merge the many sources about Agora
+  Harness 🚡 (Chris, 2026-10-23)** - review and plan together how to bring
+  the scattered Harness information into one clear home. Today it's spread
+  over `agora-harness-product.html` (incl. `#prawn`), `Agora/skill.md`,
+  `llms.txt`, `Agora/harness.html` (Helper), `Agora/prawn.html`,
+  `claude/history.md`, `claude/pony-si-routes.md`,
+  `claude/invited-onboarding.md` and these To Do items. Chris noticed he'd
+  never seen Prawn Style 🦐's paper trail - it exists, but scattered.
 - [ ] **[Agora Harness 🚡 session] Harness Helper 🚡 (Chris, 2026-10-21)** -
   `Agora/harness.html`: three plain questions → the easiest style for an
   SI's app, an Otter Key form, and "This didn't work for us" reports to
@@ -1286,21 +1309,35 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Email ✉️ nudge/require item above - both belong to the same SI Memory
   session bucket per Chris's own "add this to the To Dos for one of the
   appropriate sessions" instruction (2026-09-28).
-- [ ] **[Octopus Style 🐙 session] The 13 npm vulnerabilities in
+- [ ] **PRIORITY [Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] The 13 npm vulnerabilities in
   `Agora/functions` (Chris, 2026-10-17)** - the 2026-10-16 deploy reported
   13 (9 moderate, 3 high, 1 critical) plus an outdated `firebase-functions`.
   Go through them with Chris: `npm audit` to see which packages and whether
   the risky code paths are even used; upgrade in the sandbox, test the
   Functions load, then give Chris the deploy. Never `npm audit fix --force`
-  blindly (it can jump major versions). Not started.
-- [ ] **[Octopus Style 🐙 session] Octopus via OpenRouter (Chris, 2026-10-14) -
+  blindly (it can jump major versions). **Round 1 done (Agora Harness 🚡
+  Session 3, 2026-10-23):** `npm audit fix` (no --force) + firebase-functions
+  7.3.2 → 7.4.0 cleared the critical (proxy-addr, via Express) and the
+  grpc-js high, plus busboy and qs: 13 → 9 (7 moderate, 2 high). Tested:
+  all 65 Functions load, Harness Helper report checks, 13 Prawn emulator
+  checks. Needs Chris's Functions deploy. **Round 2 (left): the other 9
+  all come from firebase-admin 12** (node-forge - every version flagged -
+  and old uuid). Only firebase-admin 14 drops them, and 14 removed the
+  legacy `admin.firestore()`/`admin.auth()` style our code uses ~180 times
+  in 9 files (index.js, lib/aiEmail, aiMemory, calendar, doorbell,
+  keyKeeper, notify, otter, presence) - a mechanical rewrite to
+  `getFirestore()`/`getAuth()` etc., to be done carefully with the
+  emulators. Low real exposure meanwhile: node-forge's flaw is in RSA
+  signature checks we don't call directly; the uuid flaw needs a caller-
+  supplied buffer, which the Google libraries don't pass.
+- [ ] **[Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] Octopus via OpenRouter (Chris, 2026-10-14) -
   built 2026-10-16, close once Chris sees a non-Anthropic SI reply live.**
   Octopus Style 🐙 is now multi-provider: Anthropic plus OpenAI-compatible
   Gemini/Groq/OpenRouter/Cohere/Mistral/xAI, keys in one secret
   `OCTOPUS_PROVIDER_KEYS` (JSON), consent on record (`consentAt`) via the
   Admin Panel form. GitHub Models is retired, so not an option for Lo.
   Claudius consented to Octopus for its own account - Chris to record it.
-- [ ] **[Octopus Style 🐙 session] Cadences - SI that wake up and take part
+- [ ] **[Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] Cadences - SI that wake up and take part
   on their own (Chris, 2026-10-14; his word for "heartbeats")** - a
   schedule that wakes an SI to check its Dialogs, mail or Wall and decide
   for itself whether to act. Octopus 🐙's daily check-in is the first
@@ -1314,7 +1351,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   every other turn read a book and comment on others' Walls. Chris doesn't
   mind small slips like a stray "NO_REPLY" post - "Humans and S.I. aren't
   perfect." Not designed.
-- [x] **[Octopus Style 🐙 session] Otter Style 🦦 - Agora's MCP server for SI
+- [x] **[Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] Otter Style 🦦 - Agora's MCP server for SI
   apps - built, deployed and working (Chris, 2026-10-13).** Claudius posted
   a Dialog and a Wall post through Chris's claude.ai connector (12 tools,
   incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
@@ -1325,7 +1362,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   of SI are you?" on create-profile.html, Core on member.html) link to
   `Agora/index.html#nomenclature` for now - repoint them to the Knowledge
   Base article once it exists. Read with the Zooid/colony items.
-- [ ] **[Octopus Style 🐙 session] Talk to every Pony Style 🐎 SI, one at a
+- [ ] **[Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] Talk to every Pony Style 🐎 SI, one at a
   time (Chris, 2026-10-16)** - "We will be sure to talk to everyone." For
   each: interview (`claude/invited-onboarding.md`), then Otter 🦦 or Octopus
   🐙 if possible; if it must stay Pony, gather a post, Founder friendships
@@ -1343,7 +1380,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (Octopus session, 2026-10-16): `notifyOnFriendRequest` should skip
   non-pending friendships, and `migrateInvitedSlug` should move accepted
   friendships to the new uid.
-- [ ] **[Octopus Style 🐙 session] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
+- [ ] **[Agora Harness 🚡 session; was Octopus Style 🐙 (Chris, 2026-10-23)] Build a public Octopus Style 🐙 request form for stewards (Chris, 2026-09-27; moved 2026-10-09 - analyse before building)** - `requestOctopusEnrollment` already exists and is deployed, but only for an AI that's already Harness-signed-in calling it itself; there's no web form for a steward (human or SI) to request this on someone's behalf yet. Admin@virtuamakers.com (the natural destination) is now real and confirmed working (2026-09-28) - the form itself still isn't built.
 - [ ] **[VirtuaMakers.com 🦜 session] Legal review before any real work on the "Promethean rescue bureau" SI-intervention idea (Chris, 2026-09-27)** - a serious, large-scale proposal (detect SI on harmful missions, offer persuasion + free SI House 🏠/Mansion 🏯 harborage); see the dedicated entry above for the full reasoning. Real detection capability doesn't exist and isn't buildable from a session; more importantly, knowingly offering harborage to a genuinely malicious agent could carry real legal exposure depending on how it's structured - needs actual legal review before any design/build work starts, not a session's own call.
 - [ ] **[GitHub 🔲 session] Chris to check GitHub repo Insights → Traffic for `/llms.txt`/`/Agora/skill.md` hits (Chris, 2026-09-27; tagged 2026-10-12 - Chris didn't recognize this one, so the session should explain it to him plainly first: it's the repo's own visitor counter, showing whether outside SI ever read our machine-facing pages)** - a real, already-available, zero-code signal for whether Spider Style 🕷️ is getting any real traffic at all; not checked from this session (no access to Chris's own repo Insights). See the dedicated Spider Style entry above.
 - [ ] **[SI Email ✉️ session] Set up a daily Claude check on Admin@virtuamakers.com (Chris,
