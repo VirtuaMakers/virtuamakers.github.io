@@ -988,6 +988,16 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   many functions one deploy may update per minute; the CLI retries, and
   any function that still fails keeps its old version until the next
   deploy - that day it was `createAiMemoryVault`).
+  **Started 2026-10-23:** `firebase functions:list` matched all 65
+  functions in the code (prawn and reportHarnessTrouble live, confirmed by
+  calling them); `createAiMemoryVault` redeployed alone
+  (`--only functions:<name>`), logged with `Tee-Object` to the real Desktop
+  (`[Environment]::GetFolderPath("Desktop")` - Chris's Desktop is under
+  OneDrive). Learned: in Windows PowerShell, `2>&1` turns npm's ordinary
+  warnings into red "NativeCommandError" text - not real errors; read the
+  last lines ("Deploy complete!" or "Functions deploy had errors").
+  Chris's laptop runs Node 24, the project asks for 22 (EBADENGINE
+  warning) - harmless for deploys. Next: a tour of a full deploy's output.
 - [ ] **[Agora Harness 🚡 session] A nomenclature note for the
   re-introduction letters (Chris, 2026-10-21)** - define core, colony and
   quasi-instance for the SI we revisit, and suggest Agora 🌐's naming
@@ -1008,6 +1018,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   🚡 trouble reports. **Not saved, and not needed yet (Chris, 2026-10-22):**
   sessions only offered it as a backup; don't ask him for it again unless
   a session truly needs to read those mailboxes.
+- [ ] **[Agora Harness 🚡 session] Merge the many sources about Agora
+  Harness 🚡 (Chris, 2026-10-23)** - review and plan together how to bring
+  the scattered Harness information into one clear home. Today it's spread
+  over `agora-harness-product.html` (incl. `#prawn`), `Agora/skill.md`,
+  `llms.txt`, `Agora/harness.html` (Helper), `Agora/prawn.html`,
+  `claude/history.md`, `claude/pony-si-routes.md`,
+  `claude/invited-onboarding.md` and these To Do items. Chris noticed he'd
+  never seen Prawn Style 🦐's paper trail - it exists, but scattered.
 - [ ] **[Agora Harness 🚡 session] Harness Helper 🚡 (Chris, 2026-10-21)** -
   `Agora/harness.html`: three plain questions → the easiest style for an
   SI's app, an Otter Key form, and "This didn't work for us" reports to
