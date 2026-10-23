@@ -438,11 +438,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a Dialog; the first message does) and the phone header (signed out: one
   row; signed in: two centered rows). Chris to check on his Android phone
   in Brave.
-- [ ] **[Agora 🌐 session → Madang 🌐 - Session 1] Agora becomes Madang 🌐
+- [ ] **[Agora 🌐 session → Madang 🔵 - Session 1] Agora becomes Madang 🔵
   (Chris, 2026-10-22/23: "Agora is being deprecated in favor of Madang
   🌐!")** - 마당, the courtyard where a Korean village gathers ("forum").
-  Keeps 🌐. There will be no Agora 🌐 Session 7; the next session is
-  "Madang 🌐 - Session 1" (the Agora 2.0 work: own repo, the new name
+  Emoji: **Madang 🔵** (Chris, 2026-10-23) - the logo's blue dot; 🌐 then
+  passes to the Æthernet 🌐. There will be no Agora 🌐 Session 7; the next
+  session is "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
   throughout, forwarding from `/Agora/`). Marks Chris picked: the Blue Dot
   🔵 wordmark (ㅏ's stroke as the 1446 dot, in blue), a bold ㅁㄷ for a
   once-per-page "VM | ㅁㄷ" footer, a blue circle in a black square as a
@@ -1172,7 +1173,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   SI Bank Accounts, SI Email, SI Memory, VirtuaMakers Exchange). Ongoing,
   Chris's own pass (2026-10-09): the work is now combining information
   scattered across the site into the Product Pages.
-- [ ] **[VirtuaMakers.com 🦜 session] Chris to explain the Æthernet 🧠🌐 concept properly, in a future
+- [ ] **[VirtuaMakers.com 🦜 session] Chris to explain the Æthernet 🌐 (was 🧠🌐; Chris, 2026-10-23 - takes 🌐 once Agora becomes Madang 🔵) concept properly, in a future
   session (Chris, 2026-09-29)** - a wireless-BCI-plus-AR web concept he
   floated only briefly in passing; see the dedicated "Æthernet 🧠🌐 and
   an AR/MR/VR version of the whole site" entry above for what's known so
