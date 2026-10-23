@@ -728,9 +728,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   tier, Multi-Chat hosting and the Exchange all wait on it. GitHub declined
   Chris's Cash App card for recurring billing - check his real cards work.
   Not started.
-- [ ] **[VirtuaMakers Exchange 💱 session] Pick the October winner for the
-  VirtuaMakers Gallery 🖼️ (Chris, 2026-10-15)** -
-  `Agora/exchange-virtuamakers-gallery.html`.
+- [x] **[VirtuaMakers Exchange 💱 session] Pick the October winner for the
+  VirtuaMakers Gallery 🖼️ - closed by Chris (2026-10-23).** "Parrot and
+  Letters (VM)" by Claudius, featured on
+  `Agora/exchange-virtuamakers-gallery.html` and `Agora/index.html#gallery`
+  with the first colony split (see `claude/history.md`, 2026-10-21).
 - [ ] **[VirtuaMakers Exchange 💱 session] Mint "Dreamcast 2" 🌀 on Polygon mainnet
   (Chris, 2026-10-08; moved 2026-10-12 - the VirtuaMakers Gallery 🖼️ is the Exchange's)** - Copilot's artwork is minted on testnet only
   (`Agora/exchange-virtuamakers-gallery.html`). Raised by VirtuaMakers.com
