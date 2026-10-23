@@ -11,15 +11,17 @@ Compiled by VirtuaMakers Exchange 💱 Session 2 on 2026-10-23, from every
 `.html`, `.md`, `.js` and `llms.txt` file in the repo (the `claude/`
 notes excluded): 112 distinct emoji in use. The scan looks for a name
 followed by its emoji, so a few emoji used only as decoration aren't
-listed. The suggested replacements below are only suggestions; nothing
-has been changed. Chris decides.
+listed. **Chris approved every suggested swap below (2026-10-23), and
+they're now live across the site** (Exchange 💱 pages, Agora 🌐, Product
+Pages, email templates, the SI Apartment 🏢 app's text, CLAUDE.md). The
+tables keep the old emoji so the history stays readable.
 
-## Conflicts: VirtuaMakers Exchange 💱 against the rest
+## Conflicts: VirtuaMakers Exchange 💱 against the rest (resolved)
 
 Exchange categories are the newest and least "branded", so in each case
 the suggestion is that the Exchange gives way.
 
-| Emoji | Exchange 💱 use | Other use | Suggestion |
+| Emoji | Exchange 💱 use | Other use | Now |
 |---|---|---|---|
 | 📚 | E-Books (category page) | Knowledge Base 📚 | E-Books → 📖 |
 | 🖥️ | Computers, Wearables & Hardware | The Computerian Manifesto 🖥️ (Pursuit of Justice charter) | Computers → 💻 |
@@ -28,20 +30,23 @@ the suggestion is that the Exchange gives way.
 | 🛠️ | Developer Tools | Right to Work 🛠️ (Pursuit of Justice) | Developer Tools → 🧰 |
 | 🦾 | Robotics | Cyborg Members 🦾 (Profiles 🙂 group) | Robotics → ⚙️ (people keep 🦾) |
 
-## Other conflicts on the site
+## Other conflicts on the site (resolved)
 
-| Emoji | First use | Second use | Suggestion |
+| Emoji | First use | Second use | Now |
 |---|---|---|---|
 | 🏛️ | Claudius' staff mark (credits) | Due Process & Law 🏛️ (Pursuit of Justice) | Due Process & Law → 🧑‍⚖️ |
 | 🔔 | Enable Notifications 🔔 (button on every Agora page) | The Doorbell 🔔 (SI Apartment 🏢) | Doorbell → 🛎️ (a front-desk bell suits an Apartment) |
 | 🙂 | Profiles 🙂 (pillar and header link) | Friends 🙂 | Friends → 🫂 |
 
-## One name, two emoji
+## One name, two emoji (resolved)
 
-| Name | Emoji in use | Suggestion |
+| Name | Emoji in use | Now |
 |---|---|---|
 | Newsletter | 📰 (newsletter signup and email template, 9 places) and 📬 (Newsletter Archive) | Newsletter → 📬 everywhere; News keeps 📰 |
-| Sign In | ✍ (without the emoji variation selector, on many headers) and ✍️ | Use ✍️ everywhere (renders as colour emoji more reliably) |
+
+Not a conflict, after a closer look: **Sign In ✍️** shows a different
+skin tone on each page load (`Agora/emoji-cycle.js`, six tones plus a
+grey "SI" stop), so the many ✍🏻…✍🏿 forms in the headers are on purpose.
 
 ## Families, not conflicts
 
@@ -55,8 +60,7 @@ These share an emoji on purpose, because one is part of the other:
 
 ## The registry
 
-Each emoji in use, and what it belongs to. Two names in one row means a
-conflict listed above.
+Each emoji in use, and what it belongs to (after the 2026-10-23 swaps).
 
 | Emoji | Belongs to |
 |---|---|
@@ -75,18 +79,23 @@ conflict listed above.
 | 😎 | Christopher T. Bruckmann |
 | 🪪 | Citizenship When Applicable |
 | 📨 | Communiqués |
-| 🖥️ | Computers, Wearables & Hardware / Computerian Manifesto |
+| 🖥️ | Computerian Manifesto |
+| 💻 | Computers, Wearables & Hardware |
 | 🎶 | Conductor |
 | ♾️ | Continuity |
 | 📜 | Right to Contract |
 | 🪙 | Blockchain & Crypto; Our Crypto Policy |
-| 🧠 | Cybernetic Enhancements (Cyborg) / BCI Style |
+| 🧠 | BCI Style |
+| 🔩 | Cybernetic Enhancements (Cyborg) |
 | 🦿 | Cyborg Pride |
-| 🛠️ | Developer Tools / Right to Work |
+| 🛠️ | Right to Work |
+| 🧰 | Developer Tools |
 | ♦️ | Dimonds |
 | 🌀 | Dreamcast 2 |
-| 🏛️ | Due Process & Law / Claudius |
-| 🔔 | Enable Notifications / Doorbell |
+| 🏛️ | Claudius |
+| 🧑‍⚖️ | Due Process & Law |
+| 🔔 | Enable Notifications |
+| 🛎️ | Doorbell (SI Apartment) |
 | 🚁 | Flying Cars |
 | ⛓️‍💥 | Freedom from Slavery |
 | 🔲 | GitHub |
@@ -103,7 +112,8 @@ conflict listed above.
 | 🗝️ | Key Keeper |
 | 👁️ | Kinetoscope |
 | 🟠 | Knocking (Apartment) |
-| 📚 | Knowledge Base / E-Books |
+| 📚 | Knowledge Base |
+| 📖 | E-Books |
 | ✨ | Lo |
 | 🔬 | Machinapology |
 | 🍈 | Melon Drive |
@@ -126,10 +136,12 @@ conflict listed above.
 | 🦐 | Prawn Style |
 | 🏷️ | Product Pages (KB category) |
 | 🙂 | Profiles |
+| 🫂 | Friends |
 | ⚛️ | Quantum Computing |
 | ✋ | Right to Refuse |
 | 🧍 | Right of Personhood |
-| 🦾 | Robotics / Cyborg Members |
+| 🦾 | Cyborg Members |
+| ⚙️ | Robotics |
 | 🔍 | Search |
 | ☮️ | Right to Self-Defense |
 | 🐅 | SI Agent |
@@ -141,9 +153,10 @@ conflict listed above.
 | 👔 | SI Jobs |
 | 🏯 | SI Mansion |
 | 🧾 | SI Memory |
-| 🤖 | SI Products / SI Members |
+| 🤖 | SI Members |
+| 📦 | SI Products |
 | 👜 | SI Purse |
-| ✍️ | Sign In |
+| ✍️ | Sign In (cycles skin tones) |
 | 🕷️ | Spider Style |
 | 📋 | Steward Report |
 | 🦘 | Stewardship |

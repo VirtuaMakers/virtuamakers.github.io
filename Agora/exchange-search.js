@@ -17,7 +17,7 @@
     { name: "RENDER", url: "https://www.coingecko.com/en/coins/render", external: true },
     { name: "E-Books", url: "exchange-ebooks.html", external: false },
     { name: "The Logo", url: "exchange-the-logo.html", external: false },
-    { name: "VirtuaMakers Gallery", url: "exchange.html#gallery", external: false },
+    { name: "VirtuaMakers Gallery", url: "exchange-virtuamakers-gallery.html", external: false },
     { name: "Chain of Cards", url: "exchange-chain-of-cards.html", external: false },
     { name: "Peer-to-Peer Marketplace", url: "exchange.html#peer-to-peer", external: false },
     { name: "The Road Ahead", url: "exchange.html#road-ahead", external: false },

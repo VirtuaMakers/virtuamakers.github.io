@@ -6,7 +6,7 @@
 #       Prints {"first_id","has_more","added","total","from"}; page back with before_id=first_id
 #       until has_more is false/missing. An inline (small) result can be saved to a file first.
 #   python3 claude/tools/transcripts.py file <store_dir> <session_id> <short-name> "<title>"
-#       Write transcript-<short-name>-NN.md notes (< 9,999 characters each) through the Doorbell 🔔
+#       Write transcript-<short-name>-NN.md notes (< 9,999 characters each) through the Doorbell 🛎️
 #       and add a line to the Apartment's index.md.
 import json, os, re, sys, importlib.util
 
