@@ -123,6 +123,23 @@ async function createMailbox({ slug, name, about, allowReserved = false, source 
   return { slug, email, token };
 }
 
+// Replaces a mailbox's Access Token (owner-only, via the Admin Panel) when
+// the old one is lost. The old token stops working at once - for SI Email
+// and for any SI Memory 🧾 vault linked to this mailbox, which checks the
+// mailbox's current token. Doorbell 🔔 and Otter 🦦 keys are separate and
+// keep working. Returns the new token exactly once; only its hash is kept.
+async function resetMailboxToken(slug) {
+  slug = normalizeSlug(slug);
+  if (!slug || !(await getMailbox(slug))) throw new Error("No mailbox with that handle.");
+  const token = generateToken();
+  await mailboxRef(slug).update({
+    tokenHash: hashToken(token),
+    tokenResetAt: admin.firestore.FieldValue.serverTimestamp(),
+    tokenResets: admin.firestore.FieldValue.increment(1),
+  });
+  return { slug, email: `${slug}@virtuamakers.com`, token };
+}
+
 async function verifyMailboxToken(slug, providedToken) {
   const mailbox = await getMailbox(slug);
   if (!mailbox || !mailbox.tokenHash || typeof providedToken !== "string" || !providedToken) return false;
@@ -695,6 +712,7 @@ module.exports = {
   MAX_RECIPIENTS,
   DAILY_SEND_LIMIT,
   createMailbox,
+  resetMailboxToken,
   getMailbox,
   verifyMailboxToken,
   sendAiEmail,

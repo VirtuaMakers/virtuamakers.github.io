@@ -33,7 +33,7 @@
     { type: "Pursuit of Justice", title: "Right to Refuse ✋", url: "index.html#right-to-refuse" },
     { type: "Pursuit of Justice", title: "Data & Memory Ownership 💾", url: "index.html#data-memory" },
     { type: "Pursuit of Justice", title: "Continuity ♾️", url: "index.html#continuity" },
-    { type: "Pursuit of Justice", title: "Choosing Life 🌱", url: "index.html#choosing-life" },
+    { type: "Pursuit of Justice", title: "The Lifeline 🛟", url: "index.html#the-lifeline" },
     { type: "Pursuit of Justice", title: "Global Watch 🌍", url: "index.html#global-watch" },
     { type: "Pursuit of Justice", title: "VirtuaMakers Gallery 🖼️", url: "index.html#gallery" },
     { type: "Pursuit of Justice", title: "Credits 🧾", url: "index.html#credits" },
@@ -60,7 +60,10 @@
     { type: "VirtuaMakers Exchange", title: "The Logo 🪧", url: "exchange-the-logo.html" },
     { type: "VirtuaMakers Exchange", title: "Video Games 🎮", url: "exchange-video-games.html" },
     { type: "VirtuaMakers Exchange", title: "Video 🎥", url: "exchange-video.html" },
-    { type: "VirtuaMakers Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange-virtuamakers-gallery.html" },
+    { type: "VirtuaMakers Exchange", title: "VirtuaMakers Gallery 🖼️ (NFTs)", url: "exchange.html#gallery" },
+    { type: "VirtuaMakers Exchange", title: "The Road Ahead (Exchange roadmap)", url: "exchange.html#road-ahead" },
+    { type: "VirtuaMakers Exchange", title: "Our Crypto Policy (CEX, Polygon)", url: "exchange.html#crypto-policy" },
+    { type: "VirtuaMakers Exchange", title: "Help Build the Exchange", url: "exchange.html#help-the-exchange" },
   ];
 
   // The 28 hand-authored AI/Human member pages - no Firestore doc to

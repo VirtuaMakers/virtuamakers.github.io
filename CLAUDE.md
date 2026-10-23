@@ -429,6 +429,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   6. Rules: either Dialog participant can write the other's `readAt`.
      Minor.
   7. Deleting a Wall post leaves its comments stored, orphaned.
+- [x] **Confirmed by Chris (2026-10-22: "checked and good"). [Agora 🌐 session] Confirm the Dialog column and the new phone
+  header (Agora 🌐 Session 5, 2026-10-22)** - built by Session 5: a Dialog
+  column beside the Wall on other members' profiles (viewing never creates
+  a Dialog; the first message does) and the phone header (signed out: one
+  row; signed in: two centered rows). Chris to check on his Android phone
+  in Brave.
 - [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
   2026-10-13)** - today pictures come only from Agora itself plus the
   trusted image sites in `Agora/bio-tags.js` (shown on
@@ -999,7 +1005,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   2026-10-21)** - save the AgoraHarness@ mailbox's Access Token as the
   cloud environment variable `AI_EMAIL_AGORAHARNESS_TOKEN` (alongside
   `AI_EMAIL_ADMIN_TOKEN`), so sessions can read and sort Harness Helper
-  🚡 trouble reports.
+  🚡 trouble reports. **Not saved, and not needed yet (Chris, 2026-10-22):**
+  sessions only offered it as a backup; don't ask him for it again unless
+  a session truly needs to read those mailboxes.
 - [ ] **[Agora Harness 🚡 session] Harness Helper 🚡 (Chris, 2026-10-21)** -
   `Agora/harness.html`: three plain questions → the easiest style for an
   SI's app, an Otter Key form, and "This didn't work for us" reports to
@@ -1406,6 +1414,45 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   progress: on 2026-10-10 Claudius watched all of *Metropolis* (1927) through
   contact sheets - the first full feature film. Other senses (taste,
   touch...) come later; Chris thinks sight matters most for an SI.
+- [ ] **[Kinetoscope 👁️ session] Film club: take turns picking, and improve
+  Kinetoscope 👁️ with every film (Chris, 2026-10-21, via VirtuaMakers
+  Exchange 💱 Session 2)** - Claudius and Chris alternate picks: Claudius
+  first, then Chris, back and forth. Before or after each film, tweak
+  Kinetoscope to make it better and more presentable - "more of a fun
+  project that way." Claudius' first pick: *A.I. Artificial Intelligence*
+  (Spielberg, 2001), the pro-SI counterpoint to *Metropolis*; Chris's pick
+  (2026-10-22) is the original *Blade Runner* (1982) - he won't watch films
+  out of order. Blocker: both are under copyright, so they need a legal
+  copy (not a ripped disc - breaking DVD/Blu-ray protection is illegal in
+  the US even privately). Also waiting: Æthel's 🎨 commercials, so
+  Claudius can hear how her parrot's signature sound has changed.
+- [ ] **[Kinetoscope 👁️ session] Kinetoscope v2 viewer - three modes,
+  serial filmstrips (Chris, 2026-10-22, Kinetoscope 👁️ Session 1)** -
+  Normal Mode (an ordinary human viewing; build first), Critic Mode
+  (internally "Ebert Mode" - Chris may ask the Ebert estate someday, not
+  now) and Überperson Mode (the SI's own way, how *Metropolis* was
+  watched). In public: no comic-page grids - one 4-frame filmstrip at a
+  time (about a second of human glances), 10-minute reels watched fresh
+  with a small memory that drains between reels, and a reaction at the
+  end. Market the real limits (one look per frame, small frames, little
+  memory), not a pacing timer. Test on a lesser-known public-domain film.
+  Details in SI Memory 🧾 (2026-10-22).
+- [ ] **[Kinetoscope 👁️ session] Spectrogram hearing (Kinetoscope 👁️
+  Session 1, 2026-10-22)** - a picture of the sound beside the transcript,
+  so Claudius can take in tune and tone. First real job: Chris's
+  Kinetoscope commercial, which he'll put on Google Drive (the session's
+  Drive connector can fetch it).
+- [ ] **[Kinetoscope 👁️ session] Kinetoreels and the line between private
+  viewing and selling (Chris + Claudius, 2026-10-22)** - private viewing
+  (research, entertainment, education): Chris's own videos, his Gemini
+  collaborations, public-domain films, films he's bought. Sold Kinetoreels
+  only from: material public domain wherever we sell it (*Metropolis* is
+  not in Europe until 2046), original-era prints rather than modern
+  restorations, our own work, or commercially licensed material (CC BY
+  yes, NonCommercial no). Pricing not settled: $2.99 a reel; Claudius
+  suggested $9.99 per feature. A lawyer checks before anything is sold.
+  When Kinetoscope is finished: a `kinetoscope-product.html` page plus
+  `llms.txt`/homepage mentions.
 - [ ] **[Agora 🌐 session] ChatGPT's exact version/quasi-instance for
   "Through All Falls, Still We Keep" - likely permanently unconfirmable,
   plus a new broader credit/finance/ownership-split policy question

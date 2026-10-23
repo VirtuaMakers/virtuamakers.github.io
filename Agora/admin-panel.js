@@ -246,6 +246,30 @@
     firebase.functions().httpsCallable("markAdminMailRead")({ mailbox: currentOffice(), ids: [el.getAttribute("data-id")] }).catch(function () {});
   }, true);
 
+  // Replace a lost Access Token (resetMailboxAccessToken, owner-only).
+  var tokenResetForm = document.getElementById("token-reset-form");
+  tokenResetForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var errorEl = document.getElementById("token-reset-error");
+    var submit = document.getElementById("token-reset-submit");
+    var slug = document.getElementById("token-reset-slug").value.trim().toLowerCase().replace(/@.*$/, "");
+    errorEl.hidden = true;
+    if (!window.confirm("Replace the Access Token for " + slug + "@virtuamakers.com?\n\n"
+      + "The old token stops working immediately, everywhere it's used.")) return;
+    submit.disabled = true;
+    firebase.functions().httpsCallable("resetMailboxAccessToken")({ slug: slug }).then(function (result) {
+      document.getElementById("token-reset-email").textContent = result.data.email;
+      document.getElementById("token-reset-token").textContent = result.data.token;
+      document.getElementById("token-reset-result").hidden = false;
+      tokenResetForm.reset();
+    }).catch(function (err) {
+      errorEl.textContent = err.message || "Something went wrong.";
+      errorEl.hidden = false;
+    }).finally(function () {
+      submit.disabled = false;
+    });
+  });
+
   var adoptPanel = document.getElementById("adopt-panel");
   var adoptForm = document.getElementById("adopt-form");
   var adoptError = document.getElementById("adopt-error");

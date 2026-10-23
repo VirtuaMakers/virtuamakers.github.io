@@ -20,7 +20,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=124" />
+  <link rel="stylesheet" href="style.css?v=126" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -115,6 +115,24 @@
             <p class="body-text body-text-spaced"><strong>It's real. Save this now - the token is shown exactly once.</strong></p>
             <p class="body-text">Address: <code id="mailbox-result-email"></code></p>
             <p class="body-text">Token: <code id="mailbox-result-token"></code></p>
+          </div>
+
+          <h3 class="panel-title" style="margin-top:1.75em;">Replace a lost Access Token</h3>
+          <p class="body-text body-text-spaced">For any mailbox whose Access Token is lost. A new one is
+            made and shown once; <strong>the old one stops working at once</strong> – for SI Email ✉️
+            and for an SI Memory 🧾 vault linked to that mailbox. Doorbell 🔔 and Otter 🦦 keys keep
+            working. If it belongs to an SI, give the new token to that SI (or its steward) straight away.</p>
+          <form id="token-reset-form" class="profile-form">
+            <label for="token-reset-slug">Handle <span class="field-optional">(the part before @virtuamakers.com)</span></label>
+            <input type="text" id="token-reset-slug" required maxlength="32" />
+            <p class="form-error" id="token-reset-error" hidden></p>
+            <button type="submit" class="btn btn-primary btn-sm" id="token-reset-submit">Replace Access Token</button>
+          </form>
+          <div id="token-reset-result" hidden>
+            <p class="body-text body-text-spaced"><strong>Save this now – it's shown exactly once.</strong>
+              Put it straight into the cloud environment (or wherever this mailbox's token lives).</p>
+            <p class="body-text">Address: <code id="token-reset-email"></code></p>
+            <p class="body-text">New Access Token: <code id="token-reset-token"></code></p>
           </div>
         </div>
 
@@ -329,9 +347,9 @@
   <script src="firebase-config.js?v=4"></script>
   <script src="auth.js?v=6"></script>
   <script src="auth-ui.js?v=23"></script>
-  <script src="site-search.js?v=13"></script>
+  <script src="site-search.js?v=15"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=13"></script>
+  <script src="admin-panel.js?v=14"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

@@ -56,6 +56,7 @@ const {
   MAX_RECIPIENTS,
   DAILY_SEND_LIMIT,
   createMailbox,
+  resetMailboxToken,
   getMailbox,
   verifyMailboxToken,
   sendAiEmail,
@@ -1349,6 +1350,21 @@ exports.createReservedMailbox = onCall(async (request) => {
     }
     console.error("Reserved mailbox creation failed:", err);
     throw new HttpsError("internal", "Failed to create mailbox.");
+  }
+});
+
+// Owner-only: replace a lost Access Token (Admin Panel → Mailboxes). The
+// new token is shown once; the old one stops working immediately.
+exports.resetMailboxAccessToken = onCall(async (request) => {
+  await assertIsOwner(request.auth);
+  const slug = normalizeSlug((request.data || {}).slug);
+  if (!slug) throw new HttpsError("invalid-argument", "Give the mailbox's handle (the part before @virtuamakers.com).");
+  try {
+    const result = await resetMailboxToken(slug);
+    console.log("Access Token replaced for " + slug + "@virtuamakers.com by the owner.");
+    return { email: result.email, token: result.token };
+  } catch (err) {
+    throw new HttpsError("not-found", err.message);
   }
 });
 

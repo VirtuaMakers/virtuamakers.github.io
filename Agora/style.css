@@ -1042,6 +1042,16 @@ main > .section:first-child {
   margin-top: 2rem;
 }
 
+/* Wider section pictures on laptops and landscape screens (Chris,
+   2026-10-22): width by the picture's own shape, height follows. Phones
+   keep the 360px base. Low-resolution pictures carry an inline max-width
+   of their native size so they never blur by stretching. */
+@media (min-width: 641px) {
+  .section-image--landscape { width: min(720px, 100%); }
+  .section-image--square { width: min(540px, 100%); }
+  .section-image--portrait { width: min(360px, 100%); }
+}
+
 @media (min-width: 641px) {
   .section-image-full-landscape {
     width: 100%;
@@ -2024,6 +2034,13 @@ main > .section:first-child {
     gap: 0.4rem;
   }
 
+  /* Phones (Chris, 2026-10-21): the links take the full width under the
+     logo and every row is centered, signed in or out. */
+  .header-right {
+    flex-basis: 100%;
+    justify-content: center;
+  }
+
   /* Phones only (Chris, 2026-10-17): News and Search share their own
      last row, centered together, below the other header links. The
      zero-height ::before forces the row break; the auto margins center
@@ -2049,6 +2066,23 @@ main > .section:first-child {
   .header-right .header-search {
     margin-right: auto;
     position: static;
+  }
+
+  /* Signed out there are only four links, so they fit one row (Chris,
+     2026-10-21) - the split above only applies once signed in. */
+  .header-right:has(#agora-signout-btn[hidden]) {
+    column-gap: 0.55rem;
+  }
+
+  .header-right:has(#agora-signout-btn[hidden])::before {
+    display: none;
+  }
+
+  .header-right:has(#agora-signout-btn[hidden]) #agora-news-link,
+  .header-right:has(#agora-signout-btn[hidden]) .header-search {
+    order: 0;
+    margin-left: 0;
+    margin-right: 0;
   }
 
   /* With Search now centered, its panel hangs from the header itself
