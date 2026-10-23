@@ -58,6 +58,13 @@ These share an emoji on purpose, because one is part of the other:
 - 🦿 Cyborg Pride and the cyborg theme (🦾 was already taken when it was
   chosen).
 
+## Planned: Madang 🔵 and Æthernet 🌐 (Chris, 2026-10-23)
+
+When Agora becomes **Madang 🔵** (the logo's blue dot; 🔵 was unused),
+🌐 passes to the **Æthernet 🌐** (was 🧠🌐), which also leaves 🧠 to BCI
+Style alone. Not live yet: Agora keeps 🌐 on the site until the rename in
+Madang 🔵 - Session 1, so the two never share 🌐 at once.
+
 ## The registry
 
 Each emoji in use, and what it belongs to (after the 2026-10-23 swaps).
