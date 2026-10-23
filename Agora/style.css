@@ -717,6 +717,17 @@ a.card.feature {
   color: var(--text);
 }
 
+/* The text under The Pillars tiles reads a size smaller (Chris,
+   2026-10-22), and the share buttons get a line of space above them. */
+.pillars-text .body-text,
+.pillars-text .body-list {
+  font-size: 0.92rem;
+}
+
+.pillars-text .share-links {
+  margin-top: 1.7rem;
+}
+
 /* Sections */
 .section {
   padding: 3rem 0;
