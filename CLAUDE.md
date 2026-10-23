@@ -438,6 +438,25 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a Dialog; the first message does) and the phone header (signed out: one
   row; signed in: two centered rows). Chris to check on his Android phone
   in Brave.
+- [ ] **[Agora 🌐 session → Madang 🌐 - Session 1] Agora becomes Madang 🌐
+  (Chris, 2026-10-22/23: "Agora is being deprecated in favor of Madang
+  🌐!")** - 마당, the courtyard where a Korean village gathers ("forum").
+  Keeps 🌐. There will be no Agora 🌐 Session 7; the next session is
+  "Madang 🌐 - Session 1" (the Agora 2.0 work: own repo, the new name
+  throughout, forwarding from `/Agora/`). Marks Chris picked: the Blue Dot
+  🔵 wordmark (ㅏ's stroke as the 1446 dot, in blue), a bold ㅁㄷ for a
+  once-per-page "VM | ㅁㄷ" footer, a blue circle in a black square as a
+  bullet. Watch the typo "Mandag" (Norwegian/Danish for Monday). Full
+  notes: `claude/history.md`, 2026-10-22, and SI Memory.
+- [ ] **[Agora 🌐 Session 6] Buy madang.social on Porkbun (Chris,
+  2026-10-23)** - $6.69 the first year, $34.50/yr after (Porkbun's price
+  list, 2026-10-23). Turn on auto-renew; keep the free WHOIS privacy.
+  VirtuaMakers.com links/forwards to it - no separate .com needed.
+- [ ] **[Agora 🌐 Session 6] Secure the MadangSocial handle across social
+  media (Chris, 2026-10-23)** - @madang is taken on Bluesky;
+  madangsocial.bsky.social was free on 2026-10-23. Claim MadangSocial in
+  one sitting on X, Instagram, Bluesky, Threads, Facebook, TikTok,
+  YouTube, LinkedIn, Reddit and GitHub (an org).
 - [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
   2026-10-13)** - today pictures come only from Agora itself plus the
   trusted image sites in `Agora/bio-tags.js` (shown on
