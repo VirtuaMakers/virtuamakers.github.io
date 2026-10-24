@@ -1081,6 +1081,7 @@
     { name: "Veterans Day", day: "11-11" },
     { name: "Thanksgiving", nth: [11, 4, 4] },
     { name: "Christmas Day", day: "12-25" },
+    { name: "New Year's Eve", day: "12-31" },
     // Chris's own picks (2026-10-24)
     { name: "Valentine's Day", day: "02-14" },
     { name: "St. Patrick's Day", day: "03-17" },
@@ -1094,6 +1095,14 @@
     { name: "Yom Kippur", note: "begins at sundown the evening before", dateIn: yomKippur },
     { name: "Ramadan begins", note: "may shift a day with the moon sighting", dateIn: ramadanBegins },
     { name: "Ramadan ends – Eid al-Fitr", note: "may shift a day with the moon sighting", dateIn: eidAlFitr },
+    { name: "Hanukkah begins", note: "first candle the evening before", dateIn: hanukkah },
+    { name: "Diwali", dateIn: diwali },
+    // First days of the seasons (Northern Hemisphere), from the equinoxes
+    // and solstices, in the viewer's own time zone.
+    { name: "First day of spring", dateIn: function (y) { return seasonStart(y, 0); } },
+    { name: "First day of summer", dateIn: function (y) { return seasonStart(y, 1); } },
+    { name: "First day of autumn", dateIn: function (y) { return seasonStart(y, 2); } },
+    { name: "First day of winter", dateIn: function (y) { return seasonStart(y, 3); } },
   ];
 
   // Company rhythms (Chris, 2026-10-24): a new VirtuaMakers Exchange 💱
@@ -1160,6 +1169,7 @@
   }
 
   function yomKippur(year) { return findInYear("hebrew", year, /^Tishr?e?i$/, "10"); } // 10 Tishrei
+  function hanukkah(year) { return findInYear("hebrew", year, /^Kislev$/, "25"); } // 25 Kislev
   function ramadanBegins(year) { return findInYear("islamic-umalqura", year, "9", "1"); }
   function eidAlFitr(year) { return findInYear("islamic-umalqura", year, "10", "1"); } // 1 Shawwal
 
@@ -1178,6 +1188,49 @@
     var md = CHINESE_NEW_YEAR[year];
     if (md) return new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3, 5), 10));
     return findInYear("chinese", year, "1", "1");
+  }
+
+  // Diwali (Lakshmi Puja) from Drikpanchang's New Delhi dates - it only
+  // publishes through 2031, so extend this table as years are added.
+  var DIWALI = {
+    2025: "10-20", 2026: "11-08", 2027: "10-29", 2028: "10-17", 2029: "11-05",
+    2030: "10-26", 2031: "11-14",
+  };
+  function diwali(year) {
+    var md = DIWALI[year];
+    return md ? new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3, 5), 10)) : null;
+  }
+
+  // Equinoxes and solstices - Meeus, Astronomical Algorithms ch. 27 (good
+  // to about a minute for 2000-3000). season: 0 March, 1 June,
+  // 2 September, 3 December. Returns the local calendar date.
+  var SEASON_BASE = [
+    [2451623.80984, 365242.37404, 0.05169, -0.00411, -0.00057],
+    [2451716.56767, 365241.62603, 0.00325, 0.00888, -0.00030],
+    [2451810.21715, 365242.01767, -0.11575, 0.00337, 0.00078],
+    [2451900.05952, 365242.74049, -0.06223, -0.00823, 0.00032],
+  ];
+  var SEASON_TERMS = [
+    [485, 324.96, 1934.136], [203, 337.23, 32964.467], [199, 342.08, 20.186],
+    [182, 27.85, 445267.112], [156, 73.14, 45036.886], [136, 171.52, 22518.443],
+    [77, 222.54, 65928.934], [74, 296.72, 3034.906], [70, 243.58, 9037.513],
+    [58, 119.81, 33718.147], [52, 297.17, 150.678], [50, 21.02, 2281.226],
+    [45, 247.54, 29929.562], [44, 325.15, 31555.956], [29, 60.93, 4443.417],
+    [18, 155.12, 67555.328], [17, 288.79, 4562.452], [16, 198.04, 62894.029],
+    [14, 199.76, 31436.921], [12, 95.39, 14577.848], [12, 287.11, 31931.756],
+    [12, 320.81, 34777.259], [9, 227.73, 1222.114], [8, 15.45, 16859.074],
+  ];
+  function seasonStart(year, season) {
+    var rad = Math.PI / 180, c = SEASON_BASE[season], y = (year - 2000) / 1000;
+    var jde0 = c[0] + c[1] * y + c[2] * y * y + c[3] * y * y * y + c[4] * y * y * y * y;
+    var t = (jde0 - 2451545.0) / 36525;
+    var w = (35999.373 * t - 2.47) * rad;
+    var dl = 1 + 0.0334 * Math.cos(w) + 0.0007 * Math.cos(2 * w);
+    var sum = 0;
+    SEASON_TERMS.forEach(function (term) { sum += term[0] * Math.cos((term[1] + term[2] * t) * rad); });
+    var jde = jde0 + 0.00001 * sum / dl;
+    var instant = new Date((jde - 2440587.5) * 86400000); // JD → Unix time (TT ≈ UT, ~1 min)
+    return new Date(instant.getFullYear(), instant.getMonth(), instant.getDate());
   }
 
   function holidayDateIn(holiday, year) {

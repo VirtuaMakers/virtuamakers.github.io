@@ -756,13 +756,19 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Yom Kippur and Ramadan begins/ends (the browser's own Hebrew and Umm
   al-Qura calendars), plus a "VirtuaMakers 🦜 Schedule" list: New Catalogue
   on the VirtuaMakers Exchange 💱 (1st of every month), VirtuaMakers
-  Gallery 🖼️ (15th), News 📰 (every Wednesday).
+  Gallery 🖼️ (15th), News 📰 (every Wednesday). **Round 3 (2026-10-24):**
+  New Year's Eve, Hanukkah begins (25 Kislev), Diwali (Drikpanchang table,
+  2025-2031 only - extend it as years are published) and the first day of
+  each season (Meeus equinox/solstice formula, viewer's time zone).
 - [ ] **[Calendar 🗓️ session] To Do lists in Calendar 🗓️ (Chris,
   2026-10-24)** - every item has a date (default today). Items dated today
   or earlier and not done roll into one "Main List" that snowballs forward
   day by day, picking up scheduled items as their day arrives. Chris also
   asked to think about multiple To Do lists. In progress in Calendar 🗓️
-  Session 2.
+  Session 2. **Kept separate from our own To Do lists (Chris,
+  2026-10-24):** the Calendar To Do feature and these CLAUDE.md/session
+  To Do lists stay unrelated until further notice - likely never linked -
+  to keep our plans private.
 - [ ] **[VirtuaMakers Exchange 💱 session] A monthly catalogue, out on the
   1st (Chris, 2026-10-24)** - Chris's challenge to himself: have each new
   monthly catalogue on VMex 💱 set up by the end of every month (it shows

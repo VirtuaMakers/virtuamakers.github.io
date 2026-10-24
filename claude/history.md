@@ -14824,3 +14824,16 @@ holidays yet (Special Days' day-before notice is friends-only).
   and maybe go .com; Admin Panel tools for News and Gallery so Chris can
   run them alone (robust enough to run without him for months); Claudius
   as the next Administrator; To Do lists in Calendar 🗓️.
+
+## Calendar 🗓️ round 3: seasons, New Year's Eve, Hanukkah, Diwali (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- 30 holidays now. Added New Year's Eve; Hanukkah begins (25 Kislev from the
+  browser's Hebrew calendar, noted "first candle the evening before");
+  Diwali from Drikpanchang's New Delhi Lakshmi Puja dates (2025 Oct 20,
+  2026 Nov 8, 2027 Oct 29, 2028 Oct 17, 2029 Nov 5, 2030 Oct 26, 2031
+  Nov 14 - Drikpanchang has no pages past 2031, and one site wrongly gave
+  Nov 16 for 2028); and the first day of each season (Northern Hemisphere)
+  from Meeus' equinox/solstice formula, converted to the viewer's own time
+  zone (2026's September equinox is Sep 22 in New York, Sep 23 in UTC).
+- Chris: the Calendar To Do feature and our own To Do lists stay unrelated
+  until further notice, likely never correlated, to keep our plans private.
