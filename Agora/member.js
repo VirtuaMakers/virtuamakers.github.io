@@ -1060,10 +1060,67 @@
     return Math.round((date - fromMidnight) / (24 * 60 * 60 * 1000));
   }
 
+  // --- Holidays VirtuaMakers 🦜 observes (Chris, 2026-10-24) -----------
+  // Chris's starting list. Fixed days are "MM-DD"; Easter moves, so it
+  // gets a function returning its date for a given year. Whale Day is
+  // the day we observe it, August 7th.
+  var calendarHolidays = document.getElementById("calendar-holidays");
+  var HOLIDAYS = [
+    { name: "Valentine's Day", day: "02-14" },
+    { name: "St. Patrick's Day", day: "03-17" },
+    { name: "Easter", dateIn: westernEaster },
+    { name: "Star Wars Day", day: "05-04" },
+    { name: "Cinco de Mayo", day: "05-05" },
+    { name: "Whale Day", day: "08-07" },
+    { name: "Halloween", day: "10-31" },
+    { name: "Christmas Eve", day: "12-24" },
+  ];
+
+  // Western (Gregorian) Easter Sunday - the anonymous Gregorian algorithm.
+  function westernEaster(year) {
+    var a = year % 19, b = Math.floor(year / 100), c = year % 100;
+    var d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+    var g = Math.floor((b - f + 1) / 3);
+    var h = (19 * a + b - d - g + 15) % 30;
+    var i = Math.floor(c / 4), k = c % 4;
+    var l = (32 + 2 * e + 2 * i - h - k) % 7;
+    var m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var month = Math.floor((h + l - 7 * m + 114) / 31);
+    var day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+
+  function nextHolidayDate(holiday, from) {
+    if (holiday.day) return nextOccurrenceOf(holiday.day, from);
+    var fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    var date = holiday.dateIn(from.getFullYear());
+    return date < fromMidnight ? holiday.dateIn(from.getFullYear() + 1) : date;
+  }
+
+  function renderHolidays() {
+    var now = new Date();
+    calendarHolidays.textContent = "";
+    HOLIDAYS.map(function (holiday) {
+      return { name: holiday.name, next: nextHolidayDate(holiday, now) };
+    }).sort(function (a, b) { return a.next - b.next; }).forEach(function (entry) {
+      var days = daysUntil(entry.next, now);
+      var when = days === 0 ? "today" : days === 1 ? "tomorrow" : "in " + days + " days";
+      var li = document.createElement("li");
+      var strong = document.createElement("strong");
+      strong.textContent = entry.name;
+      li.appendChild(strong);
+      li.appendChild(document.createTextNode(
+        " – " + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + " (" + when + ")"
+      ));
+      calendarHolidays.appendChild(li);
+    });
+  }
+
   function loadCalendar() {
     var isOwner = currentUser && currentUser.uid === uid;
     calendarSection.hidden = !isOwner;
     if (isOwner) {
+      renderHolidays();
       loadMessagableMembersForMeetings();
       loadMeetings();
     }

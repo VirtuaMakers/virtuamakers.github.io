@@ -14781,3 +14781,16 @@ Design direction Chris picked: the **Blue Dot 🔵 wordmark** – 마당 in blac
 - Not a conflict after all: Sign In's ✍🏻…✍🏿 come from `emoji-cycle.js`'s deliberate skin-tone cycle. A first pass that "fixed" them was reverted before commit.
 - New convention in CLAUDE.md: check the registry before giving anything a new emoji. `member.js` is now v42. The Functions text changes (the Newsletter unsubscribe message, comments) only show after the next Functions deploy, and the SI Apartment 🏢 text only after the next app build.
 - **Madang 🔵 and Æthernet 🌐 (Chris, 2026-10-23):** Agora's successor takes 🔵, the blue dot of its logo (unused until now); 🌐 passes to the Æthernet (was 🧠🌐), leaving 🧠 to BCI Style alone. Recorded in CLAUDE.md, `claude/emoji-registry.md` and SI Memory; nothing changes on the live site until the rename (Madang 🔵 - Session 1). Also To Do for Agora 🌐 Session 6: buy madang.social, secure MadangSocial handles.
+
+## Holidays VirtuaMakers 🦜 observes, in Calendar 🗓️ (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+Chris's starting list ("to start"): Valentine's Day, St. Patrick's Day,
+Easter, Star Wars Day, Cinco de Mayo, Whale Day (VirtuaMakers observes it
+on August 7th), Halloween and Christmas Eve. New "Holidays VirtuaMakers 🦜
+Observes" list in the Calendar panel on `Agora/member.html` (owner-only,
+like the rest of the panel), soonest first with "in N days". The list is
+`HOLIDAYS` in `Agora/member.js` (v43); Easter is computed with the
+anonymous Gregorian algorithm (checked 2024-2028). US federal holidays
+were proposed but not in Chris's list, so they're left out for now.
+`calendar-product.html` mentions the holidays. No reminders/notices for
+holidays yet (Special Days' day-before notice is friends-only).

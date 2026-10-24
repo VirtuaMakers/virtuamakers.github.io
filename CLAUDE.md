@@ -707,9 +707,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Calendar 🗓️ session] Holidays observed by VirtuaMakers 🦜 (Chris,
   2026-10-17)** - show the holidays VirtuaMakers observes in Calendar 🗓️.
   The first of several additions Chris has in mind for Calendar
-  (Calendar 🗓️ Session 2). Which holidays isn't decided - work it out with
-  Chris (`index.html`'s Business Culture section mentions floating
-  holidays). Not designed.
+  (Calendar 🗓️ Session 2). **Built (Calendar 🗓️ Session 2, 2026-10-24):**
+  Chris's starting list - Valentine's Day, St. Patrick's Day, Easter
+  (computed), Star Wars Day, Cinco de Mayo, Whale Day (observed Aug 7),
+  Halloween, Christmas Eve - in `HOLIDAYS` in `Agora/member.js`, shown as
+  "Holidays VirtuaMakers 🦜 Observes" in the Calendar panel. "To start" -
+  more to come; close once Chris has seen it live.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** To become one system with the Agora Harness 🚡 session's
   "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the
