@@ -2,7 +2,9 @@
 // Dialog and the site's Search 🔍 opens right under the box: Profiles 🙂
 // first, then VirtuaMakers Exchange 💱, then the Knowledge Base 📚 (the
 // header Search 🔍 puts the Exchange first - see site-search.js). Picking
-// one writes a tag into the text as @[Name](/site/path);
+// one shows a plain "@Name" in the box, the way Facebook and X do (Chris,
+// 2026-10-24); whatever reads the box's value when sending gets the full
+// tag, @[Name](/site/path);
 // CommuniquesCommon.sanitizeBody() shows it as an "@Name" link, and the
 // server notifies a tagged member (functions: notifyOnWallPost /
 // notifyOnWallComment - Dialogs stay private, so tags there only link).
@@ -36,6 +38,57 @@
     "a.mention{font-weight:600;text-decoration:none;color:#2b57d6}a.mention:hover{text-decoration:underline}";
   document.head.appendChild(style);
 
+  // The box shows "@Name"; its .value hands out the full tag. Each tagged
+  // box gets its own value getter/setter (the browser's own one
+  // underneath), so every send path - form submits, the comment button,
+  // the floating window - gets tags without knowing about them.
+  var MENTION_RE = /@\[([^\]\n<>]{1,80})\]\((\/(?!\/)[A-Za-z0-9\-_\/.]*(?:\?[A-Za-z0-9=&%_\-.]*)?(?:#[A-Za-z0-9\-_]*)?)\)/g;
+  var nativeValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value");
+  function rawGet(el) { return nativeValue.get.call(el); }
+  function rawSet(el, v) { nativeValue.set.call(el, v); }
+
+  function escapeRe(text) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // "@[Claudius](/Agora/…)" → "@Claudius", remembering the tag behind it.
+  function collapse(el, text) {
+    return String(text).replace(MENTION_RE, function (token, name) {
+      remember(el, "@" + name, token);
+      return "@" + name;
+    });
+  }
+
+  // "@Claudius" → the remembered tag, longest names first, and only where
+  // the name isn't run straight into more letters ("@Claudiuses" stays).
+  function expand(el, text) {
+    var map = el._mentions.slice().sort(function (a, b) { return b.shown.length - a.shown.length; });
+    map.forEach(function (m) {
+      text = text.replace(new RegExp(escapeRe(m.shown) + "(?![\\p{L}\\p{N}])", "gu"), function () { return m.token; });
+    });
+    return text;
+  }
+
+  function remember(el, shown, token) {
+    el._mentions = el._mentions.filter(function (m) { return m.shown !== shown; });
+    el._mentions.push({ shown: shown, token: token });
+  }
+
+  function attach(el) {
+    if (el._mentions) return;
+    el._mentions = [];
+    Object.defineProperty(el, "value", {
+      configurable: true,
+      get: function () { return expand(el, rawGet(el)); },
+      set: function (v) { rawSet(el, collapse(el, v)); },
+    });
+    rawSet(el, collapse(el, rawGet(el))); // an edit box opened on a post that already has tags
+  }
+
+  document.addEventListener("focusin", function (e) {
+    if (e.target.matches && e.target.matches(SELECTOR)) attach(e.target);
+  });
+
   var menu = null;
   var items = [];
   var active = 0;
@@ -57,11 +110,13 @@
   function choose(item) {
     var el = field;
     if (!el || !item) return closeMenu();
-    var before = el.value.slice(0, queryStart);
-    var after = el.value.slice(el.selectionStart);
-    var tag = "@[" + cleanTitle(item.title) + "](" + item.path + ") ";
-    el.value = before + tag + after;
-    var caret = before.length + tag.length;
+    var raw = rawGet(el);
+    var before = raw.slice(0, queryStart);
+    var after = raw.slice(el.selectionStart);
+    var shown = "@" + cleanTitle(item.title);
+    remember(el, shown, "@[" + cleanTitle(item.title) + "](" + item.path + ")");
+    rawSet(el, before + shown + " " + after);
+    var caret = before.length + shown.length + 1;
     el.setSelectionRange(caret, caret);
     closeMenu();
     el.focus();
@@ -122,7 +177,8 @@
   document.addEventListener("input", function (e) {
     var el = e.target;
     if (!el.matches || !el.matches(SELECTOR) || typeof window.AgoraSearch === "undefined") return;
-    var upToCaret = el.value.slice(0, el.selectionStart);
+    attach(el);
+    var upToCaret = rawGet(el).slice(0, el.selectionStart);
     var m = upToCaret.match(QUERY_RE);
     if (!m) return closeMenu();
     queryStart = upToCaret.length - m[2].length - 1;
