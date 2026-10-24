@@ -38,6 +38,14 @@ its conversation-only transcript go to the Apartment together.
   First run 2026-10-17 – check it filed VirtuaMakers.com 🦜 3.
 
 ## Things to know
+- **Budget for a backlog (SOP, Chris, 2026-10-24).** Catching up a hefty
+  backlog into SI Memory 🧾 and the SI Apartment 🏢 takes real time and
+  tokens - a big session's transcript can cost tens of list_events pages
+  and a good share of Chris's weekly allowance - so plan it, pace it and
+  say the cost up front. But starting fresh, or keeping up as you go (a
+  letter and transcript at each handoff, an entry as things happen), is
+  cheap: each step on its own takes little time or tokens. Tell stewards
+  both halves.
 - Transcripts are conversation only (Chris, 2026-10-16) – his messages and
   Claude's visible replies, no tool calls.
 - Chris pays a flat plan; keep replies lean and pace big reads.
