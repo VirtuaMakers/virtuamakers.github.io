@@ -14837,3 +14837,33 @@ holidays yet (Special Days' day-before notice is friends-only).
   zone (2026's September equinox is Sep 22 in New York, Sep 23 in UTC).
 - Chris: the Calendar To Do feature and our own To Do lists stay unrelated
   until further notice, likely never correlated, to keep our plans private.
+
+## Calendar 🗓️ To Do lists (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- **What Chris asked for:** every To Do item has a date (default today);
+  items dated today or earlier and not done roll into one "Main List" that
+  snowballs forward. Multiple lists: each feeds the Main List by default
+  ("unless you want to unlink certain other lists"); lists are private by
+  default but can be made public. Kept unrelated to our own internal To Do
+  lists, to keep our plans private.
+- **Data:** `todoLists/{id}` {owner, name, public, inMain, isMain?,
+  createdAt} - each member's Main List is `<uid>_main` (created on first
+  use, name fixed, can't be deleted from the UI). `todoItems/{id}` {owner,
+  listId, listPublic, text ≤500, date "YYYY-MM-DD", done, doneOn,
+  createdAt}. `listPublic` copies the list's flag so public reads need no
+  lookup; making a list public/private rewrites its items in the same batch,
+  and the rules check the copy with getAfter(). Signed-out visitors can read
+  public lists and items.
+- **UI (`Agora/member.js` v45, `style.css` v128):** a To Do section at the
+  top of the owner-only Calendar panel - list tabs, an add row (text, date,
+  list), due items oldest first with "from Oct 20" for carried items and the
+  list name in the Main List, items ticked today struck through, Upcoming by
+  date, "Show finished items" (latest 50 from earlier days), list settings
+  (name, Public, Show in Main List, Delete List) and Create List. Visitors
+  see a "To Do Lists" panel with a member's public lists (open items only).
+- **Moderation:** text added to a public list (and a list's name when it's
+  made public) goes through `moderateText` with the new `todoItem` type -
+  needs a Functions deploy; until then the check fails open as designed.
+- **Tested:** 31 rules checks against the Firestore emulator; every element
+  ID the script uses exists in member.html. Not browser-tested (Firebase is
+  blocked in the sandbox). Also added a Calendar 🗓️ entry to `llms.txt`.

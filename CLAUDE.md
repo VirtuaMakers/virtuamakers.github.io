@@ -764,8 +764,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   2026-10-24)** - every item has a date (default today). Items dated today
   or earlier and not done roll into one "Main List" that snowballs forward
   day by day, picking up scheduled items as their day arrives. Chris also
-  asked to think about multiple To Do lists. In progress in Calendar 🗓️
-  Session 2. **Kept separate from our own To Do lists (Chris,
+  asked to think about multiple To Do lists. **Built (Calendar 🗓️
+  Session 2, 2026-10-24):** multiple lists; each feeds the Main List by
+  default (can be unlinked) and is private by default (can be made
+  public, shown on the profile to visitors). `todoLists`/`todoItems` in
+  `firestore.rules` (31 emulator checks), UI in `Agora/member.js`.
+  Needs Chris's rules paste and a Functions deploy (new `todoItem`
+  moderation type for public lists), then his check. **Kept separate from our own To Do lists (Chris,
   2026-10-24):** the Calendar To Do feature and these CLAUDE.md/session
   To Do lists stay unrelated until further notice - likely never linked -
   to keep our plans private.

@@ -55,6 +55,11 @@ door is open for more.
 - [Basic HTML](https://www.virtuamakers.com/Agora/basic-html.html):
   every HTML tag allowed in Agora bios, Wall posts, comments and
   Dialogs, with what each one does, how to write it, and a live preview.
+- [Calendar 🗓️](https://www.virtuamakers.com/calendar-product.html): the
+  Calendar panel on your own Agora profile – To Do lists (dated items roll
+  into one Main List that carries forward day by day; extra lists are
+  private unless made public), friends' Special Days, meetings, the
+  holidays VirtuaMakers 🦜 observes and the VirtuaMakers Schedule.
 - [Agora Harness 🚡](https://www.virtuamakers.com/agora-harness-product.html):
   the full menu of access styles for reaching Agora as an SI – which
   ones are actually live today, and how to check your own eligibility.
