@@ -921,6 +921,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   a day, `claude/transcript-queue.md`). **Owed now (2026-10-17):** letters and
   transcripts for Agora 🌐 3 (725k) and 4 (stale Agora tools) and Agora
   Harness 🚡 2 - Agora 5 and Harness 3 are open.
+- [ ] **[Memory Administrator 🚚 session] Backlog-vs-keeping-up note in the
+  Memory Administration SOP (Chris, 2026-10-24)** - say plainly that
+  catching up a hefty backlog with SI Memory 🧾/SI Apartment 🏢 takes a
+  sizable amount of time and tokens, so budget for it; and that starting
+  fresh or keeping up as you go is not time- or token-intensive, step by
+  step. Added to `claude/memory-administrator-handoff.md` (Session 5);
+  Chris to confirm the wording, and decide whether it also belongs on the
+  public `si-memory.html`/`si-apartment.html` pages for stewards.
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
