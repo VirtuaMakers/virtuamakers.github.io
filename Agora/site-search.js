@@ -141,13 +141,6 @@
 
   var STATIC_INDEX = JUSTICE_INDEX.concat(EXCHANGE_INDEX, STATIC_MEMBER_INDEX, PRODUCT_INDEX, KB_INDEX);
 
-  var wrap = document.getElementById("agora-search-wrap");
-  var toggle = document.getElementById("agora-search-toggle");
-  var panel = document.getElementById("agora-search-panel");
-  var input = document.getElementById("agora-search-input");
-  var resultsEl = document.getElementById("agora-search-results");
-  if (!wrap || !toggle || !panel || !input || !resultsEl) return;
-
   function basePath() {
     var p = window.location.pathname;
     if (p.indexOf("/profiles/") !== -1) return "../";
@@ -226,7 +219,11 @@
   // they're grouped as "Knowledge Base" - and VirtuaMakers Exchange 💱
   // items rank above Knowledge Base articles (a product will have both: a
   // Product Page to read about it, an Exchange entry to buy it).
-  var TYPE_ORDER = ["Profile", "VirtuaMakers Exchange", "Knowledge Base", "Pursuit of Justice"];
+  // Chris, 2026-10-24: in the header Search 🔍 VirtuaMakers Exchange 💱
+  // comes first; tagging with @ in a Wall post, comment or Dialog puts
+  // Profiles 🙂 first instead (mentions.js passes MENTION_ORDER).
+  var TYPE_ORDER = ["VirtuaMakers Exchange", "Profile", "Knowledge Base", "Pursuit of Justice"];
+  var MENTION_ORDER = ["Profile", "VirtuaMakers Exchange", "Knowledge Base", "Pursuit of Justice"];
 
   var kbPromise = null;
   function loadKbArticles() {
@@ -243,7 +240,8 @@
     return kbPromise;
   }
 
-  function runSearch(query, realMembers) {
+  function runSearch(query, realMembers, order) {
+    order = order || TYPE_ORDER;
     var q = query.trim().toLowerCase();
     if (!q) return [];
     var scored = [];
@@ -252,7 +250,7 @@
       if (score !== -1) scored.push({ item: item, score: score });
     });
     scored.sort(function (a, b) {
-      var typeDiff = TYPE_ORDER.indexOf(a.item.type) - TYPE_ORDER.indexOf(b.item.type);
+      var typeDiff = order.indexOf(a.item.type) - order.indexOf(b.item.type);
       return typeDiff !== 0 ? typeDiff : a.score - b.score;
     });
     var seen = {};
@@ -266,6 +264,32 @@
     }
     return out;
   }
+
+  // Shared with mentions.js (tagging with @, Chris 2026-10-24): the same
+  // index and ranking, with each result's address given as a site-absolute
+  // path ("/Agora/member.html?uid=…", "/si-email-product.html") so a tag
+  // links correctly from any page it's later shown on.
+  function hrefOf(item) {
+    return (item.root ? rootBasePath() : basePath()) + item.url;
+  }
+  window.AgoraSearch = {
+    search: function (query, opts) {
+      var order = opts && opts.forMentions ? MENTION_ORDER : TYPE_ORDER;
+      return Promise.all([loadRealMembers(), loadKbArticles()]).then(function (lists) {
+        return runSearch(query, lists[0].concat(lists[1]), order).map(function (item) {
+          var u = new URL(hrefOf(item), window.location.href);
+          return { type: item.type, title: item.title, path: u.pathname + u.search + u.hash };
+        });
+      });
+    },
+  };
+
+  var wrap = document.getElementById("agora-search-wrap");
+  var toggle = document.getElementById("agora-search-toggle");
+  var panel = document.getElementById("agora-search-panel");
+  var input = document.getElementById("agora-search-input");
+  var resultsEl = document.getElementById("agora-search-results");
+  if (!wrap || !toggle || !panel || !input || !resultsEl) return;
 
   function appendKbLink(query) {
     var a = document.createElement("a");

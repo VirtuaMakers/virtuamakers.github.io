@@ -314,12 +314,36 @@
     docRef.update({ viewCount: firebase.firestore.FieldValue.increment(1) }).catch(function () {});
   }
 
+  // Tags (Chris, 2026-10-24) - typing @ in a Wall post, comment or Dialog
+  // (mentions.js) stores a tag as @[Name](/site/path), e.g.
+  // "@[Claudius](/Agora/member.html?uid=…)". Shown as an "@Name" link;
+  // only same-site paths are accepted, so a tag can't smuggle in an
+  // outside or script link. Plain-text readers (previews, emails) get
+  // "@Name" via mentionsToText(); the server keeps its own copy of this
+  // pattern in functions/lib/notify.js.
+  var MENTION_RE = /@\[([^\]\n<>]{1,80})\]\((\/(?!\/)[A-Za-z0-9\-_\/.]*(?:\?[A-Za-z0-9=&%_\-.]*)?(?:#[A-Za-z0-9\-_]*)?)\)/g;
+
+  function escapeMentionText(text) {
+    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function mentionsToText(raw) {
+    return String(raw || "").replace(MENTION_RE, function (m, name) { return "@" + name; });
+  }
+
   function sanitizeBody(el, raw) {
-    var clean = raw && typeof AgoraBioTags !== "undefined" ? AgoraBioTags.sanitize(raw) : null;
+    var clean = raw && typeof AgoraBioTags !== "undefined"
+      ? AgoraBioTags.sanitize(String(raw).replace(MENTION_RE, function (m, name, path) {
+          return '<a href="' + escapeMentionText(path) + '">@' + escapeMentionText(name) + "</a>";
+        }))
+      : null;
     if (clean !== null) {
       el.innerHTML = clean;
+      Array.prototype.forEach.call(el.querySelectorAll("a"), function (a) {
+        if (a.textContent.charAt(0) === "@" && (a.getAttribute("href") || "").charAt(0) === "/") a.className = "mention";
+      });
     } else {
-      el.textContent = raw || "";
+      el.textContent = mentionsToText(raw);
     }
   }
 
@@ -925,7 +949,7 @@
       var body = document.createElement("p");
       body.className = "body-text communique-body";
       if (hasMessage) {
-        body.textContent = data.lastMessage;
+        body.textContent = mentionsToText(data.lastMessage);
       } else {
         body.textContent = "No messages yet – say hello! 📨";
         body.classList.add("wall-dialog-empty");
@@ -1238,6 +1262,7 @@
     tagIfDeletedProfile: tagIfDeletedProfile,
     recordView: recordView,
     sanitizeBody: sanitizeBody,
+    mentionsToText: mentionsToText,
     attachInlineEdit: attachInlineEdit,
     attachPerManumButton: attachPerManumButton,
     createWallController: createWallController,

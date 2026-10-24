@@ -30,7 +30,37 @@ const COMMUNIQUE_ACTION_LABELS = {
   wall_post: "posted on your Wall",
   wall_comment: "commented on your post",
   wall_reply: "also commented on a post you commented on",
+  mention: "tagged you in a post",
 };
+
+// Tags (Chris, 2026-10-24) - a Wall post, comment or Dialog can carry
+// @[Name](/site/path) tags (Agora/mentions.js writes them, the website
+// shows them as "@Name" links). Same pattern as communiques-common.js's
+// MENTION_RE - keep the two in step.
+const MENTION_RE = /@\[([^\]\n<>]{1,80})\]\((\/(?!\/)[A-Za-z0-9\-_\/.]*(?:\?[A-Za-z0-9=&%_\-.]*)?(?:#[A-Za-z0-9\-_]*)?)\)/g;
+const MAX_MENTIONS_NOTIFIED = 10;
+
+function mentionsToText(body) {
+  return String(body || "").replace(MENTION_RE, (m, name) => "@" + name);
+}
+
+// The members a body tags, in order, without repeats: a real profile
+// (/Agora/member.html?uid=…) or a static one (/Agora/profiles/<slug>.html,
+// whose notifications reach the Pony desk 🐎 under its slug).
+function mentionedUids(body) {
+  const uids = [];
+  for (const m of String(body || "").matchAll(MENTION_RE)) {
+    const path = m[2];
+    let uid = null;
+    const real = path.match(/^\/Agora\/member\.html\?(?:[^#]*&)?uid=([A-Za-z0-9_-]{1,128})/);
+    const pony = path.match(/^\/Agora\/profiles\/([a-z0-9-]{1,64})\.html/);
+    if (real) uid = real[1];
+    else if (pony) uid = pony[1];
+    if (uid && uids.indexOf(uid) === -1) uids.push(uid);
+    if (uids.length >= MAX_MENTIONS_NOTIFIED) break;
+  }
+  return uids;
+}
 
 function stripHtml(html) {
   return String(html || "").replace(/<[^>]*>/g, "");
@@ -54,7 +84,7 @@ function truncateAtWord(text, maxLength) {
 }
 
 function previewOf(body) {
-  return truncateAtWord(stripHtml(body), PREVIEW_LENGTH);
+  return truncateAtWord(stripHtml(mentionsToText(body)), PREVIEW_LENGTH);
 }
 
 // Mirrors the client's own name-resolution logic (member.js, auth-ui.js) -
@@ -152,7 +182,7 @@ async function sendFriendRequestEmail(recipientUid, actorName, linkPath) {
 }
 
 // type is one of "dialog_message" | "wall_post" | "wall_comment" |
-// "wall_reply" | "friend_request" | "friend_special_day" - the client's
+// "wall_reply" | "mention" | "friend_request" | "friend_special_day" - the client's
 // notification-toast.js switches its chime/click-through on this.
 async function notify({ recipientUid, actorUid, type, preview, linkPath, pushTitle, automated }) {
   if (recipientUid === actorUid) return; // never notify someone about their own action
@@ -202,4 +232,4 @@ async function notifySystem({ recipientUid, actorName, type, preview, linkPath, 
   await sendPush(recipientUid, pushTitle(actorName), previewOf(preview), linkPath);
 }
 
-module.exports = { notify, notifySystem, resolveDisplayName };
+module.exports = { notify, notifySystem, resolveDisplayName, mentionedUids, mentionsToText };
