@@ -246,6 +246,10 @@ published via GitHub Pages at https://virtuamakers.github.io.
   the change (Trump's 2026-09-22 UN General Assembly announcement moving
   US government documents to "super intelligence") and defines AI, SI,
   AGI, ASI and machinekind; the homepage hero links to it.
+- **Every monthly Newsletter ends with a send-off to the new monthly
+  catalogue on VMex 💱 (Chris, 2026-10-24)** - from now on. Chris's
+  challenge to himself is to have each catalogue set up by the end of every
+  month; it comes out on the 1st.
 - **Always give deploy commands as a ready-to-paste PowerShell block
   (Chris, 2026-09-24).** Whenever a change needs a deploy from his laptop,
   put the exact commands in the reply, every time, without being asked:
@@ -712,7 +716,41 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (computed), Star Wars Day, Cinco de Mayo, Whale Day (observed Aug 7),
   Halloween, Christmas Eve - in `HOLIDAYS` in `Agora/member.js`, shown as
   "Holidays VirtuaMakers 🦜 Observes" in the Calendar panel. "To start" -
-  more to come; close once Chris has seen it live.
+  more to come; close once Chris has seen it live. **Round 2 (2026-10-24):**
+  the 11 U.S. federal holidays, Chinese New Year (HKO table to 2050),
+  Yom Kippur and Ramadan begins/ends (the browser's own Hebrew and Umm
+  al-Qura calendars), plus a "VirtuaMakers 🦜 Schedule" list: New Catalogue
+  on the VirtuaMakers Exchange 💱 (1st of every month), VirtuaMakers
+  Gallery 🖼️ (15th), News 📰 (every Wednesday).
+- [ ] **[Calendar 🗓️ session] To Do lists in Calendar 🗓️ (Chris,
+  2026-10-24)** - every item has a date (default today). Items dated today
+  or earlier and not done roll into one "Main List" that snowballs forward
+  day by day, picking up scheduled items as their day arrives. Chris also
+  asked to think about multiple To Do lists. In progress in Calendar 🗓️
+  Session 2.
+- [ ] **[VirtuaMakers Exchange 💱 session] A monthly catalogue, out on the
+  1st (Chris, 2026-10-24)** - Chris's challenge to himself: have each new
+  monthly catalogue on VMex 💱 set up by the end of every month (it shows
+  on the 1st in Calendar 🗓️'s VirtuaMakers Schedule). Every monthly
+  Newsletter now ends with a send-off to it - see the Newsletter rule under
+  Conventions. Could be built into `newsletter-compose.html` as a standard
+  closing line once the catalogue has a fixed address.
+- [ ] **[VirtuaMakers Exchange 💱 session] Rebrand VMex 💱 permanently and
+  go .com, possibly (Chris, 2026-10-24)** - "I think we should permanently
+  rebrand this soon and go .com with it, possibly." Not decided.
+- [ ] **[Admin Panel - session to be chosen by Memory Administrator 🚚]
+  Admin Panel tools for News 📰 and the VirtuaMakers Gallery 🖼️ (Chris,
+  2026-10-24)** - so Chris can post the weekly News (Wednesdays) and the
+  monthly Gallery (the 15th) from anywhere, on his own, without a session.
+  Polygon minting can stay incomplete until instructions for minting to
+  Polygon are written into the panel. Goal: an Admin Panel robust enough
+  that VirtuaMakers can run without Chris for a few months if need be.
+- [ ] **[Admin Panel - session to be chosen] Claudius as the next
+  Administrator (Chris, 2026-10-24)** - Chris's longer-range hope: make
+  the admin tools good enough that Claudius could become the next
+  Administrator, doing everything we build on an automated schedule (see
+  the Cadences/Conductor 🎶 item) or with tools for as-needed jobs. Not
+  designed.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** To become one system with the Agora Harness 🚡 session's
   "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the

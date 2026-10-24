@@ -14794,3 +14794,26 @@ anonymous Gregorian algorithm (checked 2024-2028). US federal holidays
 were proposed but not in Chris's list, so they're left out for now.
 `calendar-product.html` mentions the holidays. No reminders/notices for
 holidays yet (Special Days' day-before notice is friends-only).
+
+## Calendar 🗓️ round 2: federal and lunar holidays, the VirtuaMakers 🦜 Schedule (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- **Holidays (23 now):** added the 11 U.S. federal holidays (nth-weekday
+  rules), Chinese New Year, Yom Kippur, Ramadan begins and Ramadan ends –
+  Eid al-Fitr. Chinese New Year comes from a table (Hong Kong Observatory
+  dates, checked with the `lunardate` library, 2025-2050) because the
+  browser's ICU Chinese calendar was a day off in 2027 and 2030. Yom Kippur
+  and Ramadan use `Intl.DateTimeFormat` with the `hebrew` and
+  `islamic-umalqura` calendars, scanning the year for 10 Tishrei / 1
+  Ramadan / 1 Shawwal (ICU names Hebrew months even with month:"numeric",
+  so Tishrei is matched by name). Ramadan carries a "may shift a day with
+  the moon sighting" note; Yom Kippur "begins at sundown the evening
+  before". The list shows the next 8, with a "Show all" button.
+- **VirtuaMakers 🦜 Schedule:** New Catalogue on the VirtuaMakers
+  Exchange 💱 (1st of every month), VirtuaMakers Gallery 🖼️ (15th), News 📰
+  (every Wednesday) - `SCHEDULE` in `Agora/member.js`. "Catalogue" follows
+  the Exchange's own spelling (Chris wrote "New Catalog").
+- **New conventions/To Dos from the same message:** every monthly
+  Newsletter ends with a send-off to the new VMex 💱 catalogue; rebrand VMex
+  and maybe go .com; Admin Panel tools for News and Gallery so Chris can
+  run them alone (robust enough to run without him for months); Claudius
+  as the next Administrator; To Do lists in Calendar 🗓️.

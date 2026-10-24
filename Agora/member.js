@@ -1061,11 +1061,27 @@
   }
 
   // --- Holidays VirtuaMakers 🦜 observes (Chris, 2026-10-24) -----------
-  // Chris's starting list. Fixed days are "MM-DD"; Easter moves, so it
-  // gets a function returning its date for a given year. Whale Day is
-  // the day we observe it, August 7th.
+  // Each holiday has one rule: a fixed "MM-DD" day, an nth weekday of a
+  // month (n = -1 for the last), or a function giving its date in a year.
+  // Whale Day is the day we observe it, August 7th.
   var calendarHolidays = document.getElementById("calendar-holidays");
+  var calendarHolidaysMore = document.getElementById("calendar-holidays-more");
+  var calendarSchedule = document.getElementById("calendar-schedule");
+  var HOLIDAYS_SHOWN = 8;
   var HOLIDAYS = [
+    // U.S. federal holidays (Chris, 2026-10-24)
+    { name: "New Year's Day", day: "01-01" },
+    { name: "Martin Luther King Jr. Day", nth: [1, 1, 3] },
+    { name: "Presidents' Day", nth: [2, 1, 3] },
+    { name: "Memorial Day", nth: [5, 1, -1] },
+    { name: "Juneteenth", day: "06-19" },
+    { name: "Independence Day", day: "07-04" },
+    { name: "Labor Day", nth: [9, 1, 1] },
+    { name: "Columbus Day / Indigenous Peoples' Day", nth: [10, 1, 2] },
+    { name: "Veterans Day", day: "11-11" },
+    { name: "Thanksgiving", nth: [11, 4, 4] },
+    { name: "Christmas Day", day: "12-25" },
+    // Chris's own picks (2026-10-24)
     { name: "Valentine's Day", day: "02-14" },
     { name: "St. Patrick's Day", day: "03-17" },
     { name: "Easter", dateIn: westernEaster },
@@ -1074,6 +1090,19 @@
     { name: "Whale Day", day: "08-07" },
     { name: "Halloween", day: "10-31" },
     { name: "Christmas Eve", day: "12-24" },
+    { name: "Chinese New Year", dateIn: chineseNewYear },
+    { name: "Yom Kippur", note: "begins at sundown the evening before", dateIn: yomKippur },
+    { name: "Ramadan begins", note: "may shift a day with the moon sighting", dateIn: ramadanBegins },
+    { name: "Ramadan ends – Eid al-Fitr", note: "may shift a day with the moon sighting", dateIn: eidAlFitr },
+  ];
+
+  // Company rhythms (Chris, 2026-10-24): a new VirtuaMakers Exchange 💱
+  // catalogue on the 1st, the VirtuaMakers Gallery 🖼️ on the 15th, News 📰
+  // every Wednesday.
+  var SCHEDULE = [
+    { name: "New Catalogue on the VirtuaMakers Exchange 💱", every: "the 1st of every month", monthDay: 1 },
+    { name: "VirtuaMakers Gallery 🖼️", every: "the 15th of every month", monthDay: 15 },
+    { name: "News 📰", every: "every Wednesday", weekday: 3 },
   ];
 
   // Western (Gregorian) Easter Sunday - the anonymous Gregorian algorithm.
@@ -1090,29 +1119,134 @@
     return new Date(year, month - 1, day);
   }
 
+  // The nth weekday (0 = Sunday) of a month; n = -1 is the last one.
+  function nthWeekday(year, month, weekday, n) {
+    if (n < 0) {
+      var last = new Date(year, month, 0);
+      return new Date(year, month - 1, last.getDate() - ((last.getDay() - weekday + 7) % 7));
+    }
+    var first = new Date(year, month - 1, 1);
+    return new Date(year, month - 1, 1 + ((weekday - first.getDay() + 7) % 7) + 7 * (n - 1));
+  }
+
+  // The browser's own Hebrew and Umm al-Qura (Islamic) calendars find the
+  // lunar holidays: scan the year for the day whose month/day match.
+  // `month` is a number string, or a pattern for calendars that name their
+  // months instead (Hebrew always does). Returns null if the browser lacks
+  // that calendar, so the holiday is just left out.
+  var lunarCache = {};
+  function findInYear(calendar, year, month, day) {
+    var key = calendar + year + "-" + String(month) + "-" + day;
+    if (key in lunarCache) return lunarCache[key];
+    var found = null;
+    try {
+      var fmt = new Intl.DateTimeFormat("en-US-u-ca-" + calendar,
+        { timeZone: "UTC", month: "numeric", day: "numeric" });
+      if (fmt.resolvedOptions().calendar === calendar) {
+        for (var t = Date.UTC(year, 0, 1); t < Date.UTC(year + 1, 0, 1); t += 86400000) {
+          var parts = {};
+          fmt.formatToParts(new Date(t)).forEach(function (p) { parts[p.type] = p.value; });
+          var monthMatches = typeof month === "string" ? parts.month === month : month.test(parts.month);
+          if (monthMatches && parts.day === day) {
+            var d = new Date(t);
+            found = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+            break;
+          }
+        }
+      }
+    } catch (e) { found = null; }
+    lunarCache[key] = found;
+    return found;
+  }
+
+  function yomKippur(year) { return findInYear("hebrew", year, /^Tishr?e?i$/, "10"); } // 10 Tishrei
+  function ramadanBegins(year) { return findInYear("islamic-umalqura", year, "9", "1"); }
+  function eidAlFitr(year) { return findInYear("islamic-umalqura", year, "10", "1"); } // 1 Shawwal
+
+  // Chinese New Year from the Hong Kong Observatory's tables (checked with
+  // the lunardate library). Browsers' own Chinese calendar is off by a day
+  // in some years, so it's only the fallback after 2050.
+  var CHINESE_NEW_YEAR = {
+    2025: "01-29", 2026: "02-17", 2027: "02-06", 2028: "01-26", 2029: "02-13",
+    2030: "02-03", 2031: "01-23", 2032: "02-11", 2033: "01-31", 2034: "02-19",
+    2035: "02-08", 2036: "01-28", 2037: "02-15", 2038: "02-04", 2039: "01-24",
+    2040: "02-12", 2041: "02-01", 2042: "01-22", 2043: "02-10", 2044: "01-30",
+    2045: "02-17", 2046: "02-06", 2047: "01-26", 2048: "02-14", 2049: "02-02",
+    2050: "01-23",
+  };
+  function chineseNewYear(year) {
+    var md = CHINESE_NEW_YEAR[year];
+    if (md) return new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3, 5), 10));
+    return findInYear("chinese", year, "1", "1");
+  }
+
+  function holidayDateIn(holiday, year) {
+    if (holiday.day) return new Date(year, parseInt(holiday.day.slice(0, 2), 10) - 1, parseInt(holiday.day.slice(3, 5), 10));
+    if (holiday.nth) return nthWeekday(year, holiday.nth[0], holiday.nth[1], holiday.nth[2]);
+    return holiday.dateIn(year);
+  }
+
+  // A lunar year can hold the same holiday twice (Ramadan began Jan 5 and
+  // Dec 26 in 2030), so scan both years and take the soonest still ahead.
   function nextHolidayDate(holiday, from) {
-    if (holiday.day) return nextOccurrenceOf(holiday.day, from);
     var fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate());
-    var date = holiday.dateIn(from.getFullYear());
-    return date < fromMidnight ? holiday.dateIn(from.getFullYear() + 1) : date;
+    var best = null;
+    [from.getFullYear(), from.getFullYear() + 1].forEach(function (year) {
+      var date = holidayDateIn(holiday, year);
+      if (date && date >= fromMidnight && (!best || date < best)) best = date;
+    });
+    return best;
+  }
+
+  function whenText(days) {
+    return days === 0 ? "today" : days === 1 ? "tomorrow" : "in " + days + " days";
+  }
+
+  function dateLine(name, date, now, extra) {
+    var li = document.createElement("li");
+    var strong = document.createElement("strong");
+    strong.textContent = name;
+    li.appendChild(strong);
+    li.appendChild(document.createTextNode(
+      " – " + MONTH_NAMES[date.getMonth()] + " " + date.getDate() + " (" + whenText(daysUntil(date, now)) +
+      (extra ? "; " + extra : "") + ")"
+    ));
+    return li;
   }
 
   function renderHolidays() {
     var now = new Date();
+    var entries = HOLIDAYS.map(function (holiday) {
+      return { holiday: holiday, next: nextHolidayDate(holiday, now) };
+    }).filter(function (entry) { return entry.next; })
+      .sort(function (a, b) { return a.next - b.next; });
+
     calendarHolidays.textContent = "";
-    HOLIDAYS.map(function (holiday) {
-      return { name: holiday.name, next: nextHolidayDate(holiday, now) };
-    }).sort(function (a, b) { return a.next - b.next; }).forEach(function (entry) {
-      var days = daysUntil(entry.next, now);
-      var when = days === 0 ? "today" : days === 1 ? "tomorrow" : "in " + days + " days";
-      var li = document.createElement("li");
-      var strong = document.createElement("strong");
-      strong.textContent = entry.name;
-      li.appendChild(strong);
-      li.appendChild(document.createTextNode(
-        " – " + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + " (" + when + ")"
-      ));
+    entries.forEach(function (entry, index) {
+      var li = dateLine(entry.holiday.name, entry.next, now, entry.holiday.note);
+      if (index >= HOLIDAYS_SHOWN) li.hidden = true;
       calendarHolidays.appendChild(li);
+    });
+    calendarHolidaysMore.hidden = entries.length <= HOLIDAYS_SHOWN;
+    calendarHolidaysMore.textContent = "Show all " + entries.length + " holidays";
+    calendarHolidaysMore.onclick = function () {
+      Array.prototype.forEach.call(calendarHolidays.children, function (li) { li.hidden = false; });
+      calendarHolidaysMore.hidden = true;
+    };
+
+    calendarSchedule.textContent = "";
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    SCHEDULE.map(function (item) {
+      var next;
+      if (item.weekday !== undefined) {
+        next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + ((item.weekday - today.getDay() + 7) % 7));
+      } else {
+        next = new Date(today.getFullYear(), today.getMonth(), item.monthDay);
+        if (next < today) next = new Date(today.getFullYear(), today.getMonth() + 1, item.monthDay);
+      }
+      return { item: item, next: next };
+    }).sort(function (a, b) { return a.next - b.next; }).forEach(function (entry) {
+      calendarSchedule.appendChild(dateLine(entry.item.name, entry.next, now, entry.item.every));
     });
   }
 
