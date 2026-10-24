@@ -927,8 +927,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   sizable amount of time and tokens, so budget for it; and that starting
   fresh or keeping up as you go is not time- or token-intensive, step by
   step. Added to `claude/memory-administrator-handoff.md` (Session 5);
-  Chris to confirm the wording, and decide whether it also belongs on the
-  public `si-memory.html`/`si-apartment.html` pages for stewards.
+  **Chris (2026-10-24): yes - offer the SOP with the programs, post it on
+  the Product Pages, and/or link it from the other pages.** Not done yet.
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
