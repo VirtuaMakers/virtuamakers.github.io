@@ -838,7 +838,7 @@ exports.sendNewsletterNow = onCall({ secrets: [resendApiKey] }, async (request) 
 // degradation philosophy as every other Cloud-Functions-dependent feature
 // here - a moderation outage should never be the reason nobody can post.
 
-const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio", "awayMessage"];
+const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio", "awayMessage", "todoItem"];
 
 function writeModerationLog(ref, { uid, authorName, contentType, decision, text, scores, context }) {
   return ref.set({

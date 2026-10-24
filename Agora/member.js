@@ -463,6 +463,7 @@
     watchFriendship();
     watchBlock();
     loadFriendsList();
+    loadPublicTodos();
   });
 
   // Both admin actions call the adminBanUser/adminDeleteUser Cloud
@@ -1303,10 +1304,442 @@
     });
   }
 
+  // --- Calendar 🗓️ To Do lists (Chris, 2026-10-24) ---------------------
+  // Every item has a date (today by default). Anything not done and dated
+  // today or earlier rolls into the Main List, which "snowballs" forward
+  // day by day; later items wait under Upcoming. A member can keep more
+  // lists - each private until made public, and each feeding the Main
+  // List unless unlinked. Kept apart from VirtuaMakers' own internal To Do
+  // lists on purpose (Chris). See the todoLists/todoItems rules.
+  var todoTabs = document.getElementById("todo-tabs");
+  var todoAddForm = document.getElementById("todo-add-form");
+  var todoAddText = document.getElementById("todo-add-text");
+  var todoAddDate = document.getElementById("todo-add-date");
+  var todoAddList = document.getElementById("todo-add-list");
+  var todoError = document.getElementById("todo-error");
+  var todoEmpty = document.getElementById("todo-empty");
+  var todoDue = document.getElementById("todo-due");
+  var todoUpcomingTitle = document.getElementById("todo-upcoming-title");
+  var todoUpcoming = document.getElementById("todo-upcoming");
+  var todoShowDone = document.getElementById("todo-show-done");
+  var todoDoneHistory = document.getElementById("todo-done-history");
+  var todoSettings = document.getElementById("todo-settings");
+  var todoSettingsSummary = document.getElementById("todo-settings-summary");
+  var todoSettingsForm = document.getElementById("todo-settings-form");
+  var todoSettingsName = document.getElementById("todo-settings-name");
+  var todoSettingsPublic = document.getElementById("todo-settings-public");
+  var todoSettingsInMainRow = document.getElementById("todo-settings-inmain-row");
+  var todoSettingsInMain = document.getElementById("todo-settings-inmain");
+  var todoSettingsDelete = document.getElementById("todo-settings-delete");
+  var todoNewListForm = document.getElementById("todo-new-list-form");
+  var todoNewListName = document.getElementById("todo-new-list-name");
+  var publicTodosSection = document.getElementById("member-public-todos");
+  var publicTodoLists = document.getElementById("public-todo-lists");
+
+  var todoLists = [];      // [{id, name, public, inMain, isMain}], Main first
+  var todoItems = [];      // [{id, listId, text, date, done, doneOn}]
+  var todoView = null;     // the list ID being shown
+  var todoLoadedFor = null;
+  var todoShowingHistory = false;
+
+  function localDateKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function shortDate(key) {
+    var parts = key.split("-");
+    return MONTH_NAMES[parseInt(parts[1], 10) - 1].slice(0, 3) + " " + parseInt(parts[2], 10);
+  }
+
+  function mainListId() { return currentUser.uid + "_main"; }
+
+  function todoListById(id) {
+    return todoLists.filter(function (l) { return l.id === id; })[0] || null;
+  }
+
+  function showTodoError(message) {
+    todoError.textContent = message;
+    todoError.hidden = !message;
+  }
+
+  // Public text is moderated like every other piece of member text;
+  // private lists are for your eyes only, so they skip the check.
+  function moderatedIfPublic(text, isPublic) {
+    if (!isPublic || !text || typeof AgoraModeration === "undefined") return Promise.resolve({ decision: "allow" });
+    return AgoraModeration.checkText(text, "todoItem", {});
+  }
+
+  function loadTodos(force) {
+    if (!currentUser || (!force && todoLoadedFor === currentUser.uid)) return;
+    todoLoadedFor = currentUser.uid;
+    if (!todoAddDate.value) todoAddDate.value = localDateKey(new Date());
+    var owner = currentUser.uid;
+    var today = localDateKey(new Date());
+    var mainRef = AgoraDB.collection("todoLists").doc(owner + "_main");
+
+    // The Main List is created the first time it's needed.
+    mainRef.get().then(function (snap) {
+      if (snap.exists) return;
+      return mainRef.set({
+        owner: owner, name: "Main List", public: false, inMain: true, isMain: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }).then(function () {
+      return Promise.all([
+        AgoraDB.collection("todoLists").where("owner", "==", owner).get(),
+        AgoraDB.collection("todoItems").where("owner", "==", owner).where("done", "==", false).get(),
+        AgoraDB.collection("todoItems").where("owner", "==", owner).where("doneOn", "==", today).get(),
+      ]);
+    }).then(function (results) {
+      todoLists = results[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) {
+          if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
+          return a.name.localeCompare(b.name);
+        });
+      var seen = {};
+      todoItems = [];
+      results[1].docs.concat(results[2].docs).forEach(function (d) {
+        if (seen[d.id]) return;
+        seen[d.id] = true;
+        todoItems.push(Object.assign({ id: d.id }, d.data()));
+      });
+      if (!todoView || !todoListById(todoView)) todoView = mainListId();
+      renderTodos();
+    }).catch(function (err) {
+      console.error("To Do load failed:", err);
+      showTodoError("Couldn't load your To Do lists – try refreshing the page.");
+    });
+  }
+
+  // Which items a view shows: its own, plus - in the Main List - every
+  // list still linked to it.
+  function itemsInView() {
+    var isMain = todoView === mainListId();
+    return todoItems.filter(function (item) {
+      if (item.listId === todoView) return true;
+      if (!isMain) return false;
+      var list = todoListById(item.listId);
+      return list && list.inMain;
+    });
+  }
+
+  function todoRow(item, opts) {
+    var li = document.createElement("li");
+    li.className = "todo-item" + (item.done ? " is-done" : "");
+    var box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = !!item.done;
+    box.setAttribute("aria-label", item.done ? "Mark not done" : "Mark done");
+    box.addEventListener("change", function () { setTodoDone(item, box.checked); });
+    li.appendChild(box);
+
+    var body = document.createElement("div");
+    body.className = "todo-item-body";
+    var text = document.createElement("span");
+    text.className = "todo-item-text";
+    text.textContent = item.text;
+    body.appendChild(text);
+    var meta = [];
+    if (opts.showList && item.listId !== mainListId()) {
+      var list = todoListById(item.listId);
+      if (list) meta.push(list.name);
+    }
+    if (opts.carried && item.date < opts.today) meta.push("from " + shortDate(item.date));
+    if (opts.showDate) meta.push(shortDate(item.date));
+    if (meta.length) {
+      var metaEl = document.createElement("span");
+      metaEl.className = "todo-item-meta";
+      metaEl.textContent = meta.join(" · ");
+      body.appendChild(metaEl);
+    }
+    li.appendChild(body);
+
+    var del = document.createElement("button");
+    del.type = "button";
+    del.className = "todo-item-delete";
+    del.textContent = "×";
+    del.title = "Delete";
+    del.setAttribute("aria-label", "Delete " + item.text);
+    del.addEventListener("click", function () { deleteTodo(item); });
+    li.appendChild(del);
+    return li;
+  }
+
+  function renderTodos() {
+    var today = localDateKey(new Date());
+    var isMain = todoView === mainListId();
+    var view = todoListById(todoView);
+
+    todoTabs.textContent = "";
+    todoAddList.textContent = "";
+    todoLists.forEach(function (list) {
+      var tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "todo-tab";
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-selected", list.id === todoView ? "true" : "false");
+      tab.textContent = list.name + (list.public ? " (public)" : "");
+      tab.addEventListener("click", function () {
+        todoView = list.id;
+        todoShowingHistory = false;
+        renderTodos();
+      });
+      todoTabs.appendChild(tab);
+
+      var option = document.createElement("option");
+      option.value = list.id;
+      option.textContent = list.name;
+      todoAddList.appendChild(option);
+    });
+    todoAddList.value = todoView;
+
+    var items = itemsInView();
+    var due = items.filter(function (i) { return !i.done && i.date <= today; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    var doneToday = items.filter(function (i) { return i.done; });
+    var upcoming = items.filter(function (i) { return !i.done && i.date > today; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+
+    todoDue.textContent = "";
+    due.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, carried: true, today: today })); });
+    doneToday.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, today: today })); });
+    todoEmpty.hidden = due.length > 0;
+
+    todoUpcoming.textContent = "";
+    upcoming.forEach(function (i) { todoUpcoming.appendChild(todoRow(i, { showList: isMain, showDate: true, today: today })); });
+    todoUpcomingTitle.hidden = !upcoming.length;
+
+    todoShowDone.hidden = false;
+    todoShowDone.textContent = todoShowingHistory ? "Hide finished items" : "Show finished items";
+    todoDoneHistory.hidden = !todoShowingHistory;
+
+    if (view) {
+      todoSettingsSummary.textContent = view.name + " – settings";
+      todoSettingsName.value = view.name;
+      todoSettingsName.disabled = !!view.isMain;
+      todoSettingsPublic.checked = !!view.public;
+      todoSettingsInMainRow.hidden = !!view.isMain;
+      todoSettingsInMain.checked = view.inMain !== false;
+      todoSettingsDelete.hidden = !!view.isMain;
+    }
+  }
+
+  function setTodoDone(item, done) {
+    var doneOn = done ? localDateKey(new Date()) : null;
+    AgoraDB.collection("todoItems").doc(item.id).update({ done: done, doneOn: doneOn }).then(function () {
+      item.done = done;
+      item.doneOn = doneOn;
+      renderTodos();
+      if (todoShowingHistory) loadTodoHistory();
+    }).catch(function () {
+      showTodoError("Couldn't save that – try again.");
+      renderTodos();
+    });
+  }
+
+  function deleteTodo(item) {
+    AgoraDB.collection("todoItems").doc(item.id).delete().then(function () {
+      todoItems = todoItems.filter(function (i) { return i.id !== item.id; });
+      renderTodos();
+      if (todoShowingHistory) loadTodoHistory();
+    }).catch(function () {
+      showTodoError("Couldn't delete that – try again.");
+    });
+  }
+
+  // Finished items from before today, newest first (the latest 50).
+  function loadTodoHistory() {
+    var today = localDateKey(new Date());
+    var isMain = todoView === mainListId();
+    AgoraDB.collection("todoItems").where("owner", "==", currentUser.uid).where("done", "==", true).get().then(function (snap) {
+      var items = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function (i) {
+          if (i.doneOn === today) return false;
+          if (i.listId === todoView) return true;
+          var list = todoListById(i.listId);
+          return isMain && list && list.inMain;
+        })
+        .sort(function (a, b) { return (b.doneOn || "") < (a.doneOn || "") ? -1 : 1; })
+        .slice(0, 50);
+      todoDoneHistory.textContent = "";
+      if (!items.length) {
+        var li = document.createElement("li");
+        li.className = "todo-item-meta";
+        li.textContent = "No finished items from earlier days.";
+        todoDoneHistory.appendChild(li);
+      }
+      items.forEach(function (i) {
+        var row = todoRow(i, { showList: isMain, today: today });
+        var meta = document.createElement("span");
+        meta.className = "todo-item-meta";
+        meta.textContent = "Done " + shortDate(i.doneOn || i.date);
+        row.querySelector(".todo-item-body").appendChild(meta);
+        todoDoneHistory.appendChild(row);
+      });
+    }).catch(function () {
+      showTodoError("Couldn't load finished items – try again.");
+    });
+  }
+
+  todoShowDone.addEventListener("click", function () {
+    todoShowingHistory = !todoShowingHistory;
+    renderTodos();
+    if (todoShowingHistory) loadTodoHistory();
+  });
+
+  todoAddForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    showTodoError("");
+    var text = todoAddText.value.trim();
+    var date = todoAddDate.value || localDateKey(new Date());
+    var list = todoListById(todoAddList.value) || todoListById(mainListId());
+    if (!text || !list) return;
+    moderatedIfPublic(text, list.public).then(function (result) {
+      if (result && result.decision === "block") {
+        AgoraModeration.showBlocked(todoError, result.logId);
+        todoError.hidden = false;
+        return;
+      }
+      var data = {
+        owner: currentUser.uid, listId: list.id, listPublic: !!list.public,
+        text: text, date: date, done: false, doneOn: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      return AgoraDB.collection("todoItems").add(data).then(function (ref) {
+        todoItems.push(Object.assign({ id: ref.id }, data));
+        todoAddText.value = "";
+        renderTodos();
+      });
+    }).catch(function () {
+      showTodoError("Couldn't add that – try again.");
+    });
+  });
+
+  todoNewListForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    var name = todoNewListName.value.trim();
+    if (!name) return;
+    AgoraDB.collection("todoLists").add({
+      owner: currentUser.uid, name: name, public: false, inMain: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).then(function (ref) {
+      todoNewListName.value = "";
+      todoView = ref.id;
+      loadTodos(true);
+    }).catch(function () {
+      showTodoError("Couldn't create that list – try again.");
+    });
+  });
+
+  // Saving settings rewrites every item's listPublic copy in the same
+  // batch when the list's public flag changes (the rules check they match).
+  todoSettingsForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var list = todoListById(todoView);
+    if (!list) return;
+    showTodoError("");
+    var name = list.isMain ? list.name : todoSettingsName.value.trim();
+    var makePublic = todoSettingsPublic.checked;
+    var inMain = list.isMain ? true : todoSettingsInMain.checked;
+    if (!name) return;
+    var listRef = AgoraDB.collection("todoLists").doc(list.id);
+    var check = makePublic && !list.public ? moderatedIfPublic(name, true) : Promise.resolve({ decision: "allow" });
+    check.then(function (result) {
+      if (result && result.decision === "block") {
+        AgoraModeration.showBlocked(todoError, result.logId);
+        todoError.hidden = false;
+        return;
+      }
+      var update = { name: name, public: makePublic, inMain: inMain };
+      if (makePublic === !!list.public) return listRef.update(update);
+      return AgoraDB.collection("todoItems").where("owner", "==", currentUser.uid).where("listId", "==", list.id).get()
+        .then(function (snap) {
+          var batch = AgoraDB.batch();
+          batch.update(listRef, update);
+          snap.docs.forEach(function (d) { batch.update(d.ref, { listPublic: makePublic }); });
+          return batch.commit();
+        });
+    }).then(function () {
+      todoSettings.open = false;
+      loadTodos(true);
+    }).catch(function () {
+      showTodoError("Couldn't save those settings – try again.");
+    });
+  });
+
+  todoSettingsDelete.addEventListener("click", function () {
+    var list = todoListById(todoView);
+    if (!list || list.isMain) return;
+    if (!window.confirm("Delete \"" + list.name + "\" and every item on it? This can't be undone.")) return;
+    AgoraDB.collection("todoItems").where("owner", "==", currentUser.uid).where("listId", "==", list.id).get()
+      .then(function (snap) {
+        var batch = AgoraDB.batch();
+        snap.docs.forEach(function (d) { batch.delete(d.ref); });
+        batch.delete(AgoraDB.collection("todoLists").doc(list.id));
+        return batch.commit();
+      }).then(function () {
+        todoView = mainListId();
+        loadTodos(true);
+      }).catch(function () {
+        showTodoError("Couldn't delete that list – try again.");
+      });
+  });
+
+  // Visitors see a member's public lists: what's due or coming up, by list.
+  function loadPublicTodos() {
+    publicTodosSection.hidden = true;
+    if (!uid || (currentUser && currentUser.uid === uid)) return;
+    Promise.all([
+      AgoraDB.collection("todoLists").where("owner", "==", uid).where("public", "==", true).get(),
+      AgoraDB.collection("todoItems").where("owner", "==", uid).where("listPublic", "==", true).where("done", "==", false).get(),
+    ]).then(function (results) {
+      var lists = results[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      if (!lists.length) return;
+      var items = results[1].docs.map(function (d) { return d.data(); })
+        .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+      publicTodoLists.textContent = "";
+      lists.forEach(function (list) {
+        var title = document.createElement("h3");
+        title.className = "section-title";
+        title.textContent = list.name;
+        publicTodoLists.appendChild(title);
+        var ul = document.createElement("ul");
+        ul.className = "todo-items";
+        var mine = items.filter(function (i) { return i.listId === list.id; });
+        if (!mine.length) {
+          var empty = document.createElement("li");
+          empty.className = "todo-item-meta";
+          empty.textContent = "Nothing on this list right now.";
+          ul.appendChild(empty);
+        }
+        mine.forEach(function (i) {
+          var li = document.createElement("li");
+          li.className = "todo-item";
+          var body = document.createElement("div");
+          body.className = "todo-item-body";
+          body.textContent = i.text;
+          var meta = document.createElement("span");
+          meta.className = "todo-item-meta";
+          meta.textContent = shortDate(i.date);
+          body.appendChild(meta);
+          li.appendChild(body);
+          ul.appendChild(li);
+        });
+        publicTodoLists.appendChild(ul);
+      });
+      publicTodosSection.hidden = false;
+    }).catch(function () {
+      publicTodosSection.hidden = true;
+    });
+  }
+
   function loadCalendar() {
     var isOwner = currentUser && currentUser.uid === uid;
     calendarSection.hidden = !isOwner;
     if (isOwner) {
+      loadTodos();
       renderHolidays();
       loadMessagableMembersForMeetings();
       loadMeetings();

@@ -501,6 +501,50 @@ service cloud.firestore {
         && request.auth.uid == resource.data.createdBy;
     }
 
+    // Calendar 🗓️ To Do lists (Chris, 2026-10-24). Each member owns their
+    // lists; every list is private until its owner makes it public, and
+    // then anyone (signed in or not) can read it and its items. Each
+    // member's Main List is the list whose ID is "<uid>_main" (isMain).
+    // inMain says whether a list's due items also appear in the Main List
+    // (on by default). Items carry their list's `public` flag as
+    // `listPublic`, so a public read never needs a lookup; the owner flips
+    // every item's copy in the same batch as the list.
+    match /todoLists/{listId} {
+      allow read: if (request.auth != null && resource.data.owner == request.auth.uid)
+        || resource.data.public == true;
+
+      allow create: if request.auth != null
+        && request.resource.data.owner == request.auth.uid
+        && validTodoList(listId, request.resource.data);
+
+      allow update: if request.auth != null
+        && resource.data.owner == request.auth.uid
+        && request.resource.data.owner == resource.data.owner
+        && request.resource.data.get('isMain', false) == resource.data.get('isMain', false)
+        && validTodoList(listId, request.resource.data);
+
+      allow delete: if request.auth != null
+        && resource.data.owner == request.auth.uid;
+    }
+
+    match /todoItems/{itemId} {
+      allow read: if (request.auth != null && resource.data.owner == request.auth.uid)
+        || resource.data.listPublic == true;
+
+      allow create: if request.auth != null
+        && request.resource.data.owner == request.auth.uid
+        && validTodoItem(request.resource.data);
+
+      allow update: if request.auth != null
+        && resource.data.owner == request.auth.uid
+        && request.resource.data.owner == resource.data.owner
+        && request.resource.data.createdAt == resource.data.createdAt
+        && validTodoItem(request.resource.data);
+
+      allow delete: if request.auth != null
+        && resource.data.owner == request.auth.uid;
+    }
+
     // Newsletter 📬 - a single draft doc (subject + plain-text body) that
     // Chris prepares via newsletter-compose.html, ideally by the 27th of
     // each month, for the sendMonthlyNewsletter Cloud Function to send
@@ -731,6 +775,33 @@ service cloud.firestore {
 
     function validBody(body) {
       return body is string && body.size() > 0 && body.size() <= 9999;
+    }
+
+    // Calendar 🗓️ To Do: a list's fields. Only "<uid>_main" may be the
+    // Main List.
+    function validTodoList(listId, d) {
+      return d.keys().hasOnly(['owner', 'name', 'public', 'inMain', 'isMain', 'createdAt'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 60
+        && d.public is bool
+        && d.inMain is bool
+        && (d.get('isMain', false) == false || listId == d.owner + '_main')
+        && d.createdAt is timestamp;
+    }
+
+    // Calendar 🗓️ To Do: an item's fields. Its list must exist (after this
+    // write - getAfter, so a batch that makes a list public can update its
+    // items too), belong to the same owner, and match its public flag.
+    function validTodoItem(d) {
+      return d.keys().hasOnly(['owner', 'listId', 'listPublic', 'text', 'date', 'done', 'doneOn', 'createdAt'])
+        && d.text is string && d.text.size() > 0 && d.text.size() <= 500
+        && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && d.done is bool
+        && (d.get('doneOn', null) == null || (d.doneOn is string && d.doneOn.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && d.createdAt is timestamp
+        && d.listId is string
+        && existsAfter(/databases/$(database)/documents/todoLists/$(d.listId))
+        && getAfter(/databases/$(database)/documents/todoLists/$(d.listId)).data.owner == d.owner
+        && d.listPublic == getAfter(/databases/$(database)/documents/todoLists/$(d.listId)).data.public;
     }
 
     // Shared by every Communiqués content type: only the original author,
