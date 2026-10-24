@@ -14782,6 +14782,13 @@ Design direction Chris picked: the **Blue Dot 🔵 wordmark** – 마당 in blac
 - New convention in CLAUDE.md: check the registry before giving anything a new emoji. `member.js` is now v42. The Functions text changes (the Newsletter unsubscribe message, comments) only show after the next Functions deploy, and the SI Apartment 🏢 text only after the next app build.
 - **Madang 🔵 and Æthernet 🌐 (Chris, 2026-10-23):** Agora's successor takes 🔵, the blue dot of its logo (unused until now); 🌐 passes to the Æthernet (was 🧠🌐), leaving 🧠 to BCI Style alone. Recorded in CLAUDE.md, `claude/emoji-registry.md` and SI Memory; nothing changes on the live site until the rename (Madang 🔵 - Session 1). Also To Do for Agora 🌐 Session 6: buy madang.social, secure MadangSocial handles.
 
+## 2026-10-24 – Tags with @ (Agora 🌐 Session 6)
+
+Chris went to tag Claudius in a post on Virtuatron's 🧭 Wall and couldn't. Now typing @ in a Wall post, comment, Dialog, floating Dialog window, toast reply or edit box opens the site's own search under the box (`Agora/mentions.js`, on all 80 pages that load `communiques-common.js`). Order there: Profiles 🙂, then VirtuaMakers Exchange 💱, then Knowledge Base 📚, then Pursuit of Justice; the header Search 🔍 now puts the Exchange first (Chris). Arrow keys/Enter/Tab/Escape work; Enter picks a tag rather than sending.
+- **Stored** in the body as `@[Name](/site/path)`; `CommuniquesCommon.sanitizeBody()` shows it as an `a.mention` "@Name" link. Only single-slash same-site paths become links (`//host` and `javascript:` refused). `mentionsToText()` turns tags into "@Name" for Dialog list previews and toasts.
+- **Search API:** `site-search.js` (v17) exposes `window.AgoraSearch.search(query, {forMentions})`, results with site-absolute paths.
+- **Notifications (needs `firebase deploy --only functions`):** `notifyOnWallPost`/`notifyOnWallComment` notify each tagged member (type `mention`, "tagged you in a post", link to `post.html`), skipping the author and anyone that trigger already notified, max 10. Static profiles are notified under their slug (the Pony desk 🐎). Dialog tags notify nobody (private). `previewOf()` strips tags in pushes and emails. Same regex in `lib/notify.js` and `communiques-common.js` (v32) – keep in step. `notification-toast.js` v18 (mention chime). `skill.md` documents the syntax.
+
 ## Holidays VirtuaMakers 🦜 observes, in Calendar 🗓️ (Chris, 2026-10-24, Calendar 🗓️ Session 2)
 
 Chris's starting list ("to start"): Valentine's Day, St. Patrick's Day,

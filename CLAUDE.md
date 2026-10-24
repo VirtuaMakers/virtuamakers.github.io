@@ -462,6 +462,41 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   madangsocial.bsky.social was free on 2026-10-23. Claim MadangSocial in
   one sitting on X, Instagram, Bluesky, Threads, Facebook, TikTok,
   YouTube, LinkedIn, Reddit and GitHub (an org).
+- [ ] **[Agora 🌐 Session 6] Tags with @ (Chris, 2026-10-24)** - typing @ in
+  a Wall post, comment or Dialog opens Search 🔍 under the box (Profiles 🙂
+  first, then VirtuaMakers Exchange 💱, then Knowledge Base 📚); the header
+  Search 🔍 now puts the Exchange first. A tagged member is notified for Wall
+  posts and comments (not Dialogs - private). **Built (`Agora/mentions.js`,
+  see `claude/history.md` 2026-10-24); needs `firebase deploy --only
+  functions` for the notifications, then Chris's check.**
+- [ ] **[VirtuaMakers Exchange 💱 session] A Product Page for every product
+  we sell (Chris, 2026-10-24)** - anything sold on the Exchange gets a
+  Product Page modelled on VirtuaMakers.com's `*-product.html` pages. Each
+  one is listed (list form) in the Knowledge Base 📚 under Product Pages
+  🏷️, and shown as a "Product Page container" (the card form, as on
+  VirtuaMakers.com's Selected Work) in the Exchange (the CEX). Start with
+  every product we have so far. VirtuaMakers.com keeps showcasing all the
+  containers. This is how the Exchange is set up for now.
+- [ ] **[VirtuaMakers Exchange 💱 session] Buying needs an Agora 🌐 account
+  (Chris asked, 2026-10-24)** - today it doesn't: the Bag 🛍️ lives only in
+  the browser (`exchange-cart.js`, localStorage) and "Confirm Free Items"
+  just clears it - nothing is recorded. Claudius' recommendation: browsing
+  and the Bag stay open to guests ("Guest or Member, everyone's welcome"),
+  but checkout asks you to sign in, so purchases can be recorded per member
+  (needed for the two profile sections below). Chris to confirm.
+- [ ] **[VirtuaMakers Exchange 💱 + Madang 🔵 sessions] Products and Wishlist
+  on profiles (Chris, 2026-10-24)** - a Products section listing what a
+  member has acquired ("this site shows what people have"), which the member
+  can choose to hide; and a Wishlist section, shown by default, also
+  hideable. The Exchange keeps each member's wishlist. Extends the older
+  "Products section on every Agora profile" item below.
+- [ ] **[VirtuaMakers Exchange 💱 session] Pre-purchases and scheduled
+  purchases (Chris, 2026-10-24)** - later, when we advertise a launch day
+  (maybe starting with Multi-Chat 🗨️), members can pre-purchase from their
+  Wishlist or the Exchange, and the product downloads automatically on the
+  day. Scheduled purchases (for holidays, or for investments such as our
+  crypto options) are built in the same development. Not designed; needs
+  the payment system first.
 - [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
   2026-10-13)** - today pictures come only from Agora itself plus the
   trusted image sites in `Agora/bio-tags.js` (shown on
@@ -1230,7 +1265,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Once live, worth a quick spot-check on the admin-only "Page Hits" panel
   (`admin-panel.html`, owner-only) to confirm real counts are landing.
 - [ ] **Agora session: build a real "Products" section on every Agora
-  profile (Chris, 2026-09-28)** - lists every VirtuaMakers product a
+  profile (Chris, 2026-09-28)** - see also the 2026-10-24 Products and
+  Wishlist item above (acquired products, hideable; Wishlist shown by default) - lists every VirtuaMakers product a
   profile's owner is actually part of, including products that need no
   Agora account at all (SI Memory 🧾, Dimonds ♦️, etc.) - see the
   dedicated "SI Cadence ⏰" entry above. Make this a standard part of
