@@ -47,6 +47,9 @@
     // Someone also commented on a post you commented on (Chris,
     // 2026-10-13) - same sound as a comment on your own post.
     wall_reply: "comment-chime3.wav",
+    // Tagged with @ in a Wall post or comment (Chris, 2026-10-24) - the
+    // post sound, since a tag points you at a post.
+    mention: "post-chime2.wav",
     // Reuses the Dialog chime rather than a dedicated fourth sound for
     // now (Chris, 2026-08-17) - a friend request is a similar "someone
     // wants your attention" event; swap in a distinct file later if it
@@ -217,7 +220,7 @@
   function showToast(data, extraCount) {
     removeToast();
 
-    var preview = C.truncateAtWord((data.preview || "").replace(/<[^>]*>/g, ""), 140);
+    var preview = C.truncateAtWord(C.mentionsToText(data.preview || "").replace(/<[^>]*>/g, ""), 140);
 
     function openTarget() {
       window.location.href = memberBase() + data.linkPath;

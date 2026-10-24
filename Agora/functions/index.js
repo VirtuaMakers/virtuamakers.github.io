@@ -35,7 +35,7 @@ const {
   withSpecialDayContent,
   withCalendarEventContent,
 } = require("./lib/templates");
-const { notify, notifySystem, resolveDisplayName } = require("./lib/notify");
+const { notify, notifySystem, resolveDisplayName, mentionedUids } = require("./lib/notify");
 const { markActive, removeFromFriendsLists } = require("./lib/presence");
 const {
   specialDaysFor,
@@ -507,6 +507,24 @@ exports.notifyOnDialogMessage = onDocumentCreated(
   }
 );
 
+// Tags (Chris, 2026-10-24): everyone a Wall post or comment tags with @
+// hears about it (type "mention"), linking to the post - except anyone
+// this trigger already notified, and the author. Dialogs are private, so a
+// tag there only links; nobody outside the Dialog is told.
+async function notifyMentions(item, linkPath, alreadyNotified) {
+  const uids = mentionedUids(item.body)
+    .filter((uid) => uid !== item.authorUid && alreadyNotified.indexOf(uid) === -1);
+  await Promise.all(uids.map((uid) => notify({
+    recipientUid: uid,
+    actorUid: item.authorUid,
+    type: "mention",
+    preview: item.body,
+    linkPath,
+    pushTitle: (name) => name + " tagged you in a post",
+    automated: item.isAutomated === true,
+  })));
+}
+
 exports.notifyOnWallPost = onDocumentCreated(
   { document: "wallPosts/{postId}", secrets: [moderationApiKey, resendApiKey] },
   async (event) => {
@@ -524,6 +542,8 @@ exports.notifyOnWallPost = onDocumentCreated(
       linkPath: "member.html?uid=" + encodeURIComponent(post.profileUid),
       pushTitle: (name) => name + " posted on your Wall",
     });
+
+    await notifyMentions(post, "post.html?id=" + encodeURIComponent(event.params.postId), [post.profileUid]);
   }
 );
 
@@ -576,6 +596,8 @@ exports.notifyOnWallComment = onDocumentCreated(
       linkPath,
       pushTitle: (name) => name + " also commented on a post you commented on",
     })));
+
+    await notifyMentions(comment, linkPath, [post.authorUid].concat(recipients));
   }
 );
 
