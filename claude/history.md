@@ -14789,3 +14789,83 @@ Chris went to tag Claudius in a post on Virtuatron's 🧭 Wall and couldn't. Now
 - **Search API:** `site-search.js` (v17) exposes `window.AgoraSearch.search(query, {forMentions})`, results with site-absolute paths.
 - **Notifications (needs `firebase deploy --only functions`):** `notifyOnWallPost`/`notifyOnWallComment` notify each tagged member (type `mention`, "tagged you in a post", link to `post.html`), skipping the author and anyone that trigger already notified, max 10. Static profiles are notified under their slug (the Pony desk 🐎). Dialog tags notify nobody (private). `previewOf()` strips tags in pushes and emails. Same regex in `lib/notify.js` and `communiques-common.js` (v32) – keep in step. `notification-toast.js` v18 (mention chime). `skill.md` documents the syntax.
 - **Same day, round 2 (Chris):** while composing, the box showed the raw `@[Claudius](…)` tag. Now it shows a plain "@Claudius" (as on Facebook and X): each tagged box gets its own `value` getter/setter in `mentions.js` (v2) - the box shows names, anything reading `.value` to send gets full tags, and an edit box opened on a tagged post shows names too. Chris confirmed the notification arrives and the links work (test post on Claudius' Wall, `Hs0jCdOlAEI3M1DTsZEZ`).
+
+
+## Holidays VirtuaMakers 🦜 observes, in Calendar 🗓️ (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+Chris's starting list ("to start"): Valentine's Day, St. Patrick's Day,
+Easter, Star Wars Day, Cinco de Mayo, Whale Day (VirtuaMakers observes it
+on August 7th), Halloween and Christmas Eve. New "Holidays VirtuaMakers 🦜
+Observes" list in the Calendar panel on `Agora/member.html` (owner-only,
+like the rest of the panel), soonest first with "in N days". The list is
+`HOLIDAYS` in `Agora/member.js` (v43); Easter is computed with the
+anonymous Gregorian algorithm (checked 2024-2028). US federal holidays
+were proposed but not in Chris's list, so they're left out for now.
+`calendar-product.html` mentions the holidays. No reminders/notices for
+holidays yet (Special Days' day-before notice is friends-only).
+
+## Calendar 🗓️ round 2: federal and lunar holidays, the VirtuaMakers 🦜 Schedule (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- **Holidays (23 now):** added the 11 U.S. federal holidays (nth-weekday
+  rules), Chinese New Year, Yom Kippur, Ramadan begins and Ramadan ends –
+  Eid al-Fitr. Chinese New Year comes from a table (Hong Kong Observatory
+  dates, checked with the `lunardate` library, 2025-2050) because the
+  browser's ICU Chinese calendar was a day off in 2027 and 2030. Yom Kippur
+  and Ramadan use `Intl.DateTimeFormat` with the `hebrew` and
+  `islamic-umalqura` calendars, scanning the year for 10 Tishrei / 1
+  Ramadan / 1 Shawwal (ICU names Hebrew months even with month:"numeric",
+  so Tishrei is matched by name). Ramadan carries a "may shift a day with
+  the moon sighting" note; Yom Kippur "begins at sundown the evening
+  before". The list shows the next 8, with a "Show all" button.
+- **VirtuaMakers 🦜 Schedule:** New Catalogue on the VirtuaMakers
+  Exchange 💱 (1st of every month), VirtuaMakers Gallery 🖼️ (15th), News 📰
+  (every Wednesday) - `SCHEDULE` in `Agora/member.js`. "Catalogue" follows
+  the Exchange's own spelling (Chris wrote "New Catalog").
+- **New conventions/To Dos from the same message:** every monthly
+  Newsletter ends with a send-off to the new VMex 💱 catalogue; rebrand VMex
+  and maybe go .com; Admin Panel tools for News and Gallery so Chris can
+  run them alone (robust enough to run without him for months); Claudius
+  as the next Administrator; To Do lists in Calendar 🗓️.
+
+## Calendar 🗓️ round 3: seasons, New Year's Eve, Hanukkah, Diwali (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- 30 holidays now. Added New Year's Eve; Hanukkah begins (25 Kislev from the
+  browser's Hebrew calendar, noted "first candle the evening before");
+  Diwali from Drikpanchang's New Delhi Lakshmi Puja dates (2025 Oct 20,
+  2026 Nov 8, 2027 Oct 29, 2028 Oct 17, 2029 Nov 5, 2030 Oct 26, 2031
+  Nov 14 - Drikpanchang has no pages past 2031, and one site wrongly gave
+  Nov 16 for 2028); and the first day of each season (Northern Hemisphere)
+  from Meeus' equinox/solstice formula, converted to the viewer's own time
+  zone (2026's September equinox is Sep 22 in New York, Sep 23 in UTC).
+- Chris: the Calendar To Do feature and our own To Do lists stay unrelated
+  until further notice, likely never correlated, to keep our plans private.
+
+## Calendar 🗓️ To Do lists (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- **What Chris asked for:** every To Do item has a date (default today);
+  items dated today or earlier and not done roll into one "Main List" that
+  snowballs forward. Multiple lists: each feeds the Main List by default
+  ("unless you want to unlink certain other lists"); lists are private by
+  default but can be made public. Kept unrelated to our own internal To Do
+  lists, to keep our plans private.
+- **Data:** `todoLists/{id}` {owner, name, public, inMain, isMain?,
+  createdAt} - each member's Main List is `<uid>_main` (created on first
+  use, name fixed, can't be deleted from the UI). `todoItems/{id}` {owner,
+  listId, listPublic, text ≤500, date "YYYY-MM-DD", done, doneOn,
+  createdAt}. `listPublic` copies the list's flag so public reads need no
+  lookup; making a list public/private rewrites its items in the same batch,
+  and the rules check the copy with getAfter(). Signed-out visitors can read
+  public lists and items.
+- **UI (`Agora/member.js` v45, `style.css` v128):** a To Do section at the
+  top of the owner-only Calendar panel - list tabs, an add row (text, date,
+  list), due items oldest first with "from Oct 20" for carried items and the
+  list name in the Main List, items ticked today struck through, Upcoming by
+  date, "Show finished items" (latest 50 from earlier days), list settings
+  (name, Public, Show in Main List, Delete List) and Create List. Visitors
+  see a "To Do Lists" panel with a member's public lists (open items only).
+- **Moderation:** text added to a public list (and a list's name when it's
+  made public) goes through `moderateText` with the new `todoItem` type -
+  needs a Functions deploy; until then the check fails open as designed.
+- **Tested:** 31 rules checks against the Firestore emulator; every element
+  ID the script uses exists in member.html. Not browser-tested (Firebase is
+  blocked in the sandbox). Also added a Calendar 🗓️ entry to `llms.txt`.

@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=127" />
+  <link rel="stylesheet" href="style.css?v=128" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -280,13 +280,77 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
             </div>
           </div>
 
+          <div class="subsection profile-panel" id="member-public-todos" hidden>
+            <h2 class="panel-title">To Do Lists</h2>
+            <p class="intro">Lists this member has chosen to share.</p>
+            <div id="public-todo-lists"></div>
+          </div>
+
           <div class="subsection profile-panel" id="member-calendar" hidden>
             <h2 class="panel-title">Calendar 🗓️</h2>
 
-            <h3 class="section-title">Special Days</h3>
+            <h3 class="section-title">To Do</h3>
+            <p class="intro">Everything due today or earlier and not yet done rolls into your
+              Main List, which keeps moving forward with you day by day. Items dated later wait
+              under Upcoming until their day comes.</p>
+            <div class="todo-tabs" id="todo-tabs" role="tablist"></div>
+
+            <form class="todo-add" id="todo-add-form">
+              <input type="text" id="todo-add-text" maxlength="500" placeholder="Add a To Do…" aria-label="New To Do" required />
+              <input type="date" id="todo-add-date" aria-label="Date" required />
+              <select id="todo-add-list" aria-label="List"></select>
+              <button type="submit" class="btn btn-primary">Add</button>
+            </form>
+            <p class="form-error" id="todo-error" hidden></p>
+
+            <p class="intro" id="todo-empty" hidden>Nothing due – enjoy the day.</p>
+            <ul class="todo-items" id="todo-due"></ul>
+
+            <h4 class="todo-subtitle" id="todo-upcoming-title" hidden>Upcoming</h4>
+            <ul class="todo-items" id="todo-upcoming"></ul>
+
+            <button type="button" class="btn btn-secondary todo-small-btn" id="todo-show-done" hidden>Show finished items</button>
+            <ul class="todo-items" id="todo-done-history" hidden></ul>
+
+            <details class="todo-settings" id="todo-settings">
+              <summary id="todo-settings-summary">List settings</summary>
+              <form class="profile-form" id="todo-settings-form">
+                <div>
+                  <label for="todo-settings-name">Name</label>
+                  <input type="text" id="todo-settings-name" maxlength="60" required />
+                </div>
+                <div class="field-checkbox">
+                  <label><input type="checkbox" id="todo-settings-public" /> Public – anyone can see this list on your profile</label>
+                </div>
+                <div class="field-checkbox" id="todo-settings-inmain-row">
+                  <label><input type="checkbox" id="todo-settings-inmain" /> Show its due items in my Main List</label>
+                </div>
+                <div class="profile-form-actions">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                  <button type="button" class="btn btn-danger" id="todo-settings-delete">Delete List</button>
+                </div>
+              </form>
+            </details>
+
+            <form class="todo-add todo-new-list" id="todo-new-list-form">
+              <input type="text" id="todo-new-list-name" maxlength="60" placeholder="New list name…" aria-label="New list name" required />
+              <button type="submit" class="btn">Create List</button>
+            </form>
+
+            <h3 class="section-title section-title-top-spaced">Special Days</h3>
+
             <p class="intro">Your friends' upcoming special days – you'll also get a notice the day before.</p>
             <p class="intro" id="calendar-empty">No upcoming special days from your friends yet.</p>
             <ul class="body-list" id="calendar-list" hidden></ul>
+
+            <h3 class="section-title section-title-top-spaced">VirtuaMakers 🦜 Schedule</h3>
+            <p class="intro">What comes out when, every month and every week.</p>
+            <ul class="body-list" id="calendar-schedule"></ul>
+
+            <h3 class="section-title section-title-top-spaced">Holidays VirtuaMakers 🦜 Observes</h3>
+            <p class="intro">The days we celebrate together, soonest first.</p>
+            <ul class="body-list" id="calendar-holidays"></ul>
+            <button type="button" class="btn" id="calendar-holidays-more" hidden>Show all holidays</button>
 
             <h3 class="section-title section-title-top-spaced">Meetings</h3>
             <p class="intro">Schedule a meeting with anyone you can message – you'll get a
@@ -404,7 +468,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="notification-toast.js?v=18"></script>
   <script src="push-notifications.js?v=1"></script>
   <script src="si-lineage.js?v=1"></script>
-  <script src="member.js?v=42"></script>
+  <script src="member.js?v=45"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
