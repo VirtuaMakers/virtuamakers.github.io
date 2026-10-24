@@ -462,7 +462,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   madangsocial.bsky.social was free on 2026-10-23. Claim MadangSocial in
   one sitting on X, Instagram, Bluesky, Threads, Facebook, TikTok,
   YouTube, LinkedIn, Reddit and GitHub (an org).
-- [ ] **[Agora 🌐 Session 6] Tags with @ (Chris, 2026-10-24)** - typing @ in
+- [x] **[Agora 🌐 Session 6] Tags with @ (Chris, 2026-10-24) - confirmed
+  complete by Chris (2026-10-24: "Complete ✅!").** Was: typing @ in
   a Wall post, comment or Dialog opens Search 🔍 under the box (Profiles 🙂
   first, then VirtuaMakers Exchange 💱, then Knowledge Base 📚); the header
   Search 🔍 now puts the Exchange first. A tagged member is notified for Wall
