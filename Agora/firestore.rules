@@ -1,6 +1,8 @@
 // Agora Firestore security rules.
-// Not deployed automatically (Agora has no Firebase CLI/build step) - paste
-// this into the Firebase console under Firestore Database -> Rules.
+// Deployed with the Functions in one command, from main (CLAUDE.md, "The
+// standard deploy procedure"): firebase deploy --only functions,firestore:rules
+// This file is the source of truth - edits made in the console are
+// overwritten by the next deploy.
 //
 // One document per member in `profiles`, keyed by their Auth UID. Anyone
 // (including signed-out visitors) can read every profile, matching the

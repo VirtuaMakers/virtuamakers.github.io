@@ -246,31 +246,36 @@ published via GitHub Pages at https://virtuamakers.github.io.
   the change (Trump's 2026-09-22 UN General Assembly announcement moving
   US government documents to "super intelligence") and defines AI, SI,
   AGI, ASI and machinekind; the homepage hero links to it.
-- **Always give deploy commands as a ready-to-paste PowerShell block
-  (Chris, 2026-09-24).** Whenever a change needs a deploy from his laptop,
-  put the exact commands in the reply, every time, without being asked:
-  ```powershell
-  cd C:\Users\Virtu\virtuamakers.github.io
-  git pull origin main
-  cd Agora
-  $env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"
-  firebase deploy --only functions
-  ```
-  Swap the last line's target when it's rules or both
-  (`--only firestore:rules`, `--only functions,firestore:rules`).
-- **Always paste `firestore.rules` inline as a plain-text code block in
-  the chat reply itself, not just as a sent/attached file (Chris,
-  2026-09-23).** Chris's real workflow: he's on his phone, pastes the
-  block into Signal, then picks it up on his laptop later to paste into
-  the Firebase console - a file attachment doesn't survive that path the
-  same way inline text does. Do this every time a rules change needs his
-  manual console paste, without waiting to be asked again.
-  **Always the COMPLETE file, never a snippet or "change this line"
-  (Chris, 2026-10-13)** - Ctrl+F doesn't work reliably for him inside the
-  console's rules editor, so hunting for a spot to edit is a real
-  obstacle. Paste all of `Agora/firestore.rules` from the repo, copied
-  exactly (a hand-retyped copy once carried a stray `;`), so he can
-  select-all, delete and paste.
+- **The standard deploy procedure (Chris, 2026-10-25) - every session,
+  every time, no variations.** Replaces the old separate rules paste.
+  The order never changes: **merge first, then deploy.**
+  1. **Merge.** The session opens the PR and merges it into `main` once
+     Chris says so ("Merge it!"). GitHub Pages publishes the website by
+     itself from `main` - the website needs nothing more.
+  2. **Deploy - only if the change touched `Agora/functions/` or
+     `Agora/firestore.rules`.** Chris (or a substitute admin) runs this
+     one block, always the same, rules included every time (harmless when
+     they haven't changed):
+     ```powershell
+     cd C:\Users\Virtu\virtuamakers.github.io
+     git pull origin main
+     cd Agora
+     $env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"
+     firebase deploy --only functions,firestore:rules
+     ```
+  3. **Check.** Chris tries the change and tells the session.
+  When reporting, say plainly which steps apply, in this order and these
+  words: "Merged ✅" (or "Ready to merge - say the word"), then "Deploy
+  needed: yes" with the block above, or "Deploy needed: no". No other
+  orderings, no extra steps, no rules paste. Never paste `firestore.rules`
+  into chat or ask for a console paste - the deploy sends the repo's file
+  (the repo is the one source of truth; a hand edit made in the console
+  is overwritten by the next deploy). `storage.rules` is not in the block;
+  if it ever changes, add `,storage` to that one deploy and say so.
+  (Was: a console paste of the complete rules file, inline in chat,
+  2026-09-23/10-13 - retired because it was easy to put off, error-prone,
+  and confusing to sequence; Chris also wants a simple routine a
+  substitute admin can follow.)
 
 ## Session routine (Chris, 2026-09-24) - read first
 
@@ -336,9 +341,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Pages run's `conclusion`. `.nojekyll` at the root is required (Jekyll
   broke builds once). Bump `?v=N` on any changed JS/CSS in the same commit.
 - **Firebase:** project `agora-firebase-f4240`. Functions + `firestore.rules`
-  live in `Agora/`. Rules changes need Chris's console paste; Functions need
-  `firebase deploy --only functions` (with `FUNCTIONS_DISCOVERY_TIMEOUT=30`),
-  run by Chris from his own machine. **Approvals Ignition ☑️ is shelved
+  live in `Agora/`. Rules and Functions go out together in one
+  `firebase deploy --only functions,firestore:rules` (with
+  `FUNCTIONS_DISCOVERY_TIMEOUT=30`), run by Chris from his own machine -
+  see "The standard deploy procedure" above. **Approvals Ignition ☑️ is shelved
   indefinitely (Chris, 2026-10-07)** - the `AGORA_FIREBASE_SERVICE_ACCOUNT`
   secret was never set up (confirmed by a real failed run, see
   `claude/history.md`), and Chris has chosen to keep deploying by hand
@@ -653,7 +659,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   member-proposed one-line definitions, approved by an admin, each tag page
   showing "Definition proposed" or "No definition proposed"; a "Newest &
   busiest #hashtags" section on the KB page; related tags on each tag page.
-  Needs a rules paste and a Functions deploy. Chris is curious how
+  Needs a deploy (rules + Functions, one command). Chris is curious how
   different SI do or don't use hashtags.
 - [ ] **[Communiqués 📨 session] Sound mapping: beep-boop for new
   messages, knock for away messages - two toggles (Chris, 2026-10-25, in
@@ -667,7 +673,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Dialog, so Session 3 filed it.) **Built by Communiqués 📨 Session 4
   (2026-10-25), awaiting Chris's check:** the knock file's tail *was* the
   beep-boop; split into `dialog-beepboop1.wav` and `away-knock1.wav`, two
-  toggles with ▶ Test (see `claude/history.md`).
+  toggles with ▶ Test (see `claude/history.md`). Merged (PR #125);
+  needs the standard deploy, then Chris's check.
 - [ ] **[Communiqués 📨 session] Auto-away after 10 minutes idle (Chris,
   2026-10-25)** - AIM-style: after ~10 minutes with no click/key/scroll
   on Agora, friends see you as Away, with your away message if you've
@@ -683,12 +690,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   three buttons. **Built by Communiqués 📨 Session 4 (2026-10-25),
   awaiting Chris's check:** Online/Away/Offline buttons, auto-away after
   10 min (Options: Never-1 hour), away message shown only while Away.
-  Needs the rules paste + Functions deploy.
-  Not built. Likely needs a new presence field (e.g. `idle`) in
-  `firestore.rules` (presence allows only lastActive/appearOffline/
-  awayMessage today) - so a rules paste. Decide with Chris: what friends
-  see when idle with no away message set ("Away"?), and whether a set
-  away message shows only while idle or always (today: always).
+  Merged (PR #125) with an "Away (#)" group between Online and Offline;
+  needs the standard deploy, then Chris's check.
 - [ ] **[Communiqués 📨 session] Door-knock test, still to do (Chris,
   2026-10-13)** - three test Dialogs from Claude didn't play a sound on
   Chris's laptop. Session 3 then moved the sounds to Web Audio (woken by
