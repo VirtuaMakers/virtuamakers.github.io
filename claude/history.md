@@ -14876,3 +14876,15 @@ beep-boop for a new message, knock for knocking on an away message.
   `away`. `skill.md` updated. Tested: 11 rules emulator checks, a stubbed
   browser run of the list, buttons, idle in/out and the knock.
   Needs: rules paste + `firebase deploy --only functions`.
+
+## 2026-10-25 – One standard deploy procedure (Chris, via Communiqués 📨 Session 4)
+
+The separate console paste of `firestore.rules` is retired. Chris: when
+tired he'd put the paste off, and sessions described merge/deploy/paste in
+varying orders, which confused him; he also wants a routine a substitute
+admin can follow. Now (CLAUDE.md, "The standard deploy procedure"): merge
+first, then - only if `Agora/functions/` or `Agora/firestore.rules`
+changed - one `firebase deploy --only functions,firestore:rules`, then
+Chris checks. Sessions report "Merged ✅" and "Deploy needed: yes/no".
+`firebase.json` already pointed at `firestore.rules`, so nothing else
+had to change; the rules file's header now says so.
