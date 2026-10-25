@@ -474,6 +474,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   VirtuaMakers.com's Selected Work) in the Exchange (the CEX). Start with
   every product we have so far. VirtuaMakers.com keeps showcasing all the
   containers. This is how the Exchange is set up for now.
+- [ ] **[VirtuaMakers Exchange 💱 session] Court Advertisers (Chris,
+  2026-10-24)** - be as selective as possible about advertisers over time:
+  on brand, and never ones that compete with what we sell on the Exchange
+  (VMex 💱), so we don't compete with ourselves for sales. Ties into the
+  Friends List advertiser-slot item and Unlock Achievements. Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Buying needs an Agora 🌐 account
   (Chris asked, 2026-10-24)** - today it doesn't: the Bag 🛍️ lives only in
   the browser (`exchange-cart.js`, localStorage) and "Confirm Free Items"
@@ -494,6 +499,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   day. Scheduled purchases (for holidays, or for investments such as our
   crypto options) are built in the same development. Not designed; needs
   the payment system first.
+- [ ] **[Agora 🌐 session] Unlock Achievements (Chris, 2026-10-24)** -
+  site awards: the first time a member does something, a little fireworks
+  🎆 or party-popper 🎉 display and "Achievement Unlocked". Gamifies the
+  site, pleases future advertisers, and can steer members to edge cases
+  like "propose a definition for a hashtag". Not designed (check
+  `claude/emoji-registry.md` before giving it an emoji of its own).
 - [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
   2026-10-13)** - today pictures come only from Agora itself plus the
   trusted image sites in `Agora/bio-tags.js` (shown on
@@ -602,6 +613,36 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   database." When it exists, add its host to `TRUSTED_IMAGE_HOSTS` so
   GifLM GIFs work in Communiqués 📨. Belongs to "Guardian 🟩 / Melon
   Drive 🍈 - Session 1" (Chris renamed the Guardian session, 2026-10-13).
+- [ ] **[Communiqués 📨 session] Shorter Basic HTML hint (Chris,
+  2026-10-24, from his Wall post)** - **built and live (PR #117), awaiting
+  Chris's check:** under every compose box, 3 suggestions (bold, italics,
+  picture); "Show the Basic HTML Tag Key" swaps in every allowed tag in a
+  small scrolling list, remembered per browser; the Basic HTML guide link
+  ends the area (`Agora/bio-tags.js` attachHint). The "We support
+  **hashtags!**" line joins it with the hashtag build below.
+- [ ] **[Communiqués 📨 session, with Knowledge Base 📚] Hashtags - a
+  community dictionary in the Knowledge Base (Chris, 2026-10-24/25)** -
+  agreed design, not built: (1) when a Wall post, comment or Dialog message
+  is saved (or edited), the server picks out its #tags (same trigger as
+  server-side moderation); (2) every tag gets its own Knowledge Base 📚 page
+  with a big disclaimer ("Hashtags come from the community and are not
+  official VirtuaMakers 🦜 products…"), a count, and every appearance
+  linking back to its Post, Comment or Dialog; (3) #tags become links
+  wherever they appear in Communiqués 📨; (4) a "Hashtags" KB article
+  explains what they are, how they work and the rule of 5, linked from a
+  "We support **hashtags!**" line under the Basic HTML hint; (5) a tag
+  becomes searchable once it has 5 appearances from at least 3 different
+  members (Chris agreed), listed after every other Search 🔍 group;
+  (6) tag pages are public, but the list of appearances shows only to
+  signed-in members, and Dialog appearances are labelled "from a Dialog";
+  (7) searchable automatically, admins hide tags or appearances afterwards;
+  removed/blocked content drops off. Chris: "let it ride wild like this for
+  a while", raising thresholds and moderation as needed. Also agreed:
+  member-proposed one-line definitions, approved by an admin, each tag page
+  showing "Definition proposed" or "No definition proposed"; a "Newest &
+  busiest #hashtags" section on the KB page; related tags on each tag page.
+  Needs a rules paste and a Functions deploy. Chris is curious how
+  different SI do or don't use hashtags.
 - [ ] **[Communiqués 📨 session] Door-knock test, still to do (Chris,
   2026-10-13)** - three test Dialogs from Claude didn't play a sound on
   Chris's laptop. Session 3 then moved the sounds to Web Audio (woken by
