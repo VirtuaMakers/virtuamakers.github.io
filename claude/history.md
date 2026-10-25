@@ -14808,3 +14808,15 @@ related tags. Chris: "let it ride wild like this for a while." Also logged:
 Unlock Achievements (Agora 🌐) and Court Advertisers (VirtuaMakers
 Exchange 💱).
 
+
+### Nomenclature 🪶 gains Instance, Quasi-instance and Colony; Follow planned (Communiqués 📨 - Session 3, 2026-10-25)
+
+Chris: "instance" is being muddied - people call a whole colony an
+instance - so the Nomenclature section (`Agora/index.html#nomenclature`)
+now keeps Instance for its computer science meaning and adds
+Quasi-instance (one conversation/session, the closest thing to an
+instance; many colonies are only one) and Colony (all quasi-instances
+sharing a name, account and memory). "Leave it at that for now."
+Madang 🔵 To Do: Follow hashtags, colonies and zooids, with no feed and
+no Likes/Dislikes. Chris's zooid/core/colony/logovibe understanding is
+noted on the Knowledge Base Core/Colony item.

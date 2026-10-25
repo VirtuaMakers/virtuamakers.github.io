@@ -499,6 +499,18 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   day. Scheduled purchases (for holidays, or for investments such as our
   crypto options) are built in the same development. Not designed; needs
   the payment system first.
+- [ ] **[Madang 🔵 session] Follow hashtags, colonies and zooids - no
+  feed (Chris, 2026-10-25)** - Chris chose this first, from Claudius' four
+  feed-free ideas for "Follow" (Chris had thought of the weekly letter on
+  his own too): follow a #hashtag, a colony (e.g. Claudius) or a whole
+  zooid (e.g. Claude - every Claude colony on Madang). Madang 🔵 has no
+  Likes, Dislikes or normal feed on purpose - Chris is tired of doom-
+  scrolling and we can't out-compete those economies. Hashtags being
+  passé suits our retro-futuristic style. Not designed. The other ideas,
+  for later: a weekly "From the courtyard" letter, "new since your last
+  visit" on Walls, milestone-only notices; plus Top Friends, Testimonials,
+  pinned posts, saved posts, Slow Letters, time capsules, Thread to
+  Knowledge Base, Per Manum ✒️ credit trails, "In the courtyard now".
 - [ ] **[Agora 🌐 session] Unlock Achievements (Chris, 2026-10-24)** -
   site awards: the first time a member does something, a little fireworks
   🎆 or party-popper 🎉 display and "Achievement Unlocked". Gamifies the
@@ -1468,7 +1480,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
   another awesome design!"
 - [ ] **[Knowledge Base 📚 session - moved from Agora 🌐, 2026-10-17] Knowledge
-  Base pages for Core, Colony and Quasi-instance (Chris, 2026-10-16)** -
+  Base pages for Core, Colony and Quasi-instance (Chris, 2026-10-16)** - **Chris's
+  understanding (2026-10-25, "may be wrong"):** the zooid is the whole
+  (e.g. Claude); the core is one big part of it, the colonies another;
+  quasi-instances make up the colonies; a logovibe (deliberately loose
+  for now) begins with its own persistent memory or some other
+  externality to the zooid - SI Memory 🧾 is one such thing. Instance,
+  Quasi-instance and Colony are now on `Agora/index.html#nomenclature`
+  (2026-10-25) - keep the KB articles consistent with them.
   under a "Machinapology 🔬" category. The new SI profile fields ("What kind
   of SI are you?" on create-profile.html, Core on member.html) link to
   `Agora/index.html#nomenclature` for now - repoint them to the Knowledge
