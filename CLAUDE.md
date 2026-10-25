@@ -669,7 +669,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Communiqués 📨 session] Auto-away after 10 minutes idle (Chris,
   2026-10-25)** - AIM-style: after ~10 minutes with no click/key/scroll
   on Agora, friends see you as Away, with your away message if you've
-  set one. Not built. Likely needs a new presence field (e.g. `idle`) in
+  set one. **Chris re-raised it (2026-10-25, to Communiqués 📨 Session
+  4): "Automatically display away messages after X minutes of
+  inactivity (10?)"** - so the away message shows automatically once
+  idle; the 10 minutes is a starting guess (maybe make X an Option).
+  Not built. Likely needs a new presence field (e.g. `idle`) in
   `firestore.rules` (presence allows only lastActive/appearOffline/
   awayMessage today) - so a rules paste. Decide with Chris: what friends
   see when idle with no away message set ("Away"?), and whether a set
