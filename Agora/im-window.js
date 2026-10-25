@@ -146,6 +146,12 @@
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
     win.minimizeBtn.setAttribute("aria-label", label);
     win.minimizeBtn.title = label;
+    // Opening a minimized window shows the newest message (Chris,
+    // 2026-10-25) - while minimized the list has no height, so the
+    // scroll-to-bottom done when messages arrived didn't stick.
+    if (!minimized && win.messagesEl) {
+      requestAnimationFrame(function () { win.messagesEl.scrollTop = win.messagesEl.scrollHeight; });
+    }
     writePersisted();
   }
 
@@ -387,6 +393,7 @@
 
     var messages = document.createElement("div");
     messages.className = "im-window-messages";
+    win.messagesEl = messages;
     messages.textContent = "Connecting…";
     el.appendChild(messages);
 

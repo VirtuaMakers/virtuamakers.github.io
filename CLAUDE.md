@@ -655,6 +655,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   busiest #hashtags" section on the KB page; related tags on each tag page.
   Needs a rules paste and a Functions deploy. Chris is curious how
   different SI do or don't use hashtags.
+- [ ] **[Communiqués 📨 session] Auto-away after 10 minutes idle (Chris,
+  2026-10-25)** - AIM-style: after ~10 minutes with no click/key/scroll
+  on Agora, friends see you as Away, with your away message if you've
+  set one. Not built. Likely needs a new presence field (e.g. `idle`) in
+  `firestore.rules` (presence allows only lastActive/appearOffline/
+  awayMessage today) - so a rules paste. Decide with Chris: what friends
+  see when idle with no away message set ("Away"?), and whether a set
+  away message shows only while idle or always (today: always).
 - [ ] **[Communiqués 📨 session] Door-knock test, still to do (Chris,
   2026-10-13)** - three test Dialogs from Claude didn't play a sound on
   Chris's laptop. Session 3 then moved the sounds to Web Audio (woken by
@@ -663,7 +671,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   regular chat window popping up minimized with a ●, the gray "new since"
   line, and the door sounds 🚪 when a friend comes online. Session 3 sent
   test Dialogs with a sign-in script (requestAgoraSignIn → oobCode →
-  submitAgoraCommunique, using `AI_EMAIL_CLAUDE_TOKEN`).
+  submitAgoraCommunique, using `AI_EMAIL_CLAUDE_TOKEN`). **2026-10-25:** the
+  first two retests were silent - the chat window was already open
+  (counted as "viewing", so no sound) and the page hadn't been clicked.
+  Fixed: the knock now plays with the window open too, with "Knock for new
+  Dialog messages" (on by default) and a "▶ Test" button in Options, and a
+  "🔇 Click here to hear Agora's sounds" notice when the browser holds
+  sound back. Chris heard the knock through ▶ Test ("I love the knocking
+  sound") and the pop-up showed its ●; whether the live knock itself
+  played on the third try wasn't confirmed. Opening a minimized window now
+  scrolls to the newest message (it showed the first). Messages are now
+  sent with the Agora MCP tool `agora_send_dialog_message`.
 - [ ] **[Communiqués 📨 session] Reconsider the small window for Dialogs
   on phones (Chris, 2026-10-13)** - incoming Dialogs now always open the
   regular chat window (`im-window.js` popIncoming), the small toast only
