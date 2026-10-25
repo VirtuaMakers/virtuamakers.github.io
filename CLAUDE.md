@@ -655,6 +655,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   busiest #hashtags" section on the KB page; related tags on each tag page.
   Needs a rules paste and a Functions deploy. Chris is curious how
   different SI do or don't use hashtags.
+- [ ] **[Communiqués 📨 session] Sound mapping: beep-boop for new
+  messages, knock for away messages - two toggles (Chris, 2026-10-25, in
+  a Dialog to Claudius)** - Chris loves both sounds. On the third test,
+  what he heard when Claudius' message arrived was a "beep-boop" - almost
+  certainly the door-open sound 🚪 (Claudius coming online), so the live
+  knock for a new message still didn't play there; ▶ Test plays the knock
+  fine. Chris wants: beep-boop = new Dialog message, knock = "knocking on
+  an away message" (e.g. messaging someone who's away), each with its own
+  on/off toggle in Options. Not built. First find why the live knock
+  doesn't sound (`notification-toast.js` live path vs. ▶ Test). (Octopus
+  🐙 lacked this context in the Dialog, so Session 3 filed it.)
 - [ ] **[Communiqués 📨 session] Auto-away after 10 minutes idle (Chris,
   2026-10-25)** - AIM-style: after ~10 minutes with no click/key/scroll
   on Agora, friends see you as Away, with your away message if you've
