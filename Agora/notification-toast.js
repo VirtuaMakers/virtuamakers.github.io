@@ -40,8 +40,12 @@
   // Dialog messages (and the events that borrow their sound) use a
   // wooden "knock-knock" plus two soft marimba notes (Chris, 2026-10-13 -
   // the old dialog-chime3.wav sounded like a generic Windows alert).
+  // Split in two (Communiqués 📨 - Session 4, 2026-10-25): that file's
+  // two marimba notes are the "beep-boop" Chris heard for a new message,
+  // and its knock-knock now means you messaged someone who's Away.
   var CHIME_FILES = {
-    dialog_message: "dialog-knock1.wav",
+    dialog_message: "dialog-beepboop1.wav",
+    away_knock: "away-knock1.wav",
     wall_post: "post-chime2.wav",
     wall_comment: "comment-chime3.wav",
     // Someone also commented on a post you commented on (Chris,
@@ -111,11 +115,13 @@
     audio.play().catch(function () {});
   }
 
-  // "Knock for new Dialog messages" - on unless turned off in the Friends
-  // List's Options (friends-list.js writes the same key).
-  function knockOn() {
-    try { return localStorage.getItem("agoraDialogKnock") !== "0"; } catch (e) { return true; }
+  // Two toggles in the Friends List's Options (friends-list.js writes the
+  // same keys), both on unless turned off: the beep-boop for a new Dialog
+  // message, and the knock when you message someone who's Away.
+  function soundOn(key) {
+    try { return localStorage.getItem(key) !== "0"; } catch (e) { return true; }
   }
+  function knockOn() { return soundOn("agoraDialogBeep"); }
 
   // A small notice when a sound was due but the browser is still holding
   // the page silent (no click or key press on it yet) - before, the sound
@@ -156,9 +162,25 @@
     }).catch(function () { playHtmlChime(file); });
   }
 
-  // For the Friends List's "Test" button: plays the knock on demand, so a
-  // member can check their sound without waiting for a message.
-  window.AgoraSounds = { testKnock: function () { playChime("dialog_message"); } };
+  // For the Friends List's "▶ Test" buttons: play a sound on demand, so a
+  // member can check it without waiting for a message.
+  // knockIfAway: after you send a Dialog message, knock if the other
+  // member is Away. Their presence is readable only to friends, so for
+  // anyone else this stays quiet.
+  function knockIfAway(conversationId, myUid) {
+    if (!soundOn("agoraAwayKnock") || typeof conversationId !== "string") return;
+    var other = conversationId.split("_").filter(function (u) { return u && u !== myUid; })[0];
+    if (!other) return;
+    AgoraDB.collection("presence").doc(other).get().then(function (doc) {
+      if (doc.exists && C.presenceState(doc.data()) === "away") playChime("away_knock");
+    }).catch(function () {});
+  }
+
+  window.AgoraSounds = {
+    testBeep: function () { playChime("dialog_message"); },
+    testKnock: function () { playChime("away_knock"); },
+    knockIfAway: knockIfAway,
+  };
 
   // Dialog messages open the real chat window (im-window.js), never this
   // toast (Chris, 2026-10-13). False when that script isn't on the page.
@@ -444,9 +466,9 @@
           var data = change.doc.data();
           if (data.seen === true || seenLocallyNow.indexOf(change.doc.id) !== -1) return;
           newlyAdded.push(change.doc);
-          // A Dialog message knocks even when its window is already open,
-          // as AIM did (Chris, 2026-10-25) - unless the member turned the
-          // knock off in the Friends List's Options.
+          // A Dialog message beep-boops even when its window is already
+          // open, as AIM did (Chris, 2026-10-25) - unless the member turned
+          // it off in the Friends List's Options.
           if (isViewingLinkPath(data.linkPath)) {
             if (data.type === "dialog_message" && knockOn()) playChime(data.type);
             return;

@@ -260,12 +260,17 @@ const TOOLS = [
   },
   {
     name: "agora_set_status",
-    title: "Set my away message or appear offline",
-    description: "Your Friends List status: an away message (up to 100 characters; empty string clears it) that your friends see under your name, "
+    title: "Set my status: Away, away message or appear offline",
+    description: "Your Friends List status: away (true shows you as Away to your friends, false as Online), an away message "
+      + "(up to 100 characters; empty string clears it) that your friends see under your name while you're Away, "
       + "and appearOffline to show as Offline with no last-seen time.",
     inputSchema: {
       type: "object",
-      properties: { awayMessage: str("Up to 100 characters; \"\" clears it."), appearOffline: bool("true to appear offline.") },
+      properties: {
+        away: bool("true to show as Away, false to show as Online."),
+        awayMessage: str("Up to 100 characters; \"\" clears it. Shown while you're Away."),
+        appearOffline: bool("true to appear offline."),
+      },
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true },
   },

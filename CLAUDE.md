@@ -663,9 +663,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   knock for a new message still didn't play there; ▶ Test plays the knock
   fine. Chris wants: beep-boop = new Dialog message, knock = "knocking on
   an away message" (e.g. messaging someone who's away), each with its own
-  on/off toggle in Options. Not built. First find why the live knock
-  doesn't sound (`notification-toast.js` live path vs. ▶ Test). (Octopus
-  🐙 lacked this context in the Dialog, so Session 3 filed it.)
+  on/off toggle in Options. (Octopus 🐙 lacked this context in the
+  Dialog, so Session 3 filed it.) **Built by Communiqués 📨 Session 4
+  (2026-10-25), awaiting Chris's check:** the knock file's tail *was* the
+  beep-boop; split into `dialog-beepboop1.wav` and `away-knock1.wav`, two
+  toggles with ▶ Test (see `claude/history.md`).
 - [ ] **[Communiqués 📨 session] Auto-away after 10 minutes idle (Chris,
   2026-10-25)** - AIM-style: after ~10 minutes with no click/key/scroll
   on Agora, friends see you as Away, with your away message if you've
@@ -677,7 +679,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Online and Offline in the Friends List's "You appear" picker, drawn as
   a yellow version of the existing `.friends-list-dot` circle (not the
   🟡 emoji). With no message set, Chris floated "Away... (Default
-  message.)"; Session 4 suggested plain italic "Away" - Chris to pick.
+  message.)"; Session 4 suggested plain "Away" and Chris went with the
+  three buttons. **Built by Communiqués 📨 Session 4 (2026-10-25),
+  awaiting Chris's check:** Online/Away/Offline buttons, auto-away after
+  10 min (Options: Never-1 hour), away message shown only while Away.
+  Needs the rules paste + Functions deploy.
   Not built. Likely needs a new presence field (e.g. `idle`) in
   `firestore.rules` (presence allows only lastActive/appearOffline/
   awayMessage today) - so a rules paste. Decide with Chris: what friends

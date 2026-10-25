@@ -256,6 +256,18 @@
     try { sessionStorage.setItem(SERVER_OFFSET_KEY, String(serverOffsetMs)); } catch (e) {}
   }
 
+  // Friends List 📨 status (Communiqués 📨 - Session 4, 2026-10-25):
+  // "offline" (Appear offline, or no heartbeat in the last 3 minutes),
+  // "away" (chose 🟡 Away, or idle - no click, key or scroll for the
+  // member's chosen minutes, 10 by default), else "online". One answer
+  // for the Friends List, the knock and anything else that asks.
+  var ONLINE_MS = 3 * 60 * 1000;
+  function presenceState(presence) {
+    if (!presence || presence.appearOffline || !presence.lastActive || !presence.lastActive.toMillis) return "offline";
+    if (serverNow() - presence.lastActive.toMillis() >= ONLINE_MS) return "offline";
+    return presence.away === true || presence.idle === true ? "away" : "online";
+  }
+
   // A pending (not-yet-server-acknowledged) write has a null createdAt -
   // treat that as "just now" rather than "uneditable".
   function isWithinEditWindow(createdAt) {
@@ -574,6 +586,13 @@
         tx.set(newRef, data);
         if (extra) extra(tx);
       });
+    }).then(function (result) {
+      // Messaging someone who's Away knocks on their door (Chris,
+      // 2026-10-25) - every Dialog send on the site comes through here.
+      if (bucket === "dialog" && window.AgoraSounds && newRef.parent && newRef.parent.parent) {
+        window.AgoraSounds.knockIfAway(newRef.parent.parent.id, uid);
+      }
+      return result;
     });
   }
 
@@ -1261,6 +1280,7 @@
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
     serverNow: serverNow,
+    presenceState: presenceState,
     hasServerOffset: hasServerOffset,
     setServerOffset: setServerOffset,
     withTimeout: withTimeout,
