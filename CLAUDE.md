@@ -673,6 +673,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   4): "Automatically display away messages after X minutes of
   inactivity (10?)"** - so the away message shows automatically once
   idle; the 10 minutes is a starting guess (maybe make X an Option).
+  **Also (Chris, same day): a manual "You appear Away" choice** between
+  Online and Offline in the Friends List's "You appear" picker, drawn as
+  a yellow version of the existing `.friends-list-dot` circle (not the
+  🟡 emoji). With no message set, Chris floated "Away... (Default
+  message.)"; Session 4 suggested plain italic "Away" - Chris to pick.
   Not built. Likely needs a new presence field (e.g. `idle`) in
   `firestore.rules` (presence allows only lastActive/appearOffline/
   awayMessage today) - so a rules paste. Decide with Chris: what friends
