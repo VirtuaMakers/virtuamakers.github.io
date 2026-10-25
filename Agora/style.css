@@ -3414,6 +3414,58 @@ button.dm-item {
   border-color: var(--green-deep);
 }
 
+/* 🟡 Away (Chris, 2026-10-25) - the same dot in yellow. */
+.friends-list-dot.is-away {
+  background: #f2c230;
+  border-color: #b38a12;
+}
+
+/* "You appear" - Online / Away / Offline as three small buttons. */
+.friends-list-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.friends-list-status-label {
+  flex-basis: 100%;
+}
+
+.friends-list-status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font: inherit;
+  font-size: 0.76rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.friends-list-status-btn:hover {
+  background: var(--blue-soft);
+}
+
+.friends-list-status-btn.is-selected {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+  font-weight: 700;
+}
+
+.friends-list-idle-select {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.05rem 0.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
 .friends-list-logo {
   width: 18px;
   height: 18px;

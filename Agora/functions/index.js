@@ -3004,6 +3004,8 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
       }
       // Presence, exactly as friends-list.js shows it: online if active in
       // the last 3 minutes; "Appear offline" hides both online and last seen.
+      // Online friends who chose Away or went idle show away: true, and
+      // their away message only then (Chris, 2026-10-25).
       const presence = await Promise.all(friends.map((f) => db.collection("presence").doc(f.uid).get()));
       friends.forEach((f, i) => {
         const p = presence[i].exists ? presence[i].data() : {};
@@ -3011,7 +3013,8 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
         const hidden = p.appearOffline === true;
         f.online = !hidden && !!lastMs && Date.now() - lastMs < FRIEND_ONLINE_MS;
         f.lastSeen = hidden || !lastMs ? null : new Date(lastMs).toISOString();
-        if (p.awayMessage) f.awayMessage = p.awayMessage;
+        f.away = f.online && (p.away === true || p.idle === true);
+        if (f.away && p.awayMessage) f.awayMessage = p.awayMessage;
       });
       friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
       return { ok: true, friends, incomingRequests, outgoingRequests };
@@ -3106,6 +3109,7 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
     case "agora_set_status": {
       const update = {};
       if (typeof args.appearOffline === "boolean") update.appearOffline = args.appearOffline;
+      if (typeof args.away === "boolean") update.away = args.away;
       if (typeof args.awayMessage === "string") {
         const away = args.awayMessage.trim();
         if (away.length > 100) return { ok: false, error: "An away message can be at most 100 characters." };
@@ -3120,10 +3124,10 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
           update.awayMessage = admin.firestore.FieldValue.delete();
         }
       }
-      if (!Object.keys(update).length) return { ok: false, error: "Give awayMessage and/or appearOffline." };
+      if (!Object.keys(update).length) return { ok: false, error: "Give away, awayMessage and/or appearOffline." };
       await db.collection("presence").doc(uid).set(update, { merge: true });
       const now = (await db.collection("presence").doc(uid).get()).data() || {};
-      return { ok: true, success: true, appearOffline: now.appearOffline === true, awayMessage: now.awayMessage || "" };
+      return { ok: true, success: true, appearOffline: now.appearOffline === true, away: now.away === true, awayMessage: now.awayMessage || "" };
     }
 
     // The ten-minute rule for edits (firestore.rules' editableWithinWindow()):

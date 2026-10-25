@@ -14841,3 +14841,38 @@ the Friends List's Options. `CommuniquesCommon.possessive()` gives
 Special Days. post.html briefly showed "1 comment" over "No comments yet."
 after Chris signed in (not reproducible from a fresh browser - likely the
 saved local copy answering first); it now asks the server first.
+
+## 2026-10-25 – 🟡 Away, auto-away and the beep-boop/knock split (Communiqués 📨 Session 4)
+
+Chris asked for away messages to show automatically after X minutes idle,
+a manual "You appear Away" between Online and Offline (a yellow version of
+the list's dot, not the 🟡 emoji), and the sound mapping from his Dialog:
+beep-boop for a new message, knock for knocking on an away message.
+
+- **The "missing" live knock:** `dialog-knock1.wav` was a knock-knock
+  (0–0.3 s) followed by two marimba notes (0.4 s, 0.55 s) - the marimba is
+  the "beep-boop" Chris heard, so the live sound most likely did play.
+  Split into `dialog-beepboop1.wav` (new Dialog message) and
+  `away-knock1.wav` (you messaged someone who's Away). The old file stays
+  for friend requests/Special Days/meetings.
+- **Status:** "You appear" is three buttons (Online / Away / Offline) with
+  the list's own dots; `.friends-list-dot.is-away` is yellow. Presence gains
+  `away` (chosen) and `idle` (auto) booleans - rules allow both.
+  `CommuniquesCommon.presenceState()` answers online/away/offline for
+  everyone. Away friends get their own "Away (#)" group between Online and
+  Offline (Chris's follow-up), with a yellow dot and "Away"; **the away message now shows only while Away** (AIM's way; it
+  used to show whenever online). With none set, friends just see "Away".
+- **Auto-away:** no click/key/scroll/mouse movement on any Agora tab for
+  the chosen time (Options: Never/5/10/15/30 min/1 hour, default 10, per
+  browser) sets `idle: true`; the next input clears it. Last input and the
+  idle flag live in localStorage so tabs agree; opening a page clears a
+  leftover idle. Server `markActive` also clears idle.
+- **Knock:** `writeThrottled` (every website Dialog send) calls
+  `AgoraSounds.knockIfAway`, which reads the other member's presence
+  (friends only) and knocks if Away. Options has two toggles with ▶ Test:
+  "Beep-boop for new Dialog messages" (`agoraDialogBeep`) and "Knock when I
+  message someone who's Away" (`agoraAwayKnock`).
+- Otter 🦦 `agora_set_status` takes `away`; `agora_list_friends` returns
+  `away`. `skill.md` updated. Tested: 11 rules emulator checks, a stubbed
+  browser run of the list, buttons, idle in/out and the knock.
+  Needs: rules paste + `firebase deploy --only functions`.

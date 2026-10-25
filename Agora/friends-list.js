@@ -26,6 +26,16 @@
 // awayMessage, up to 100 characters, shown to friends under your name),
 // and AIM-style door sounds when a friend comes online or goes offline -
 // off by default, a per-browser toggle.
+//
+// Round 3 (Chris, 2026-10-25, Communiqués 📨 - Session 4): "You appear"
+// is three buttons - 🟢 Online, 🟡 Away, ⚪ Offline - drawn with the
+// list's own dots. Away is presence.away (chosen) or presence.idle (set
+// on its own after the member's chosen minutes with no click, key or
+// scroll; 10 by default, "Never" turns it off). The away message now
+// shows only while you're Away, as on AIM; with none set friends just
+// see "Away". Sounds: beep-boop for a new Dialog message, a knock when
+// you message someone who's Away (notification-toast.js), each with its
+// own toggle and ▶ Test in Options.
 
 (function () {
   if (typeof CommuniquesCommon === "undefined" || typeof AgoraDB === "undefined") return;
@@ -40,6 +50,7 @@
 
   var currentUser = null;
   var appearOffline = false;
+  var chosenAway = false; // presence.away - picked 🟡 Away yourself
   var awayMessage = "";
   var AWAY_MAX = 100;
   var SOUNDS_KEY = "agoraFriendSounds";
@@ -122,15 +133,23 @@
     if (document.visibilityState === "visible") beat(false);
   });
 
-  function setAppearOffline(value) {
-    appearOffline = value;
+  // "online" | "away" | "offline" - the three "You appear" buttons.
+  function myStatus() {
+    return appearOffline ? "offline" : chosenAway ? "away" : "online";
+  }
+
+  function setStatus(status) {
+    appearOffline = status === "offline";
+    chosenAway = status === "away";
+    showMyStatus();
     if (!currentUser) return;
-    if (value) {
+    if (appearOffline) {
       stopHeartbeat();
-      presenceRef(currentUser.uid).set({ appearOffline: true }, { merge: true }).catch(function () {});
+      presenceRef(currentUser.uid).set({ appearOffline: true, away: false }, { merge: true }).catch(function () {});
     } else {
       presenceRef(currentUser.uid).set({
         appearOffline: false,
+        away: chosenAway,
         lastActive: firebase.firestore.FieldValue.serverTimestamp(),
       }, { merge: true }).catch(function () {});
       try { sessionStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
@@ -138,11 +157,72 @@
     }
   }
 
+  function showMyStatus() {
+    if (!panel || !panel.statusBtns) return;
+    var now = myStatus();
+    Object.keys(panel.statusBtns).forEach(function (k) {
+      panel.statusBtns[k].classList.toggle("is-selected", k === now);
+      panel.statusBtns[k].setAttribute("aria-pressed", k === now ? "true" : "false");
+    });
+  }
+
+  // --- Auto-away ⏱ -------------------------------------------------------------
+  // After the member's chosen minutes with no click, key, scroll or mouse
+  // movement on any Agora tab, presence.idle turns true and friends see
+  // them as Away; the next touch of the page turns it back. The last input
+  // time and the idle flag live in localStorage, so every open tab agrees
+  // (one busy tab keeps the others from going idle).
+  var IDLE_KEY = "agoraIdleMinutes";
+  var LAST_INPUT_KEY = "agoraLastInput";
+  var IDLE_STATE_KEY = "agoraIdleState";
+  var IDLE_CHOICES = [[0, "Never"], [5, "5 minutes"], [10, "10 minutes"], [15, "15 minutes"], [30, "30 minutes"], [60, "1 hour"]];
+  var lastInputWrite = 0;
+
+  function idleMinutes() {
+    try {
+      var v = localStorage.getItem(IDLE_KEY);
+      return v === null ? 10 : Math.max(0, Number(v) || 0);
+    } catch (e) { return 10; }
+  }
+
+  function readLocal(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+
+  function writeIdle(idle) {
+    try { localStorage.setItem(IDLE_STATE_KEY, idle ? "1" : "0"); } catch (e) {}
+    if (!currentUser || appearOffline) return;
+    presenceRef(currentUser.uid).set({ idle: idle }, { merge: true }).catch(function () {});
+  }
+
+  function noteInput() {
+    var now = Date.now();
+    if (now - lastInputWrite > 15000) {
+      lastInputWrite = now;
+      try { localStorage.setItem(LAST_INPUT_KEY, String(now)); } catch (e) {}
+    }
+    if (readLocal(IDLE_STATE_KEY) === "1") {
+      try { localStorage.setItem(LAST_INPUT_KEY, String(now)); } catch (e) {}
+      writeIdle(false);
+      beat(true);
+    }
+  }
+  ["pointerdown", "keydown", "scroll", "touchstart", "mousemove", "wheel"].forEach(function (type) {
+    document.addEventListener(type, noteInput, { capture: true, passive: true });
+  });
+
+  function checkIdle() {
+    var mins = idleMinutes();
+    if (!currentUser || appearOffline || !mins) return;
+    var last = Number(readLocal(LAST_INPUT_KEY)) || Date.now();
+    if (Date.now() - last >= mins * 60000 && readLocal(IDLE_STATE_KEY) !== "1") writeIdle(true);
+  }
+  setInterval(checkIdle, 30 * 1000);
+
   // --- Status text ------------------------------------------------------------
 
   function isOnline(presence) {
-    if (!presence || presence.appearOffline || !presence.lastActive || !presence.lastActive.toMillis) return false;
-    return C.serverNow() - presence.lastActive.toMillis() < ONLINE_MS;
+    return C.presenceState(presence) !== "offline";
   }
 
   function lastSeenText(presence) {
@@ -291,7 +371,7 @@
     li.className = "friends-list-row" + (entry.unread ? " is-unread" : "");
 
     var dot = document.createElement("span");
-    dot.className = "friends-list-dot" + (entry.status === "online" ? " is-online" : entry.status === "si" ? " is-si" : "");
+    dot.className = "friends-list-dot" + (entry.status === "online" ? " is-online" : entry.status === "away" ? " is-away" : entry.status === "si" ? " is-si" : "");
     dot.setAttribute("aria-hidden", "true");
     if (entry.logo) {
       var img = document.createElement("img");
@@ -425,12 +505,15 @@
     body.textContent = "";
 
     var online = [];
+    var away = [];
     var offline = [];
     Object.keys(friends).forEach(function (uid) {
       var f = friends[uid];
       var entry = { uid: uid, name: f.name, href: memberHref(uid), unread: !!unread[uid] };
-      if (f.presence && !f.presence.appearOffline && f.presence.awayMessage) entry.away = f.presence.awayMessage;
-      var on = isOnline(f.presence);
+      var state = C.presenceState(f.presence);
+      // The away message shows only while they're Away (AIM's way).
+      if (state === "away" && f.presence.awayMessage) entry.away = f.presence.awayMessage;
+      var on = state !== "offline";
       // Door sounds: only once this friend's presence has actually loaded,
       // so opening the list doesn't "open the door" for everyone at once.
       if (f.presenceLoaded) {
@@ -438,9 +521,9 @@
         lastOnline[uid] = on;
       }
       if (on) {
-        entry.status = "online";
-        entry.sub = f.kind === "AI" ? "Online · SI" : "Online";
-        online.push(entry);
+        entry.status = state;
+        entry.sub = (state === "away" ? "Away" : "Online") + (f.kind === "AI" ? " · SI" : "");
+        (state === "away" ? away : online).push(entry);
       } else {
         entry.status = "offline";
         entry.sub = lastSeenText(f.presence);
@@ -451,6 +534,7 @@
     });
     // Unread first, then alphabetical.
     online.sort(function (a, b) { return (b.unread - a.unread) || a.name.localeCompare(b.name); });
+    away.sort(function (a, b) { return (b.unread - a.unread) || a.name.localeCompare(b.name); });
     offline.sort(function (a, b) { return (b.unread - a.unread) || (b.seen - a.seen) || a.name.localeCompare(b.name); });
 
     // Unread Dialogs from people who aren't your friends (yet) - one line,
@@ -488,9 +572,11 @@
       loading.textContent = "Loading friends…";
       body.appendChild(loading);
     } else {
-      var noFriends = !online.length && !offline.length;
+      var noFriends = !online.length && !away.length && !offline.length;
       body.appendChild(buildGroup("online", "Online", online,
         noFriends ? "No friends yet - add some from their profiles 🙂" : "No friends online right now."));
+      // Away gets its own group between Online and Offline (Chris, 2026-10-25).
+      body.appendChild(buildGroup("away", "Away", away, "No one's away."));
       body.appendChild(buildGroup("offline", "Offline", offline, "Everyone's here!"));
     }
 
@@ -666,7 +752,7 @@
         awayMessage: text ? text : firebase.firestore.FieldValue.delete(),
       }, { merge: true }).then(function () {
         awayMessage = text;
-        noteEl.textContent = text ? "Saved – friends see it under your name." : "Away message cleared.";
+        noteEl.textContent = text ? "Saved – friends see it while you're Away." : "Away message cleared – friends just see \"Away\".";
         noteEl.hidden = false;
         setTimeout(function () { noteEl.hidden = true; }, 3000);
         done(text);
@@ -726,22 +812,36 @@
     });
     el.appendChild(header);
 
-    // Your own status - AIM's "available / invisible".
+    // Your own status - AIM's "available / away / invisible", as three
+    // buttons with the list's own dots (Chris, 2026-10-25).
     var me = document.createElement("div");
     me.className = "friends-list-me";
-    var label = document.createElement("label");
-    label.textContent = "You appear ";
-    var select = document.createElement("select");
-    [["online", "🟢 Online"], ["offline", "⚪ Offline"]].forEach(function (o) {
-      var opt = document.createElement("option");
-      opt.value = o[0];
-      opt.textContent = o[1];
-      select.appendChild(opt);
+    var statusRow = document.createElement("div");
+    statusRow.className = "friends-list-status";
+    statusRow.setAttribute("role", "group");
+    statusRow.setAttribute("aria-label", "You appear");
+    var statusLabel = document.createElement("span");
+    statusLabel.className = "friends-list-status-label";
+    statusLabel.textContent = "You appear";
+    statusRow.appendChild(statusLabel);
+    var statusBtns = {};
+    [["online", "Online", "is-online"], ["away", "Away", "is-away"], ["offline", "Offline", ""]].forEach(function (o) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "friends-list-status-btn";
+      b.title = o[0] === "away" ? "Friends see you as Away, with your away message"
+        : o[0] === "offline" ? "Friends see you as Offline, with no last-seen time"
+        : "Friends see you're here";
+      var d = document.createElement("span");
+      d.className = "friends-list-dot" + (o[2] ? " " + o[2] : "");
+      d.setAttribute("aria-hidden", "true");
+      b.appendChild(d);
+      b.appendChild(document.createTextNode(o[1]));
+      b.addEventListener("click", function () { setStatus(o[0]); });
+      statusBtns[o[0]] = b;
+      statusRow.appendChild(b);
     });
-    select.value = appearOffline ? "offline" : "online";
-    select.addEventListener("change", function () { setAppearOffline(select.value === "offline"); });
-    label.appendChild(select);
-    me.appendChild(label);
+    me.appendChild(statusRow);
 
     // Away message - AIM's status line. Friends see it under your name.
     var awayInput = document.createElement("input");
@@ -749,6 +849,7 @@
     awayInput.className = "friends-list-away-input";
     awayInput.maxLength = AWAY_MAX;
     awayInput.placeholder = "Away message (optional) – press Enter";
+    awayInput.title = "Friends see it while you're Away. Leave it blank and they just see \"Away\".";
     awayInput.value = awayMessage;
     var awayNote = document.createElement("span");
     awayNote.className = "friends-list-away-note";
@@ -815,29 +916,57 @@
     soundLabel.appendChild(document.createTextNode(" Door sounds when friends come & go"));
     options.appendChild(soundLabel);
 
-    // Knock for new Dialog messages (Chris, 2026-10-25) - on by default,
-    // remembered per browser; notification-toast.js reads the same key.
-    var knockLabel = document.createElement("label");
-    knockLabel.className = "friends-list-sounds";
-    var knockBox = document.createElement("input");
-    knockBox.type = "checkbox";
-    try { knockBox.checked = localStorage.getItem("agoraDialogKnock") !== "0"; } catch (e) { knockBox.checked = true; }
-    knockBox.addEventListener("change", function () {
-      try { localStorage.setItem("agoraDialogKnock", knockBox.checked ? "1" : "0"); } catch (e) {}
+    // Beep-boop for new Dialog messages, and a knock when you message
+    // someone who's Away (Chris, 2026-10-25) - each on by default,
+    // remembered per browser; notification-toast.js reads the same keys.
+    function soundToggle(key, text, testName, testTitle) {
+      var label = document.createElement("label");
+      label.className = "friends-list-sounds";
+      var box = document.createElement("input");
+      box.type = "checkbox";
+      try { box.checked = localStorage.getItem(key) !== "0"; } catch (e) { box.checked = true; }
+      box.addEventListener("change", function () {
+        try { localStorage.setItem(key, box.checked ? "1" : "0"); } catch (e) {}
+      });
+      label.appendChild(box);
+      label.appendChild(document.createTextNode(" " + text + " "));
+      var test = document.createElement("button");
+      test.type = "button";
+      test.className = "friends-list-options-btn friends-list-inline-btn";
+      test.textContent = "▶ Test";
+      test.title = testTitle;
+      test.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (window.AgoraSounds) window.AgoraSounds[testName]();
+      });
+      label.appendChild(test);
+      options.appendChild(label);
+    }
+    soundToggle("agoraDialogBeep", "Beep-boop for new Dialog messages", "testBeep", "Play the beep-boop now");
+    soundToggle("agoraAwayKnock", "Knock when I message someone who's Away", "testKnock", "Play the knock now");
+
+    // Auto-away ⏱ - how long without a click, key or scroll before
+    // friends see you as Away (per browser).
+    var idleLabel = document.createElement("label");
+    idleLabel.className = "friends-list-sounds";
+    idleLabel.appendChild(document.createTextNode("Show me as Away after "));
+    var idleSelect = document.createElement("select");
+    idleSelect.className = "friends-list-idle-select";
+    IDLE_CHOICES.forEach(function (c) {
+      var opt = document.createElement("option");
+      opt.value = String(c[0]);
+      opt.textContent = c[1];
+      idleSelect.appendChild(opt);
     });
-    knockLabel.appendChild(knockBox);
-    knockLabel.appendChild(document.createTextNode(" Knock for new Dialog messages "));
-    var knockTest = document.createElement("button");
-    knockTest.type = "button";
-    knockTest.className = "friends-list-options-btn friends-list-inline-btn";
-    knockTest.textContent = "▶ Test";
-    knockTest.title = "Play the knock now";
-    knockTest.addEventListener("click", function (e) {
-      e.preventDefault();
-      if (window.AgoraSounds) window.AgoraSounds.testKnock();
+    idleSelect.value = String(idleMinutes());
+    if (idleSelect.selectedIndex < 0) idleSelect.value = "10";
+    idleSelect.addEventListener("change", function () {
+      try { localStorage.setItem(IDLE_KEY, idleSelect.value); } catch (e) {}
+      if (idleSelect.value === "0" && readLocal(IDLE_STATE_KEY) === "1") writeIdle(false);
     });
-    knockLabel.appendChild(knockTest);
-    options.appendChild(knockLabel);
+    idleLabel.appendChild(idleSelect);
+    idleLabel.appendChild(document.createTextNode(" idle"));
+    options.appendChild(idleLabel);
     var soundHint = document.createElement("p");
     soundHint.className = "friends-list-sound-hint";
     soundHint.hidden = true;
@@ -876,7 +1005,7 @@
     wireDrag(el, header);
     requestAnimationFrame(function () { el.classList.add("open"); });
 
-    panel = { el: el, body: body, minBtn: minBtn, select: select, awayInput: awayInput, soundHint: soundHint, minimized: false, friendsLoaded: false };
+    panel = { el: el, body: body, minBtn: minBtn, statusBtns: statusBtns, awayInput: awayInput, soundHint: soundHint, minimized: false, friendsLoaded: false };
     return panel;
   }
 
@@ -895,7 +1024,7 @@
 
   function openPanel(minimized) {
     if (!currentUser) return;
-    if (!panel) buildPanel();
+    if (!panel) { buildPanel(); showMyStatus(); }
     setMinimized(!!minimized);
   }
 
@@ -956,12 +1085,16 @@
       if (currentUser && currentUser.uid === user.uid) return;
       currentUser = user;
       presenceRef(user.uid).get().then(function (doc) {
-        appearOffline = !!(doc.exists && doc.data().appearOffline);
-        awayMessage = (doc.exists && doc.data().awayMessage) || "";
-        if (panel) {
-          panel.select.value = appearOffline ? "offline" : "online";
-          panel.awayInput.value = awayMessage;
-        }
+        var d = doc.exists ? doc.data() : {};
+        appearOffline = d.appearOffline === true;
+        chosenAway = d.away === true;
+        awayMessage = d.awayMessage || "";
+        if (panel) panel.awayInput.value = awayMessage;
+        showMyStatus();
+        // Opening a page counts as being here: clear a leftover idle.
+        try { localStorage.setItem(LAST_INPUT_KEY, String(Date.now())); } catch (e) {}
+        if (d.idle === true && !appearOffline) writeIdle(false);
+        else try { localStorage.setItem(IDLE_STATE_KEY, "0"); } catch (e) {}
         if (!appearOffline) startHeartbeat();
       }).catch(function () { startHeartbeat(); });
 

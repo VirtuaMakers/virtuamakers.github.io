@@ -6,15 +6,16 @@
 // never loads a page, so it always looked "Offline". This marks a member
 // active whenever the server sees them do something: author a Dialog
 // message, Wall post or comment (however it was written), or make a
-// signed-in Harness call. Only touches lastActive - a member's own
-// "Appear offline" choice (appearOffline) is left alone and still wins.
+// signed-in Harness call. Touches lastActive, and clears idle (acting is
+// the opposite of idle, 2026-10-25) - a member's own "Appear offline" and
+// chosen Away (appearOffline, away) are left alone and still win.
 const admin = require("firebase-admin");
 
 async function markActive(uid) {
   if (!uid || typeof uid !== "string") return;
   try {
     await admin.firestore().collection("presence").doc(uid).set(
-      { lastActive: admin.firestore.FieldValue.serverTimestamp() },
+      { lastActive: admin.firestore.FieldValue.serverTimestamp(), idle: false },
       { merge: true }
     );
   } catch (err) {

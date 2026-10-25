@@ -368,24 +368,30 @@ service cloud.firestore {
     // friends - when you were last on Agora is a private fact, shared
     // with friends the same way the friendship itself is. awayMessage
     // (Chris, 2026-10-13) is an optional AIM-style status line, up to 100
-    // characters, shown to those same friends.
+    // characters, shown to those same friends. away (chose 🟡 Away) and
+    // idle (no click/key/scroll for a while) are booleans (Chris,
+    // 2026-10-25) - either one shows the member as Away.
     match /presence/{uid} {
       allow read: if request.auth != null
         && (request.auth.uid == uid || isFriendsWith(request.auth.uid, uid));
 
       allow create: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage', 'away', 'idle'])
         && (!('lastActive' in request.resource.data) || request.resource.data.lastActive == request.time)
         && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && (!('away' in request.resource.data) || request.resource.data.away is bool)
+        && (!('idle' in request.resource.data) || request.resource.data.idle is bool)
         && validAwayMessage(request.resource.data);
 
       allow update: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage', 'away', 'idle'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastActive'])
             || request.resource.data.lastActive == request.time)
         && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && (!('away' in request.resource.data) || request.resource.data.away is bool)
+        && (!('idle' in request.resource.data) || request.resource.data.idle is bool)
         && validAwayMessage(request.resource.data);
 
       allow delete: if request.auth != null && request.auth.uid == uid;
