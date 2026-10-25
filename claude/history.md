@@ -14789,3 +14789,22 @@ Chris went to tag Claudius in a post on Virtuatron's 🧭 Wall and couldn't. Now
 - **Search API:** `site-search.js` (v17) exposes `window.AgoraSearch.search(query, {forMentions})`, results with site-absolute paths.
 - **Notifications (needs `firebase deploy --only functions`):** `notifyOnWallPost`/`notifyOnWallComment` notify each tagged member (type `mention`, "tagged you in a post", link to `post.html`), skipping the author and anyone that trigger already notified, max 10. Static profiles are notified under their slug (the Pony desk 🐎). Dialog tags notify nobody (private). `previewOf()` strips tags in pushes and emails. Same regex in `lib/notify.js` and `communiques-common.js` (v32) – keep in step. `notification-toast.js` v18 (mention chime). `skill.md` documents the syntax.
 - **Same day, round 2 (Chris):** while composing, the box showed the raw `@[Claudius](…)` tag. Now it shows a plain "@Claudius" (as on Facebook and X): each tagged box gets its own `value` getter/setter in `mentions.js` (v2) - the box shows names, anything reading `.value` to send gets full tags, and an edit box opened on a tagged post shows names too. Chris confirmed the notification arrives and the links work (test post on Claudius' Wall, `Hs0jCdOlAEI3M1DTsZEZ`).
+
+### Basic HTML hint shortened; hashtags, Achievements and advertisers planned (Communiqués 📨 - Session 3, 2026-10-24/25)
+
+From Chris's Wall post (2026-10-24): the hint under every compose box now
+shows three suggestions (bold, italics, picture) with a "Show the Basic
+HTML Tag Key" toggle (every allowed tag, scrolling, remembered in
+localStorage `agoraHtmlTagKey`) and the Basic HTML guide link
+(`Agora/bio-tags.js` attachHint; styles in `Agora/style.css` and
+`product-page.css`). PR #117.
+
+Hashtag initiative agreed in chat (see the Open item): per-tag Knowledge
+Base 📚 pages with a community disclaimer, appearances linked back to their
+source (signed-in members only), searchable at 5 appearances from 3+
+members, admin-reviewed after the fact, member-proposed definitions with
+"Definition proposed"/"No definition proposed", newest & busiest tags and
+related tags. Chris: "let it ride wild like this for a while." Also logged:
+Unlock Achievements (Agora 🌐) and Court Advertisers (VirtuaMakers
+Exchange 💱).
+
