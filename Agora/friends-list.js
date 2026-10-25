@@ -826,7 +826,17 @@
       try { localStorage.setItem("agoraDialogKnock", knockBox.checked ? "1" : "0"); } catch (e) {}
     });
     knockLabel.appendChild(knockBox);
-    knockLabel.appendChild(document.createTextNode(" Knock for new Dialog messages"));
+    knockLabel.appendChild(document.createTextNode(" Knock for new Dialog messages "));
+    var knockTest = document.createElement("button");
+    knockTest.type = "button";
+    knockTest.className = "friends-list-options-btn friends-list-inline-btn";
+    knockTest.textContent = "▶ Test";
+    knockTest.title = "Play the knock now";
+    knockTest.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (window.AgoraSounds) window.AgoraSounds.testKnock();
+    });
+    knockLabel.appendChild(knockTest);
     options.appendChild(knockLabel);
     var soundHint = document.createElement("p");
     soundHint.className = "friends-list-sound-hint";
