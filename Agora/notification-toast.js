@@ -117,12 +117,34 @@
     try { return localStorage.getItem("agoraDialogKnock") !== "0"; } catch (e) { return true; }
   }
 
+  // A small notice when a sound was due but the browser is still holding
+  // the page silent (no click or key press on it yet) - before, the sound
+  // was simply skipped with no sign why (Chris, 2026-10-25).
+  var mutedNote = null;
+  function showMutedNote() {
+    if (mutedNote || !document.body) return;
+    mutedNote = document.createElement("button");
+    mutedNote.type = "button";
+    mutedNote.className = "agora-sound-blocked";
+    mutedNote.textContent = "🔇 Click here to hear Agora's sounds";
+    mutedNote.addEventListener("click", hideMutedNote);
+    document.body.appendChild(mutedNote);
+  }
+  function hideMutedNote() {
+    if (mutedNote && mutedNote.parentNode) mutedNote.parentNode.removeChild(mutedNote);
+    mutedNote = null;
+  }
+  document.addEventListener("pointerdown", function () { setTimeout(hideMutedNote, 0); }, true);
+
   function playChime(type) {
     var file = CHIME_FILES[type];
     if (!file) return;
     var ctx = getAudioCtx();
     if (!ctx) { playHtmlChime(file); return; }
-    if (ctx.state === "suspended") ctx.resume().catch(function () {});
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(function () {});
+      setTimeout(function () { if (ctx.state !== "running") showMutedNote(); }, 300);
+    }
     loadBuffer(file).then(function (buffer) {
       var source = ctx.createBufferSource();
       source.buffer = buffer;
@@ -133,6 +155,10 @@
       source.start();
     }).catch(function () { playHtmlChime(file); });
   }
+
+  // For the Friends List's "Test" button: plays the knock on demand, so a
+  // member can check their sound without waiting for a message.
+  window.AgoraSounds = { testKnock: function () { playChime("dialog_message"); } };
 
   // Dialog messages open the real chat window (im-window.js), never this
   // toast (Chris, 2026-10-13). False when that script isn't on the page.
