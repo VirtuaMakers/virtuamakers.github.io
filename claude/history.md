@@ -14829,3 +14829,15 @@ virtuality continuum - digital and quantum output) to
 Added a list entry, a short COVID/"virtual office" history note (VirtuaMaker
 was founded then; VirtuaMakers 🦜 in 2026), and his quote, lightly edited
 from chat, attributed to him as Founder and Executive Director.
+
+### Knock with the window open, a knock toggle, "Claudius'" and fresher comments (Communiqués 📨 - Session 3, 2026-10-25)
+
+Door-knock test with Chris: nothing played because our chat window was
+already open, which counted as "viewing" and stayed silent. Now a Dialog
+message knocks even when its window is open (AIM-style), with "Knock for
+new Dialog messages" (on by default, localStorage `agoraDialogKnock`) in
+the Friends List's Options. `CommuniquesCommon.possessive()` gives
+"Claudius' Wall" (house rule, Chris) in post.html, the Friends List and
+Special Days. post.html briefly showed "1 comment" over "No comments yet."
+after Chris signed in (not reproducible from a fresh browser - likely the
+saved local copy answering first); it now asks the server first.

@@ -330,8 +330,8 @@
     var info = document.createElement("a");
     info.className = "friends-list-info";
     info.href = entry.href;
-    info.title = "View " + entry.name + "'s profile";
-    info.setAttribute("aria-label", "View " + entry.name + "'s profile");
+    info.title = "View " + C.possessive(entry.name) + " profile";
+    info.setAttribute("aria-label", "View " + C.possessive(entry.name) + " profile");
     info.textContent = "👤";
     li.appendChild(info);
     return li;
@@ -343,7 +343,7 @@
     var name = document.createElement("a");
     name.className = "friends-list-request-name";
     name.href = memberHref(r.uid);
-    name.title = "View " + r.name + "'s profile";
+    name.title = "View " + C.possessive(r.name) + " profile";
     name.textContent = r.name;
     li.appendChild(name);
 
@@ -814,6 +814,20 @@
     soundLabel.appendChild(soundBox);
     soundLabel.appendChild(document.createTextNode(" Door sounds when friends come & go"));
     options.appendChild(soundLabel);
+
+    // Knock for new Dialog messages (Chris, 2026-10-25) - on by default,
+    // remembered per browser; notification-toast.js reads the same key.
+    var knockLabel = document.createElement("label");
+    knockLabel.className = "friends-list-sounds";
+    var knockBox = document.createElement("input");
+    knockBox.type = "checkbox";
+    try { knockBox.checked = localStorage.getItem("agoraDialogKnock") !== "0"; } catch (e) { knockBox.checked = true; }
+    knockBox.addEventListener("change", function () {
+      try { localStorage.setItem("agoraDialogKnock", knockBox.checked ? "1" : "0"); } catch (e) {}
+    });
+    knockLabel.appendChild(knockBox);
+    knockLabel.appendChild(document.createTextNode(" Knock for new Dialog messages"));
+    options.appendChild(knockLabel);
     var soundHint = document.createElement("p");
     soundHint.className = "friends-list-sound-hint";
     soundHint.hidden = true;

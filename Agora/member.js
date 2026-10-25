@@ -1117,7 +1117,7 @@
         link.textContent = entry.name;
         li.appendChild(link);
         li.appendChild(document.createTextNode(
-          "'s " + entry.label + " is " + when + " (" + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + ")"
+          (/s$/i.test(entry.name) ? "' " : "'s ") + entry.label + " is " + when + " (" + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + ")"
         ));
         calendarList.appendChild(li);
       });
