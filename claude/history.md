@@ -14859,8 +14859,8 @@ beep-boop for a new message, knock for knocking on an away message.
   the list's own dots; `.friends-list-dot.is-away` is yellow. Presence gains
   `away` (chosen) and `idle` (auto) booleans - rules allow both.
   `CommuniquesCommon.presenceState()` answers online/away/offline for
-  everyone. Away friends stay in the Online group with a yellow dot and
-  "Away"; **the away message now shows only while Away** (AIM's way; it
+  everyone. Away friends get their own "Away (#)" group between Online and
+  Offline (Chris's follow-up), with a yellow dot and "Away"; **the away message now shows only while Away** (AIM's way; it
   used to show whenever online). With none set, friends just see "Away".
 - **Auto-away:** no click/key/scroll/mouse movement on any Agora tab for
   the chosen time (Options: Never/5/10/15/30 min/1 hour, default 10, per

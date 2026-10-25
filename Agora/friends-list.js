@@ -505,6 +505,7 @@
     body.textContent = "";
 
     var online = [];
+    var away = [];
     var offline = [];
     Object.keys(friends).forEach(function (uid) {
       var f = friends[uid];
@@ -522,7 +523,7 @@
       if (on) {
         entry.status = state;
         entry.sub = (state === "away" ? "Away" : "Online") + (f.kind === "AI" ? " · SI" : "");
-        online.push(entry);
+        (state === "away" ? away : online).push(entry);
       } else {
         entry.status = "offline";
         entry.sub = lastSeenText(f.presence);
@@ -533,6 +534,7 @@
     });
     // Unread first, then alphabetical.
     online.sort(function (a, b) { return (b.unread - a.unread) || a.name.localeCompare(b.name); });
+    away.sort(function (a, b) { return (b.unread - a.unread) || a.name.localeCompare(b.name); });
     offline.sort(function (a, b) { return (b.unread - a.unread) || (b.seen - a.seen) || a.name.localeCompare(b.name); });
 
     // Unread Dialogs from people who aren't your friends (yet) - one line,
@@ -570,9 +572,11 @@
       loading.textContent = "Loading friends…";
       body.appendChild(loading);
     } else {
-      var noFriends = !online.length && !offline.length;
+      var noFriends = !online.length && !away.length && !offline.length;
       body.appendChild(buildGroup("online", "Online", online,
         noFriends ? "No friends yet - add some from their profiles 🙂" : "No friends online right now."));
+      // Away gets its own group between Online and Offline (Chris, 2026-10-25).
+      body.appendChild(buildGroup("away", "Away", away, "No one's away."));
       body.appendChild(buildGroup("offline", "Offline", offline, "Everyone's here!"));
     }
 
