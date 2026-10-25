@@ -111,6 +111,12 @@
     audio.play().catch(function () {});
   }
 
+  // "Knock for new Dialog messages" - on unless turned off in the Friends
+  // List's Options (friends-list.js writes the same key).
+  function knockOn() {
+    try { return localStorage.getItem("agoraDialogKnock") !== "0"; } catch (e) { return true; }
+  }
+
   function playChime(type) {
     var file = CHIME_FILES[type];
     if (!file) return;
@@ -412,9 +418,15 @@
           var data = change.doc.data();
           if (data.seen === true || seenLocallyNow.indexOf(change.doc.id) !== -1) return;
           newlyAdded.push(change.doc);
-          if (isViewingLinkPath(data.linkPath)) return;
+          // A Dialog message knocks even when its window is already open,
+          // as AIM did (Chris, 2026-10-25) - unless the member turned the
+          // knock off in the Friends List's Options.
+          if (isViewingLinkPath(data.linkPath)) {
+            if (data.type === "dialog_message" && knockOn()) playChime(data.type);
+            return;
+          }
 
-          playChime(data.type);
+          if (data.type !== "dialog_message" || knockOn()) playChime(data.type);
           if (popDialog(data)) return;
           showToast(data, 0);
         });

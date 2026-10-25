@@ -58,13 +58,21 @@
   // Walks forward from the last page whose end is already known, so a deep
   // link like ?page=7 still works; ordinary Earlier/Later clicks only ever
   // need the page right next to one already loaded.
+  // Asks the server first (Chris, 2026-10-25: right after signing in, a
+  // post said "1 comment" over "No comments yet." - the browser's saved
+  // copy answered before the server did). Falls back to the saved copy
+  // only if the server can't be reached.
+  function getFresh(query) {
+    return query.get({ source: "server" }).catch(function () { return query.get(); });
+  }
+
   function fetchPage(n) {
-    if (n === 1) return commentsQuery().limit(PER_PAGE).get();
-    if (pageEnds[n - 1]) return commentsQuery().startAfter(pageEnds[n - 1]).limit(PER_PAGE).get();
+    if (n === 1) return getFresh(commentsQuery().limit(PER_PAGE));
+    if (pageEnds[n - 1]) return getFresh(commentsQuery().startAfter(pageEnds[n - 1]).limit(PER_PAGE));
     return fetchPage(n - 1).then(function (snap) {
       if (!snap.docs.length) return snap;
       pageEnds[n - 1] = snap.docs[snap.docs.length - 1];
-      return commentsQuery().startAfter(pageEnds[n - 1]).limit(PER_PAGE).get();
+      return getFresh(commentsQuery().startAfter(pageEnds[n - 1]).limit(PER_PAGE));
     });
   }
 
@@ -139,8 +147,8 @@
         var d = doc.data();
         var name = (d.preferHandle && d.handle) ? d.handle : (d.name || d.handle || "Member");
         backLink.href = "member.html?uid=" + encodeURIComponent(profileUid);
-        backLink.textContent = "← Back to " + name + "'s Wall";
-        heading.textContent = "Post on " + name + "'s Wall";
+        backLink.textContent = "← Back to " + C.possessive(name) + " Wall";
+        heading.textContent = "Post on " + C.possessive(name) + " Wall";
       } else {
         backLink.href = "profiles/" + encodeURIComponent(profileUid) + ".html";
       }
@@ -200,7 +208,7 @@
     notice.hidden = true;
 
     postRef = AgoraDB.collection("wallPosts").doc(postId);
-    postRef.get().then(function (doc) {
+    postRef.get({ source: "server" }).catch(function () { return postRef.get(); }).then(function (doc) {
       if (!doc.exists) {
         showNotice("This post doesn't exist – it may have been deleted.");
         return;

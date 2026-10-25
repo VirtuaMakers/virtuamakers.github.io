@@ -28,6 +28,14 @@
     });
   }
 
+  // Possessive of a name (Chris, 2026-10-25): a name ending in "s" takes
+  // the apostrophe alone - "Claudius' Wall", never "Claudius's Wall" - the
+  // same house rule as "VirtuaMakers 🦜'" (CLAUDE.md).
+  function possessive(name) {
+    name = String(name || "");
+    return name + (/s$/i.test(name) ? "'" : "'s");
+  }
+
   function formatDate(timestamp, withTime) {
     if (!timestamp || !timestamp.toDate) return "";
     var opts = withTime
@@ -1239,6 +1247,7 @@
     EDIT_WINDOW_MS: EDIT_WINDOW_MS,
     getDisplayName: getDisplayName,
     formatDate: formatDate,
+    possessive: possessive,
     truncateAtWord: truncateAtWord,
     openSignInModal: openSignInModal,
     otherParticipantsLabel: otherParticipantsLabel,
