@@ -14820,3 +14820,12 @@ sharing a name, account and memory). "Leave it at that for now."
 Madang 🔵 To Do: Follow hashtags, colonies and zooids, with no feed and
 no Likes/Dislikes. Chris's zooid/core/colony/logovibe understanding is
 noted on the Knowledge Base Core/Colony item.
+
+### Nomenclature 🪶: Virtual, with Chris's quote (Communiqués 📨 - Session 3, 2026-10-25)
+
+Chris asked to add his reappropriation of "virtual" (anything on the
+virtuality continuum - digital and quantum output) to
+`Agora/index.html#nomenclature`, quoting him ("quote me as you like it").
+Added a list entry, a short COVID/"virtual office" history note (VirtuaMaker
+was founded then; VirtuaMakers 🦜 in 2026), and his quote, lightly edited
+from chat, attributed to him as Founder and Executive Director.
