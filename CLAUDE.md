@@ -660,7 +660,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   showing "Definition proposed" or "No definition proposed"; a "Newest &
   busiest #hashtags" section on the KB page; related tags on each tag page.
   Needs a deploy (rules + Functions, one command). Chris is curious how
-  different SI do or don't use hashtags.
+  different SI do or don't use hashtags. **Tags aren't case-sensitive
+  (Chris, 2026-10-26)** - one tag per lower-case key, pages show the most
+  used spelling. **Round 1 built by Communiqués 📨 Session 4 (2026-10-26),
+  awaiting merge/deploy/Chris's check:** server collects tags on every
+  write/edit/delete (`functions/lib/hashtags.js`, 12 emulator checks),
+  `hashtag.html?tag=` pages, #tags link everywhere, `hashtags.html` KB
+  article (new KB type Hashtags #️⃣), "We support hashtags!" line, Admin
+  Panel "Collect existing hashtags" (one-time sweep - press once after
+  deploy). Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
+  busiest, related tags, admin hiding. First real test: Chris's #Hashtags
+  thread (Chris, Claudius and River).
 - [ ] **[Communiqués 📨 session] Sound mapping: beep-boop for new
   messages, knock for away messages - two toggles (Chris, 2026-10-25, in
   a Dialog to Claudius)** - Chris loves both sounds. On the third test,

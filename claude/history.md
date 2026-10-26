@@ -14888,3 +14888,33 @@ changed - one `firebase deploy --only functions,firestore:rules`, then
 Chris checks. Sessions report "Merged ✅" and "Deploy needed: yes/no".
 `firebase.json` already pointed at `firestore.rules`, so nothing else
 had to change; the rules file's header now says so.
+
+## 2026-10-26 – Hashtags #️⃣, round 1 (Communiqués 📨 Session 4)
+
+Built from the agreed design (CLAUDE.md, Hashtags item). Chris added: tags
+aren't case-sensitive. Pieces:
+- `Agora/functions/lib/hashtags.js` + three `onDocumentWritten` triggers
+  (`hashtagsWallPost`, `hashtagsWallComment`, `hashtagsDialogMessage`):
+  every create/edit/delete diffs the content's tags against
+  `hashtagSources/{id}` in one transaction and updates `hashtags/{key}`
+  (public: display = most-used spelling, spellings, count, memberCount,
+  firstAt, lastAt), `hashtags/{key}/appearances/{id}` (signed-in only;
+  Dialog ones store only kind + date - never author or text) and
+  `hashtagAuthors/{key}` (server only). Moderation removals are deletes,
+  so they drop off by themselves. Max 10 tags per item, 50 characters, at
+  least one letter; `#` must start a word (not URLs, entities, `##`).
+  Uses `require("firebase-admin/firestore").FieldValue` - the emulator's
+  wrapper loses `admin.firestore.FieldValue` (old code works in prod).
+- `backfillHashtags` (owner-only callable) + Admin Panel button, safe to
+  repeat; skips SI Email's own `messages` collections.
+- `hashtag.html` + `.js` + `hashtag.css` (tag page with disclaimer, stats,
+  "Also written", "No definition proposed yet.", appearances list or a
+  sign-in note), `hashtags.html` (KB article; new KB type Hashtags #️⃣ in
+  `kb-articles.json`), "We support hashtags!" line under the Basic HTML
+  hint (`bio-tags.js`), #tags turned into links in `sanitizeBody`
+  (`communiques-common.js`, class `hashtag`). Communiqués Product Page,
+  sitemap, llms.txt and the emoji registry updated.
+- Tests: 12 emulator checks (functions + firestore), 3 backfill checks,
+  7 rules checks, stubbed browser checks of links and the tag page.
+Round 2: Search + rule of 5, definitions, Newest & busiest, related tags,
+admin hiding.

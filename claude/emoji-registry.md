@@ -188,3 +188,9 @@ Each emoji in use, and what it belongs to (after the 2026-10-23 swaps).
 | 💡 | What the Exchange Already Means |
 | 🛍️ | Your Bag |
 | 🎨 | Æthel |
+
+## Added later
+
+| Emoji | Owner | Added |
+|---|---|---|
+| #️⃣ | Hashtags #️⃣ (the Knowledge Base 📚 type, `hashtags.html`, tag pages) | Communiqués 📨 Session 4, 2026-10-26 |

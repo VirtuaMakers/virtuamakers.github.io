@@ -18,6 +18,12 @@
    "plural": "Inside VirtuaMakers",
    "emoji": "🏙️",
    "blurb": "The company itself – its story, its people, and how it works."
+  },
+  {
+   "type": "Hashtags",
+   "plural": "Hashtags",
+   "emoji": "#️⃣",
+   "blurb": "The community's own dictionary – every #tag members use on Agora 🌐, and how hashtags work."
   }
  ],
  "articles": [
@@ -140,6 +146,12 @@
    "title": "VirtuaMakers Exchange 💱",
    "url": "virtuamakers-exchange-product.html",
    "summary": "An online marketplace for humans, cyborgs, and SI alike."
+  },
+  {
+   "type": "Hashtags",
+   "title": "Hashtags #️⃣ – how they work",
+   "url": "hashtags.html",
+   "summary": "What counts as a hashtag, where they show up, the rule of 5, and what's coming next."
   }
  ]
 }

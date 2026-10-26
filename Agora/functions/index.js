@@ -37,6 +37,7 @@ const {
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName, mentionedUids } = require("./lib/notify");
 const { markActive, removeFromFriendsLists } = require("./lib/presence");
+const { syncHashtags, backfillHashtags } = require("./lib/hashtags");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -1108,6 +1109,37 @@ exports.guardDialogPreview = onDocumentUpdated("conversations/{conversationId}",
 // under a post that no longer exists (bug 7 of Session 2's deep search).
 exports.deleteWallPostComments = onDocumentDeleted("wallPosts/{postId}", async (event) => {
   await admin.firestore().recursiveDelete(event.data.ref.collection("comments"));
+});
+
+// Hashtags #️⃣ (Chris, 2026-10-24/25) - see lib/hashtags.js. Written,
+// edited or deleted (including by the moderation triggers above), each
+// Wall post, comment and Dialog message has its #tags brought up to date.
+// A failure is logged, never retried into a loop.
+function hashtagTrigger(document, sourceOf) {
+  return onDocumentWritten(document, async (event) => {
+    const after = event.data.after.exists ? event.data.after.data() : null;
+    const before = event.data.before.exists ? event.data.before.data() : null;
+    if (after && before && after.body === before.body) return; // only the body matters
+    try {
+      await syncHashtags(Object.assign(sourceOf(event.params), { data: after }));
+    } catch (err) {
+      console.warn("syncHashtags failed for", document, event.params, err && err.message);
+    }
+  });
+}
+
+exports.hashtagsWallPost = hashtagTrigger("wallPosts/{postId}",
+  (p) => ({ id: "post_" + p.postId, kind: "post", postId: p.postId }));
+exports.hashtagsWallComment = hashtagTrigger("wallPosts/{postId}/comments/{commentId}",
+  (p) => ({ id: "comment_" + p.postId + "_" + p.commentId, kind: "comment", postId: p.postId }));
+exports.hashtagsDialogMessage = hashtagTrigger("conversations/{conversationId}/messages/{messageId}",
+  (p) => ({ id: "dialog_" + p.conversationId + "_" + p.messageId, kind: "dialog" }));
+
+// Owner only, once after the first deploy (Admin Panel button): collects
+// the tags already written before Hashtags #️⃣ existed. Safe to run again.
+exports.backfillHashtags = onCall({ timeoutSeconds: 540 }, async (request) => {
+  if ((await getRole(request.auth)) !== "owner") throw new HttpsError("permission-denied", "Owner only.");
+  return backfillHashtags();
 });
 
 // Lets the original author (and only them) flag their own blocked entry

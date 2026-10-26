@@ -351,6 +351,53 @@
     return String(raw || "").replace(MENTION_RE, function (m, name) { return "@" + name; });
   }
 
+  // Hashtags #️⃣ (Chris, 2026-10-24/25): every #tag in Communiqués 📨 text
+  // links to its Knowledge Base 📚 page, hashtag.html at the site root.
+  // Same rule as the server's functions/lib/hashtags.js: a # starting a
+  // word, letters/digits/_ after it, at least one letter, at most 50.
+  // Tags aren't case-sensitive - the link uses the lower-case form.
+  var HASHTAG_RE = /(^|[^\p{L}\p{N}_&#/])#([\p{L}\p{N}_]+)/gu;
+  function siteRoot() {
+    var p = window.location.pathname;
+    return p.indexOf("/Agora/profiles/") !== -1 ? "../../" : (p.indexOf("/Agora/") !== -1 ? "../" : "");
+  }
+  function hashtagHref(tag) {
+    return siteRoot() + "hashtag.html?tag=" + encodeURIComponent(tag.normalize("NFC").toLowerCase());
+  }
+  function isHashtag(tag) {
+    return tag.length <= 50 && /\p{L}/u.test(tag);
+  }
+  function linkHashtags(el) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while (walker.nextNode()) {
+      if (walker.currentNode.parentNode.closest("a")) continue;
+      if (walker.currentNode.nodeValue.indexOf("#") !== -1) nodes.push(walker.currentNode);
+    }
+    nodes.forEach(function (node) {
+      var text = node.nodeValue;
+      var frag = document.createDocumentFragment();
+      var last = 0;
+      var found = false;
+      text.replace(HASHTAG_RE, function (m, before, tag, offset) {
+        if (!isHashtag(tag)) return m;
+        var start = offset + before.length;
+        frag.appendChild(document.createTextNode(text.slice(last, start)));
+        var a = document.createElement("a");
+        a.className = "hashtag";
+        a.href = hashtagHref(tag);
+        a.textContent = "#" + tag;
+        frag.appendChild(a);
+        last = start + 1 + tag.length;
+        found = true;
+        return m;
+      });
+      if (!found) return;
+      frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
   function sanitizeBody(el, raw) {
     var clean = raw && typeof AgoraBioTags !== "undefined"
       ? AgoraBioTags.sanitize(String(raw).replace(MENTION_RE, function (m, name, path) {
@@ -362,6 +409,7 @@
       Array.prototype.forEach.call(el.querySelectorAll("a"), function (a) {
         if (a.textContent.charAt(0) === "@" && (a.getAttribute("href") || "").charAt(0) === "/") a.className = "mention";
       });
+      try { linkHashtags(el); } catch (e) {}
     } else {
       el.textContent = mentionsToText(raw);
     }
@@ -1280,6 +1328,7 @@
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
     serverNow: serverNow,
+    hashtagHref: hashtagHref,
     presenceState: presenceState,
     hasServerOffset: hasServerOffset,
     setServerOffset: setServerOffset,

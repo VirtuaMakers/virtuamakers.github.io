@@ -291,6 +291,16 @@
           <ul class="body-list" id="page-hits-list"><li>Loading…</li></ul>
         </div>
 
+        <div class="profile-panel" id="hashtags-panel" hidden>
+          <h2 class="panel-title">Hashtags #️⃣</h2>
+          <p class="body-text body-text-spaced">New Wall posts, comments and
+            Dialog messages are read for #tags as they're written. Press this
+            once after the first Hashtags deploy to collect the tags already
+            written before then (safe to press again).</p>
+          <button type="button" class="btn btn-primary btn-sm" id="hashtags-backfill-btn">Collect existing hashtags</button>
+          <p class="body-text" id="hashtags-backfill-result" hidden></p>
+        </div>
+
         <div class="profile-panel">
           <h2 class="panel-title">Pages</h2>
           <p class="body-text"><a href="newsletter-compose.html">Monthly Newsletter →</a></p>
@@ -349,7 +359,7 @@
   <script src="auth-ui.js?v=23"></script>
   <script src="site-search.js?v=17"></script>
   <script src="emoji-cycle.js?v=1"></script>
-  <script src="admin-panel.js?v=14"></script>
+  <script src="admin-panel.js?v=15"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

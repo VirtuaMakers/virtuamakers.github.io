@@ -1,0 +1,87 @@
+/* Hashtags #️⃣ (Chris, 2026-10-24/25) - a tag's own Knowledge Base 📚
+   page (hashtag.html) and the "Hashtags" article (hashtags.html). */
+
+.tag-page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 2.5rem 1rem 3rem;
+}
+
+.tag-page h1 {
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  margin: 0 0 0.4rem;
+  overflow-wrap: anywhere;
+}
+
+.tag-kicker {
+  color: var(--muted);
+  margin: 0 0 1.2rem;
+}
+
+.tag-disclaimer {
+  border: 2px solid #f2c230;
+  background: rgba(242, 194, 48, 0.12);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  margin: 0 0 1.5rem;
+  font-weight: 600;
+}
+
+.tag-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.6rem;
+  margin: 0 0 1.4rem;
+  color: var(--muted);
+}
+
+.tag-stats strong {
+  color: var(--text);
+}
+
+.tag-definition {
+  font-style: italic;
+  color: var(--muted);
+  margin: 0 0 1.8rem;
+}
+
+.tag-appearances {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.tag-appearances li {
+  border: 1px solid var(--line, #000);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+}
+
+.tag-appearance-meta {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.tag-appearance-excerpt {
+  display: block;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.tag-note {
+  color: var(--muted);
+}
+
+.tag-article h2 {
+  margin-top: 2rem;
+}
+
+.tag-article p,
+.tag-article li {
+  line-height: 1.6;
+}
