@@ -14936,3 +14936,18 @@ admin hiding.
   side simple for Brittany York.
 - Hashtags round 1 hadn't been merged when Chris deployed (he ran the
   deploy without "merge it"), so his deploy sent the old code - harmless.
+
+## 2026-10-26 – Minimize resets the window; the row clears the Friends List (Communiqués 📨 Session 4)
+
+Chris, testing as River: Minimize "did and didn't" - a window he'd dragged
+or reshaped stayed where it was as a bar. `setMinimized()` in
+`im-window.js` now clears `dragged` and the compose box's stretched height
+and calls `relayout()`. And the row of Dialog windows used to start in the
+bottom-right corner under the Friends List 📨; `relayout()` now starts it
+4px left of the list while the list is open in the right-hand column
+(`friendsListBox()` - note `offsetParent` is always null for a fixed
+element, so it measures the rect instead). The Friends List calls
+`AgoraIMWindow.relayout` on any size change (ResizeObserver), on close and
+after a drag. Stubbed browser check: window 907 right edge vs list 911
+left; a dragged window snaps back on Minimize. Hashtags round 1 merged as
+PR #127; the #Hashtags thread reached (5) with River.

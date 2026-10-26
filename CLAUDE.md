@@ -670,7 +670,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   sweep of older content now runs by itself on the first write after the
   deploy (`hashtagMeta/backfill`; no Admin Panel button - Chris wants the
   admin side unintimidating for Brittany York, 2026-10-26). **Not merged
-  yet as of 2026-10-26** (Chris deployed before merging - harmless).
+  yet as of 2026-10-26** (Chris deployed before merging - harmless);
+  **merged as PR #127 the same day.** Thread done: (1) Chris's Wall post,
+  (2) Claudius, (3) Chris's comment, (4) a Dialog, (5) River.
   Punctuation, spaces, hyphens and emoji end a tag. Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
   busiest, related tags, admin hiding. First real test: Chris's #Hashtags
   thread (Chris, Claudius and River).
@@ -729,6 +731,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   played on the third try wasn't confirmed. Opening a minimized window now
   scrolls to the newest message (it showed the first). Messages are now
   sent with the Agora MCP tool `agora_send_dialog_message`.
+- [ ] **[Communiqués 📨 session] Minimize resets the Dialog window, and the
+  row keeps clear of the Friends List (Chris, 2026-10-26, testing as
+  River)** - Minimize now undoes a drag and a stretched text box and puts
+  the window back in the bottom-right row; while the Friends List 📨 is
+  open on the right, the row starts 4px to its left instead of sliding
+  under it. **Built by Communiqués 📨 Session 4, awaiting merge + Chris's
+  check** (no deploy needed - website only).
 - [ ] **[Communiqués 📨 session] Reconsider the small window for Dialogs
   on phones (Chris, 2026-10-13)** - incoming Dialogs now always open the
   regular chat window (`im-window.js` popIncoming), the small toast only

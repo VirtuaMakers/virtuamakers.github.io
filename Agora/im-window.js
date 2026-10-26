@@ -87,8 +87,27 @@
   // the bottom-right corner - the most recently opened/focused window sits
   // closest to the corner, older ones stack further left. A window the
   // member has dragged keeps whatever position they put it at instead.
+  //
+  // The row also keeps clear of the Friends List 📨 (Chris, 2026-10-26):
+  // while the list is open on the right, the row starts just to its left,
+  // a few pixels apart, instead of sliding underneath it.
+  var FRIENDS_LIST_GAP_PX = 4;
+  var CORNER_PX = 19; // ~1.2rem at a 16px root font-size, matches the CSS default
+
+  function friendsListBox() {
+    if (isNarrowViewport()) return null;
+    var list = document.querySelector(".friends-list");
+    if (!list) return null;
+    var rect = list.getBoundingClientRect(); // (offsetParent is always null for a fixed element)
+    // Only when it's showing and still in the right-hand column (not
+    // dragged away).
+    if (!rect.width || rect.right < window.innerWidth - 120) return null;
+    return { clearRight: window.innerWidth - rect.left + FRIENDS_LIST_GAP_PX };
+  }
+
   function relayout() {
-    var rightPx = 19; // ~1.2rem at a 16px root font-size, matches the CSS default
+    var list = friendsListBox();
+    var rightPx = list ? Math.max(CORNER_PX, list.clearRight) : CORNER_PX;
     for (var i = windowOrder.length - 1; i >= 0; i--) {
       var win = windows[windowOrder[i]];
       if (!win || win.dragged || win.maximized) continue;
@@ -139,6 +158,14 @@
   function setMinimized(win, minimized) {
     if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
+    // Minimize puts the window back into its place in the row, whatever
+    // shape or spot it was dragged into (Chris, 2026-10-26): undo a drag
+    // and a stretched text box.
+    if (minimized) {
+      win.dragged = false;
+      var box = win.el.querySelector(".im-window-compose textarea");
+      if (box) box.style.height = "";
+    }
     if (!minimized) win.el.classList.remove("im-window-unread");
     if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid, win.newestId ? win.newestId() : undefined);
     win.el.classList.toggle("im-window-minimized", minimized);
@@ -152,6 +179,7 @@
     if (!minimized && win.messagesEl) {
       requestAnimationFrame(function () { win.messagesEl.scrollTop = win.messagesEl.scrollHeight; });
     }
+    relayout();
     writePersisted();
   }
 
@@ -651,5 +679,7 @@
     isNarrow: isNarrowViewport,
     isOpenFor: isOpenFor,
     occupiedCornerHeight: occupiedCornerHeight,
+    // The Friends List calls this when it opens, closes, minimizes or moves.
+    relayout: relayout,
   };
 })(window);
