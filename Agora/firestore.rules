@@ -399,6 +399,18 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
+    // Hashtags #️⃣ (Chris, 2026-10-24/25) - kept by the server alone
+    // (functions/lib/hashtags.js); nobody writes them from a browser. A
+    // tag's page is public; the list of where it appears is for signed-in
+    // members. hashtagAuthors/ and hashtagSources/ have no rule, so no
+    // browser can read them (who used a tag in a Dialog stays private).
+    match /hashtags/{key} {
+      allow read: if true;
+      match /appearances/{id} {
+        allow read: if request.auth != null;
+      }
+    }
+
     // Blocking (Chris, 2026-09-14) - a real per-person block, the gap
     // flagged once Octopus Style's own live test made "so long as you can
     // block someone, they should be able to dialog whoever" a real

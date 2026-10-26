@@ -37,6 +37,7 @@ const {
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName, mentionedUids } = require("./lib/notify");
 const { markActive, removeFromFriendsLists } = require("./lib/presence");
+const { syncHashtags, backfillHashtagsOnce } = require("./lib/hashtags");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -1109,6 +1110,38 @@ exports.guardDialogPreview = onDocumentUpdated("conversations/{conversationId}",
 exports.deleteWallPostComments = onDocumentDeleted("wallPosts/{postId}", async (event) => {
   await admin.firestore().recursiveDelete(event.data.ref.collection("comments"));
 });
+
+// Hashtags #️⃣ (Chris, 2026-10-24/25) - see lib/hashtags.js. Written,
+// edited or deleted (including by the moderation triggers above), each
+// Wall post, comment and Dialog message has its #tags brought up to date.
+// The first time any of these fires after the first Hashtags deploy, it
+// also sweeps up the tags written before then (backfillHashtagsOnce) - no
+// button for an admin to press (Chris, 2026-10-26). A failure is logged,
+// never retried into a loop.
+function hashtagTrigger(document, sourceOf) {
+  return onDocumentWritten({ document, timeoutSeconds: 540 }, async (event) => {
+    const after = event.data.after.exists ? event.data.after.data() : null;
+    const before = event.data.before.exists ? event.data.before.data() : null;
+    if (after && before && after.body === before.body) return; // only the body matters
+    try {
+      await syncHashtags(Object.assign(sourceOf(event.params), { data: after }));
+    } catch (err) {
+      console.warn("syncHashtags failed for", document, event.params, err && err.message);
+    }
+    try {
+      await backfillHashtagsOnce();
+    } catch (err) {
+      console.warn("backfillHashtagsOnce failed", err && err.message);
+    }
+  });
+}
+
+exports.hashtagsWallPost = hashtagTrigger("wallPosts/{postId}",
+  (p) => ({ id: "post_" + p.postId, kind: "post", postId: p.postId }));
+exports.hashtagsWallComment = hashtagTrigger("wallPosts/{postId}/comments/{commentId}",
+  (p) => ({ id: "comment_" + p.postId + "_" + p.commentId, kind: "comment", postId: p.postId }));
+exports.hashtagsDialogMessage = hashtagTrigger("conversations/{conversationId}/messages/{messageId}",
+  (p) => ({ id: "dialog_" + p.conversationId + "_" + p.messageId, kind: "dialog" }));
 
 // Lets the original author (and only them) flag their own blocked entry
 // for a second look, in case the filter misfired - no admin gate here,

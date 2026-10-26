@@ -104,6 +104,13 @@
     try { return localStorage.getItem(KEY_PREF) === "1"; } catch (e) { return false; }
   }
 
+  // The site root, from wherever this page is (root, /Agora/ or
+  // /Agora/profiles/).
+  function siteRoot() {
+    var p = window.location.pathname;
+    return p.indexOf("/Agora/profiles/") !== -1 ? "../../" : (p.indexOf("/Agora/") !== -1 ? "../" : "");
+  }
+
   function guideHref() {
     var p = window.location.pathname;
     var base = p.indexOf("/profiles/") !== -1 ? "../" : (p.indexOf("/Agora/") !== -1 ? "" : "Agora/");
@@ -164,6 +171,22 @@
     link.textContent = "Basic HTML guide →";
     line.appendChild(link);
     el.appendChild(line);
+
+    // Hashtags #️⃣ (Chris, 2026-10-24) - one line, linking to the
+    // Knowledge Base 📚 article on how they work.
+    var tagLine = document.createElement("p");
+    tagLine.className = "html-hint-line html-hint-hashtags";
+    tagLine.appendChild(document.createTextNode("We support "));
+    var tagLink = document.createElement("a");
+    tagLink.href = siteRoot() + "hashtags.html";
+    tagLink.target = "_blank";
+    tagLink.rel = "noopener";
+    var strong = document.createElement("strong");
+    strong.textContent = "hashtags!";
+    tagLink.appendChild(strong);
+    tagLine.appendChild(tagLink);
+    tagLine.appendChild(document.createTextNode(" #️⃣"));
+    el.appendChild(tagLine);
   }
 
   function attachHint(el) {

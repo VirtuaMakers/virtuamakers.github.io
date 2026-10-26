@@ -86,14 +86,20 @@
     return AgoraDB.collection("presence").doc(uid);
   }
 
-  // Throttled across page loads too (sessionStorage), so clicking through
-  // five pages in a minute still costs one write, not five.
+  // Throttled across page loads and open tabs (localStorage), so clicking
+  // through five pages in a minute, or keeping three tabs open, still
+  // costs one write a minute, not five.
+  //
+  // Keeps beating while the tab is in the background (Chris, 2026-10-26):
+  // it used to stop, so leaving for another tab showed you Offline after 3
+  // minutes and auto-away never got its turn. Now a member who's still got
+  // Agora open stays on the list, and goes 🟡 Away once idle - AIM's way.
   function beat(force) {
-    if (!currentUser || appearOffline || document.visibilityState !== "visible") return;
+    if (!currentUser || appearOffline) return;
     var last = 0;
-    try { last = Number(sessionStorage.getItem(LAST_WRITE_KEY)) || 0; } catch (e) {}
+    try { last = Number(localStorage.getItem(LAST_WRITE_KEY)) || 0; } catch (e) {}
     if (!force && Date.now() - last < HEARTBEAT_MS - 5000) return;
-    try { sessionStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
+    try { localStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
     // Only lastActive - writing appearOffline: false here used to undo an
     // "Appear offline" chosen in another open tab within a minute.
     var uid = currentUser.uid;
@@ -152,18 +158,25 @@
         away: chosenAway,
         lastActive: firebase.firestore.FieldValue.serverTimestamp(),
       }, { merge: true }).catch(function () {});
-      try { sessionStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
+      try { localStorage.setItem(LAST_WRITE_KEY, String(Date.now())); } catch (e) {}
       startHeartbeat();
     }
   }
 
+  var STATUS_CHOICES = [["online", "Online", "is-online"], ["away", "Away", "is-away"], ["offline", "Offline", ""]];
+
+  // The "You appear" dropdown shows your choice; a note under it says when
+  // you're idle, so you can see that friends see you as Away right now.
   function showMyStatus() {
-    if (!panel || !panel.statusBtns) return;
+    if (!panel || !panel.statusPick) return;
     var now = myStatus();
-    Object.keys(panel.statusBtns).forEach(function (k) {
-      panel.statusBtns[k].classList.toggle("is-selected", k === now);
-      panel.statusBtns[k].setAttribute("aria-pressed", k === now ? "true" : "false");
+    var choice = STATUS_CHOICES.filter(function (c) { return c[0] === now; })[0];
+    panel.statusDot.className = "friends-list-dot" + (choice[2] ? " " + choice[2] : "");
+    panel.statusText.textContent = choice[1];
+    panel.statusMenu.querySelectorAll("[role=option]").forEach(function (li) {
+      li.setAttribute("aria-selected", li.getAttribute("data-status") === now ? "true" : "false");
     });
+    panel.idleNote.hidden = !(now === "online" && readLocal(IDLE_STATE_KEY) === "1");
   }
 
   // --- Auto-away ⏱ -------------------------------------------------------------
@@ -191,6 +204,7 @@
 
   function writeIdle(idle) {
     try { localStorage.setItem(IDLE_STATE_KEY, idle ? "1" : "0"); } catch (e) {}
+    showMyStatus();
     if (!currentUser || appearOffline) return;
     presenceRef(currentUser.uid).set({ idle: idle }, { merge: true }).catch(function () {});
   }
@@ -218,6 +232,10 @@
     if (Date.now() - last >= mins * 60000 && readLocal(IDLE_STATE_KEY) !== "1") writeIdle(true);
   }
   setInterval(checkIdle, 30 * 1000);
+  // Another tab went idle or came back - keep this tab's note in step.
+  window.addEventListener("storage", function (e) {
+    if (e.key === IDLE_STATE_KEY) showMyStatus();
+  });
 
   // --- Status text ------------------------------------------------------------
 
@@ -812,36 +830,85 @@
     });
     el.appendChild(header);
 
-    // Your own status - AIM's "available / away / invisible", as three
-    // buttons with the list's own dots (Chris, 2026-10-25).
+    // Your own status - AIM's "available / away / invisible" - as a
+    // dropdown again (Chris, 2026-10-26: he preferred it to three
+    // buttons), drawn with the list's own dots rather than emoji, which a
+    // plain <select> can't show.
     var me = document.createElement("div");
     me.className = "friends-list-me";
     var statusRow = document.createElement("div");
     statusRow.className = "friends-list-status";
-    statusRow.setAttribute("role", "group");
-    statusRow.setAttribute("aria-label", "You appear");
     var statusLabel = document.createElement("span");
-    statusLabel.className = "friends-list-status-label";
-    statusLabel.textContent = "You appear";
+    statusLabel.textContent = "You appear ";
     statusRow.appendChild(statusLabel);
-    var statusBtns = {};
-    [["online", "Online", "is-online"], ["away", "Away", "is-away"], ["offline", "Offline", ""]].forEach(function (o) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "friends-list-status-btn";
-      b.title = o[0] === "away" ? "Friends see you as Away, with your away message"
+    var statusWrap = document.createElement("span");
+    statusWrap.className = "friends-list-status-wrap";
+    var statusPick = document.createElement("button");
+    statusPick.type = "button";
+    statusPick.className = "friends-list-status-pick";
+    statusPick.setAttribute("aria-haspopup", "listbox");
+    statusPick.setAttribute("aria-expanded", "false");
+    statusPick.title = "Change how friends see you";
+    var statusDot = document.createElement("span");
+    statusDot.setAttribute("aria-hidden", "true");
+    var statusText = document.createElement("span");
+    var caret = document.createElement("span");
+    caret.className = "friends-list-status-caret";
+    caret.setAttribute("aria-hidden", "true");
+    caret.textContent = "▾";
+    statusPick.appendChild(statusDot);
+    statusPick.appendChild(statusText);
+    statusPick.appendChild(caret);
+    var statusMenu = document.createElement("ul");
+    statusMenu.className = "friends-list-status-menu";
+    statusMenu.setAttribute("role", "listbox");
+    statusMenu.hidden = true;
+    function closeMenu() {
+      statusMenu.hidden = true;
+      statusPick.setAttribute("aria-expanded", "false");
+    }
+    STATUS_CHOICES.forEach(function (o) {
+      var li = document.createElement("li");
+      li.setAttribute("role", "option");
+      li.setAttribute("data-status", o[0]);
+      li.tabIndex = 0;
+      li.title = o[0] === "away" ? "Friends see you as Away, with your away message"
         : o[0] === "offline" ? "Friends see you as Offline, with no last-seen time"
-        : "Friends see you're here";
+        : "Friends see you're here (Away by itself when you're idle)";
       var d = document.createElement("span");
       d.className = "friends-list-dot" + (o[2] ? " " + o[2] : "");
       d.setAttribute("aria-hidden", "true");
-      b.appendChild(d);
-      b.appendChild(document.createTextNode(o[1]));
-      b.addEventListener("click", function () { setStatus(o[0]); });
-      statusBtns[o[0]] = b;
-      statusRow.appendChild(b);
+      li.appendChild(d);
+      li.appendChild(document.createTextNode(o[1]));
+      function pick() { closeMenu(); setStatus(o[0]); statusPick.focus(); }
+      li.addEventListener("click", pick);
+      li.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); }
+        if (e.key === "Escape") { closeMenu(); statusPick.focus(); }
+      });
+      statusMenu.appendChild(li);
     });
+    statusPick.addEventListener("click", function () {
+      var opening = statusMenu.hidden;
+      statusMenu.hidden = !opening;
+      statusPick.setAttribute("aria-expanded", opening ? "true" : "false");
+      if (opening) {
+        var sel = statusMenu.querySelector("[aria-selected=true]") || statusMenu.firstChild;
+        sel.focus();
+      }
+    });
+    document.addEventListener("click", function (e) {
+      if (!statusWrap.contains(e.target)) closeMenu();
+    });
+    statusWrap.appendChild(statusPick);
+    statusWrap.appendChild(statusMenu);
+    statusRow.appendChild(statusWrap);
     me.appendChild(statusRow);
+    var idleNote = document.createElement("p");
+    idleNote.className = "friends-list-idle-note";
+    idleNote.hidden = true;
+    idleNote.textContent = "You've been idle, so friends see you as Away. Any click or key brings you back.";
+    me.appendChild(idleNote);
 
     // Away message - AIM's status line. Friends see it under your name.
     var awayInput = document.createElement("input");
@@ -1005,7 +1072,7 @@
     wireDrag(el, header);
     requestAnimationFrame(function () { el.classList.add("open"); });
 
-    panel = { el: el, body: body, minBtn: minBtn, statusBtns: statusBtns, awayInput: awayInput, soundHint: soundHint, minimized: false, friendsLoaded: false };
+    panel = { el: el, body: body, minBtn: minBtn, statusPick: statusPick, statusDot: statusDot, statusText: statusText, statusMenu: statusMenu, idleNote: idleNote, awayInput: awayInput, soundHint: soundHint, minimized: false, friendsLoaded: false };
     return panel;
   }
 
