@@ -52,8 +52,9 @@ Communiqués 📨 4 was being filed at handoff (check `index.md`).
 - **Session 6 (2026-10-26) filed:** Agora Harness 🚡 2 (letter + 119
   messages), Memory Administrator 🚚 5 (93 messages). Aquarium GoFish 🪸 1
   recounted: 14/86 is real (nothing of Chris's dropped) - no re-file.
-- **Owed - transcript only:** Kinetoscope 👁️ 1 (big), Agora 🌐 5 (545k),
-  Memory Administrator 🚚 4.
+- **Also filed by Session 6 (transcripts):** Memory Administrator 🚚 4
+  (72), Kinetoscope 👁️ 1 (51), Agora 🌐 5 (90). Nothing owed now except
+  Agora 🌐 4's letter, if it ever gives one.
 - **Queue still to do** (`claude/transcript-queue.md`): VirtuaMakers Exchange
   💱 1, VirtuaMakers.github.io 🦜 1, VirtuaMakers.com 🦜 2, then the six [big]
   ones (wait for Chris's go-ahead).
