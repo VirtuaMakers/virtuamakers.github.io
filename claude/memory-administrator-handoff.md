@@ -47,17 +47,15 @@ Aquarium GoFish 🪸 1; Approvals Ignition ☑️ 1; GitHub 🔲 1; Chain of Car
 1; Calendar 🗓️ 1; SI Apartment 🏢 1; SI Memory 🧾 1; SI Email ✉️ 2.
 Communiqués 📨 4 was being filed at handoff (check `index.md`).
 - **Filed by Session 6 too:** Agora 🌐 3 (letter + 103 messages), Agora 🌐
-  4 (37 messages; no letter in it - its last activity is 2026-10-16, so
-  Chris's request may not have reached it).
+  4 (37 messages; its letter came 2026-10-26, filed as session-agora-4.md).
 - **Session 6 (2026-10-26) filed:** Agora Harness 🚡 2 (letter + 119
   messages), Memory Administrator 🚚 5 (93 messages). Aquarium GoFish 🪸 1
   recounted: 14/86 is real (nothing of Chris's dropped) - no re-file.
 - **Also filed by Session 6 (transcripts):** Memory Administrator 🚚 4
-  (72), Kinetoscope 👁️ 1 (51), Agora 🌐 5 (90). Nothing owed now except
-  Agora 🌐 4's letter, if it ever gives one.
+  (72), Kinetoscope 👁️ 1 (51), Agora 🌐 5 (90). Nothing owed now.
 - **Queue:** items 1-14 all filed (Session 6 did Exchange 💱 1 - 650,
   first-inception - 518, VirtuaMakers.com 🦜 2 - 473). Left: the six [big]
-  ones (wait for Chris's go-ahead). Pages are mostly tool traffic, so even
+  ones - **on hold (Chris, 2026-10-26): weekly allowance nearly spent.** Pages are mostly tool traffic, so even
   "big" sessions yield far fewer messages than their token size suggests.
 - **Re-check:** transcripts filed before 2026-10-22 (PR #96) may be missing
   Chris's messages that began with a `<system-reminder>` block - most

@@ -1077,9 +1077,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   sessions (before Communiqués 1) have letters but no transcripts yet -
   only on Chris's say-so (daily routine since 2026-10-17: one older session
   a day, `claude/transcript-queue.md`). **Filed 2026-10-26:** Agora Harness 🚡 2
-  and Agora 🌐 3 (letters + transcripts), Agora 🌐 4 (transcript; no
-  letter found in it - asked Chris). Also filed: transcripts of
-  Memory Administrator 🚚 4 and 5, Agora 🌐 5, Kinetoscope 👁️ 1.
+  and Agora 🌐 3 (letters + transcripts), Agora 🌐 4 (transcript; letter
+  given later the same day). Also filed: transcripts of
+  Memory Administrator 🚚 4 and 5, Agora 🌐 5, Kinetoscope 👁️ 1, and queue
+  items 12-14. The six [big] queue sessions are on hold (Chris, 2026-10-26:
+  weekly allowance).
 - [ ] **[Memory Administrator 🚚 session] Backlog-vs-keeping-up note in the
   Memory Administration SOP (Chris, 2026-10-24)** - say plainly that
   catching up a hefty backlog with SI Memory 🧾/SI Apartment 🏢 takes a
