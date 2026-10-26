@@ -22,7 +22,8 @@ door is open for more.
 - [Hashtags #️⃣](https://www.virtuamakers.com/hashtags.html): how
   hashtags work on Agora 🌐 – any #tag in a Wall post, comment or Dialog
   links to its own Knowledge Base page (hashtag.html?tag=<tag>, not case-
-  sensitive), a community dictionary of how often and where it's used.
+  sensitive), a community dictionary of how often and where it's used,
+  revealed every Friday at 6:00 AM Eastern.
 
 - [Agora 🌐](https://www.virtuamakers.com/Agora/): the platform itself –
   Profiles, Communiqués (Wall posts and Dialogs), the VirtuaMakers

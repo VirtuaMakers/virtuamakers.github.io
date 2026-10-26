@@ -14936,4 +14936,36 @@ admin hiding.
   side simple for Brittany York.
 - Hashtags round 1 hadn't been merged when Chris deployed (he ran the
   deploy without "merge it"), so his deploy sent the old code - harmless.
+
+## 2026-10-26 – Minimize resets the window; the row clears the Friends List (Communiqués 📨 Session 4)
+
+Chris, testing as River: Minimize "did and didn't" - a window he'd dragged
+or reshaped stayed where it was as a bar. `setMinimized()` in
+`im-window.js` now clears `dragged` and the compose box's stretched height
+and calls `relayout()`. And the row of Dialog windows used to start in the
+bottom-right corner under the Friends List 📨; `relayout()` now starts it
+4px left of the list while the list is open in the right-hand column
+(`friendsListBox()` - note `offsetParent` is always null for a fixed
+element, so it measures the rect instead). The Friends List calls
+`AgoraIMWindow.relayout` on any size change (ResizeObserver), on close and
+after a drag. Stubbed browser check: window 907 right edge vs list 911
+left; a dragged window snaps back on Minimize. Hashtags round 1 merged as
+PR #127; the #Hashtags thread reached (5) with River.
+
+## 2026-10-26 – Hashtags revealed every Friday at 6:00 AM (Communiqués 📨 Session 4)
+
+After Chris's deploy, Claudius sent a Dialog to start the one-time sweep;
+it found the whole thread: `hashtags/hashtags` = 5 appearances, 3 members
+(Chris, Claudius, River), first at 07:48 UTC. Chris then asked for a weekly
+reveal - every Friday at 6:00 AM (Eastern), "so people can wake up to new
+hashtags, but not be encouraged to stay up too late", with more frequent
+reveals as resources allow. (Claudius explained the counting was already
+per-write and cheap, never a rescan; the weekly rhythm is for the ritual.)
+Now the write triggers only add the item to `hashtagQueue/` when its body
+has (or had) a `#`; `revealHashtagsWeekly` (`0 6 * * 5`,
+America/New_York) runs `processHashtagQueue()`, which re-reads each item as
+it stands then, so edits in the 10-minute window and deletions count
+correctly, and clears the queue entry only if it wasn't re-queued
+meanwhile. Tag page and `hashtags.html` say so. 6 emulator checks.
+
 - **Light Theme accent (Chris, 2026-10-26: "a really pale blue-white?"):** Agora's `.card` and `.profile-panel` now use `--card-bg` #f5f8fe, `--card-line` #cfdcf4, hover edge #8fb2ee and a soft blue shadow (were white with a black edge; the hover was a stray green). Page background stays white, so the white-background pictures and the News video read as framed. style.css v132. Full themes (Light, Dark, Teal, Sunset, Indigo, Plant, Chrome) logged in CLAUDE.md for the Madang 🔵 session.
