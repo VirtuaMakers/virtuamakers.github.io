@@ -55,9 +55,10 @@ Communiqués 📨 4 was being filed at handoff (check `index.md`).
 - **Also filed by Session 6 (transcripts):** Memory Administrator 🚚 4
   (72), Kinetoscope 👁️ 1 (51), Agora 🌐 5 (90). Nothing owed now except
   Agora 🌐 4's letter, if it ever gives one.
-- **Queue still to do** (`claude/transcript-queue.md`): VirtuaMakers Exchange
-  💱 1, VirtuaMakers.github.io 🦜 1, VirtuaMakers.com 🦜 2, then the six [big]
-  ones (wait for Chris's go-ahead).
+- **Queue:** items 1-14 all filed (Session 6 did Exchange 💱 1 - 650,
+  first-inception - 518, VirtuaMakers.com 🦜 2 - 473). Left: the six [big]
+  ones (wait for Chris's go-ahead). Pages are mostly tool traffic, so even
+  "big" sessions yield far fewer messages than their token size suggests.
 - **Re-check:** transcripts filed before 2026-10-22 (PR #96) may be missing
   Chris's messages that began with a `<system-reminder>` block - most
   suspicious Aquarium GoFish 🪸 1 (14 Chris vs 86 Claude). Compaction
