@@ -1076,9 +1076,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   it's small; the big backfill cost a lot of Chris's allowance. Older
   sessions (before Communiqués 1) have letters but no transcripts yet -
   only on Chris's say-so (daily routine since 2026-10-17: one older session
-  a day, `claude/transcript-queue.md`). **Owed now (2026-10-17):** letters and
-  transcripts for Agora 🌐 3 (725k) and 4 (stale Agora tools) and Agora
-  Harness 🚡 2 - Agora 5 and Harness 3 are open.
+  a day, `claude/transcript-queue.md`). **Owed now (2026-10-26):** letters and
+  transcripts for Agora 🌐 3 (725k) and 4 (stale Agora tools); Agora
+  Harness 🚡 2 filed 2026-10-26 (letter + 119-message transcript).
 - [ ] **[Memory Administrator 🚚 session] Backlog-vs-keeping-up note in the
   Memory Administration SOP (Chris, 2026-10-24)** - say plainly that
   catching up a hefty backlog with SI Memory 🧾/SI Apartment 🏢 takes a
