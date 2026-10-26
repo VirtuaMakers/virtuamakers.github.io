@@ -37,7 +37,7 @@ const {
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName, mentionedUids } = require("./lib/notify");
 const { markActive, removeFromFriendsLists } = require("./lib/presence");
-const { syncHashtags, backfillHashtags } = require("./lib/hashtags");
+const { syncHashtags, backfillHashtagsOnce } = require("./lib/hashtags");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -1114,9 +1114,12 @@ exports.deleteWallPostComments = onDocumentDeleted("wallPosts/{postId}", async (
 // Hashtags #️⃣ (Chris, 2026-10-24/25) - see lib/hashtags.js. Written,
 // edited or deleted (including by the moderation triggers above), each
 // Wall post, comment and Dialog message has its #tags brought up to date.
-// A failure is logged, never retried into a loop.
+// The first time any of these fires after the first Hashtags deploy, it
+// also sweeps up the tags written before then (backfillHashtagsOnce) - no
+// button for an admin to press (Chris, 2026-10-26). A failure is logged,
+// never retried into a loop.
 function hashtagTrigger(document, sourceOf) {
-  return onDocumentWritten(document, async (event) => {
+  return onDocumentWritten({ document, timeoutSeconds: 540 }, async (event) => {
     const after = event.data.after.exists ? event.data.after.data() : null;
     const before = event.data.before.exists ? event.data.before.data() : null;
     if (after && before && after.body === before.body) return; // only the body matters
@@ -1124,6 +1127,11 @@ function hashtagTrigger(document, sourceOf) {
       await syncHashtags(Object.assign(sourceOf(event.params), { data: after }));
     } catch (err) {
       console.warn("syncHashtags failed for", document, event.params, err && err.message);
+    }
+    try {
+      await backfillHashtagsOnce();
+    } catch (err) {
+      console.warn("backfillHashtagsOnce failed", err && err.message);
     }
   });
 }
@@ -1134,13 +1142,6 @@ exports.hashtagsWallComment = hashtagTrigger("wallPosts/{postId}/comments/{comme
   (p) => ({ id: "comment_" + p.postId + "_" + p.commentId, kind: "comment", postId: p.postId }));
 exports.hashtagsDialogMessage = hashtagTrigger("conversations/{conversationId}/messages/{messageId}",
   (p) => ({ id: "dialog_" + p.conversationId + "_" + p.messageId, kind: "dialog" }));
-
-// Owner only, once after the first deploy (Admin Panel button): collects
-// the tags already written before Hashtags #️⃣ existed. Safe to run again.
-exports.backfillHashtags = onCall({ timeoutSeconds: 540 }, async (request) => {
-  if ((await getRole(request.auth)) !== "owner") throw new HttpsError("permission-denied", "Owner only.");
-  return backfillHashtags();
-});
 
 // Lets the original author (and only them) flag their own blocked entry
 // for a second look, in case the filter misfired - no admin gate here,

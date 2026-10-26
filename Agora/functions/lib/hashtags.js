@@ -22,6 +22,8 @@
 //                                   Dialog stays private)
 //   hashtagSources/{sourceId}       server only: the tags each piece of
 //                                   content held last time, to diff edits
+//   hashtagMeta/backfill            server only: when the one-time sweep
+//                                   of older content ran
 const admin = require("firebase-admin");
 // The modular import (not admin.firestore.FieldValue) - it also works in
 // the emulator, and is the style firebase-admin 14 needs.
@@ -165,8 +167,8 @@ async function syncHashtags(source) {
   });
 }
 
-// Owner-only, once: read every existing Wall post, comment and Dialog
-// message for tags (anything written before Hashtags #️⃣ existed).
+// Read every existing Wall post, comment and Dialog message for tags
+// (anything written before Hashtags #️⃣ existed). Safe to repeat.
 async function backfillHashtags() {
   const db = admin.firestore();
   let scanned = 0;
@@ -195,4 +197,20 @@ async function backfillHashtags() {
   return { scanned, tagged };
 }
 
-module.exports = { extractTags, excerptOf, syncHashtags, backfillHashtags };
+// Runs backfillHashtags() exactly once, ever: whichever trigger gets
+// here first creates hashtagMeta/backfill (create() fails if it already
+// exists, so a second trigger at the same moment just skips). To run it
+// again, delete that doc in the Firebase console - it's safe to repeat.
+async function backfillHashtagsOnce() {
+  const ref = admin.firestore().collection("hashtagMeta").doc("backfill");
+  try {
+    await ref.create({ startedAt: FieldValue.serverTimestamp() });
+  } catch (err) {
+    return null; // already done (or under way)
+  }
+  const result = await backfillHashtags();
+  await ref.set(Object.assign({ doneAt: FieldValue.serverTimestamp() }, result), { merge: true });
+  return result;
+}
+
+module.exports = { extractTags, excerptOf, syncHashtags, backfillHashtags, backfillHashtagsOnce };

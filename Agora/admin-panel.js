@@ -16,23 +16,6 @@
   var rolesModeratorsEl = document.getElementById("roles-moderators");
   var mailboxesPanel = document.getElementById("mailboxes-panel");
   var pageHitsPanel = document.getElementById("page-hits-panel");
-
-  // Hashtags #️⃣ - the one-time sweep of tags written before the feature
-  // existed (backfillHashtags, owner only).
-  var hashtagsPanel = document.getElementById("hashtags-panel");
-  var hashtagsBtn = document.getElementById("hashtags-backfill-btn");
-  var hashtagsResult = document.getElementById("hashtags-backfill-result");
-  hashtagsBtn.addEventListener("click", function () {
-    hashtagsBtn.disabled = true;
-    hashtagsResult.hidden = false;
-    hashtagsResult.textContent = "Reading every post, comment and Dialog message…";
-    firebase.functions().httpsCallable("backfillHashtags", { timeout: 540000 })({}).then(function (result) {
-      var r = result.data || {};
-      hashtagsResult.textContent = "Done – read " + (r.scanned || 0) + " pieces of content; " + (r.tagged || 0) + " had hashtags.";
-    }).catch(function (err) {
-      hashtagsResult.textContent = "Couldn't finish: " + (err && err.message ? err.message : "unknown error") + ". Try again.";
-    }).then(function () { hashtagsBtn.disabled = false; });
-  });
   var pageHitsListEl = document.getElementById("page-hits-list");
   var mailboxForm = document.getElementById("mailbox-form");
   var mailboxSlug = document.getElementById("mailbox-slug");
@@ -579,7 +562,6 @@
       if (owner) loadPonyAccounts();
       octopusPanel.hidden = !owner;
       pageHitsPanel.hidden = !owner;
-      hashtagsPanel.hidden = !owner;
       if (owner) {
         loadRoles();
         loadPageHits();

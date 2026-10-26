@@ -3420,40 +3420,74 @@ button.dm-item {
   border-color: #b38a12;
 }
 
-/* "You appear" - Online / Away / Offline as three small buttons. */
+/* "You appear" - a dropdown drawn with the list's own dots (Chris,
+   2026-10-26; a plain <select> can only show emoji). */
 .friends-list-status {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.22rem;
+  gap: 0.2rem;
 }
 
-.friends-list-status-label {
-  flex-basis: 100%;
+.friends-list-status-wrap {
+  position: relative;
 }
 
-.friends-list-status-btn {
+.friends-list-status-pick {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   padding: 0.1rem 0.4rem;
-  border-radius: 999px;
+  border-radius: 6px;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
 }
 
-.friends-list-status-btn:hover {
-  background: var(--blue-soft);
+.friends-list-status-caret {
+  font-size: 0.7rem;
+  color: var(--muted);
 }
 
-.friends-list-status-btn.is-selected {
+.friends-list-status-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 5;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.2rem 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.35);
+}
+
+.friends-list-status-menu li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.friends-list-status-menu li:hover,
+.friends-list-status-menu li:focus,
+.friends-list-status-menu li[aria-selected="true"] {
   background: var(--blue-soft);
-  border-color: var(--blue);
-  font-weight: 700;
+  outline: none;
+}
+
+.friends-list-idle-note {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .friends-list-idle-select {

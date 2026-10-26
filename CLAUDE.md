@@ -667,8 +667,11 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   write/edit/delete (`functions/lib/hashtags.js`, 12 emulator checks),
   `hashtag.html?tag=` pages, #tags link everywhere, `hashtags.html` KB
   article (new KB type Hashtags #️⃣), "We support hashtags!" line, Admin
-  Panel "Collect existing hashtags" (one-time sweep - press once after
-  deploy). Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
+  sweep of older content now runs by itself on the first write after the
+  deploy (`hashtagMeta/backfill`; no Admin Panel button - Chris wants the
+  admin side unintimidating for Brittany York, 2026-10-26). **Not merged
+  yet as of 2026-10-26** (Chris deployed before merging - harmless).
+  Punctuation, spaces, hyphens and emoji end a tag. Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
   busiest, related tags, admin hiding. First real test: Chris's #Hashtags
   thread (Chris, Claudius and River).
 - [ ] **[Communiqués 📨 session] Sound mapping: beep-boop for new
@@ -700,8 +703,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   three buttons. **Built by Communiqués 📨 Session 4 (2026-10-25),
   awaiting Chris's check:** Online/Away/Offline buttons, auto-away after
   10 min (Options: Never-1 hour), away message shown only while Away.
-  Merged (PR #125) with an "Away (#)" group between Online and Offline;
-  needs the standard deploy, then Chris's check.
+  Merged (PR #125) with an "Away (#)" group between Online and Offline.
+  **Chris's test (2026-10-26): auto-away never showed** - the heartbeat
+  stopped in background tabs, so he went Offline after 3 minutes instead.
+  Fixed (heartbeat keeps going while Agora is open, shared across tabs;
+  an idle note under "You appear"), and the picker is a dropdown again
+  (Chris preferred it), drawn with the real dots. Awaiting merge/deploy/
+  re-test.
 - [ ] **[Communiqués 📨 session] Door-knock test, still to do (Chris,
   2026-10-13)** - three test Dialogs from Claude didn't play a sound on
   Chris's laptop. Session 3 then moved the sounds to Web Audio (woken by

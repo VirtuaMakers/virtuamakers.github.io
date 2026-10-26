@@ -14918,3 +14918,21 @@ aren't case-sensitive. Pieces:
   7 rules checks, stubbed browser checks of links and the tag page.
 Round 2: Search + rule of 5, definitions, Newest & busiest, related tags,
 admin hiding.
+
+## 2026-10-26 – Auto-away fix, dropdown back, sweep without a button (Communiqués 📨 Session 4)
+
+- Chris tested auto-away (10 and 5 minutes, then an hour away): nothing
+  changed. Cause: `beat()` only wrote presence while the tab was visible,
+  so leaving for another tab showed him Offline after 3 minutes and the
+  idle flag never mattered; his own panel also never showed idle. Now the
+  heartbeat keeps going in background tabs (throttled once a minute across
+  all tabs via localStorage), and an "You've been idle, so friends see you
+  as Away" note shows under "You appear".
+- "You appear" is a dropdown again (Chris preferred it to three buttons),
+  built by hand so it shows the list's real dots.
+- The one-time hashtag sweep runs by itself on the first trigger after
+  deploy (`backfillHashtagsOnce`, `hashtagMeta/backfill`); the Admin
+  Panel button was removed before ever going live - Chris wants the admin
+  side simple for Brittany York.
+- Hashtags round 1 hadn't been merged when Chris deployed (he ran the
+  deploy without "merge it"), so his deploy sent the old code - harmless.
