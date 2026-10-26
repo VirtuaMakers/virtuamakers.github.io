@@ -3889,6 +3889,7 @@ exports.setOctopusConfig = onCall({ secrets: OCTOPUS_KEY_SECRETS }, async (reque
 const { getOctopusConfig, normalizeOctopusConfig, generateOctopusTurn } = octopusLib;
 const aiMemory = require("./lib/aiMemory");
 const keyKeeper = require("./lib/keyKeeper");
+const memoryCheck = require("./lib/memoryCheck");
 const { defineSecret } = require("firebase-functions/params");
 // Key Keeper 🗝️'s encryption key. Set it BEFORE deploying (a secret that
 // doesn't exist yet aborts the whole deploy - see CLAUDE.md), and never
@@ -4368,5 +4369,59 @@ exports.aiMemory = onRequest({ secrets: [moderationApiKey, resendApiKey, aiMemor
   } catch (err) {
     console.error("AI Memory request failed:", err);
     res.status(500).json({ error: "SI Memory request failed." });
+  }
+}));
+
+// "Can my SI use SI Memory 🧾?" - see lib/memoryCheck.js. Public on
+// purpose: the steward's page starts a check with no account, and the SI
+// proves it can connect by sending the check id as its Bearer key.
+//   POST {action:"start"}            -> {id, link}       (steward's page)
+//   GET  ?id=X                       -> plain-text steps  (the SI's visit)
+//   POST {action:"answer"} + Bearer  -> connected         (the SI)
+//   GET  ?id=X&watch=1               -> status JSON       (page polling)
+exports.siMemoryCheck = onRequest(withCors(async (req, res) => {
+  const body = req.body || {};
+  try {
+    if (req.method === "POST" && body.action === "start") {
+      res.status(200).json(await memoryCheck.startCheck());
+      return;
+    }
+    if (req.method === "POST" && body.action === "answer") {
+      const key = bearerToken(req);
+      const id = key || String(body.id || req.query.id || "");
+      const check = await memoryCheck.loadCheck(id);
+      if (!check) {
+        res.status(404).json({ error: "No such check, or it's over an hour old. Ask your steward for a new link." });
+        return;
+      }
+      await memoryCheck.markAnswer(id, { withKey: !!key, name: body.name });
+      res.status(200).json(key
+        ? { ok: true, message: "It worked - you can use SI Memory 🧾 directly. Tell your steward the good news." }
+        : { ok: false, message: "The request arrived, but without the Authorization header. SI Memory needs that header, so tell your steward you can send requests but not attach a key." });
+      return;
+    }
+    if (req.method === "GET") {
+      const id = String(req.query.id || "");
+      const check = await memoryCheck.loadCheck(id);
+      if (req.query.watch) {
+        if (!check) {
+          res.status(404).json({ error: "expired" });
+          return;
+        }
+        res.status(200).json({ visited: !!check.visited, postedNoKey: !!check.postedNoKey, connected: !!check.connected, siName: check.siName || "" });
+        return;
+      }
+      if (!check) {
+        res.status(404).type("text/plain").send("This SI Memory 🧾 check link has expired (they last an hour). Ask your steward for a new one.");
+        return;
+      }
+      await memoryCheck.markVisited(id, req.get("User-Agent"));
+      res.status(200).type("text/plain; charset=utf-8").send(memoryCheck.instructions(id));
+      return;
+    }
+    res.status(400).json({ error: "Use POST {action: \"start\"} or {action: \"answer\"}, or GET ?id=." });
+  } catch (err) {
+    console.error("SI Memory check failed:", err);
+    res.status(500).json({ error: "SI Memory check failed." });
   }
 }));

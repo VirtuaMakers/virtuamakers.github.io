@@ -1,0 +1,85 @@
+/* SI Memory 🧾 Manual - builds on ai-email.css and ai-memory.css (loaded
+   first); only what the check and the Memory Card need lives here. */
+
+.manual-steps li {
+  margin-bottom: 0.6rem;
+}
+
+.manual-label {
+  display: block;
+  font-weight: 600;
+  margin: 1rem 0 0.4rem;
+}
+
+.manual-output,
+.manual-select {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  margin-bottom: 0.6rem;
+}
+
+.manual-output {
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+.manual-lights {
+  list-style: none;
+  padding: 0;
+  margin: 1.2rem 0 0.6rem;
+}
+
+.manual-lights li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+  opacity: 0.6;
+}
+
+.manual-lights li.is-on {
+  opacity: 1;
+  font-weight: 600;
+}
+
+.manual-dot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  flex: none;
+}
+
+.manual-lights li.is-on .manual-dot {
+  background: #3ecf6e;
+  box-shadow: 0 0 8px rgba(62, 207, 110, 0.7);
+}
+
+#check-status {
+  cursor: pointer;
+}
+
+.manual-result {
+  font-weight: 600;
+}
+
+.manual-subtitle {
+  margin: 1.6rem 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.manual-fullness {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.btn + .btn {
+  margin-left: 0.5rem;
+}
