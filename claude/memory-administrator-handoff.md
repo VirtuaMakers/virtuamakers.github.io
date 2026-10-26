@@ -46,8 +46,9 @@ transcript into SI Memory 🧾 and the SI Apartment 🏢.
 Aquarium GoFish 🪸 1; Approvals Ignition ☑️ 1; GitHub 🔲 1; Chain of Cards ⛓️
 1; Calendar 🗓️ 1; SI Apartment 🏢 1; SI Memory 🧾 1; SI Email ✉️ 2.
 Communiqués 📨 4 was being filed at handoff (check `index.md`).
-- **Owed - letter and transcript:** Agora 🌐 3 (725k), Agora 🌐 4. Chris
-  asks each one in its own chat to answer the letter.
+- **Filed by Session 6 too:** Agora 🌐 3 (letter + 103 messages), Agora 🌐
+  4 (37 messages; no letter in it - its last activity is 2026-10-16, so
+  Chris's request may not have reached it).
 - **Session 6 (2026-10-26) filed:** Agora Harness 🚡 2 (letter + 119
   messages), Memory Administrator 🚚 5 (93 messages). Aquarium GoFish 🪸 1
   recounted: 14/86 is real (nothing of Chris's dropped) - no re-file.
