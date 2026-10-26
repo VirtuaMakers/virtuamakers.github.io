@@ -690,7 +690,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   AM Eastern (`revealHashtagsWeekly`; writes only queue to
   `hashtagQueue/`) - a reason to come back, "wake up to new hashtags", not
   stay up for them; reveal more often later by changing only the schedule.
-  Built, awaiting merge + deploy.
+  Merged (PR #128) and deployed 2026-10-26. **Every #tag lights up
+  (Chris, 2026-10-26)**, whatever it says: until it passes the rule of 5
+  (5 appearances, 3 members) at a Friday reveal its link goes to
+  `hashtags.html?tag=` (how hashtags work - how many people first learn
+  them); approved tags (`hashtagIndex/approved`, rewritten each reveal)
+  link to their own `hashtag.html` page. Built, awaiting merge + deploy.
   Punctuation, spaces, hyphens and emoji end a tag. Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
   busiest, related tags, admin hiding. First real test: Chris's #Hashtags
   thread (Chris, Claudius and River).

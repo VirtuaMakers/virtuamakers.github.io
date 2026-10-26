@@ -361,8 +361,54 @@
     var p = window.location.pathname;
     return p.indexOf("/Agora/profiles/") !== -1 ? "../../" : (p.indexOf("/Agora/") !== -1 ? "../" : "");
   }
+  // Every #tag lights up, whatever it says (Chris, 2026-10-26). Until it
+  // has passed the rule of 5 at a Friday reveal (hashtagIndex/approved),
+  // its link explains how hashtags work - the way many people first learn
+  // them - and from then on it opens the tag's own Knowledge Base page.
+  var APPROVED_KEY = "agoraHashtagsApproved";
+  var approvedTags = null; // { key: true } once loaded
+  function tagKey(tag) {
+    return tag.normalize("NFC").toLowerCase();
+  }
   function hashtagHref(tag) {
-    return siteRoot() + "hashtag.html?tag=" + encodeURIComponent(tag.normalize("NFC").toLowerCase());
+    var key = tagKey(tag);
+    if (approvedTags && approvedTags[key]) return siteRoot() + "hashtag.html?tag=" + encodeURIComponent(key);
+    return siteRoot() + "hashtags.html?tag=" + encodeURIComponent(key);
+  }
+  function hashtagTitle(tag) {
+    return approvedTags && approvedTags[tagKey(tag)]
+      ? "#" + tag + " in the Knowledge Base 📚"
+      : "#" + tag + " – how hashtags work (it joins the Knowledge Base 📚 once it passes the rule of 5)";
+  }
+  function refreshHashtagLinks() {
+    Array.prototype.forEach.call(document.querySelectorAll("a.hashtag[data-tag]"), function (a) {
+      var tag = a.getAttribute("data-tag");
+      a.href = hashtagHref(tag);
+      a.title = hashtagTitle(tag);
+    });
+  }
+  // Fetched once an hour at most per tab; links drawn before it arrives
+  // are updated in place.
+  var approvedLoading = false;
+  function loadApprovedTags() {
+    if (approvedLoading) return;
+    approvedLoading = true;
+    try {
+      var cached = JSON.parse(sessionStorage.getItem(APPROVED_KEY) || "null");
+      if (cached && Date.now() - cached.at < 60 * 60 * 1000) {
+        approvedTags = cached.tags;
+        refreshHashtagLinks();
+        return;
+      }
+    } catch (e) {}
+    if (typeof AgoraDB === "undefined") return;
+    AgoraDB.collection("hashtagIndex").doc("approved").get().then(function (doc) {
+      var tags = {};
+      ((doc.exists && doc.data().keys) || []).forEach(function (k) { tags[k] = true; });
+      approvedTags = tags;
+      try { sessionStorage.setItem(APPROVED_KEY, JSON.stringify({ at: Date.now(), tags: tags })); } catch (e) {}
+      refreshHashtagLinks();
+    }).catch(function () { approvedLoading = false; });
   }
   function isHashtag(tag) {
     return tag.length <= 50 && /\p{L}/u.test(tag);
@@ -385,7 +431,9 @@
         frag.appendChild(document.createTextNode(text.slice(last, start)));
         var a = document.createElement("a");
         a.className = "hashtag";
+        a.setAttribute("data-tag", tag);
         a.href = hashtagHref(tag);
+        a.title = hashtagTitle(tag);
         a.textContent = "#" + tag;
         frag.appendChild(a);
         last = start + 1 + tag.length;
@@ -396,6 +444,7 @@
       frag.appendChild(document.createTextNode(text.slice(last)));
       node.parentNode.replaceChild(frag, node);
     });
+    if (nodes.length && approvedTags === null) loadApprovedTags();
   }
 
   function sanitizeBody(el, raw) {

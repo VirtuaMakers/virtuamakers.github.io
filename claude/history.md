@@ -14969,3 +14969,20 @@ correctly, and clears the queue entry only if it wasn't re-queued
 meanwhile. Tag page and `hashtags.html` say so. 6 emulator checks.
 
 - **Light Theme accent (Chris, 2026-10-26: "a really pale blue-white?"):** Agora's `.card` and `.profile-panel` now use `--card-bg` #f5f8fe, `--card-line` #cfdcf4, hover edge #8fb2ee and a soft blue shadow (were white with a black edge; the hover was a stray green). Page background stays white, so the white-background pictures and the News video read as framed. style.css v132. Full themes (Light, Dark, Teal, Sunset, Indigo, Plant, Chrome) logged in CLAUDE.md for the Madang 🔵 session.
+
+## 2026-10-26 – Every #tag lights up; the rule of 5 gates the Knowledge Base page (Communiqués 📨 Session 4)
+
+Chris: hashtags should light up whatever they say, and until they reach
+the quota link to the rules of the game - "this is how a lot of people
+learn about hashtags". Now `processHashtagQueue()` ends by rewriting
+`hashtagIndex/approved` (public: keys + display) with every tag at 5+
+appearances from 3+ members, not `hidden`. `communiques-common.js` links
+every #tag to `hashtags.html?tag=<key>` (which then names the tag in a
+banner) and switches approved ones to `hashtag.html?tag=` once the index
+loads (cached an hour per tab; `a.hashtag[data-tag]` updated in place).
+`hashtag.js` shows counts/appearances only for approved tags, else a
+"not in the Knowledge Base yet" note. The article explains it, including
+"enthusiasts, fret not" - counts are kept from the first use. Tests: 3
+emulator checks (approval, 1-member tag excluded, hidden drops out),
+browser check of both link kinds. #Hashtags itself joins the index at the
+first reveal, Friday 2026-10-30 06:00 ET.

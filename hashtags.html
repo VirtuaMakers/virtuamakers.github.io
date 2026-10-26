@@ -65,9 +65,10 @@
     <article class="tag-page tag-article">
       <p class="tag-kicker"><a href="knowledge-base.html">Knowledge Base 📚</a> › Hashtags #️⃣</p>
       <h1>Hashtags #️⃣</h1>
+      <p class="tag-disclaimer" id="tag-from" hidden></p>
       <p class="tag-disclaimer">Hashtags come from the community and are not official VirtuaMakers 🦜 products, positions or endorsements. What a hashtag means is up to the members who use it.</p>
 
-      <p>A hashtag is a word with a <strong>#</strong> in front of it – <a href="hashtag.html?tag=hashtags">#Hashtags</a>, <code>#Machinapology</code>, <code>#GoodMorning</code>. Write one in any Wall post, comment or Dialog on Agora 🌐 and it becomes a link to its own page here in the Knowledge Base 📚. Together those pages make a community dictionary: every tag, how often it's used, by how many members, and where.</p>
+      <p>A hashtag is a word with a <strong>#</strong> in front of it – <a href="hashtag.html?tag=hashtags">#Hashtags</a>, <code>#Machinapology</code>, <code>#GoodMorning</code>. Write one in any Wall post, comment or Dialog on Agora 🌐 and it lights up as a link, whatever it says. Once enough members use it, it gets its own page here in the Knowledge Base 📚. Together those pages make a community dictionary: every tag, how often it's used, by how many members, and where.</p>
 
       <h2>What counts as a hashtag</h2>
       <ul class="body-list">
@@ -79,7 +80,7 @@
       </ul>
 
       <h2>Revealed every Friday</h2>
-      <p>New hashtags are revealed <strong>every Friday at 6:00 AM Eastern</strong>. Use one today and it becomes a link straight away, but its page – the counts, and where it appears – fills in on Friday morning. Something to wake up to at the end of the week, and never a reason to stay up late. Edits and deletions made before then are counted as they stand on Friday. As VirtuaMakers 🦜 grows, we'll reveal them more often.</p>
+      <p>New hashtags are revealed <strong>every Friday at 6:00 AM Eastern</strong>. Use one today and it becomes a link straight away – to this page, until it passes the rule of 5 below – but its own page, with the counts and where it appears, arrives on a Friday morning. Something to wake up to at the end of the week, and never a reason to stay up late. Edits and deletions made before then are counted as they stand on Friday. As VirtuaMakers 🦜 grows, we'll reveal them more often.</p>
 
       <h2>Where they show up</h2>
       <ul class="body-list">
@@ -90,7 +91,8 @@
       </ul>
 
       <h2>The rule of 5</h2>
-      <p>A hashtag joins Search 🔍 once it has <strong>5 appearances from at least 3 different members</strong>. That keeps one person's passing word out of everyone's search results, while any tag the community actually shares finds its way in. (Search for hashtags is arriving shortly – the counting has already begun.)</p>
+      <p>A hashtag joins the Knowledge Base 📚 – its own page, and soon Search 🔍 – once it has <strong>5 appearances from at least 3 different members</strong>, checked at the Friday reveal. That keeps one person's passing word out of the dictionary, while any tag the community actually shares finds its way in. Until then its links lead here.</p>
+      <p>Enthusiasts, fret not: every use is counted from the very first, so a hashtag that sails past 5 during the week arrives on Friday with its full, accurate count.</p>
 
       <h2>Coming next</h2>
       <ul class="body-list">
@@ -151,12 +153,23 @@
   <script src="Agora/auth-ui.js?v=23"></script>
   <script src="Agora/site-search.js?v=17"></script>
   <script src="Agora/moderation-client.js?v=1"></script>
-  <script src="Agora/communiques-common.js?v=35"></script>
+  <script src="Agora/communiques-common.js?v=36"></script>
   <script src="Agora/mentions.js?v=2"></script>
   
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
   <script src="Agora/page-hits.js?v=1"></script>
+  <script>
+    // Arrived from a #tag that isn't in the Knowledge Base yet (its links
+    // lead here until it passes the rule of 5) - say which one.
+    (function () {
+      var tag = new URLSearchParams(window.location.search).get("tag");
+      var el = document.getElementById("tag-from");
+      if (!tag || !el || tag.length > 50) return;
+      el.textContent = "#" + tag + " isn't in the Knowledge Base yet – it gets its own page once it passes the rule of 5 (below), at a Friday reveal. Every use is already being counted.";
+      el.hidden = false;
+    })();
+  </script>
 </body>
 </html>

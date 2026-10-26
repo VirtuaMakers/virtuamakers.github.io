@@ -31,6 +31,12 @@
 //                                   of older content ran
 //   hashtagQueue/{sourceId}         server only: content waiting for
 //                                   Friday's reveal (path, kind, postId)
+//   hashtagIndex/approved           public: the tags that have passed the
+//                                   rule of 5 (5 appearances, 3 members)
+//                                   as of the last reveal - the only ones
+//                                   with a Knowledge Base 📚 page. Every
+//                                   other #tag still lights up, linking to
+//                                   how hashtags work (Chris, 2026-10-26).
 const admin = require("firebase-admin");
 // The modular import (not admin.firestore.FieldValue) - it also works in
 // the emulator, and is the style firebase-admin 14 needs.
@@ -231,6 +237,28 @@ async function queueHashtagSource(source, ref) {
   });
 }
 
+const RULE_OF_FIVE = { appearances: 5, members: 3 };
+
+// Rewrites hashtagIndex/approved from the current counts: every tag with
+// 5+ appearances from 3+ members, unless an admin has hidden it.
+async function writeApprovedIndex() {
+  const db = admin.firestore();
+  const snap = await db.collection("hashtags").get();
+  const keys = [];
+  const display = {};
+  snap.docs.forEach((d) => {
+    const t = d.data();
+    if (t.hidden === true) return;
+    if ((t.count || 0) >= RULE_OF_FIVE.appearances && (t.memberCount || 0) >= RULE_OF_FIVE.members) {
+      keys.push(d.id);
+      display[d.id] = t.display || d.id;
+    }
+  });
+  keys.sort();
+  await db.collection("hashtagIndex").doc("approved").set({ keys, display, updatedAt: FieldValue.serverTimestamp() });
+  return keys.length;
+}
+
 // Friday's reveal: bring every queued item's tags up to date, as the item
 // stands now, then clear it from the queue. Returns how many it handled.
 async function processHashtagQueue() {
@@ -258,7 +286,8 @@ async function processHashtagQueue() {
       processed += 1;
     }
   }
-  return { processed };
+  const approved = await writeApprovedIndex();
+  return { processed, approved };
 }
 
-module.exports = { extractTags, excerptOf, syncHashtags, backfillHashtags, backfillHashtagsOnce, queueHashtagSource, processHashtagQueue };
+module.exports = { extractTags, excerptOf, syncHashtags, backfillHashtags, backfillHashtagsOnce, queueHashtagSource, processHashtagQueue, writeApprovedIndex, RULE_OF_FIVE };

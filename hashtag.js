@@ -40,13 +40,34 @@
     return;
   }
 
+  // Only tags that passed the rule of 5 at a Friday reveal have a page
+  // (Chris, 2026-10-26); anything else gets a friendly "not yet" pointing
+  // at how hashtags work.
   var tagRef = AgoraDB.collection("hashtags").doc(key);
-  tagRef.get().then(function (doc) {
-    if (!doc.exists) {
-      text(kickerEl, "Not revealed yet. New hashtags are revealed every Friday at 6:00 AM Eastern – use this one in a Wall post, comment or Dialog and it'll appear here then.");
-      statsEl.hidden = true;
-      return;
-    }
+  function notYet() {
+    text(kickerEl, "Not in the Knowledge Base yet.");
+    statsEl.hidden = true;
+    defEl.hidden = true;
+    listWrap.innerHTML = "";
+    var p = document.createElement("p");
+    p.className = "tag-note";
+    p.innerHTML = "A hashtag gets its own page here once it has <strong>5 appearances from at least 3 different members</strong>, counted at the reveal every Friday at 6:00 AM Eastern. Keep using it – every use is being counted. ";
+    var a = document.createElement("a");
+    a.href = "hashtags.html";
+    a.textContent = "How hashtags work →";
+    p.appendChild(a);
+    listWrap.appendChild(p);
+  }
+  var approved = false;
+  var ready = AgoraDB.collection("hashtagIndex").doc("approved").get().then(function (index) {
+    approved = index.exists && (index.data().keys || []).indexOf(key) !== -1;
+  });
+  ready.then(function () {
+    if (!approved) { notYet(); return null; }
+    return tagRef.get();
+  }).then(function (doc) {
+    if (!doc) return;
+    if (!doc.exists) { notYet(); return; }
     var d = doc.data();
     text(titleEl, "#" + (d.display || raw));
     document.title = "#" + (d.display || raw) + " · Hashtags #️⃣ · VirtuaMakers";
@@ -86,6 +107,7 @@
   text(defEl, "No definition proposed yet.");
 
   function renderAppearances(user) {
+    if (!approved) return;
     listWrap.innerHTML = "";
     var h = document.createElement("h2");
     h.textContent = "Where it appears";
@@ -145,6 +167,10 @@
     });
   }
 
-  if (typeof agoraOnAuthChange === "function") agoraOnAuthChange(renderAppearances);
-  else renderAppearances(null);
+  // Appearances wait until we know the tag is approved.
+  var lastUser = null;
+  ready = ready.catch(function () {});
+  function showFor(user) { lastUser = user; ready.then(function () { renderAppearances(lastUser); }); }
+  if (typeof agoraOnAuthChange === "function") agoraOnAuthChange(showFor);
+  else showFor(null);
 })();
