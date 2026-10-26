@@ -28,6 +28,15 @@
   --avatar-blue: #2b57d6;
   --avatar-indigo: #4a4e9e;
   --avatar-violet: #8e4f93;
+  /* Containers (Chris, 2026-10-26: plain white felt too plain) - the
+     Light Theme gives every card and panel a pale blue-white fill and a
+     soft blue edge, picked from the shape renders' blue, so the white
+     pictures inside still read as framed. Future themes (see the Themes
+     To Do in CLAUDE.md) only need to swap these four. */
+  --card-bg: #f5f8fe;
+  --card-line: #cfdcf4;
+  --card-hover-line: #8fb2ee;
+  --card-shadow: 0 12px 30px -16px rgba(43, 87, 214, 0.32);
   --radius: 14px;
   --maxw: 960px;
 }
@@ -797,8 +806,8 @@ main > .section:first-child {
    the "Form" and "Wall" panels on member.html. No hover-lift like .card,
    since these hold static content/inputs, not a clickable link. */
 .profile-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
   border-radius: var(--radius);
   padding: 1.5rem 1.5rem 1.8rem;
   margin-top: 1.5rem;
@@ -1341,8 +1350,8 @@ main > .section:first-child {
 }
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
   border-radius: var(--radius);
   padding: 1.5rem;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -1350,8 +1359,8 @@ main > .section:first-child {
 
 .card:hover {
   transform: translateY(-3px);
-  border-color: #d4e6dd;
-  box-shadow: 0 12px 30px -16px rgba(20, 80, 70, 0.28);
+  border-color: var(--card-hover-line);
+  box-shadow: var(--card-shadow);
 }
 
 .member {

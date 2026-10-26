@@ -14967,3 +14967,5 @@ America/New_York) runs `processHashtagQueue()`, which re-reads each item as
 it stands then, so edits in the 10-minute window and deletions count
 correctly, and clears the queue entry only if it wasn't re-queued
 meanwhile. Tag page and `hashtags.html` say so. 6 emulator checks.
+
+- **Light Theme accent (Chris, 2026-10-26: "a really pale blue-white?"):** Agora's `.card` and `.profile-panel` now use `--card-bg` #f5f8fe, `--card-line` #cfdcf4, hover edge #8fb2ee and a soft blue shadow (were white with a black edge; the hover was a stray green). Page background stays white, so the white-background pictures and the News video read as framed. style.css v132. Full themes (Light, Dark, Teal, Sunset, Indigo, Plant, Chrome) logged in CLAUDE.md for the Madang 🔵 session.
