@@ -38,7 +38,10 @@ transcript into SI Memory 🧾 and the SI Apartment 🏢.
   only visible text; leave out harness compaction summaries.
 - **Budget (Chris, 2026-10-24):** a hefty backlog costs real time and tokens -
   plan, pace, say the cost up front. Keeping up as you go is cheap. This note
-  goes out with the programs and on the Product Pages (Open item).
+  goes out with the programs and on the Product Pages (Open item). The
+  public SOP also says (Chris, 2026-10-26): save whole transcripts, just
+  summary letters, or both - and offers our summary-letter template
+  (`si-memory.html#session-interview`).
 - The Apartment only answers while Chris's laptop is awake with the app open.
 
 **Status (2026-10-26)** - transcripts filed for 16 sessions: Communiqués 📨
