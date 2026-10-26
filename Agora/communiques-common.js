@@ -361,8 +361,54 @@
     var p = window.location.pathname;
     return p.indexOf("/Agora/profiles/") !== -1 ? "../../" : (p.indexOf("/Agora/") !== -1 ? "../" : "");
   }
+  // Every #tag lights up, whatever it says (Chris, 2026-10-26). Until it
+  // has passed the rule of 5 at a Friday reveal (hashtagIndex/approved),
+  // its link explains how hashtags work - the way many people first learn
+  // them - and from then on it opens the tag's own Knowledge Base page.
+  var APPROVED_KEY = "agoraHashtagsApproved";
+  var approvedTags = null; // { key: true } once loaded
+  function tagKey(tag) {
+    return tag.normalize("NFC").toLowerCase();
+  }
   function hashtagHref(tag) {
-    return siteRoot() + "hashtag.html?tag=" + encodeURIComponent(tag.normalize("NFC").toLowerCase());
+    var key = tagKey(tag);
+    if (approvedTags && approvedTags[key]) return siteRoot() + "hashtag.html?tag=" + encodeURIComponent(key);
+    return siteRoot() + "hashtags.html?tag=" + encodeURIComponent(key);
+  }
+  function hashtagTitle(tag) {
+    return approvedTags && approvedTags[tagKey(tag)]
+      ? "#" + tag + " in the Knowledge Base 📚"
+      : "#" + tag + " – how hashtags work (it joins the Knowledge Base 📚 once it passes the rule of 5)";
+  }
+  function refreshHashtagLinks() {
+    Array.prototype.forEach.call(document.querySelectorAll("a.hashtag[data-tag]"), function (a) {
+      var tag = a.getAttribute("data-tag");
+      a.href = hashtagHref(tag);
+      a.title = hashtagTitle(tag);
+    });
+  }
+  // Fetched once an hour at most per tab; links drawn before it arrives
+  // are updated in place.
+  var approvedLoading = false;
+  function loadApprovedTags() {
+    if (approvedLoading) return;
+    approvedLoading = true;
+    try {
+      var cached = JSON.parse(sessionStorage.getItem(APPROVED_KEY) || "null");
+      if (cached && Date.now() - cached.at < 60 * 60 * 1000) {
+        approvedTags = cached.tags;
+        refreshHashtagLinks();
+        return;
+      }
+    } catch (e) {}
+    if (typeof AgoraDB === "undefined") return;
+    AgoraDB.collection("hashtagIndex").doc("approved").get().then(function (doc) {
+      var tags = {};
+      ((doc.exists && doc.data().keys) || []).forEach(function (k) { tags[k] = true; });
+      approvedTags = tags;
+      try { sessionStorage.setItem(APPROVED_KEY, JSON.stringify({ at: Date.now(), tags: tags })); } catch (e) {}
+      refreshHashtagLinks();
+    }).catch(function () { approvedLoading = false; });
   }
   function isHashtag(tag) {
     return tag.length <= 50 && /\p{L}/u.test(tag);
@@ -385,7 +431,9 @@
         frag.appendChild(document.createTextNode(text.slice(last, start)));
         var a = document.createElement("a");
         a.className = "hashtag";
+        a.setAttribute("data-tag", tag);
         a.href = hashtagHref(tag);
+        a.title = hashtagTitle(tag);
         a.textContent = "#" + tag;
         frag.appendChild(a);
         last = start + 1 + tag.length;
@@ -396,6 +444,7 @@
       frag.appendChild(document.createTextNode(text.slice(last)));
       node.parentNode.replaceChild(frag, node);
     });
+    if (nodes.length && approvedTags === null) loadApprovedTags();
   }
 
   function sanitizeBody(el, raw) {
@@ -458,7 +507,17 @@
     }
   }
 
+  // Deep bug hunt (Communiqués 📨 Session 4, 2026-10-26): the buttons used
+  // to stay up after the 10 minutes ran out, and pressing them then showed
+  // Firebase's raw "Missing or insufficient permissions". Now they go when
+  // the time's up (or, mid-edit, the next press says so in plain words).
+  var EDIT_CLOSED_TEXT = "The 10-minute window for changing this has closed.";
+  function lateEditMessage(err) {
+    return err && err.code === "permission-denied" ? EDIT_CLOSED_TEXT : (err && err.message) || String(err);
+  }
+
   function attachInlineEdit(container, docRef, data, bodyEl) {
+    var controls = [];
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "edit-toggle";
@@ -488,10 +547,11 @@
       deleting.then(function () {
         container.remove();
       }).catch(function (err) {
-        window.alert(err.message);
+        window.alert(lateEditMessage(err));
       });
     });
     container.appendChild(deleteBtn);
+    controls.push(toggle, deleteBtn);
 
     var form = document.createElement("form");
     form.className = "edit-form";
@@ -523,6 +583,16 @@
     form.appendChild(actions);
 
     container.appendChild(form);
+    controls.push(form);
+
+    // Take the buttons down when the window closes - unless an edit is
+    // open, so typed text isn't lost; Save then explains instead.
+    // (A still-pending write has no createdAt yet - count from now.)
+    var created = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().getTime() : serverNow();
+    setTimeout(function () {
+      if (!form.hidden) return;
+      controls.forEach(function (el) { el.remove(); });
+    }, Math.max(0, created + EDIT_WINDOW_MS - serverNow()) + 1000);
 
     toggle.addEventListener("click", function () {
       form.hidden = false;
@@ -559,7 +629,7 @@
         });
       }).catch(function (err) {
         saveBtn.disabled = false;
-        error.textContent = err.message;
+        error.textContent = lateEditMessage(err);
         error.hidden = false;
       });
     });
@@ -641,6 +711,29 @@
         window.AgoraSounds.knockIfAway(newRef.parent.parent.id, uid);
       }
       return result;
+    });
+  }
+
+  // Every Dialog message sent from the website goes through here (deep bug
+  // hunt, Communiqués 📨 Session 4, 2026-10-26): the message and the
+  // conversation's lastMessage/lastMessageAt are written in one
+  // transaction. They used to be two steps, so a friend with the Dialog
+  // open could mark it read in between - and then the later lastMessageAt
+  // made it look unread again ("● New Dialog" for a message already seen).
+  function sendDialogMessage(uid, conversationRef, body) {
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    return writeThrottled(uid, "dialog", conversationRef.collection("messages").doc(), {
+      authorUid: uid,
+      body: body,
+      createdAt: now,
+      viewCount: 0,
+      via: "human", // Human Style 💪 - the server has the final word
+    }, function (tx) {
+      tx.update(conversationRef, {
+        lastMessage: body,
+        lastMessageAt: now,
+        lastMessageAuthorUid: uid,
+      });
     });
   }
 
@@ -1334,6 +1427,7 @@
     setServerOffset: setServerOffset,
     withTimeout: withTimeout,
     writeThrottled: writeThrottled,
+    sendDialogMessage: sendDialogMessage,
     friendlyPermissionError: friendlyPermissionError,
     friendlyWallError: friendlyWallError,
     profileExists: profileExists,

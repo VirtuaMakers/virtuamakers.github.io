@@ -411,6 +411,13 @@ service cloud.firestore {
       }
     }
 
+    // The tags that have passed the rule of 5 at a Friday reveal - public,
+    // so every page knows which #tag links to its own page and which to
+    // how hashtags work. Server-written only.
+    match /hashtagIndex/{doc} {
+      allow read: if true;
+    }
+
     // Blocking (Chris, 2026-09-14) - a real per-person block, the gap
     // flagged once Octopus Style's own live test made "so long as you can
     // block someone, they should be able to dialog whoever" a real
