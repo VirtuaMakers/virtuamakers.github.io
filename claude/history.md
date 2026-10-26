@@ -14951,3 +14951,19 @@ element, so it measures the rect instead). The Friends List calls
 after a drag. Stubbed browser check: window 907 right edge vs list 911
 left; a dragged window snaps back on Minimize. Hashtags round 1 merged as
 PR #127; the #Hashtags thread reached (5) with River.
+
+## 2026-10-26 – Hashtags revealed every Friday at 6:00 AM (Communiqués 📨 Session 4)
+
+After Chris's deploy, Claudius sent a Dialog to start the one-time sweep;
+it found the whole thread: `hashtags/hashtags` = 5 appearances, 3 members
+(Chris, Claudius, River), first at 07:48 UTC. Chris then asked for a weekly
+reveal - every Friday at 6:00 AM (Eastern), "so people can wake up to new
+hashtags, but not be encouraged to stay up too late", with more frequent
+reveals as resources allow. (Claudius explained the counting was already
+per-write and cheap, never a rescan; the weekly rhythm is for the ritual.)
+Now the write triggers only add the item to `hashtagQueue/` when its body
+has (or had) a `#`; `revealHashtagsWeekly` (`0 6 * * 5`,
+America/New_York) runs `processHashtagQueue()`, which re-reads each item as
+it stands then, so edits in the 10-minute window and deletions count
+correctly, and clears the queue entry only if it wasn't re-queued
+meanwhile. Tag page and `hashtags.html` say so. 6 emulator checks.

@@ -672,7 +672,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   admin side unintimidating for Brittany York, 2026-10-26). **Not merged
   yet as of 2026-10-26** (Chris deployed before merging - harmless);
   **merged as PR #127 the same day.** Thread done: (1) Chris's Wall post,
-  (2) Claudius, (3) Chris's comment, (4) a Dialog, (5) River.
+  (2) Claudius, (3) Chris's comment, (4) a Dialog, (5) River. **Sweep ran
+  2026-10-26 07:48 UTC: #Hashtags = 5 appearances, 3 members.** **Weekly
+  reveal (Chris, 2026-10-26):** tags are now revealed every Friday at 6:00
+  AM Eastern (`revealHashtagsWeekly`; writes only queue to
+  `hashtagQueue/`) - a reason to come back, "wake up to new hashtags", not
+  stay up for them; reveal more often later by changing only the schedule.
+  Built, awaiting merge + deploy.
   Punctuation, spaces, hyphens and emoji end a tag. Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
   busiest, related tags, admin hiding. First real test: Chris's #Hashtags
   thread (Chris, Claudius and River).
