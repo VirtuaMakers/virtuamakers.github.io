@@ -746,6 +746,7 @@
       dragging = false;
       try { handle.releasePointerCapture(e.pointerId); } catch (err) {}
       writeState({ left: el.style.left, top: el.style.top });
+      nudgeDialogs();
     }
     handle.addEventListener("pointerup", end);
     handle.addEventListener("pointercancel", end);
@@ -1076,6 +1077,13 @@
     return panel;
   }
 
+  // Dialog windows (im-window.js) line up to the left of this list rather
+  // than under it (Chris, 2026-10-26), so tell them whenever it changes.
+  function nudgeDialogs() {
+    if (typeof AgoraIMWindow === "undefined" || !AgoraIMWindow.relayout) return;
+    requestAnimationFrame(AgoraIMWindow.relayout);
+  }
+
   function setMinimized(minimized) {
     if (!panel) return;
     panel.minimized = minimized;
@@ -1091,7 +1099,15 @@
 
   function openPanel(minimized) {
     if (!currentUser) return;
-    if (!panel) { buildPanel(); showMyStatus(); }
+    if (!panel) {
+      buildPanel();
+      showMyStatus();
+      // Opening, minimizing, friends loading in - any change of size.
+      if (typeof ResizeObserver !== "undefined") {
+        panel.resizeWatch = new ResizeObserver(nudgeDialogs);
+        panel.resizeWatch.observe(panel.el);
+      }
+    }
     setMinimized(!!minimized);
   }
 
@@ -1100,8 +1116,10 @@
   // isn't wiped by a momentary signed-out moment while a page loads.
   function closePanel(keepState) {
     stopListening();
+    if (panel && panel.resizeWatch) panel.resizeWatch.disconnect();
     if (panel && panel.el.parentNode) panel.el.parentNode.removeChild(panel.el);
     panel = null;
+    nudgeDialogs();
     if (keepState !== true) writeState({ open: false, minimized: false });
   }
 

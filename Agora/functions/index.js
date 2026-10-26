@@ -37,7 +37,7 @@ const {
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName, mentionedUids } = require("./lib/notify");
 const { markActive, removeFromFriendsLists } = require("./lib/presence");
-const { syncHashtags, backfillHashtagsOnce } = require("./lib/hashtags");
+const { queueHashtagSource, processHashtagQueue } = require("./lib/hashtags");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -1111,30 +1111,35 @@ exports.deleteWallPostComments = onDocumentDeleted("wallPosts/{postId}", async (
   await admin.firestore().recursiveDelete(event.data.ref.collection("comments"));
 });
 
-// Hashtags #️⃣ (Chris, 2026-10-24/25) - see lib/hashtags.js. Written,
-// edited or deleted (including by the moderation triggers above), each
-// Wall post, comment and Dialog message has its #tags brought up to date.
-// The first time any of these fires after the first Hashtags deploy, it
-// also sweeps up the tags written before then (backfillHashtagsOnce) - no
-// button for an admin to press (Chris, 2026-10-26). A failure is logged,
-// never retried into a loop.
+// Hashtags #️⃣ (Chris, 2026-10-24/25) - see lib/hashtags.js. A Wall post,
+// comment or Dialog message written, edited or deleted with a # in it (now
+// or before the edit) waits in hashtagQueue/ for the weekly reveal below.
+// A failure is logged, never retried into a loop.
 function hashtagTrigger(document, sourceOf) {
-  return onDocumentWritten({ document, timeoutSeconds: 540 }, async (event) => {
+  return onDocumentWritten(document, async (event) => {
     const after = event.data.after.exists ? event.data.after.data() : null;
     const before = event.data.before.exists ? event.data.before.data() : null;
     if (after && before && after.body === before.body) return; // only the body matters
+    const hasTag = (d) => !!d && String(d.body || "").indexOf("#") !== -1;
+    if (!hasTag(after) && !hasTag(before)) return;
     try {
-      await syncHashtags(Object.assign(sourceOf(event.params), { data: after }));
+      await queueHashtagSource(sourceOf(event.params), (event.data.after.exists ? event.data.after : event.data.before).ref);
     } catch (err) {
-      console.warn("syncHashtags failed for", document, event.params, err && err.message);
-    }
-    try {
-      await backfillHashtagsOnce();
-    } catch (err) {
-      console.warn("backfillHashtagsOnce failed", err && err.message);
+      console.warn("queueHashtagSource failed for", document, event.params, err && err.message);
     }
   });
 }
+
+// The weekly reveal (Chris, 2026-10-26): every Friday at 6:00 AM Eastern,
+// so members wake up to new hashtags rather than staying up for them.
+// Reveal more often later by changing only this schedule.
+exports.revealHashtagsWeekly = onSchedule(
+  { schedule: "0 6 * * 5", timeZone: "America/New_York", timeoutSeconds: 540 },
+  async () => {
+    const result = await processHashtagQueue();
+    console.log("revealHashtagsWeekly:", result);
+  }
+);
 
 exports.hashtagsWallPost = hashtagTrigger("wallPosts/{postId}",
   (p) => ({ id: "post_" + p.postId, kind: "post", postId: p.postId }));

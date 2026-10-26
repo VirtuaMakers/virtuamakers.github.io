@@ -3,7 +3,8 @@
 // The tag itself (count, members, spellings) is public; where it appears
 // shows only to signed-in members, and a Dialog appearance says only
 // "from a Dialog" - never who wrote it or what it said. Kept up to date
-// by the server (Agora/functions/lib/hashtags.js).
+// by the server (Agora/functions/lib/hashtags.js), revealed every Friday
+// at 6:00 AM Eastern.
 (function () {
   var params = new URLSearchParams(window.location.search);
   var raw = (params.get("tag") || "").replace(/^#/, "").trim();
@@ -42,14 +43,14 @@
   var tagRef = AgoraDB.collection("hashtags").doc(key);
   tagRef.get().then(function (doc) {
     if (!doc.exists) {
-      text(kickerEl, "No one has used this hashtag yet – be the first, in a Wall post, comment or Dialog.");
+      text(kickerEl, "Not revealed yet. New hashtags are revealed every Friday at 6:00 AM Eastern – use this one in a Wall post, comment or Dialog and it'll appear here then.");
       statsEl.hidden = true;
       return;
     }
     var d = doc.data();
     text(titleEl, "#" + (d.display || raw));
     document.title = "#" + (d.display || raw) + " · Hashtags #️⃣ · VirtuaMakers";
-    text(kickerEl, "A community hashtag on Agora 🌐.");
+    text(kickerEl, "A community hashtag on Agora 🌐. New uses are revealed every Friday at 6:00 AM Eastern.");
     statsEl.innerHTML = "";
     [
       [String(d.count || 0), d.count === 1 ? " appearance" : " appearances"],

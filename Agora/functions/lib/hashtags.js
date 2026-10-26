@@ -1,10 +1,15 @@
 // Hashtags #️⃣ (Chris, 2026-10-24/25; built by Communiqués 📨 Session 4,
-// 2026-10-26) - a community dictionary in the Knowledge Base 📚. Every
-// Wall post, comment and Dialog message is read for #tags whenever it's
-// written, edited or deleted (one onDocumentWritten trigger per kind in
-// index.js), so the counts always match what's really on the site:
-// content the moderation filter removes, or its author deletes, drops off
-// on its own.
+// 2026-10-26) - a community dictionary in the Knowledge Base 📚.
+//
+// Revealed weekly (Chris, 2026-10-26): every Friday at 6:00 AM Eastern -
+// something to wake up to, never a reason to stay up late. A Wall post,
+// comment or Dialog message that's written, edited or deleted with a # in
+// it only joins hashtagQueue/ at that moment (one small write); Friday's
+// run (revealHashtagsWeekly in index.js) reads each queued item as it is
+// *then* - so edits made in its 10-minute window, and anything deleted or
+// removed by moderation since, are counted correctly - and brings the
+// counts up to date. To reveal more often later, only the schedule in
+// index.js changes.
 //
 // Tags aren't case-sensitive (Chris, 2026-10-26): #Hashtags, #hashtags and
 // #HASHTAGS are one tag, keyed by its lower-case form; pages show the
@@ -24,6 +29,8 @@
 //                                   content held last time, to diff edits
 //   hashtagMeta/backfill            server only: when the one-time sweep
 //                                   of older content ran
+//   hashtagQueue/{sourceId}         server only: content waiting for
+//                                   Friday's reveal (path, kind, postId)
 const admin = require("firebase-admin");
 // The modular import (not admin.firestore.FieldValue) - it also works in
 // the emulator, and is the style firebase-admin 14 needs.
@@ -213,4 +220,45 @@ async function backfillHashtagsOnce() {
   return result;
 }
 
-module.exports = { extractTags, excerptOf, syncHashtags, backfillHashtags, backfillHashtagsOnce };
+// Called by the write triggers: remember this piece of content for the
+// next reveal. Only content that has (or had) a # in it is queued.
+async function queueHashtagSource(source, ref) {
+  await admin.firestore().collection("hashtagQueue").doc(source.id).set({
+    path: ref.path,
+    kind: source.kind,
+    postId: source.postId || null,
+    queuedAt: FieldValue.serverTimestamp(),
+  });
+}
+
+// Friday's reveal: bring every queued item's tags up to date, as the item
+// stands now, then clear it from the queue. Returns how many it handled.
+async function processHashtagQueue() {
+  const db = admin.firestore();
+  let processed = 0;
+  for (;;) {
+    const page = await db.collection("hashtagQueue").orderBy("queuedAt").limit(200).get();
+    if (page.empty) break;
+    for (const q of page.docs) {
+      const item = q.data();
+      const snap = await db.doc(item.path).get();
+      try {
+        await syncHashtags({ id: q.id, kind: item.kind, postId: item.postId || undefined, data: snap.exists ? snap.data() : null });
+      } catch (err) {
+        console.warn("processHashtagQueue: couldn't sync", q.id, err && err.message);
+      }
+      // Cleared only if nobody edited it again while we worked - a newer
+      // edit stays queued for next time.
+      await db.runTransaction(async (tx) => {
+        const now = await tx.get(q.ref);
+        const was = item.queuedAt && item.queuedAt.toMillis ? item.queuedAt.toMillis() : 0;
+        const is = now.exists && now.get("queuedAt") && now.get("queuedAt").toMillis ? now.get("queuedAt").toMillis() : 0;
+        if (now.exists && is === was) tx.delete(q.ref);
+      });
+      processed += 1;
+    }
+  }
+  return { processed };
+}
+
+module.exports = { extractTags, excerptOf, syncHashtags, backfillHashtags, backfillHashtagsOnce, queueHashtagSource, processHashtagQueue };
