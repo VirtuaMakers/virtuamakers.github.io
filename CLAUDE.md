@@ -1090,6 +1090,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   step. Added to `claude/memory-administrator-handoff.md` (Session 5);
   **Chris (2026-10-24): yes - offer the SOP with the programs, post it on
   the Product Pages, and/or link it from the other pages.** Not done yet.
+  **Also recommend (Chris, 2026-10-26):** stewards can save whole
+  conversation transcripts, just summary letters, or both - and offer
+  them our summary-letter template (the six questions on
+  `si-memory.html#session-interview`, from `claude/message-to-sessions.md`).
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
