@@ -251,20 +251,8 @@
   // comments open straight to the Wall on click, same as any other toast
   // click, but there's no single "reply target" to compose into inline.
   function sendReply(conversationId, text, onDone) {
-    var now = firebase.firestore.FieldValue.serverTimestamp();
     var ref = AgoraDB.collection("conversations").doc(conversationId);
-    CommuniquesCommon.writeThrottled(currentUser.uid, "dialog", ref.collection("messages").doc(), {
-      authorUid: currentUser.uid,
-      body: text,
-      createdAt: now,
-      via: "human", // Human Style 💪 - the server has the final word
-    }).then(function () {
-      return ref.update({
-        lastMessage: text,
-        lastMessageAt: now,
-        lastMessageAuthorUid: currentUser.uid,
-      });
-    }).then(function () {
+    CommuniquesCommon.sendDialogMessage(currentUser.uid, ref, text).then(function () {
       onDone(null);
     }).catch(function (err) {
       onDone(err);

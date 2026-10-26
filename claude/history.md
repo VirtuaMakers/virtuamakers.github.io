@@ -14986,3 +14986,28 @@ loads (cached an hour per tab; `a.hashtag[data-tag]` updated in place).
 emulator checks (approval, 1-member tag excluded, hidden drops out),
 browser check of both link kinds. #Hashtags itself joins the index at the
 first reveal, Friday 2026-10-30 06:00 ET.
+
+## 2026-10-26 – Deep search for Communiqués 📨 bugs (Communiqués 📨 Session 4)
+
+Chris asked for a deep bug search after the hashtag change. Fixed:
+- **Broken links in the Dialog window on profile pages:** `im-window.js`'s
+  sender and "open full Dialog" links were relative, so from
+  `Agora/profiles/*.html` they pointed to `profiles/member.html`. Now built
+  from `agoraBase()`.
+- **Unread marks could come back after reading:** a Dialog message and the
+  conversation's `lastMessageAt` were two separate writes, so a reader could
+  mark it read in between and still see ●. Every send (website: new
+  `CommuniquesCommon.sendDialogMessage`, used by `im-window.js`,
+  `communiques-dm.js`, `member.js`, `notification-toast.js`; server:
+  `performCommunique()` and the moderation-appeal restore) now writes both
+  together (transaction/batch). Rules transaction test 3/3.
+- **Edit/Delete after 10 minutes:** the buttons stayed and failed with
+  Firebase's raw "Missing or insufficient permissions". `attachInlineEdit`
+  now removes them when the window closes (unless an edit is open) and
+  explains "The 10-minute window for changing this has closed." Browser check.
+- `hashtags.html`: Dialog privacy wording made exact.
+Left for Chris (design, not bugs): any signed-in member can read any
+Dialog (as `privacy.html` says); your own views add to view counts; the
+window jumps to the newest message on each update.
+Versions: communiques-common v37, im-window v22, notification-toast v22,
+communiques-dm v20, member v44.

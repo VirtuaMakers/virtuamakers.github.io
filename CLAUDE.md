@@ -754,6 +754,13 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   played on the third try wasn't confirmed. Opening a minimized window now
   scrolls to the newest message (it showed the first). Messages are now
   sent with the Agora MCP tool `agora_send_dialog_message`.
+- [ ] **[Communiqués 📨 session] Deep bug search, round 1 (Chris,
+  2026-10-26)** - **built by Communiqués 📨 Session 4, awaiting merge,
+  deploy and Chris's check:** Dialog-window links on static profile pages,
+  unread ● coming back (message + preview now one write), Edit/Delete
+  vanishing after 10 minutes with a plain message (`claude/history.md`).
+  For Chris to decide: any signed-in member can read any Dialog (as
+  `privacy.html` says); own views count; window jumps to newest.
 - [ ] **[Communiqués 📨 session] Minimize resets the Dialog window, and the
   row keeps clear of the Friends List (Chris, 2026-10-26, testing as
   River)** - Minimize now undoes a drag and a stretched text box and puts

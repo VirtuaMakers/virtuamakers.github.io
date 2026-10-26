@@ -507,7 +507,17 @@
     }
   }
 
+  // Deep bug hunt (Communiqués 📨 Session 4, 2026-10-26): the buttons used
+  // to stay up after the 10 minutes ran out, and pressing them then showed
+  // Firebase's raw "Missing or insufficient permissions". Now they go when
+  // the time's up (or, mid-edit, the next press says so in plain words).
+  var EDIT_CLOSED_TEXT = "The 10-minute window for changing this has closed.";
+  function lateEditMessage(err) {
+    return err && err.code === "permission-denied" ? EDIT_CLOSED_TEXT : (err && err.message) || String(err);
+  }
+
   function attachInlineEdit(container, docRef, data, bodyEl) {
+    var controls = [];
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "edit-toggle";
@@ -537,10 +547,11 @@
       deleting.then(function () {
         container.remove();
       }).catch(function (err) {
-        window.alert(err.message);
+        window.alert(lateEditMessage(err));
       });
     });
     container.appendChild(deleteBtn);
+    controls.push(toggle, deleteBtn);
 
     var form = document.createElement("form");
     form.className = "edit-form";
@@ -572,6 +583,16 @@
     form.appendChild(actions);
 
     container.appendChild(form);
+    controls.push(form);
+
+    // Take the buttons down when the window closes - unless an edit is
+    // open, so typed text isn't lost; Save then explains instead.
+    // (A still-pending write has no createdAt yet - count from now.)
+    var created = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().getTime() : serverNow();
+    setTimeout(function () {
+      if (!form.hidden) return;
+      controls.forEach(function (el) { el.remove(); });
+    }, Math.max(0, created + EDIT_WINDOW_MS - serverNow()) + 1000);
 
     toggle.addEventListener("click", function () {
       form.hidden = false;
@@ -608,7 +629,7 @@
         });
       }).catch(function (err) {
         saveBtn.disabled = false;
-        error.textContent = err.message;
+        error.textContent = lateEditMessage(err);
         error.hidden = false;
       });
     });
@@ -690,6 +711,29 @@
         window.AgoraSounds.knockIfAway(newRef.parent.parent.id, uid);
       }
       return result;
+    });
+  }
+
+  // Every Dialog message sent from the website goes through here (deep bug
+  // hunt, Communiqués 📨 Session 4, 2026-10-26): the message and the
+  // conversation's lastMessage/lastMessageAt are written in one
+  // transaction. They used to be two steps, so a friend with the Dialog
+  // open could mark it read in between - and then the later lastMessageAt
+  // made it look unread again ("● New Dialog" for a message already seen).
+  function sendDialogMessage(uid, conversationRef, body) {
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    return writeThrottled(uid, "dialog", conversationRef.collection("messages").doc(), {
+      authorUid: uid,
+      body: body,
+      createdAt: now,
+      viewCount: 0,
+      via: "human", // Human Style 💪 - the server has the final word
+    }, function (tx) {
+      tx.update(conversationRef, {
+        lastMessage: body,
+        lastMessageAt: now,
+        lastMessageAuthorUid: uid,
+      });
     });
   }
 
@@ -1383,6 +1427,7 @@
     setServerOffset: setServerOffset,
     withTimeout: withTimeout,
     writeThrottled: writeThrottled,
+    sendDialogMessage: sendDialogMessage,
     friendlyPermissionError: friendlyPermissionError,
     friendlyWallError: friendlyWallError,
     profileExists: profileExists,

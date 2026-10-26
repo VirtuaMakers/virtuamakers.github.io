@@ -1244,16 +1244,19 @@ async function republishModeratedContent(log) {
     const conversationRef = admin.firestore().collection("conversations").doc(log.context.conversationId);
     const conversationSnap = await conversationRef.get();
     if (!conversationSnap.exists) return;
-    await conversationRef.collection("messages").add({
+    // One batch - see performCommunique().
+    const batch = admin.firestore().batch();
+    batch.set(conversationRef.collection("messages").doc(), {
       authorUid: log.uid,
       body: log.text,
       createdAt: now,
     });
-    await conversationRef.update({
+    batch.update(conversationRef, {
       lastMessage: log.text,
       lastMessageAt: now,
       lastMessageAuthorUid: log.uid,
     });
+    await batch.commit();
   } else if (log.contentType === "profileBio") {
     await admin.firestore().collection("profiles").doc(log.uid).update({ bio: log.text });
   } else if (log.contentType === "profilePicture") {
@@ -2627,8 +2630,12 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
     if (automated) messageData.isAutomated = true;
     const msgRef = convRef.collection("messages").doc();
     await markModerated(msgRef);
-    await msgRef.set(messageData);
-    await convRef.update({ lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
+    // One batch, so the Dialog's preview time never lands after a reader
+    // already marked the message read (deep bug hunt, 2026-10-26).
+    const batch = db.batch();
+    batch.set(msgRef, messageData);
+    batch.update(convRef, { lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
+    await batch.commit();
     return { ok: true, status: 201, success: true, id: msgRef.id, conversationId: convRef.id, moderationLogId };
   } catch (err) {
     console.error("performCommunique failed:", err);

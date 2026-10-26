@@ -75,6 +75,13 @@
     } catch (e) {}
   }
 
+  // The Agora folder, from wherever this page is - the static profiles
+  // live one level down (Agora/profiles/), where a bare "member.html"
+  // pointed at a page that doesn't exist (deep bug hunt, 2026-10-26).
+  function agoraBase() {
+    return window.location.pathname.indexOf("/profiles/") !== -1 ? "../" : "";
+  }
+
   function isNarrowViewport() {
     return window.innerWidth < NARROW_VIEWPORT_MAX;
   }
@@ -287,7 +294,7 @@
     var sender = document.createElement("p");
     sender.className = "message-sender " + colorClass;
     var senderLink = document.createElement("a");
-    senderLink.href = "member.html?uid=" + encodeURIComponent(data.authorUid);
+    senderLink.href = agoraBase() + "member.html?uid=" + encodeURIComponent(data.authorUid);
     senderLink.textContent = (win.participantNames && win.participantNames[data.authorUid]) || "Member";
     sender.appendChild(senderLink);
     bubble.appendChild(sender);
@@ -468,20 +475,7 @@
           return;
         }
 
-        var now = firebase.firestore.FieldValue.serverTimestamp();
-        return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
-          authorUid: currentUser.uid,
-          body: body,
-          createdAt: now,
-          viewCount: 0,
-          via: "human", // Human Style 💪 - the server has the final word
-        }).then(function () {
-          return conversationRef.update({
-            lastMessage: body,
-            lastMessageAt: now,
-            lastMessageAuthorUid: currentUser.uid,
-          });
-        }).then(function () {
+        return C.sendDialogMessage(currentUser.uid, conversationRef, body).then(function () {
           textarea.value = "";
         });
       });
@@ -586,7 +580,7 @@
       if (windows[otherUid] !== win) return; // closed while this was in flight
       win.conversationId = conversationId;
       sendBtn.disabled = false;
-      expandLink.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      expandLink.href = agoraBase() + "communiques-dm.html?c=" + encodeURIComponent(conversationId);
       if (!win.minimized && lastSnap) C.markDialogRead(conversationId, currentUser.uid, newestId());
 
       // participants/participantNames tell buildBubble() who's who and
