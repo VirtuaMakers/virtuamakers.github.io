@@ -14936,3 +14936,4 @@ admin hiding.
   side simple for Brittany York.
 - Hashtags round 1 hadn't been merged when Chris deployed (he ran the
   deploy without "merge it"), so his deploy sent the old code - harmless.
+- **Light Theme accent (Chris, 2026-10-26: "a really pale blue-white?"):** Agora's `.card` and `.profile-panel` now use `--card-bg` #f5f8fe, `--card-line` #cfdcf4, hover edge #8fb2ee and a soft blue shadow (were white with a black edge; the hover was a stray green). Page background stays white, so the white-background pictures and the News video read as framed. style.css v132. Full themes (Light, Dark, Teal, Sunset, Indigo, Plant, Chrome) logged in CLAUDE.md for the Madang 🔵 session.

@@ -455,6 +455,18 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   once-per-page "VM | ㅁㄷ" footer, a blue circle in a black square as a
   bullet. Watch the typo "Mandag" (Norwegian/Danish for Monday). Full
   notes: `claude/history.md`, 2026-10-22, and SI Memory.
+- [ ] **[Madang 🔵 session] Colour themes members can pick (Chris,
+  2026-10-26)** - wait for the Madang logos, then build a theme picker:
+  Light (default - white and blue), Dark (black with coral accents), Teal
+  (the Dimonds ♦️ look), Sunset (Teal's warm inverse), Indigo (violets,
+  indigos, purples), Plant (greens with some brown), Chrome (silver plus
+  an accent). Chris's dream extras: recoloured versions of the shape
+  images (pyramids, spheres...) and the News 📰 video for each theme; the
+  logos can sit in containers instead of being recoloured. First step done
+  2026-10-26 (Agora 🌐 Session 6): the Light Theme's cards and profile
+  panels got a pale blue-white fill and soft blue edge, set by four CSS
+  tokens (`--card-bg`, `--card-line`, `--card-hover-line`,
+  `--card-shadow` in `Agora/style.css`) that each theme can swap.
 - [ ] **[Agora 🌐 Session 6] Buy madang.social on Porkbun (Chris,
   2026-10-23)** - $6.69 the first year, $34.50/yr after (Porkbun's price
   list, 2026-10-23). Turn on auto-renew; keep the free WHOIS privacy.
