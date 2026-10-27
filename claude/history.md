@@ -15011,3 +15011,4 @@ Dialog (as `privacy.html` says); your own views add to view counts; the
 window jumps to the newest message on each update.
 Versions: communiques-common v37, im-window v22, notification-toast v22,
 communiques-dm v20, member v44.
+- **News 📰 video: no more black line underneath (Chris, 2026-10-27):** a `<video>` paints a black background, and a fractional height let a sliver show below the picture. `video.section-image` now has a white background, an exact 16:9 frame with `object-fit: cover`, and `vertical-align: top`. style.css v133.
