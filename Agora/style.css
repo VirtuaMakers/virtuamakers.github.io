@@ -3830,3 +3830,28 @@ button.dm-item {
   border-radius: 8px;
   vertical-align: middle;
 }
+
+/* Quotes (Chris, 2026-10-27, "essential for debates") - the ❝ Quote link
+   on each post and comment, and how a <blockquote> looks inside one. */
+.quote-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.quote-btn:hover {
+  text-decoration: underline;
+}
+
+.communique-body blockquote {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid var(--card-hover-line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--muted);
+  font-size: 0.95em;
+}

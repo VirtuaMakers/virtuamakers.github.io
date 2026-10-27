@@ -760,6 +760,55 @@
     return base + "post.html?id=" + encodeURIComponent(postId);
   }
 
+  // Quotes for debates (Chris, 2026-10-27): a "❝ Quote" link beside each
+  // post and comment drops "@Name wrote:" plus the quoted words into the
+  // comment box below, message-board style. The "wrote:" name is a tag, so
+  // the quoted member is notified (mentions.js / notifyOnWallComment).
+  // Selected text in that post quotes just the selection; otherwise the
+  // whole thing (earlier quotes left out, so quotes don't nest forever),
+  // up to QUOTE_MAX characters.
+  var QUOTE_MAX = 500;
+
+  function memberPathOf(uid) {
+    // Static profiles (and the Pony desk 🐎) use short lower-case slugs;
+    // real accounts have long mixed-case Firebase uids.
+    return /^[a-z0-9-]{1,40}$/.test(uid || "") ? "/Agora/profiles/" + uid + ".html"
+      : "/Agora/member.html?uid=" + encodeURIComponent(uid || "");
+  }
+
+  function quotedTextOf(bodyEl) {
+    var sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed && bodyEl.contains(sel.anchorNode) && bodyEl.contains(sel.focusNode)) {
+      return sel.toString();
+    }
+    var clone = bodyEl.cloneNode(true);
+    Array.prototype.forEach.call(clone.querySelectorAll("blockquote"), function (q) { q.remove(); });
+    return clone.textContent;
+  }
+
+  function attachQuoteButton(meta, data, bodyEl) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "quote-btn";
+    btn.title = "Quote this in a comment below";
+    btn.textContent = "❝ Quote";
+    btn.addEventListener("mousedown", function (e) { e.preventDefault(); }); // keep any text selection
+    btn.addEventListener("click", function () {
+      var holder = btn.closest(".wall-post");
+      // On a Wall, the box under this same post; on a post's own page
+      // (post.html, no .wall-post around it), that page's one box.
+      var form = holder ? holder.querySelector(".wall-comment-form") : document.querySelector(".wall-comment-form");
+      if (!form || !form.quoteInto) return;
+      var text = truncateAtWord(quotedTextOf(bodyEl).replace(/\s+/g, " ").trim(), QUOTE_MAX);
+      if (!text) return;
+      var safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      var name = String(data.authorName || "Member").replace(/[\[\]()<>\n]/g, "").trim() || "Member";
+      form.quoteInto("<blockquote>@[" + name + "](" + memberPathOf(data.authorUid) + ") wrote:<br>" + safe + "</blockquote>\n");
+    });
+    meta.appendChild(document.createTextNode(" · "));
+    meta.appendChild(btn);
+  }
+
   function buildCommentItem(doc, getCurrentUser) {
     var data = doc.data();
     var currentUser = getCurrentUser();
@@ -781,6 +830,8 @@
     body.className = "body-text communique-body";
     sanitizeBody(body, data.body);
     item.appendChild(body);
+
+    if (currentUser) attachQuoteButton(meta, data, body);
 
     if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
       attachInlineEdit(item, doc.ref, data, body);
@@ -933,6 +984,18 @@
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
 
+    // Used by the ❝ Quote links (attachQuoteButton): opens the form if
+    // it's shut and adds the quote after whatever's already typed.
+    form.quoteInto = function (quoteHtml) {
+      if (!isOpen) toggleBtn.click();
+      var existing = textarea.value.replace(/\s+$/, "");
+      textarea.value = (existing ? existing + "\n" : "") + quoteHtml;
+      textarea.focus();
+      var end = textarea.value.length;
+      try { textarea.setSelectionRange(end, end); } catch (e) {}
+      form.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    };
+
     return form;
   }
 
@@ -973,6 +1036,7 @@
     function buildWallPost(doc) {
       var data = doc.data();
       var currentUser = getCurrentUser();
+      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
       var post = document.createElement("div");
       post.className = "wall-post";
 
@@ -992,13 +1056,14 @@
       sanitizeBody(body, data.body);
       post.appendChild(body);
 
+      if (currentUser && commentCount < COMMENT_CAP) attachQuoteButton(meta, data, body);
+
       if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
         attachInlineEdit(post, doc.ref, data, body);
       }
 
       recordView(doc.ref);
 
-      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
       var commentsWrap = document.createElement("div");
       commentsWrap.className = "wall-comments";
       post.appendChild(commentsWrap);
