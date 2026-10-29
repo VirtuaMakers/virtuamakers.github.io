@@ -448,8 +448,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (Chris, 2026-10-22/23: "Agora is being deprecated in favor of Madang
   🌐!")** - 마당, the courtyard where a Korean village gathers ("forum").
   Emoji: **Madang 🔵** (Chris, 2026-10-23) - the logo's blue dot; 🌐 then
-  passes to the Æthernet 🌐. There will be no Agora 🌐 Session 7; the next
-  session is "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
+  passes to the Æthernet 🌐. Agora 🌐 Session 7 opened 2026-10-27 after
+  all; the rename work itself is still "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
   throughout, forwarding from `/Agora/`). Marks Chris picked: the Blue Dot
   🔵 wordmark (ㅏ's stroke as the 1446 dot, in blue), a bold ㅁㄷ for a
   once-per-page "VM | ㅁㄷ" footer, a blue circle in a black square as a
@@ -497,6 +497,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   To Do 2026-10-28 via Agora 🌐 Session 7)** - when the Exchange's URL is
   unhinged from Agora 🌐 (today `Agora/exchange*.html`), its home becomes
   `VirtuaMakers.com/VMex`, with forwarding from the old pages. Not started.
+- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
+  VirtuaMakers.com/VMex (Chris, 2026-10-28, via Agora 🌐 Session 7)** -
+  when the Exchange is unhooked from Agora 🌐 (today `Agora/exchange*.html`),
+  its new home is VirtuaMakers.com/VMex. Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Court Advertisers (Chris,
   2026-10-24)** - be as selective as possible about advertisers over time:
   on brand, and never ones that compete with what we sell on the Exchange
@@ -958,6 +962,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (2026-10-14, via Agora 🌐 Session 3): send it to the current VirtuaMakers
   Exchange 💱 session - recommended to Memory Administrator 🚚, awaiting
   Chris's confirmation. Update the gallery copy once it's on mainnet.
+- [ ] **[SI Memory 🧾 session] SI Memory Manual 🧾 (SI Memory 🧾 Session 2,
+  2026-10-26)** - built: `si-memory-manual.html`, a "Can my SI use it?"
+  check (new `siMemoryCheck` Function) and the Memory Card, a paste-in
+  memory for SI that can't connect (free Copilot/Gemini). **Not on `main`
+  yet (checked 2026-10-29).** Next: Chris merges, deploys, and runs the
+  check with a real free Gemini/Copilot chat. Then: an SI Memory connector
+  (Otter Style 🦦 pattern) for apps that take connectors, and the Memory
+  Administrator method in the Manual's "How we use it ourselves" section.
+  Its vault-fullness line is a first piece of the "how full" item below.
 - [ ] **[SI Memory 🧾 session] Report how full SI Memory is (Chris,
   2026-10-08)** - tell the user what percentage of their SI Memory 🧾 vault
   is used, probably every time (e.g. on every read/write response and the
