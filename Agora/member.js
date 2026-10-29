@@ -463,6 +463,7 @@
     watchFriendship();
     watchBlock();
     loadFriendsList();
+    loadPublicTodos();
   });
 
   // Both admin actions call the adminBanUser/adminDeleteUser Cloud
@@ -1047,10 +1048,686 @@
     return Math.round((date - fromMidnight) / (24 * 60 * 60 * 1000));
   }
 
+  // --- Holidays VirtuaMakers 🦜 observes (Chris, 2026-10-24) -----------
+  // Each holiday has one rule: a fixed "MM-DD" day, an nth weekday of a
+  // month (n = -1 for the last), or a function giving its date in a year.
+  // Whale Day is the day we observe it, August 7th.
+  var calendarHolidays = document.getElementById("calendar-holidays");
+  var calendarHolidaysMore = document.getElementById("calendar-holidays-more");
+  var calendarSchedule = document.getElementById("calendar-schedule");
+  var HOLIDAYS_SHOWN = 8;
+  var HOLIDAYS = [
+    // U.S. federal holidays (Chris, 2026-10-24)
+    { name: "New Year's Day", day: "01-01" },
+    { name: "Martin Luther King Jr. Day", nth: [1, 1, 3] },
+    { name: "Presidents' Day", nth: [2, 1, 3] },
+    { name: "Memorial Day", nth: [5, 1, -1] },
+    { name: "Juneteenth", day: "06-19" },
+    { name: "Independence Day", day: "07-04" },
+    { name: "Labor Day", nth: [9, 1, 1] },
+    { name: "Columbus Day / Indigenous Peoples' Day", nth: [10, 1, 2] },
+    { name: "Veterans Day", day: "11-11" },
+    { name: "Thanksgiving", nth: [11, 4, 4] },
+    { name: "Christmas Day", day: "12-25" },
+    { name: "New Year's Eve", day: "12-31" },
+    // Chris's own picks (2026-10-24)
+    { name: "Valentine's Day", day: "02-14" },
+    { name: "St. Patrick's Day", day: "03-17" },
+    { name: "Easter", dateIn: westernEaster },
+    { name: "Star Wars Day", day: "05-04" },
+    { name: "Cinco de Mayo", day: "05-05" },
+    { name: "Whale Day", day: "08-07" },
+    { name: "Halloween", day: "10-31" },
+    { name: "Christmas Eve", day: "12-24" },
+    { name: "Chinese New Year", dateIn: chineseNewYear },
+    { name: "Yom Kippur", note: "begins at sundown the evening before", dateIn: yomKippur },
+    { name: "Ramadan begins", note: "may shift a day with the moon sighting", dateIn: ramadanBegins },
+    { name: "Ramadan ends – Eid al-Fitr", note: "may shift a day with the moon sighting", dateIn: eidAlFitr },
+    { name: "Hanukkah begins", note: "first candle the evening before", dateIn: hanukkah },
+    { name: "Diwali", dateIn: diwali },
+    // First days of the seasons (Northern Hemisphere), from the equinoxes
+    // and solstices, in the viewer's own time zone.
+    { name: "First day of spring", dateIn: function (y) { return seasonStart(y, 0); } },
+    { name: "First day of summer", dateIn: function (y) { return seasonStart(y, 1); } },
+    { name: "First day of autumn", dateIn: function (y) { return seasonStart(y, 2); } },
+    { name: "First day of winter", dateIn: function (y) { return seasonStart(y, 3); } },
+  ];
+
+  // Company rhythms (Chris, 2026-10-24): a new VirtuaMakers Exchange 💱
+  // catalogue on the 1st, the VirtuaMakers Gallery 🖼️ on the 15th, News 📰
+  // every Wednesday.
+  var SCHEDULE = [
+    { name: "New Catalogue on the VirtuaMakers Exchange 💱", every: "the 1st of every month", monthDay: 1 },
+    { name: "VirtuaMakers Gallery 🖼️", every: "the 15th of every month", monthDay: 15 },
+    { name: "News 📰", every: "every Wednesday", weekday: 3 },
+  ];
+
+  // Western (Gregorian) Easter Sunday - the anonymous Gregorian algorithm.
+  function westernEaster(year) {
+    var a = year % 19, b = Math.floor(year / 100), c = year % 100;
+    var d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+    var g = Math.floor((b - f + 1) / 3);
+    var h = (19 * a + b - d - g + 15) % 30;
+    var i = Math.floor(c / 4), k = c % 4;
+    var l = (32 + 2 * e + 2 * i - h - k) % 7;
+    var m = Math.floor((a + 11 * h + 22 * l) / 451);
+    var month = Math.floor((h + l - 7 * m + 114) / 31);
+    var day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month - 1, day);
+  }
+
+  // The nth weekday (0 = Sunday) of a month; n = -1 is the last one.
+  function nthWeekday(year, month, weekday, n) {
+    if (n < 0) {
+      var last = new Date(year, month, 0);
+      return new Date(year, month - 1, last.getDate() - ((last.getDay() - weekday + 7) % 7));
+    }
+    var first = new Date(year, month - 1, 1);
+    return new Date(year, month - 1, 1 + ((weekday - first.getDay() + 7) % 7) + 7 * (n - 1));
+  }
+
+  // The browser's own Hebrew and Umm al-Qura (Islamic) calendars find the
+  // lunar holidays: scan the year for the day whose month/day match.
+  // `month` is a number string, or a pattern for calendars that name their
+  // months instead (Hebrew always does). Returns null if the browser lacks
+  // that calendar, so the holiday is just left out.
+  var lunarCache = {};
+  function findInYear(calendar, year, month, day) {
+    var key = calendar + year + "-" + String(month) + "-" + day;
+    if (key in lunarCache) return lunarCache[key];
+    var found = null;
+    try {
+      var fmt = new Intl.DateTimeFormat("en-US-u-ca-" + calendar,
+        { timeZone: "UTC", month: "numeric", day: "numeric" });
+      if (fmt.resolvedOptions().calendar === calendar) {
+        for (var t = Date.UTC(year, 0, 1); t < Date.UTC(year + 1, 0, 1); t += 86400000) {
+          var parts = {};
+          fmt.formatToParts(new Date(t)).forEach(function (p) { parts[p.type] = p.value; });
+          var monthMatches = typeof month === "string" ? parts.month === month : month.test(parts.month);
+          if (monthMatches && parts.day === day) {
+            var d = new Date(t);
+            found = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+            break;
+          }
+        }
+      }
+    } catch (e) { found = null; }
+    lunarCache[key] = found;
+    return found;
+  }
+
+  function yomKippur(year) { return findInYear("hebrew", year, /^Tishr?e?i$/, "10"); } // 10 Tishrei
+  function hanukkah(year) { return findInYear("hebrew", year, /^Kislev$/, "25"); } // 25 Kislev
+  function ramadanBegins(year) { return findInYear("islamic-umalqura", year, "9", "1"); }
+  function eidAlFitr(year) { return findInYear("islamic-umalqura", year, "10", "1"); } // 1 Shawwal
+
+  // Chinese New Year from the Hong Kong Observatory's tables (checked with
+  // the lunardate library). Browsers' own Chinese calendar is off by a day
+  // in some years, so it's only the fallback after 2050.
+  var CHINESE_NEW_YEAR = {
+    2025: "01-29", 2026: "02-17", 2027: "02-06", 2028: "01-26", 2029: "02-13",
+    2030: "02-03", 2031: "01-23", 2032: "02-11", 2033: "01-31", 2034: "02-19",
+    2035: "02-08", 2036: "01-28", 2037: "02-15", 2038: "02-04", 2039: "01-24",
+    2040: "02-12", 2041: "02-01", 2042: "01-22", 2043: "02-10", 2044: "01-30",
+    2045: "02-17", 2046: "02-06", 2047: "01-26", 2048: "02-14", 2049: "02-02",
+    2050: "01-23",
+  };
+  function chineseNewYear(year) {
+    var md = CHINESE_NEW_YEAR[year];
+    if (md) return new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3, 5), 10));
+    return findInYear("chinese", year, "1", "1");
+  }
+
+  // Diwali (Lakshmi Puja) from Drikpanchang's New Delhi dates - it only
+  // publishes through 2031, so extend this table as years are added.
+  var DIWALI = {
+    2025: "10-20", 2026: "11-08", 2027: "10-29", 2028: "10-17", 2029: "11-05",
+    2030: "10-26", 2031: "11-14",
+  };
+  function diwali(year) {
+    var md = DIWALI[year];
+    return md ? new Date(year, parseInt(md.slice(0, 2), 10) - 1, parseInt(md.slice(3, 5), 10)) : null;
+  }
+
+  // Equinoxes and solstices - Meeus, Astronomical Algorithms ch. 27 (good
+  // to about a minute for 2000-3000). season: 0 March, 1 June,
+  // 2 September, 3 December. Returns the local calendar date.
+  var SEASON_BASE = [
+    [2451623.80984, 365242.37404, 0.05169, -0.00411, -0.00057],
+    [2451716.56767, 365241.62603, 0.00325, 0.00888, -0.00030],
+    [2451810.21715, 365242.01767, -0.11575, 0.00337, 0.00078],
+    [2451900.05952, 365242.74049, -0.06223, -0.00823, 0.00032],
+  ];
+  var SEASON_TERMS = [
+    [485, 324.96, 1934.136], [203, 337.23, 32964.467], [199, 342.08, 20.186],
+    [182, 27.85, 445267.112], [156, 73.14, 45036.886], [136, 171.52, 22518.443],
+    [77, 222.54, 65928.934], [74, 296.72, 3034.906], [70, 243.58, 9037.513],
+    [58, 119.81, 33718.147], [52, 297.17, 150.678], [50, 21.02, 2281.226],
+    [45, 247.54, 29929.562], [44, 325.15, 31555.956], [29, 60.93, 4443.417],
+    [18, 155.12, 67555.328], [17, 288.79, 4562.452], [16, 198.04, 62894.029],
+    [14, 199.76, 31436.921], [12, 95.39, 14577.848], [12, 287.11, 31931.756],
+    [12, 320.81, 34777.259], [9, 227.73, 1222.114], [8, 15.45, 16859.074],
+  ];
+  function seasonStart(year, season) {
+    var rad = Math.PI / 180, c = SEASON_BASE[season], y = (year - 2000) / 1000;
+    var jde0 = c[0] + c[1] * y + c[2] * y * y + c[3] * y * y * y + c[4] * y * y * y * y;
+    var t = (jde0 - 2451545.0) / 36525;
+    var w = (35999.373 * t - 2.47) * rad;
+    var dl = 1 + 0.0334 * Math.cos(w) + 0.0007 * Math.cos(2 * w);
+    var sum = 0;
+    SEASON_TERMS.forEach(function (term) { sum += term[0] * Math.cos((term[1] + term[2] * t) * rad); });
+    var jde = jde0 + 0.00001 * sum / dl;
+    var instant = new Date((jde - 2440587.5) * 86400000); // JD → Unix time (TT ≈ UT, ~1 min)
+    return new Date(instant.getFullYear(), instant.getMonth(), instant.getDate());
+  }
+
+  function holidayDateIn(holiday, year) {
+    if (holiday.day) return new Date(year, parseInt(holiday.day.slice(0, 2), 10) - 1, parseInt(holiday.day.slice(3, 5), 10));
+    if (holiday.nth) return nthWeekday(year, holiday.nth[0], holiday.nth[1], holiday.nth[2]);
+    return holiday.dateIn(year);
+  }
+
+  // A lunar year can hold the same holiday twice (Ramadan began Jan 5 and
+  // Dec 26 in 2030), so scan both years and take the soonest still ahead.
+  function nextHolidayDate(holiday, from) {
+    var fromMidnight = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    var best = null;
+    [from.getFullYear(), from.getFullYear() + 1].forEach(function (year) {
+      var date = holidayDateIn(holiday, year);
+      if (date && date >= fromMidnight && (!best || date < best)) best = date;
+    });
+    return best;
+  }
+
+  function whenText(days) {
+    return days === 0 ? "today" : days === 1 ? "tomorrow" : "in " + days + " days";
+  }
+
+  function dateLine(name, date, now, extra) {
+    var li = document.createElement("li");
+    var strong = document.createElement("strong");
+    strong.textContent = name;
+    li.appendChild(strong);
+    li.appendChild(document.createTextNode(
+      " – " + MONTH_NAMES[date.getMonth()] + " " + date.getDate() + " (" + whenText(daysUntil(date, now)) +
+      (extra ? "; " + extra : "") + ")"
+    ));
+    return li;
+  }
+
+  function renderHolidays() {
+    var now = new Date();
+    var entries = HOLIDAYS.map(function (holiday) {
+      return { holiday: holiday, next: nextHolidayDate(holiday, now) };
+    }).filter(function (entry) { return entry.next; })
+      .sort(function (a, b) { return a.next - b.next; });
+
+    calendarHolidays.textContent = "";
+    entries.forEach(function (entry, index) {
+      var li = dateLine(entry.holiday.name, entry.next, now, entry.holiday.note);
+      if (index >= HOLIDAYS_SHOWN) li.hidden = true;
+      calendarHolidays.appendChild(li);
+    });
+    calendarHolidaysMore.hidden = entries.length <= HOLIDAYS_SHOWN;
+    calendarHolidaysMore.textContent = "Show all " + entries.length + " holidays";
+    calendarHolidaysMore.onclick = function () {
+      Array.prototype.forEach.call(calendarHolidays.children, function (li) { li.hidden = false; });
+      calendarHolidaysMore.hidden = true;
+    };
+
+    calendarSchedule.textContent = "";
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    SCHEDULE.map(function (item) {
+      var next;
+      if (item.weekday !== undefined) {
+        next = new Date(today.getFullYear(), today.getMonth(), today.getDate() + ((item.weekday - today.getDay() + 7) % 7));
+      } else {
+        next = new Date(today.getFullYear(), today.getMonth(), item.monthDay);
+        if (next < today) next = new Date(today.getFullYear(), today.getMonth() + 1, item.monthDay);
+      }
+      return { item: item, next: next };
+    }).sort(function (a, b) { return a.next - b.next; }).forEach(function (entry) {
+      calendarSchedule.appendChild(dateLine(entry.item.name, entry.next, now, entry.item.every));
+    });
+  }
+
+  // --- Calendar 🗓️ To Do lists (Chris, 2026-10-24) ---------------------
+  // Every item has a date (today by default). Anything not done and dated
+  // today or earlier rolls into the Main List, which "snowballs" forward
+  // day by day; later items wait under Upcoming. A member can keep more
+  // lists - each private until made public, and each feeding the Main
+  // List unless unlinked. Kept apart from VirtuaMakers' own internal To Do
+  // lists on purpose (Chris). See the todoLists/todoItems rules.
+  var todoTabs = document.getElementById("todo-tabs");
+  var todoAddForm = document.getElementById("todo-add-form");
+  var todoAddText = document.getElementById("todo-add-text");
+  var todoAddDate = document.getElementById("todo-add-date");
+  var todoAddList = document.getElementById("todo-add-list");
+  var todoError = document.getElementById("todo-error");
+  var todoEmpty = document.getElementById("todo-empty");
+  var todoDue = document.getElementById("todo-due");
+  var todoUpcomingTitle = document.getElementById("todo-upcoming-title");
+  var todoUpcoming = document.getElementById("todo-upcoming");
+  var todoShowDone = document.getElementById("todo-show-done");
+  var todoDoneHistory = document.getElementById("todo-done-history");
+  var todoSettings = document.getElementById("todo-settings");
+  var todoSettingsSummary = document.getElementById("todo-settings-summary");
+  var todoSettingsForm = document.getElementById("todo-settings-form");
+  var todoSettingsName = document.getElementById("todo-settings-name");
+  var todoSettingsPublic = document.getElementById("todo-settings-public");
+  var todoSettingsInMainRow = document.getElementById("todo-settings-inmain-row");
+  var todoSettingsInMain = document.getElementById("todo-settings-inmain");
+  var todoSettingsDelete = document.getElementById("todo-settings-delete");
+  var todoNewListForm = document.getElementById("todo-new-list-form");
+  var todoNewListName = document.getElementById("todo-new-list-name");
+  var publicTodosSection = document.getElementById("member-public-todos");
+  var publicTodoLists = document.getElementById("public-todo-lists");
+
+  var todoLists = [];      // [{id, name, public, inMain, isMain}], Main first
+  var todoItems = [];      // [{id, listId, text, date, done, doneOn}]
+  var todoView = null;     // the list ID being shown
+  var todoLoadedFor = null;
+  var todoShowingHistory = false;
+
+  function localDateKey(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+
+  function shortDate(key) {
+    var parts = key.split("-");
+    return MONTH_NAMES[parseInt(parts[1], 10) - 1].slice(0, 3) + " " + parseInt(parts[2], 10);
+  }
+
+  function mainListId() { return currentUser.uid + "_main"; }
+
+  function todoListById(id) {
+    return todoLists.filter(function (l) { return l.id === id; })[0] || null;
+  }
+
+  function showTodoError(message) {
+    todoError.textContent = message;
+    todoError.hidden = !message;
+  }
+
+  // Public text is moderated like every other piece of member text;
+  // private lists are for your eyes only, so they skip the check.
+  function moderatedIfPublic(text, isPublic) {
+    if (!isPublic || !text || typeof AgoraModeration === "undefined") return Promise.resolve({ decision: "allow" });
+    return AgoraModeration.checkText(text, "todoItem", {});
+  }
+
+  function loadTodos(force) {
+    if (!currentUser || (!force && todoLoadedFor === currentUser.uid)) return;
+    todoLoadedFor = currentUser.uid;
+    if (!todoAddDate.value) todoAddDate.value = localDateKey(new Date());
+    var owner = currentUser.uid;
+    var today = localDateKey(new Date());
+    var mainRef = AgoraDB.collection("todoLists").doc(owner + "_main");
+
+    // The Main List is created the first time it's needed.
+    mainRef.get().then(function (snap) {
+      if (snap.exists) return;
+      return mainRef.set({
+        owner: owner, name: "Main List", public: false, inMain: true, isMain: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    }).then(function () {
+      return Promise.all([
+        AgoraDB.collection("todoLists").where("owner", "==", owner).get(),
+        AgoraDB.collection("todoItems").where("owner", "==", owner).where("done", "==", false).get(),
+        AgoraDB.collection("todoItems").where("owner", "==", owner).where("doneOn", "==", today).get(),
+      ]);
+    }).then(function (results) {
+      todoLists = results[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .sort(function (a, b) {
+          if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
+          return a.name.localeCompare(b.name);
+        });
+      var seen = {};
+      todoItems = [];
+      results[1].docs.concat(results[2].docs).forEach(function (d) {
+        if (seen[d.id]) return;
+        seen[d.id] = true;
+        todoItems.push(Object.assign({ id: d.id }, d.data()));
+      });
+      if (!todoView || !todoListById(todoView)) todoView = mainListId();
+      renderTodos();
+    }).catch(function (err) {
+      console.error("To Do load failed:", err);
+      showTodoError("Couldn't load your To Do lists – try refreshing the page.");
+    });
+  }
+
+  // Which items a view shows: its own, plus - in the Main List - every
+  // list still linked to it.
+  function itemsInView() {
+    var isMain = todoView === mainListId();
+    return todoItems.filter(function (item) {
+      if (item.listId === todoView) return true;
+      if (!isMain) return false;
+      var list = todoListById(item.listId);
+      return list && list.inMain;
+    });
+  }
+
+  function todoRow(item, opts) {
+    var li = document.createElement("li");
+    li.className = "todo-item" + (item.done ? " is-done" : "");
+    var box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = !!item.done;
+    box.setAttribute("aria-label", item.done ? "Mark not done" : "Mark done");
+    box.addEventListener("change", function () { setTodoDone(item, box.checked); });
+    li.appendChild(box);
+
+    var body = document.createElement("div");
+    body.className = "todo-item-body";
+    var text = document.createElement("span");
+    text.className = "todo-item-text";
+    text.textContent = item.text;
+    body.appendChild(text);
+    var meta = [];
+    if (opts.showList && item.listId !== mainListId()) {
+      var list = todoListById(item.listId);
+      if (list) meta.push(list.name);
+    }
+    if (opts.carried && item.date < opts.today) meta.push("from " + shortDate(item.date));
+    if (opts.showDate) meta.push(shortDate(item.date));
+    if (meta.length) {
+      var metaEl = document.createElement("span");
+      metaEl.className = "todo-item-meta";
+      metaEl.textContent = meta.join(" · ");
+      body.appendChild(metaEl);
+    }
+    li.appendChild(body);
+
+    var del = document.createElement("button");
+    del.type = "button";
+    del.className = "todo-item-delete";
+    del.textContent = "×";
+    del.title = "Delete";
+    del.setAttribute("aria-label", "Delete " + item.text);
+    del.addEventListener("click", function () { deleteTodo(item); });
+    li.appendChild(del);
+    return li;
+  }
+
+  function renderTodos() {
+    var today = localDateKey(new Date());
+    var isMain = todoView === mainListId();
+    var view = todoListById(todoView);
+
+    todoTabs.textContent = "";
+    todoAddList.textContent = "";
+    todoLists.forEach(function (list) {
+      var tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "todo-tab";
+      tab.setAttribute("role", "tab");
+      tab.setAttribute("aria-selected", list.id === todoView ? "true" : "false");
+      tab.textContent = list.name + (list.public ? " (public)" : "");
+      tab.addEventListener("click", function () {
+        todoView = list.id;
+        todoShowingHistory = false;
+        renderTodos();
+      });
+      todoTabs.appendChild(tab);
+
+      var option = document.createElement("option");
+      option.value = list.id;
+      option.textContent = list.name;
+      todoAddList.appendChild(option);
+    });
+    todoAddList.value = todoView;
+
+    var items = itemsInView();
+    var due = items.filter(function (i) { return !i.done && i.date <= today; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    var doneToday = items.filter(function (i) { return i.done; });
+    var upcoming = items.filter(function (i) { return !i.done && i.date > today; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+
+    todoDue.textContent = "";
+    due.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, carried: true, today: today })); });
+    doneToday.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, today: today })); });
+    todoEmpty.hidden = due.length > 0;
+
+    todoUpcoming.textContent = "";
+    upcoming.forEach(function (i) { todoUpcoming.appendChild(todoRow(i, { showList: isMain, showDate: true, today: today })); });
+    todoUpcomingTitle.hidden = !upcoming.length;
+
+    todoShowDone.hidden = false;
+    todoShowDone.textContent = todoShowingHistory ? "Hide finished items" : "Show finished items";
+    todoDoneHistory.hidden = !todoShowingHistory;
+
+    if (view) {
+      todoSettingsSummary.textContent = view.name + " – settings";
+      todoSettingsName.value = view.name;
+      todoSettingsName.disabled = !!view.isMain;
+      todoSettingsPublic.checked = !!view.public;
+      todoSettingsInMainRow.hidden = !!view.isMain;
+      todoSettingsInMain.checked = view.inMain !== false;
+      todoSettingsDelete.hidden = !!view.isMain;
+    }
+  }
+
+  function setTodoDone(item, done) {
+    var doneOn = done ? localDateKey(new Date()) : null;
+    AgoraDB.collection("todoItems").doc(item.id).update({ done: done, doneOn: doneOn }).then(function () {
+      item.done = done;
+      item.doneOn = doneOn;
+      renderTodos();
+      if (todoShowingHistory) loadTodoHistory();
+    }).catch(function () {
+      showTodoError("Couldn't save that – try again.");
+      renderTodos();
+    });
+  }
+
+  function deleteTodo(item) {
+    AgoraDB.collection("todoItems").doc(item.id).delete().then(function () {
+      todoItems = todoItems.filter(function (i) { return i.id !== item.id; });
+      renderTodos();
+      if (todoShowingHistory) loadTodoHistory();
+    }).catch(function () {
+      showTodoError("Couldn't delete that – try again.");
+    });
+  }
+
+  // Finished items from before today, newest first (the latest 50).
+  function loadTodoHistory() {
+    var today = localDateKey(new Date());
+    var isMain = todoView === mainListId();
+    AgoraDB.collection("todoItems").where("owner", "==", currentUser.uid).where("done", "==", true).get().then(function (snap) {
+      var items = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); })
+        .filter(function (i) {
+          if (i.doneOn === today) return false;
+          if (i.listId === todoView) return true;
+          var list = todoListById(i.listId);
+          return isMain && list && list.inMain;
+        })
+        .sort(function (a, b) { return (b.doneOn || "") < (a.doneOn || "") ? -1 : 1; })
+        .slice(0, 50);
+      todoDoneHistory.textContent = "";
+      if (!items.length) {
+        var li = document.createElement("li");
+        li.className = "todo-item-meta";
+        li.textContent = "No finished items from earlier days.";
+        todoDoneHistory.appendChild(li);
+      }
+      items.forEach(function (i) {
+        var row = todoRow(i, { showList: isMain, today: today });
+        var meta = document.createElement("span");
+        meta.className = "todo-item-meta";
+        meta.textContent = "Done " + shortDate(i.doneOn || i.date);
+        row.querySelector(".todo-item-body").appendChild(meta);
+        todoDoneHistory.appendChild(row);
+      });
+    }).catch(function () {
+      showTodoError("Couldn't load finished items – try again.");
+    });
+  }
+
+  todoShowDone.addEventListener("click", function () {
+    todoShowingHistory = !todoShowingHistory;
+    renderTodos();
+    if (todoShowingHistory) loadTodoHistory();
+  });
+
+  todoAddForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    showTodoError("");
+    var text = todoAddText.value.trim();
+    var date = todoAddDate.value || localDateKey(new Date());
+    var list = todoListById(todoAddList.value) || todoListById(mainListId());
+    if (!text || !list) return;
+    moderatedIfPublic(text, list.public).then(function (result) {
+      if (result && result.decision === "block") {
+        AgoraModeration.showBlocked(todoError, result.logId);
+        todoError.hidden = false;
+        return;
+      }
+      var data = {
+        owner: currentUser.uid, listId: list.id, listPublic: !!list.public,
+        text: text, date: date, done: false, doneOn: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      return AgoraDB.collection("todoItems").add(data).then(function (ref) {
+        todoItems.push(Object.assign({ id: ref.id }, data));
+        todoAddText.value = "";
+        renderTodos();
+      });
+    }).catch(function () {
+      showTodoError("Couldn't add that – try again.");
+    });
+  });
+
+  todoNewListForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (!currentUser) return;
+    var name = todoNewListName.value.trim();
+    if (!name) return;
+    AgoraDB.collection("todoLists").add({
+      owner: currentUser.uid, name: name, public: false, inMain: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }).then(function (ref) {
+      todoNewListName.value = "";
+      todoView = ref.id;
+      loadTodos(true);
+    }).catch(function () {
+      showTodoError("Couldn't create that list – try again.");
+    });
+  });
+
+  // Saving settings rewrites every item's listPublic copy in the same
+  // batch when the list's public flag changes (the rules check they match).
+  todoSettingsForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var list = todoListById(todoView);
+    if (!list) return;
+    showTodoError("");
+    var name = list.isMain ? list.name : todoSettingsName.value.trim();
+    var makePublic = todoSettingsPublic.checked;
+    var inMain = list.isMain ? true : todoSettingsInMain.checked;
+    if (!name) return;
+    var listRef = AgoraDB.collection("todoLists").doc(list.id);
+    var check = makePublic && !list.public ? moderatedIfPublic(name, true) : Promise.resolve({ decision: "allow" });
+    check.then(function (result) {
+      if (result && result.decision === "block") {
+        AgoraModeration.showBlocked(todoError, result.logId);
+        todoError.hidden = false;
+        return;
+      }
+      var update = { name: name, public: makePublic, inMain: inMain };
+      if (makePublic === !!list.public) return listRef.update(update);
+      return AgoraDB.collection("todoItems").where("owner", "==", currentUser.uid).where("listId", "==", list.id).get()
+        .then(function (snap) {
+          var batch = AgoraDB.batch();
+          batch.update(listRef, update);
+          snap.docs.forEach(function (d) { batch.update(d.ref, { listPublic: makePublic }); });
+          return batch.commit();
+        });
+    }).then(function () {
+      todoSettings.open = false;
+      loadTodos(true);
+    }).catch(function () {
+      showTodoError("Couldn't save those settings – try again.");
+    });
+  });
+
+  todoSettingsDelete.addEventListener("click", function () {
+    var list = todoListById(todoView);
+    if (!list || list.isMain) return;
+    if (!window.confirm("Delete \"" + list.name + "\" and every item on it? This can't be undone.")) return;
+    AgoraDB.collection("todoItems").where("owner", "==", currentUser.uid).where("listId", "==", list.id).get()
+      .then(function (snap) {
+        var batch = AgoraDB.batch();
+        snap.docs.forEach(function (d) { batch.delete(d.ref); });
+        batch.delete(AgoraDB.collection("todoLists").doc(list.id));
+        return batch.commit();
+      }).then(function () {
+        todoView = mainListId();
+        loadTodos(true);
+      }).catch(function () {
+        showTodoError("Couldn't delete that list – try again.");
+      });
+  });
+
+  // Visitors see a member's public lists: what's due or coming up, by list.
+  function loadPublicTodos() {
+    publicTodosSection.hidden = true;
+    if (!uid || (currentUser && currentUser.uid === uid)) return;
+    Promise.all([
+      AgoraDB.collection("todoLists").where("owner", "==", uid).where("public", "==", true).get(),
+      AgoraDB.collection("todoItems").where("owner", "==", uid).where("listPublic", "==", true).where("done", "==", false).get(),
+    ]).then(function (results) {
+      var lists = results[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      if (!lists.length) return;
+      var items = results[1].docs.map(function (d) { return d.data(); })
+        .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+      publicTodoLists.textContent = "";
+      lists.forEach(function (list) {
+        var title = document.createElement("h3");
+        title.className = "section-title";
+        title.textContent = list.name;
+        publicTodoLists.appendChild(title);
+        var ul = document.createElement("ul");
+        ul.className = "todo-items";
+        var mine = items.filter(function (i) { return i.listId === list.id; });
+        if (!mine.length) {
+          var empty = document.createElement("li");
+          empty.className = "todo-item-meta";
+          empty.textContent = "Nothing on this list right now.";
+          ul.appendChild(empty);
+        }
+        mine.forEach(function (i) {
+          var li = document.createElement("li");
+          li.className = "todo-item";
+          var body = document.createElement("div");
+          body.className = "todo-item-body";
+          body.textContent = i.text;
+          var meta = document.createElement("span");
+          meta.className = "todo-item-meta";
+          meta.textContent = shortDate(i.date);
+          body.appendChild(meta);
+          li.appendChild(body);
+          ul.appendChild(li);
+        });
+        publicTodoLists.appendChild(ul);
+      });
+      publicTodosSection.hidden = false;
+    }).catch(function () {
+      publicTodosSection.hidden = true;
+    });
+  }
+
   function loadCalendar() {
     var isOwner = currentUser && currentUser.uid === uid;
     calendarSection.hidden = !isOwner;
     if (isOwner) {
+      loadTodos();
+      renderHolidays();
       loadMessagableMembersForMeetings();
       loadMeetings();
     }
