@@ -853,3 +853,28 @@
   cursor: pointer;
   text-decoration: underline;
 }
+
+/* Quotes on Product Page Walls (Chris, 2026-10-27) - same look as
+   Agora/style.css's ❝ Quote link and quote box. */
+.quote-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: #2b57d6;
+  cursor: pointer;
+}
+
+.quote-btn:hover {
+  text-decoration: underline;
+}
+
+.communique-body blockquote {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid #8fb2ee;
+  border-radius: 8px;
+  background: #f5f8fe;
+  color: #5f7178;
+  font-size: 0.95em;
+}
