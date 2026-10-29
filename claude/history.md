@@ -15106,3 +15106,10 @@ very first visit always failed and the Main List was never created. The
 they missed this. Fixed on the page only: query your own lists and create
 the Main List if it isn't among them (`member.js` v47). Emulator-tested
 the exact first-visit sequence for a new member. No deploy needed.
+
+## Calendar 🗓️ To Do: TODAY heading and dates on every item (Chris, 2026-10-29)
+
+Chris's ask after first using it: today's items get a small "TODAY" heading
+(matching "UPCOMING"), and every item shows its date - today's too.
+Carried-over items now read "Oct 20 – carried over" (was "from Oct 20").
+`member.js` v48. Website only.
