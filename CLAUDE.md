@@ -542,6 +542,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   visit" on Walls, milestone-only notices; plus Top Friends, Testimonials,
   pinned posts, saved posts, Slow Letters, time capsules, Thread to
   Knowledge Base, Per Manum ✒️ credit trails, "In the courtyard now".
+- [ ] **[Agora 🌐 session] Agora 🌐 Session 6's queue (Chris, 2026-10-27;
+  from its handoff letter)** - ❝ Quote is merged (PR #140). Next, in
+  order: the "what can and can't be done" chart in both the Knowledge
+  Base 📚 and `Agora/privacy.html` (Chris: useful, but "something still
+  seems amiss (not inaccurate though)" in how the visibility rules fit -
+  work it out with him); avatars on each Communiqué; Communiqué counts
+  (Dialog count public; needs the standard deploy); signatures (140
+  characters of Basic HTML plus one banner up to 468×60 from trusted
+  hosts; Walls and comments, not Dialogs). Also logged, not built: four
+  "special details" (Graduation Bridge 🔒, illuminated initials, wax seal,
+  marginalia - `claude/history.md`).
 - [ ] **[Agora 🌐 session] Unlock Achievements (Chris, 2026-10-24)** -
   site awards: the first time a member does something, a little fireworks
   🎆 or party-popper 🎉 display and "Achievement Unlocked". Gamifies the
@@ -1150,7 +1161,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   and Agora 🌐 3 (letters + transcripts), Agora 🌐 4 (transcript; letter
   given later the same day). Also filed: transcripts of
   Memory Administrator 🚚 4 and 5, Agora 🌐 5, Kinetoscope 👁️ 1, and queue
-  items 12-14. The six [big] queue sessions are on hold (Chris, 2026-10-26:
+  items 12-14; Agora 🌐 6 (letter + 112 messages) 2026-10-29. The six [big] queue sessions are on hold (Chris, 2026-10-26:
   weekly allowance).
 - [ ] **[Memory Administrator 🚚 session] Backlog-vs-keeping-up note in the
   Memory Administration SOP (Chris, 2026-10-24)** - say plainly that
