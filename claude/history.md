@@ -15094,3 +15094,15 @@ holidays yet (Special Days' day-before notice is friends-only).
 - **Tested:** 31 rules checks against the Firestore emulator; every element
   ID the script uses exists in member.html. Not browser-tested (Firebase is
   blocked in the sandbox). Also added a Calendar 🗓️ entry to `llms.txt`.
+
+## Calendar 🗓️ To Do: first-visit fix (Chris, 2026-10-29, Calendar 🗓️ Session 2)
+
+Chris's first try after the deploy showed "Couldn't load your To Do lists"
+and an empty list dropdown. Cause: `loadTodos()` checked for the Main List
+with `mainRef.get()`, and the todoLists read rule (which looks at
+`resource.data`) can't allow a read of a doc that doesn't exist yet, so the
+very first visit always failed and the Main List was never created. The
+31 earlier emulator checks created the Main List before reading it, so
+they missed this. Fixed on the page only: query your own lists and create
+the Main List if it isn't among them (`member.js` v47). Emulator-tested
+the exact first-visit sequence for a new member. No deploy needed.

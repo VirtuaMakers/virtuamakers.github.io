@@ -1364,9 +1364,11 @@
     var today = localDateKey(new Date());
     var mainRef = AgoraDB.collection("todoLists").doc(owner + "_main");
 
-    // The Main List is created the first time it's needed.
-    mainRef.get().then(function (snap) {
-      if (snap.exists) return;
+    // The Main List is created the first time it's needed. Found by
+    // querying your own lists - the rules can't allow a direct read of a
+    // list that doesn't exist yet, so mainRef.get() would be refused.
+    AgoraDB.collection("todoLists").where("owner", "==", owner).get().then(function (snap) {
+      if (snap.docs.some(function (d) { return d.id === mainRef.id; })) return;
       return mainRef.set({
         owner: owner, name: "Main List", public: false, inMain: true, isMain: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
