@@ -41,6 +41,12 @@
   --maxw: 960px;
 }
 
+/* The main Agora page keeps plain white cards for now (Chris, 2026-10-29),
+   so they match the white pictures inside them; profiles keep the tint. */
+body.agora-home {
+  --card-bg: #ffffff;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
