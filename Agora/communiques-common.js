@@ -28,6 +28,14 @@
     });
   }
 
+  // Possessive of a name (Chris, 2026-10-25): a name ending in "s" takes
+  // the apostrophe alone - "Claudius' Wall", never "Claudius's Wall" - the
+  // same house rule as "VirtuaMakers 🦜'" (CLAUDE.md).
+  function possessive(name) {
+    name = String(name || "");
+    return name + (/s$/i.test(name) ? "'" : "'s");
+  }
+
   function formatDate(timestamp, withTime) {
     if (!timestamp || !timestamp.toDate) return "";
     var opts = withTime
@@ -248,6 +256,18 @@
     try { sessionStorage.setItem(SERVER_OFFSET_KEY, String(serverOffsetMs)); } catch (e) {}
   }
 
+  // Friends List 📨 status (Communiqués 📨 - Session 4, 2026-10-25):
+  // "offline" (Appear offline, or no heartbeat in the last 3 minutes),
+  // "away" (chose 🟡 Away, or idle - no click, key or scroll for the
+  // member's chosen minutes, 10 by default), else "online". One answer
+  // for the Friends List, the knock and anything else that asks.
+  var ONLINE_MS = 3 * 60 * 1000;
+  function presenceState(presence) {
+    if (!presence || presence.appearOffline || !presence.lastActive || !presence.lastActive.toMillis) return "offline";
+    if (serverNow() - presence.lastActive.toMillis() >= ONLINE_MS) return "offline";
+    return presence.away === true || presence.idle === true ? "away" : "online";
+  }
+
   // A pending (not-yet-server-acknowledged) write has a null createdAt -
   // treat that as "just now" rather than "uneditable".
   function isWithinEditWindow(createdAt) {
@@ -331,6 +351,102 @@
     return String(raw || "").replace(MENTION_RE, function (m, name) { return "@" + name; });
   }
 
+  // Hashtags #️⃣ (Chris, 2026-10-24/25): every #tag in Communiqués 📨 text
+  // links to its Knowledge Base 📚 page, hashtag.html at the site root.
+  // Same rule as the server's functions/lib/hashtags.js: a # starting a
+  // word, letters/digits/_ after it, at least one letter, at most 50.
+  // Tags aren't case-sensitive - the link uses the lower-case form.
+  var HASHTAG_RE = /(^|[^\p{L}\p{N}_&#/])#([\p{L}\p{N}_]+)/gu;
+  function siteRoot() {
+    var p = window.location.pathname;
+    return p.indexOf("/Agora/profiles/") !== -1 ? "../../" : (p.indexOf("/Agora/") !== -1 ? "../" : "");
+  }
+  // Every #tag lights up, whatever it says (Chris, 2026-10-26). Until it
+  // has passed the rule of 5 at a Friday reveal (hashtagIndex/approved),
+  // its link explains how hashtags work - the way many people first learn
+  // them - and from then on it opens the tag's own Knowledge Base page.
+  var APPROVED_KEY = "agoraHashtagsApproved";
+  var approvedTags = null; // { key: true } once loaded
+  function tagKey(tag) {
+    return tag.normalize("NFC").toLowerCase();
+  }
+  function hashtagHref(tag) {
+    var key = tagKey(tag);
+    if (approvedTags && approvedTags[key]) return siteRoot() + "hashtag.html?tag=" + encodeURIComponent(key);
+    return siteRoot() + "hashtags.html?tag=" + encodeURIComponent(key);
+  }
+  function hashtagTitle(tag) {
+    return approvedTags && approvedTags[tagKey(tag)]
+      ? "#" + tag + " in the Knowledge Base 📚"
+      : "#" + tag + " – how hashtags work (it joins the Knowledge Base 📚 once it passes the rule of 5)";
+  }
+  function refreshHashtagLinks() {
+    Array.prototype.forEach.call(document.querySelectorAll("a.hashtag[data-tag]"), function (a) {
+      var tag = a.getAttribute("data-tag");
+      a.href = hashtagHref(tag);
+      a.title = hashtagTitle(tag);
+    });
+  }
+  // Fetched once an hour at most per tab; links drawn before it arrives
+  // are updated in place.
+  var approvedLoading = false;
+  function loadApprovedTags() {
+    if (approvedLoading) return;
+    approvedLoading = true;
+    try {
+      var cached = JSON.parse(sessionStorage.getItem(APPROVED_KEY) || "null");
+      if (cached && Date.now() - cached.at < 60 * 60 * 1000) {
+        approvedTags = cached.tags;
+        refreshHashtagLinks();
+        return;
+      }
+    } catch (e) {}
+    if (typeof AgoraDB === "undefined") return;
+    AgoraDB.collection("hashtagIndex").doc("approved").get().then(function (doc) {
+      var tags = {};
+      ((doc.exists && doc.data().keys) || []).forEach(function (k) { tags[k] = true; });
+      approvedTags = tags;
+      try { sessionStorage.setItem(APPROVED_KEY, JSON.stringify({ at: Date.now(), tags: tags })); } catch (e) {}
+      refreshHashtagLinks();
+    }).catch(function () { approvedLoading = false; });
+  }
+  function isHashtag(tag) {
+    return tag.length <= 50 && /\p{L}/u.test(tag);
+  }
+  function linkHashtags(el) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while (walker.nextNode()) {
+      if (walker.currentNode.parentNode.closest("a")) continue;
+      if (walker.currentNode.nodeValue.indexOf("#") !== -1) nodes.push(walker.currentNode);
+    }
+    nodes.forEach(function (node) {
+      var text = node.nodeValue;
+      var frag = document.createDocumentFragment();
+      var last = 0;
+      var found = false;
+      text.replace(HASHTAG_RE, function (m, before, tag, offset) {
+        if (!isHashtag(tag)) return m;
+        var start = offset + before.length;
+        frag.appendChild(document.createTextNode(text.slice(last, start)));
+        var a = document.createElement("a");
+        a.className = "hashtag";
+        a.setAttribute("data-tag", tag);
+        a.href = hashtagHref(tag);
+        a.title = hashtagTitle(tag);
+        a.textContent = "#" + tag;
+        frag.appendChild(a);
+        last = start + 1 + tag.length;
+        found = true;
+        return m;
+      });
+      if (!found) return;
+      frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+    if (nodes.length && approvedTags === null) loadApprovedTags();
+  }
+
   function sanitizeBody(el, raw) {
     var clean = raw && typeof AgoraBioTags !== "undefined"
       ? AgoraBioTags.sanitize(String(raw).replace(MENTION_RE, function (m, name, path) {
@@ -342,6 +458,7 @@
       Array.prototype.forEach.call(el.querySelectorAll("a"), function (a) {
         if (a.textContent.charAt(0) === "@" && (a.getAttribute("href") || "").charAt(0) === "/") a.className = "mention";
       });
+      try { linkHashtags(el); } catch (e) {}
     } else {
       el.textContent = mentionsToText(raw);
     }
@@ -390,7 +507,17 @@
     }
   }
 
+  // Deep bug hunt (Communiqués 📨 Session 4, 2026-10-26): the buttons used
+  // to stay up after the 10 minutes ran out, and pressing them then showed
+  // Firebase's raw "Missing or insufficient permissions". Now they go when
+  // the time's up (or, mid-edit, the next press says so in plain words).
+  var EDIT_CLOSED_TEXT = "The 10-minute window for changing this has closed.";
+  function lateEditMessage(err) {
+    return err && err.code === "permission-denied" ? EDIT_CLOSED_TEXT : (err && err.message) || String(err);
+  }
+
   function attachInlineEdit(container, docRef, data, bodyEl) {
+    var controls = [];
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "edit-toggle";
@@ -420,10 +547,11 @@
       deleting.then(function () {
         container.remove();
       }).catch(function (err) {
-        window.alert(err.message);
+        window.alert(lateEditMessage(err));
       });
     });
     container.appendChild(deleteBtn);
+    controls.push(toggle, deleteBtn);
 
     var form = document.createElement("form");
     form.className = "edit-form";
@@ -455,6 +583,16 @@
     form.appendChild(actions);
 
     container.appendChild(form);
+    controls.push(form);
+
+    // Take the buttons down when the window closes - unless an edit is
+    // open, so typed text isn't lost; Save then explains instead.
+    // (A still-pending write has no createdAt yet - count from now.)
+    var created = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().getTime() : serverNow();
+    setTimeout(function () {
+      if (!form.hidden) return;
+      controls.forEach(function (el) { el.remove(); });
+    }, Math.max(0, created + EDIT_WINDOW_MS - serverNow()) + 1000);
 
     toggle.addEventListener("click", function () {
       form.hidden = false;
@@ -491,7 +629,7 @@
         });
       }).catch(function (err) {
         saveBtn.disabled = false;
-        error.textContent = err.message;
+        error.textContent = lateEditMessage(err);
         error.hidden = false;
       });
     });
@@ -566,6 +704,36 @@
         tx.set(newRef, data);
         if (extra) extra(tx);
       });
+    }).then(function (result) {
+      // Messaging someone who's Away knocks on their door (Chris,
+      // 2026-10-25) - every Dialog send on the site comes through here.
+      if (bucket === "dialog" && window.AgoraSounds && newRef.parent && newRef.parent.parent) {
+        window.AgoraSounds.knockIfAway(newRef.parent.parent.id, uid);
+      }
+      return result;
+    });
+  }
+
+  // Every Dialog message sent from the website goes through here (deep bug
+  // hunt, Communiqués 📨 Session 4, 2026-10-26): the message and the
+  // conversation's lastMessage/lastMessageAt are written in one
+  // transaction. They used to be two steps, so a friend with the Dialog
+  // open could mark it read in between - and then the later lastMessageAt
+  // made it look unread again ("● New Dialog" for a message already seen).
+  function sendDialogMessage(uid, conversationRef, body) {
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    return writeThrottled(uid, "dialog", conversationRef.collection("messages").doc(), {
+      authorUid: uid,
+      body: body,
+      createdAt: now,
+      viewCount: 0,
+      via: "human", // Human Style 💪 - the server has the final word
+    }, function (tx) {
+      tx.update(conversationRef, {
+        lastMessage: body,
+        lastMessageAt: now,
+        lastMessageAuthorUid: uid,
+      });
     });
   }
 
@@ -592,6 +760,55 @@
     return base + "post.html?id=" + encodeURIComponent(postId);
   }
 
+  // Quotes for debates (Chris, 2026-10-27): a "❝ Quote" link beside each
+  // post and comment drops "@Name wrote:" plus the quoted words into the
+  // comment box below, message-board style. The "wrote:" name is a tag, so
+  // the quoted member is notified (mentions.js / notifyOnWallComment).
+  // Selected text in that post quotes just the selection; otherwise the
+  // whole thing (earlier quotes left out, so quotes don't nest forever),
+  // up to QUOTE_MAX characters.
+  var QUOTE_MAX = 500;
+
+  function memberPathOf(uid) {
+    // Static profiles (and the Pony desk 🐎) use short lower-case slugs;
+    // real accounts have long mixed-case Firebase uids.
+    return /^[a-z0-9-]{1,40}$/.test(uid || "") ? "/Agora/profiles/" + uid + ".html"
+      : "/Agora/member.html?uid=" + encodeURIComponent(uid || "");
+  }
+
+  function quotedTextOf(bodyEl) {
+    var sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed && bodyEl.contains(sel.anchorNode) && bodyEl.contains(sel.focusNode)) {
+      return sel.toString();
+    }
+    var clone = bodyEl.cloneNode(true);
+    Array.prototype.forEach.call(clone.querySelectorAll("blockquote"), function (q) { q.remove(); });
+    return clone.textContent;
+  }
+
+  function attachQuoteButton(meta, data, bodyEl) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "quote-btn";
+    btn.title = "Quote this in a comment below";
+    btn.textContent = "❝ Quote";
+    btn.addEventListener("mousedown", function (e) { e.preventDefault(); }); // keep any text selection
+    btn.addEventListener("click", function () {
+      var holder = btn.closest(".wall-post");
+      // On a Wall, the box under this same post; on a post's own page
+      // (post.html, no .wall-post around it), that page's one box.
+      var form = holder ? holder.querySelector(".wall-comment-form") : document.querySelector(".wall-comment-form");
+      if (!form || !form.quoteInto) return;
+      var text = truncateAtWord(quotedTextOf(bodyEl).replace(/\s+/g, " ").trim(), QUOTE_MAX);
+      if (!text) return;
+      var safe = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      var name = String(data.authorName || "Member").replace(/[\[\]()<>\n]/g, "").trim() || "Member";
+      form.quoteInto("<blockquote>@[" + name + "](" + memberPathOf(data.authorUid) + ") wrote:<br>" + safe + "</blockquote>\n");
+    });
+    meta.appendChild(document.createTextNode(" · "));
+    meta.appendChild(btn);
+  }
+
   function buildCommentItem(doc, getCurrentUser) {
     var data = doc.data();
     var currentUser = getCurrentUser();
@@ -613,6 +830,8 @@
     body.className = "body-text communique-body";
     sanitizeBody(body, data.body);
     item.appendChild(body);
+
+    if (currentUser) attachQuoteButton(meta, data, body);
 
     if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
       attachInlineEdit(item, doc.ref, data, body);
@@ -765,6 +984,18 @@
 
     form.addEventListener("submit", function (e) { e.preventDefault(); });
 
+    // Used by the ❝ Quote links (attachQuoteButton): opens the form if
+    // it's shut and adds the quote after whatever's already typed.
+    form.quoteInto = function (quoteHtml) {
+      if (!isOpen) toggleBtn.click();
+      var existing = textarea.value.replace(/\s+$/, "");
+      textarea.value = (existing ? existing + "\n" : "") + quoteHtml;
+      textarea.focus();
+      var end = textarea.value.length;
+      try { textarea.setSelectionRange(end, end); } catch (e) {}
+      form.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    };
+
     return form;
   }
 
@@ -805,6 +1036,7 @@
     function buildWallPost(doc) {
       var data = doc.data();
       var currentUser = getCurrentUser();
+      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
       var post = document.createElement("div");
       post.className = "wall-post";
 
@@ -824,13 +1056,14 @@
       sanitizeBody(body, data.body);
       post.appendChild(body);
 
+      if (currentUser && commentCount < COMMENT_CAP) attachQuoteButton(meta, data, body);
+
       if (currentUser && currentUser.uid === data.authorUid && isWithinEditWindow(data.createdAt)) {
         attachInlineEdit(post, doc.ref, data, body);
       }
 
       recordView(doc.ref);
 
-      var commentCount = typeof data.commentCount === "number" ? data.commentCount : 0;
       var commentsWrap = document.createElement("div");
       commentsWrap.className = "wall-comments";
       post.appendChild(commentsWrap);
@@ -1239,6 +1472,7 @@
     EDIT_WINDOW_MS: EDIT_WINDOW_MS,
     getDisplayName: getDisplayName,
     formatDate: formatDate,
+    possessive: possessive,
     truncateAtWord: truncateAtWord,
     openSignInModal: openSignInModal,
     otherParticipantsLabel: otherParticipantsLabel,
@@ -1252,10 +1486,13 @@
     fetchAcceptedFriendships: fetchAcceptedFriendships,
     isWithinEditWindow: isWithinEditWindow,
     serverNow: serverNow,
+    hashtagHref: hashtagHref,
+    presenceState: presenceState,
     hasServerOffset: hasServerOffset,
     setServerOffset: setServerOffset,
     withTimeout: withTimeout,
     writeThrottled: writeThrottled,
+    sendDialogMessage: sendDialogMessage,
     friendlyPermissionError: friendlyPermissionError,
     friendlyWallError: friendlyWallError,
     profileExists: profileExists,

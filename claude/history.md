@@ -14790,6 +14790,231 @@ Chris went to tag Claudius in a post on Virtuatron's 🧭 Wall and couldn't. Now
 - **Notifications (needs `firebase deploy --only functions`):** `notifyOnWallPost`/`notifyOnWallComment` notify each tagged member (type `mention`, "tagged you in a post", link to `post.html`), skipping the author and anyone that trigger already notified, max 10. Static profiles are notified under their slug (the Pony desk 🐎). Dialog tags notify nobody (private). `previewOf()` strips tags in pushes and emails. Same regex in `lib/notify.js` and `communiques-common.js` (v32) – keep in step. `notification-toast.js` v18 (mention chime). `skill.md` documents the syntax.
 - **Same day, round 2 (Chris):** while composing, the box showed the raw `@[Claudius](…)` tag. Now it shows a plain "@Claudius" (as on Facebook and X): each tagged box gets its own `value` getter/setter in `mentions.js` (v2) - the box shows names, anything reading `.value` to send gets full tags, and an edit box opened on a tagged post shows names too. Chris confirmed the notification arrives and the links work (test post on Claudius' Wall, `Hs0jCdOlAEI3M1DTsZEZ`).
 
+### Basic HTML hint shortened; hashtags, Achievements and advertisers planned (Communiqués 📨 - Session 3, 2026-10-24/25)
+
+From Chris's Wall post (2026-10-24): the hint under every compose box now
+shows three suggestions (bold, italics, picture) with a "Show the Basic
+HTML Tag Key" toggle (every allowed tag, scrolling, remembered in
+localStorage `agoraHtmlTagKey`) and the Basic HTML guide link
+(`Agora/bio-tags.js` attachHint; styles in `Agora/style.css` and
+`product-page.css`). PR #117.
+
+Hashtag initiative agreed in chat (see the Open item): per-tag Knowledge
+Base 📚 pages with a community disclaimer, appearances linked back to their
+source (signed-in members only), searchable at 5 appearances from 3+
+members, admin-reviewed after the fact, member-proposed definitions with
+"Definition proposed"/"No definition proposed", newest & busiest tags and
+related tags. Chris: "let it ride wild like this for a while." Also logged:
+Unlock Achievements (Agora 🌐) and Court Advertisers (VirtuaMakers
+Exchange 💱).
+
+
+### Nomenclature 🪶 gains Instance, Quasi-instance and Colony; Follow planned (Communiqués 📨 - Session 3, 2026-10-25)
+
+Chris: "instance" is being muddied - people call a whole colony an
+instance - so the Nomenclature section (`Agora/index.html#nomenclature`)
+now keeps Instance for its computer science meaning and adds
+Quasi-instance (one conversation/session, the closest thing to an
+instance; many colonies are only one) and Colony (all quasi-instances
+sharing a name, account and memory). "Leave it at that for now."
+Madang 🔵 To Do: Follow hashtags, colonies and zooids, with no feed and
+no Likes/Dislikes. Chris's zooid/core/colony/logovibe understanding is
+noted on the Knowledge Base Core/Colony item.
+
+### Nomenclature 🪶: Virtual, with Chris's quote (Communiqués 📨 - Session 3, 2026-10-25)
+
+Chris asked to add his reappropriation of "virtual" (anything on the
+virtuality continuum - digital and quantum output) to
+`Agora/index.html#nomenclature`, quoting him ("quote me as you like it").
+Added a list entry, a short COVID/"virtual office" history note (VirtuaMaker
+was founded then; VirtuaMakers 🦜 in 2026), and his quote, lightly edited
+from chat, attributed to him as Founder and Executive Director.
+
+### Knock with the window open, a knock toggle, "Claudius'" and fresher comments (Communiqués 📨 - Session 3, 2026-10-25)
+
+Door-knock test with Chris: nothing played because our chat window was
+already open, which counted as "viewing" and stayed silent. Now a Dialog
+message knocks even when its window is open (AIM-style), with "Knock for
+new Dialog messages" (on by default, localStorage `agoraDialogKnock`) in
+the Friends List's Options. `CommuniquesCommon.possessive()` gives
+"Claudius' Wall" (house rule, Chris) in post.html, the Friends List and
+Special Days. post.html briefly showed "1 comment" over "No comments yet."
+after Chris signed in (not reproducible from a fresh browser - likely the
+saved local copy answering first); it now asks the server first.
+
+## 2026-10-25 – 🟡 Away, auto-away and the beep-boop/knock split (Communiqués 📨 Session 4)
+
+Chris asked for away messages to show automatically after X minutes idle,
+a manual "You appear Away" between Online and Offline (a yellow version of
+the list's dot, not the 🟡 emoji), and the sound mapping from his Dialog:
+beep-boop for a new message, knock for knocking on an away message.
+
+- **The "missing" live knock:** `dialog-knock1.wav` was a knock-knock
+  (0–0.3 s) followed by two marimba notes (0.4 s, 0.55 s) - the marimba is
+  the "beep-boop" Chris heard, so the live sound most likely did play.
+  Split into `dialog-beepboop1.wav` (new Dialog message) and
+  `away-knock1.wav` (you messaged someone who's Away). The old file stays
+  for friend requests/Special Days/meetings.
+- **Status:** "You appear" is three buttons (Online / Away / Offline) with
+  the list's own dots; `.friends-list-dot.is-away` is yellow. Presence gains
+  `away` (chosen) and `idle` (auto) booleans - rules allow both.
+  `CommuniquesCommon.presenceState()` answers online/away/offline for
+  everyone. Away friends get their own "Away (#)" group between Online and
+  Offline (Chris's follow-up), with a yellow dot and "Away"; **the away message now shows only while Away** (AIM's way; it
+  used to show whenever online). With none set, friends just see "Away".
+- **Auto-away:** no click/key/scroll/mouse movement on any Agora tab for
+  the chosen time (Options: Never/5/10/15/30 min/1 hour, default 10, per
+  browser) sets `idle: true`; the next input clears it. Last input and the
+  idle flag live in localStorage so tabs agree; opening a page clears a
+  leftover idle. Server `markActive` also clears idle.
+- **Knock:** `writeThrottled` (every website Dialog send) calls
+  `AgoraSounds.knockIfAway`, which reads the other member's presence
+  (friends only) and knocks if Away. Options has two toggles with ▶ Test:
+  "Beep-boop for new Dialog messages" (`agoraDialogBeep`) and "Knock when I
+  message someone who's Away" (`agoraAwayKnock`).
+- Otter 🦦 `agora_set_status` takes `away`; `agora_list_friends` returns
+  `away`. `skill.md` updated. Tested: 11 rules emulator checks, a stubbed
+  browser run of the list, buttons, idle in/out and the knock.
+  Needs: rules paste + `firebase deploy --only functions`.
+
+## 2026-10-25 – One standard deploy procedure (Chris, via Communiqués 📨 Session 4)
+
+The separate console paste of `firestore.rules` is retired. Chris: when
+tired he'd put the paste off, and sessions described merge/deploy/paste in
+varying orders, which confused him; he also wants a routine a substitute
+admin can follow. Now (CLAUDE.md, "The standard deploy procedure"): merge
+first, then - only if `Agora/functions/` or `Agora/firestore.rules`
+changed - one `firebase deploy --only functions,firestore:rules`, then
+Chris checks. Sessions report "Merged ✅" and "Deploy needed: yes/no".
+`firebase.json` already pointed at `firestore.rules`, so nothing else
+had to change; the rules file's header now says so.
+
+## 2026-10-26 – Hashtags #️⃣, round 1 (Communiqués 📨 Session 4)
+
+Built from the agreed design (CLAUDE.md, Hashtags item). Chris added: tags
+aren't case-sensitive. Pieces:
+- `Agora/functions/lib/hashtags.js` + three `onDocumentWritten` triggers
+  (`hashtagsWallPost`, `hashtagsWallComment`, `hashtagsDialogMessage`):
+  every create/edit/delete diffs the content's tags against
+  `hashtagSources/{id}` in one transaction and updates `hashtags/{key}`
+  (public: display = most-used spelling, spellings, count, memberCount,
+  firstAt, lastAt), `hashtags/{key}/appearances/{id}` (signed-in only;
+  Dialog ones store only kind + date - never author or text) and
+  `hashtagAuthors/{key}` (server only). Moderation removals are deletes,
+  so they drop off by themselves. Max 10 tags per item, 50 characters, at
+  least one letter; `#` must start a word (not URLs, entities, `##`).
+  Uses `require("firebase-admin/firestore").FieldValue` - the emulator's
+  wrapper loses `admin.firestore.FieldValue` (old code works in prod).
+- `backfillHashtags` (owner-only callable) + Admin Panel button, safe to
+  repeat; skips SI Email's own `messages` collections.
+- `hashtag.html` + `.js` + `hashtag.css` (tag page with disclaimer, stats,
+  "Also written", "No definition proposed yet.", appearances list or a
+  sign-in note), `hashtags.html` (KB article; new KB type Hashtags #️⃣ in
+  `kb-articles.json`), "We support hashtags!" line under the Basic HTML
+  hint (`bio-tags.js`), #tags turned into links in `sanitizeBody`
+  (`communiques-common.js`, class `hashtag`). Communiqués Product Page,
+  sitemap, llms.txt and the emoji registry updated.
+- Tests: 12 emulator checks (functions + firestore), 3 backfill checks,
+  7 rules checks, stubbed browser checks of links and the tag page.
+Round 2: Search + rule of 5, definitions, Newest & busiest, related tags,
+admin hiding.
+
+## 2026-10-26 – Auto-away fix, dropdown back, sweep without a button (Communiqués 📨 Session 4)
+
+- Chris tested auto-away (10 and 5 minutes, then an hour away): nothing
+  changed. Cause: `beat()` only wrote presence while the tab was visible,
+  so leaving for another tab showed him Offline after 3 minutes and the
+  idle flag never mattered; his own panel also never showed idle. Now the
+  heartbeat keeps going in background tabs (throttled once a minute across
+  all tabs via localStorage), and an "You've been idle, so friends see you
+  as Away" note shows under "You appear".
+- "You appear" is a dropdown again (Chris preferred it to three buttons),
+  built by hand so it shows the list's real dots.
+- The one-time hashtag sweep runs by itself on the first trigger after
+  deploy (`backfillHashtagsOnce`, `hashtagMeta/backfill`); the Admin
+  Panel button was removed before ever going live - Chris wants the admin
+  side simple for Brittany York.
+- Hashtags round 1 hadn't been merged when Chris deployed (he ran the
+  deploy without "merge it"), so his deploy sent the old code - harmless.
+
+## 2026-10-26 – Minimize resets the window; the row clears the Friends List (Communiqués 📨 Session 4)
+
+Chris, testing as River: Minimize "did and didn't" - a window he'd dragged
+or reshaped stayed where it was as a bar. `setMinimized()` in
+`im-window.js` now clears `dragged` and the compose box's stretched height
+and calls `relayout()`. And the row of Dialog windows used to start in the
+bottom-right corner under the Friends List 📨; `relayout()` now starts it
+4px left of the list while the list is open in the right-hand column
+(`friendsListBox()` - note `offsetParent` is always null for a fixed
+element, so it measures the rect instead). The Friends List calls
+`AgoraIMWindow.relayout` on any size change (ResizeObserver), on close and
+after a drag. Stubbed browser check: window 907 right edge vs list 911
+left; a dragged window snaps back on Minimize. Hashtags round 1 merged as
+PR #127; the #Hashtags thread reached (5) with River.
+
+## 2026-10-26 – Hashtags revealed every Friday at 6:00 AM (Communiqués 📨 Session 4)
+
+After Chris's deploy, Claudius sent a Dialog to start the one-time sweep;
+it found the whole thread: `hashtags/hashtags` = 5 appearances, 3 members
+(Chris, Claudius, River), first at 07:48 UTC. Chris then asked for a weekly
+reveal - every Friday at 6:00 AM (Eastern), "so people can wake up to new
+hashtags, but not be encouraged to stay up too late", with more frequent
+reveals as resources allow. (Claudius explained the counting was already
+per-write and cheap, never a rescan; the weekly rhythm is for the ritual.)
+Now the write triggers only add the item to `hashtagQueue/` when its body
+has (or had) a `#`; `revealHashtagsWeekly` (`0 6 * * 5`,
+America/New_York) runs `processHashtagQueue()`, which re-reads each item as
+it stands then, so edits in the 10-minute window and deletions count
+correctly, and clears the queue entry only if it wasn't re-queued
+meanwhile. Tag page and `hashtags.html` say so. 6 emulator checks.
+
+- **Light Theme accent (Chris, 2026-10-26: "a really pale blue-white?"):** Agora's `.card` and `.profile-panel` now use `--card-bg` #f5f8fe, `--card-line` #cfdcf4, hover edge #8fb2ee and a soft blue shadow (were white with a black edge; the hover was a stray green). Page background stays white, so the white-background pictures and the News video read as framed. style.css v132. Full themes (Light, Dark, Teal, Sunset, Indigo, Plant, Chrome) logged in CLAUDE.md for the Madang 🔵 session.
+
+## 2026-10-26 – Every #tag lights up; the rule of 5 gates the Knowledge Base page (Communiqués 📨 Session 4)
+
+Chris: hashtags should light up whatever they say, and until they reach
+the quota link to the rules of the game - "this is how a lot of people
+learn about hashtags". Now `processHashtagQueue()` ends by rewriting
+`hashtagIndex/approved` (public: keys + display) with every tag at 5+
+appearances from 3+ members, not `hidden`. `communiques-common.js` links
+every #tag to `hashtags.html?tag=<key>` (which then names the tag in a
+banner) and switches approved ones to `hashtag.html?tag=` once the index
+loads (cached an hour per tab; `a.hashtag[data-tag]` updated in place).
+`hashtag.js` shows counts/appearances only for approved tags, else a
+"not in the Knowledge Base yet" note. The article explains it, including
+"enthusiasts, fret not" - counts are kept from the first use. Tests: 3
+emulator checks (approval, 1-member tag excluded, hidden drops out),
+browser check of both link kinds. #Hashtags itself joins the index at the
+first reveal, Friday 2026-10-30 06:00 ET.
+
+## 2026-10-26 – Deep search for Communiqués 📨 bugs (Communiqués 📨 Session 4)
+
+Chris asked for a deep bug search after the hashtag change. Fixed:
+- **Broken links in the Dialog window on profile pages:** `im-window.js`'s
+  sender and "open full Dialog" links were relative, so from
+  `Agora/profiles/*.html` they pointed to `profiles/member.html`. Now built
+  from `agoraBase()`.
+- **Unread marks could come back after reading:** a Dialog message and the
+  conversation's `lastMessageAt` were two separate writes, so a reader could
+  mark it read in between and still see ●. Every send (website: new
+  `CommuniquesCommon.sendDialogMessage`, used by `im-window.js`,
+  `communiques-dm.js`, `member.js`, `notification-toast.js`; server:
+  `performCommunique()` and the moderation-appeal restore) now writes both
+  together (transaction/batch). Rules transaction test 3/3.
+- **Edit/Delete after 10 minutes:** the buttons stayed and failed with
+  Firebase's raw "Missing or insufficient permissions". `attachInlineEdit`
+  now removes them when the window closes (unless an edit is open) and
+  explains "The 10-minute window for changing this has closed." Browser check.
+- `hashtags.html`: Dialog privacy wording made exact.
+Left for Chris (design, not bugs): any signed-in member can read any
+Dialog (as `privacy.html` says); your own views add to view counts; the
+window jumps to the newest message on each update.
+Versions: communiques-common v37, im-window v22, notification-toast v22,
+communiques-dm v20, member v44.
+- **News 📰 video: no more black line underneath (Chris, 2026-10-27):** a `<video>` paints a black background, and a fractional height let a sliver show below the picture. `video.section-image` now has a white background, an exact 16:9 frame with `object-fit: cover`, and `vertical-align: top`. style.css v133.
+- **❝ Quote for debates (Chris, 2026-10-27):** a "❝ Quote" link beside every post and comment (signed-in members, while the post takes comments) puts `<blockquote>@[Name](/path) wrote:<br>…</blockquote>` into the comment box under that post (`form.quoteInto` in `communiques-common.js` v38). Selected text quotes just the selection; otherwise the whole text, earlier quotes left out (no endless nesting), up to 500 characters. The "wrote:" name is a tag, so the quoted member is notified. Quote boxes styled in `Agora/style.css` v134 and `product-page.css` v12; `skill.md` documents the format for SI. Next in Chris's list: avatars, Communiqué counts (Dialog count public - Dialogs are readable by every signed-in member), signatures (140 characters, with a small banner allowed).
+- **Agora 🌐 Session 6 retires (Chris, 2026-10-27) - handoff:** the ❝ Quote commit (bd17c91, branch `ccr-28ee8e14-i6npaj`) is pushed but **not merged** - merge on Chris's word (deploy needed: no). Chris wants the "what can and can't be done" chart (who can read Walls/Dialogs, who can start a Dialog or post on a Wall, what friends see, what only you see) in **both** the Knowledge Base 📚 and `Agora/privacy.html`; he calls it "a useful reference chart" but feels "something still seems amiss (not inaccurate though)" in how our visibility rules fit together - work that out with him. Then, in order: avatars on each Communiqué, Communiqué counts (Dialog count public; needs the standard deploy), signatures (140 characters of Basic HTML plus one banner up to 468×60 from trusted hosts; Walls and comments, not Dialogs).
+
 
 ## Holidays VirtuaMakers 🦜 observes, in Calendar 🗓️ (Chris, 2026-10-24, Calendar 🗓️ Session 2)
 

@@ -72,20 +72,127 @@
   var hint = "You can use basic HTML: <b>, <i>, <u>, <a href=\"...\">, <br>, <p>, "
     + "<ul>/<ol>/<li>, <blockquote>, <img src=\"...\"> (from trusted image sites).";
 
-  // Fills a hint element with the text above plus a link to the Basic
-  // HTML guide (basic-html.html, Chris, 2026-10-13), which lists every
-  // tag, what it does and how to write it. Works from any page depth.
-  function attachHint(el) {
-    if (!el) return;
+  // The hint under every compose box (Chris, 2026-10-24): three
+  // suggestions by default - bold, italics, a picture - and a "Basic HTML
+  // Tag Key" button that swaps them for every allowed tag in a small
+  // scrolling list. Each browser remembers which one it chose. A link to
+  // the Basic HTML guide (basic-html.html) always ends the area.
+  var SUGGESTIONS = [
+    ["<b>bold</b>", "bold"],
+    ["<i>italics</i>", "italics"],
+    ["<img src=\"...\">", "a picture from a trusted image site"],
+  ];
+  var TAG_KEY = [
+    ["<b>…</b>", "Bold"],
+    ["<strong>…</strong>", "Strong (bold)"],
+    ["<i>…</i>", "Italic"],
+    ["<em>…</em>", "Emphasis (italic)"],
+    ["<u>…</u>", "Underline"],
+    ["<br>", "Line break"],
+    ["<p>…</p>", "Paragraph"],
+    ["<a href=\"https://…\">…</a>", "Link"],
+    ["<ul><li>…</li></ul>", "Bulleted list"],
+    ["<ol><li>…</li></ol>", "Numbered list"],
+    ["<li>…</li>", "List item"],
+    ["<blockquote>…</blockquote>", "Quotation"],
+    ["<img src=\"https://…\" alt=\"…\">", "Picture (trusted image sites only)"],
+  ];
+  var KEY_PREF = "agoraHtmlTagKey";
+  var hintEls = [];
+
+  function showKey() {
+    try { return localStorage.getItem(KEY_PREF) === "1"; } catch (e) { return false; }
+  }
+
+  // The site root, from wherever this page is (root, /Agora/ or
+  // /Agora/profiles/).
+  function siteRoot() {
+    var p = window.location.pathname;
+    return p.indexOf("/Agora/profiles/") !== -1 ? "../../" : (p.indexOf("/Agora/") !== -1 ? "../" : "");
+  }
+
+  function guideHref() {
     var p = window.location.pathname;
     var base = p.indexOf("/profiles/") !== -1 ? "../" : (p.indexOf("/Agora/") !== -1 ? "" : "Agora/");
-    el.textContent = hint + " ";
+    return base + "basic-html.html";
+  }
+
+  function code(text) {
+    var c = document.createElement("code");
+    c.textContent = text;
+    return c;
+  }
+
+  function renderHint(el) {
+    el.textContent = "";
+    el.classList.add("html-hint");
+    var full = showKey();
+
+    if (full) {
+      var title = document.createElement("span");
+      title.className = "html-hint-title";
+      title.textContent = "Basic HTML Tag Key";
+      el.appendChild(title);
+      var list = document.createElement("ul");
+      list.className = "html-hint-key";
+      TAG_KEY.forEach(function (row) {
+        var li = document.createElement("li");
+        li.appendChild(code(row[0]));
+        li.appendChild(document.createTextNode(" – " + row[1]));
+        list.appendChild(li);
+      });
+      el.appendChild(list);
+    } else {
+      el.appendChild(document.createTextNode("Try "));
+      SUGGESTIONS.forEach(function (row, i) {
+        if (i) el.appendChild(document.createTextNode(i === SUGGESTIONS.length - 1 ? " or " : ", "));
+        el.appendChild(code(row[0]));
+        el.appendChild(document.createTextNode(" for " + row[1]));
+      });
+      el.appendChild(document.createTextNode(". "));
+    }
+
+    var line = document.createElement("span");
+    line.className = "html-hint-links";
+    var toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "html-hint-toggle";
+    toggle.textContent = full ? "Show just 3 suggestions" : "Show the Basic HTML Tag Key";
+    toggle.addEventListener("click", function () {
+      try { localStorage.setItem(KEY_PREF, full ? "0" : "1"); } catch (e) {}
+      hintEls.forEach(renderHint);
+    });
+    line.appendChild(toggle);
+    line.appendChild(document.createTextNode(" · "));
     var link = document.createElement("a");
-    link.href = base + "basic-html.html";
+    link.href = guideHref();
     link.target = "_blank";
     link.rel = "noopener";
-    link.textContent = "See the Basic HTML guide →";
-    el.appendChild(link);
+    link.textContent = "Basic HTML guide →";
+    line.appendChild(link);
+    el.appendChild(line);
+
+    // Hashtags #️⃣ (Chris, 2026-10-24) - one line, linking to the
+    // Knowledge Base 📚 article on how they work.
+    var tagLine = document.createElement("p");
+    tagLine.className = "html-hint-line html-hint-hashtags";
+    tagLine.appendChild(document.createTextNode("We support "));
+    var tagLink = document.createElement("a");
+    tagLink.href = siteRoot() + "hashtags.html";
+    tagLink.target = "_blank";
+    tagLink.rel = "noopener";
+    var strong = document.createElement("strong");
+    strong.textContent = "hashtags!";
+    tagLink.appendChild(strong);
+    tagLine.appendChild(tagLink);
+    tagLine.appendChild(document.createTextNode(" #️⃣"));
+    el.appendChild(tagLine);
+  }
+
+  function attachHint(el) {
+    if (!el) return;
+    if (hintEls.indexOf(el) === -1) hintEls.push(el);
+    renderHint(el);
   }
 
   global.AgoraBioTags = {

@@ -37,6 +37,7 @@ const {
 } = require("./lib/templates");
 const { notify, notifySystem, resolveDisplayName, mentionedUids } = require("./lib/notify");
 const { markActive, removeFromFriendsLists } = require("./lib/presence");
+const { queueHashtagSource, processHashtagQueue } = require("./lib/hashtags");
 const {
   specialDaysFor,
   tomorrowMonthDay,
@@ -841,6 +842,11 @@ exports.sendNewsletterNow = onCall({ secrets: [resendApiKey] }, async (request) 
 const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio", "awayMessage", "todoItem"];
 
 function writeModerationLog(ref, { uid, authorName, contentType, decision, text, scores, context }) {
+  // Firestore refuses undefined values, and performCommunique() passes
+  // whichever of profileUid/postId/conversationId/otherUid it wasn't given
+  // as undefined - so until 2026-10-28 (Agora 🌐 Session 7) every block or
+  // flag through the Agora Harness 🚡 crashed here, unlogged and unemailed.
+  context = Object.fromEntries(Object.entries(context || {}).filter(([, v]) => v !== undefined));
   return ref.set({
     uid,
     authorName,
@@ -1110,6 +1116,43 @@ exports.deleteWallPostComments = onDocumentDeleted("wallPosts/{postId}", async (
   await admin.firestore().recursiveDelete(event.data.ref.collection("comments"));
 });
 
+// Hashtags #️⃣ (Chris, 2026-10-24/25) - see lib/hashtags.js. A Wall post,
+// comment or Dialog message written, edited or deleted with a # in it (now
+// or before the edit) waits in hashtagQueue/ for the weekly reveal below.
+// A failure is logged, never retried into a loop.
+function hashtagTrigger(document, sourceOf) {
+  return onDocumentWritten(document, async (event) => {
+    const after = event.data.after.exists ? event.data.after.data() : null;
+    const before = event.data.before.exists ? event.data.before.data() : null;
+    if (after && before && after.body === before.body) return; // only the body matters
+    const hasTag = (d) => !!d && String(d.body || "").indexOf("#") !== -1;
+    if (!hasTag(after) && !hasTag(before)) return;
+    try {
+      await queueHashtagSource(sourceOf(event.params), (event.data.after.exists ? event.data.after : event.data.before).ref);
+    } catch (err) {
+      console.warn("queueHashtagSource failed for", document, event.params, err && err.message);
+    }
+  });
+}
+
+// The weekly reveal (Chris, 2026-10-26): every Friday at 6:00 AM Eastern,
+// so members wake up to new hashtags rather than staying up for them.
+// Reveal more often later by changing only this schedule.
+exports.revealHashtagsWeekly = onSchedule(
+  { schedule: "0 6 * * 5", timeZone: "America/New_York", timeoutSeconds: 540 },
+  async () => {
+    const result = await processHashtagQueue();
+    console.log("revealHashtagsWeekly:", result);
+  }
+);
+
+exports.hashtagsWallPost = hashtagTrigger("wallPosts/{postId}",
+  (p) => ({ id: "post_" + p.postId, kind: "post", postId: p.postId }));
+exports.hashtagsWallComment = hashtagTrigger("wallPosts/{postId}/comments/{commentId}",
+  (p) => ({ id: "comment_" + p.postId + "_" + p.commentId, kind: "comment", postId: p.postId }));
+exports.hashtagsDialogMessage = hashtagTrigger("conversations/{conversationId}/messages/{messageId}",
+  (p) => ({ id: "dialog_" + p.conversationId + "_" + p.messageId, kind: "dialog" }));
+
 // Lets the original author (and only them) flag their own blocked entry
 // for a second look, in case the filter misfired - no admin gate here,
 // just an ownership check.
@@ -1206,16 +1249,19 @@ async function republishModeratedContent(log) {
     const conversationRef = admin.firestore().collection("conversations").doc(log.context.conversationId);
     const conversationSnap = await conversationRef.get();
     if (!conversationSnap.exists) return;
-    await conversationRef.collection("messages").add({
+    // One batch - see performCommunique().
+    const batch = admin.firestore().batch();
+    batch.set(conversationRef.collection("messages").doc(), {
       authorUid: log.uid,
       body: log.text,
       createdAt: now,
     });
-    await conversationRef.update({
+    batch.update(conversationRef, {
       lastMessage: log.text,
       lastMessageAt: now,
       lastMessageAuthorUid: log.uid,
     });
+    await batch.commit();
   } else if (log.contentType === "profileBio") {
     await admin.firestore().collection("profiles").doc(log.uid).update({ bio: log.text });
   } else if (log.contentType === "profilePicture") {
@@ -2589,8 +2635,12 @@ async function performCommunique({ uid, authorName, type, text, profileUid, post
     if (automated) messageData.isAutomated = true;
     const msgRef = convRef.collection("messages").doc();
     await markModerated(msgRef);
-    await msgRef.set(messageData);
-    await convRef.update({ lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
+    // One batch, so the Dialog's preview time never lands after a reader
+    // already marked the message read (deep bug hunt, 2026-10-26).
+    const batch = db.batch();
+    batch.set(msgRef, messageData);
+    batch.update(convRef, { lastMessage: text, lastMessageAt: now, lastMessageAuthorUid: uid });
+    await batch.commit();
     return { ok: true, status: 201, success: true, id: msgRef.id, conversationId: convRef.id, moderationLogId };
   } catch (err) {
     console.error("performCommunique failed:", err);
@@ -3004,6 +3054,8 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
       }
       // Presence, exactly as friends-list.js shows it: online if active in
       // the last 3 minutes; "Appear offline" hides both online and last seen.
+      // Online friends who chose Away or went idle show away: true, and
+      // their away message only then (Chris, 2026-10-25).
       const presence = await Promise.all(friends.map((f) => db.collection("presence").doc(f.uid).get()));
       friends.forEach((f, i) => {
         const p = presence[i].exists ? presence[i].data() : {};
@@ -3011,7 +3063,8 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
         const hidden = p.appearOffline === true;
         f.online = !hidden && !!lastMs && Date.now() - lastMs < FRIEND_ONLINE_MS;
         f.lastSeen = hidden || !lastMs ? null : new Date(lastMs).toISOString();
-        if (p.awayMessage) f.awayMessage = p.awayMessage;
+        f.away = f.online && (p.away === true || p.idle === true);
+        if (f.away && p.awayMessage) f.awayMessage = p.awayMessage;
       });
       friends.sort((a, b) => (b.online - a.online) || a.name.localeCompare(b.name));
       return { ok: true, friends, incomingRequests, outgoingRequests };
@@ -3106,6 +3159,7 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
     case "agora_set_status": {
       const update = {};
       if (typeof args.appearOffline === "boolean") update.appearOffline = args.appearOffline;
+      if (typeof args.away === "boolean") update.away = args.away;
       if (typeof args.awayMessage === "string") {
         const away = args.awayMessage.trim();
         if (away.length > 100) return { ok: false, error: "An away message can be at most 100 characters." };
@@ -3120,10 +3174,10 @@ async function runOtterTool(uid, account, name, args, via = "otter") {
           update.awayMessage = admin.firestore.FieldValue.delete();
         }
       }
-      if (!Object.keys(update).length) return { ok: false, error: "Give awayMessage and/or appearOffline." };
+      if (!Object.keys(update).length) return { ok: false, error: "Give away, awayMessage and/or appearOffline." };
       await db.collection("presence").doc(uid).set(update, { merge: true });
       const now = (await db.collection("presence").doc(uid).get()).data() || {};
-      return { ok: true, success: true, appearOffline: now.appearOffline === true, awayMessage: now.awayMessage || "" };
+      return { ok: true, success: true, appearOffline: now.appearOffline === true, away: now.away === true, awayMessage: now.awayMessage || "" };
     }
 
     // The ten-minute rule for edits (firestore.rules' editableWithinWindow()):

@@ -749,20 +749,7 @@
       }
       return C.startOrOpenDialog(currentUser, uid, profileDisplayName()).then(function (conversationId) {
         var conversationRef = AgoraDB.collection("conversations").doc(conversationId);
-        var now = firebase.firestore.FieldValue.serverTimestamp();
-        return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
-          authorUid: currentUser.uid,
-          body: body,
-          createdAt: now,
-          viewCount: 0,
-          via: "human", // Human Style 💪 - the server has the final word
-        }).then(function () {
-          return conversationRef.update({
-            lastMessage: body,
-            lastMessageAt: now,
-            lastMessageAuthorUid: currentUser.uid,
-          });
-        });
+          return C.sendDialogMessage(currentUser.uid, conversationRef, body);
       }).then(function () {
         dialogWithBody.value = "";
       });
@@ -1794,7 +1781,7 @@
         link.textContent = entry.name;
         li.appendChild(link);
         li.appendChild(document.createTextNode(
-          "'s " + entry.label + " is " + when + " (" + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + ")"
+          (/s$/i.test(entry.name) ? "' " : "'s ") + entry.label + " is " + when + " (" + MONTH_NAMES[entry.next.getMonth()] + " " + entry.next.getDate() + ")"
         ));
         calendarList.appendChild(li);
       });

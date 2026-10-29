@@ -301,21 +301,8 @@
         return;
       }
 
-      var now = firebase.firestore.FieldValue.serverTimestamp();
       jumpToLastOnNextRender = true;
-      return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
-        authorUid: currentUser.uid,
-        body: body,
-        createdAt: now,
-        viewCount: 0,
-        via: "human", // Human Style 💪 - the server has the final word
-      }).then(function () {
-        return conversationRef.update({
-          lastMessage: body,
-          lastMessageAt: now,
-          lastMessageAuthorUid: currentUser.uid,
-        });
-      }).then(function () {
+      return C.sendDialogMessage(currentUser.uid, conversationRef, body).then(function () {
         document.getElementById("dm-compose-body").value = "";
       });
     });

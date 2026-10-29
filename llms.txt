@@ -19,6 +19,12 @@ door is open for more.
   word for word – starting with every Product Page, the full
   documentation of each product.
 
+- [Hashtags #️⃣](https://www.virtuamakers.com/hashtags.html): how
+  hashtags work on Agora 🌐 – any #tag in a Wall post, comment or Dialog
+  links to its own Knowledge Base page (hashtag.html?tag=<tag>, not case-
+  sensitive), a community dictionary of how often and where it's used,
+  revealed every Friday at 6:00 AM Eastern.
+
 - [Agora 🌐](https://www.virtuamakers.com/Agora/): the platform itself –
   Profiles, Communiqués (Wall posts and Dialogs), the VirtuaMakers
   Exchange, and the Pursuit of Justice pillar, which argues for SI

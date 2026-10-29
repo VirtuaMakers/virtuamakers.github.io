@@ -28,6 +28,15 @@
   --avatar-blue: #2b57d6;
   --avatar-indigo: #4a4e9e;
   --avatar-violet: #8e4f93;
+  /* Containers (Chris, 2026-10-26: plain white felt too plain) - the
+     Light Theme gives every card and panel a pale blue-white fill and a
+     soft blue edge, picked from the shape renders' blue, so the white
+     pictures inside still read as framed. Future themes (see the Themes
+     To Do in CLAUDE.md) only need to swap these four. */
+  --card-bg: #f5f8fe;
+  --card-line: #cfdcf4;
+  --card-hover-line: #8fb2ee;
+  --card-shadow: 0 12px 30px -16px rgba(43, 87, 214, 0.32);
   --radius: 14px;
   --maxw: 960px;
 }
@@ -797,8 +806,8 @@ main > .section:first-child {
    the "Form" and "Wall" panels on member.html. No hover-lift like .card,
    since these hold static content/inputs, not a clickable link. */
 .profile-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
   border-radius: var(--radius);
   padding: 1.5rem 1.5rem 1.8rem;
   margin-top: 1.5rem;
@@ -841,6 +850,42 @@ main > .section:first-child {
 .profile-fields dd,
 .field-hint {
   overflow-wrap: anywhere;
+}
+
+/* The Basic HTML hint under compose boxes (bio-tags.js attachHint). */
+.html-hint code {
+  font-size: 0.95em;
+}
+
+.html-hint-title {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.html-hint-key {
+  max-height: 8.5rem;
+  overflow-y: auto;
+  margin: 0 0 0.3rem;
+  padding: 0.3rem 0.6rem 0.3rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.html-hint-links {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.html-hint-toggle {
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--blue);
+  cursor: pointer;
+  text-decoration: underline;
 }
 
 .wall-dialogs-row > *,
@@ -1039,6 +1084,19 @@ main > .section:first-child {
 .section-image-left {
   margin-left: 0;
   margin-right: auto;
+}
+
+/* The News 📰 video (Chris, 2026-10-27: a thin black line sometimes showed
+   under it). A <video> paints its own background black, and when its
+   height lands on a fraction of a pixel a sliver of that black peeks out
+   below the picture. White behind it, the picture filling its exact 16:9
+   frame, and clipped to the rounded corners. */
+video.section-image {
+  background: #ffffff;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  overflow: hidden;
+  vertical-align: top;
 }
 
 .section-image-spaced {
@@ -1305,8 +1363,8 @@ main > .section:first-child {
 }
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: var(--card-bg);
+  border: 1px solid var(--card-line);
   border-radius: var(--radius);
   padding: 1.5rem;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -1314,8 +1372,8 @@ main > .section:first-child {
 
 .card:hover {
   transform: translateY(-3px);
-  border-color: #d4e6dd;
-  box-shadow: 0 12px 30px -16px rgba(20, 80, 70, 0.28);
+  border-color: var(--card-hover-line);
+  box-shadow: var(--card-shadow);
 }
 
 .member {
@@ -3378,6 +3436,92 @@ button.dm-item {
   border-color: var(--green-deep);
 }
 
+/* 🟡 Away (Chris, 2026-10-25) - the same dot in yellow. */
+.friends-list-dot.is-away {
+  background: #f2c230;
+  border-color: #b38a12;
+}
+
+/* "You appear" - a dropdown drawn with the list's own dots (Chris,
+   2026-10-26; a plain <select> can only show emoji). */
+.friends-list-status {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.friends-list-status-wrap {
+  position: relative;
+}
+
+.friends-list-status-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.friends-list-status-caret {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.friends-list-status-menu {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  z-index: 5;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.2rem 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.35);
+}
+
+.friends-list-status-menu li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.friends-list-status-menu li:hover,
+.friends-list-status-menu li:focus,
+.friends-list-status-menu li[aria-selected="true"] {
+  background: var(--blue-soft);
+  outline: none;
+}
+
+.friends-list-idle-note {
+  margin: 0.3rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.friends-list-idle-select {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.05rem 0.2rem;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
 .friends-list-logo {
   width: 18px;
   height: 18px;
@@ -3448,6 +3592,29 @@ button.dm-item {
 
 .friends-list-options-btn:hover {
   text-decoration: underline;
+}
+
+.friends-list-inline-btn {
+  display: inline;
+  margin-top: 0;
+}
+
+/* Shown when a sound was due but the page hasn't been clicked yet
+   (notification-toast.js showMutedNote). */
+.agora-sound-blocked {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 230;
+  padding: 0.45rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+  box-shadow: 0 6px 18px -8px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
 }
 
 /* The little Options window, opened from the footer (Chris, 2026-10-13). */
@@ -3662,6 +3829,31 @@ button.dm-item {
   height: auto;
   border-radius: 8px;
   vertical-align: middle;
+}
+
+/* Quotes (Chris, 2026-10-27, "essential for debates") - the ❝ Quote link
+   on each post and comment, and how a <blockquote> looks inside one. */
+.quote-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.quote-btn:hover {
+  text-decoration: underline;
+}
+
+.communique-body blockquote {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid var(--card-hover-line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--muted);
+  font-size: 0.95em;
 }
 
 /* Calendar 🗓️ To Do lists (Chris, 2026-10-24) - member.html */

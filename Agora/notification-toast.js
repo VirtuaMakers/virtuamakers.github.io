@@ -40,8 +40,12 @@
   // Dialog messages (and the events that borrow their sound) use a
   // wooden "knock-knock" plus two soft marimba notes (Chris, 2026-10-13 -
   // the old dialog-chime3.wav sounded like a generic Windows alert).
+  // Split in two (Communiqués 📨 - Session 4, 2026-10-25): that file's
+  // two marimba notes are the "beep-boop" Chris heard for a new message,
+  // and its knock-knock now means you messaged someone who's Away.
   var CHIME_FILES = {
-    dialog_message: "dialog-knock1.wav",
+    dialog_message: "dialog-beepboop1.wav",
+    away_knock: "away-knock1.wav",
     wall_post: "post-chime2.wav",
     wall_comment: "comment-chime3.wav",
     // Someone also commented on a post you commented on (Chris,
@@ -111,12 +115,42 @@
     audio.play().catch(function () {});
   }
 
+  // Two toggles in the Friends List's Options (friends-list.js writes the
+  // same keys), both on unless turned off: the beep-boop for a new Dialog
+  // message, and the knock when you message someone who's Away.
+  function soundOn(key) {
+    try { return localStorage.getItem(key) !== "0"; } catch (e) { return true; }
+  }
+  function knockOn() { return soundOn("agoraDialogBeep"); }
+
+  // A small notice when a sound was due but the browser is still holding
+  // the page silent (no click or key press on it yet) - before, the sound
+  // was simply skipped with no sign why (Chris, 2026-10-25).
+  var mutedNote = null;
+  function showMutedNote() {
+    if (mutedNote || !document.body) return;
+    mutedNote = document.createElement("button");
+    mutedNote.type = "button";
+    mutedNote.className = "agora-sound-blocked";
+    mutedNote.textContent = "🔇 Click here to hear Agora's sounds";
+    mutedNote.addEventListener("click", hideMutedNote);
+    document.body.appendChild(mutedNote);
+  }
+  function hideMutedNote() {
+    if (mutedNote && mutedNote.parentNode) mutedNote.parentNode.removeChild(mutedNote);
+    mutedNote = null;
+  }
+  document.addEventListener("pointerdown", function () { setTimeout(hideMutedNote, 0); }, true);
+
   function playChime(type) {
     var file = CHIME_FILES[type];
     if (!file) return;
     var ctx = getAudioCtx();
     if (!ctx) { playHtmlChime(file); return; }
-    if (ctx.state === "suspended") ctx.resume().catch(function () {});
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(function () {});
+      setTimeout(function () { if (ctx.state !== "running") showMutedNote(); }, 300);
+    }
     loadBuffer(file).then(function (buffer) {
       var source = ctx.createBufferSource();
       source.buffer = buffer;
@@ -127,6 +161,26 @@
       source.start();
     }).catch(function () { playHtmlChime(file); });
   }
+
+  // For the Friends List's "▶ Test" buttons: play a sound on demand, so a
+  // member can check it without waiting for a message.
+  // knockIfAway: after you send a Dialog message, knock if the other
+  // member is Away. Their presence is readable only to friends, so for
+  // anyone else this stays quiet.
+  function knockIfAway(conversationId, myUid) {
+    if (!soundOn("agoraAwayKnock") || typeof conversationId !== "string") return;
+    var other = conversationId.split("_").filter(function (u) { return u && u !== myUid; })[0];
+    if (!other) return;
+    AgoraDB.collection("presence").doc(other).get().then(function (doc) {
+      if (doc.exists && C.presenceState(doc.data()) === "away") playChime("away_knock");
+    }).catch(function () {});
+  }
+
+  window.AgoraSounds = {
+    testBeep: function () { playChime("dialog_message"); },
+    testKnock: function () { playChime("away_knock"); },
+    knockIfAway: knockIfAway,
+  };
 
   // Dialog messages open the real chat window (im-window.js), never this
   // toast (Chris, 2026-10-13). False when that script isn't on the page.
@@ -197,20 +251,8 @@
   // comments open straight to the Wall on click, same as any other toast
   // click, but there's no single "reply target" to compose into inline.
   function sendReply(conversationId, text, onDone) {
-    var now = firebase.firestore.FieldValue.serverTimestamp();
     var ref = AgoraDB.collection("conversations").doc(conversationId);
-    CommuniquesCommon.writeThrottled(currentUser.uid, "dialog", ref.collection("messages").doc(), {
-      authorUid: currentUser.uid,
-      body: text,
-      createdAt: now,
-      via: "human", // Human Style 💪 - the server has the final word
-    }).then(function () {
-      return ref.update({
-        lastMessage: text,
-        lastMessageAt: now,
-        lastMessageAuthorUid: currentUser.uid,
-      });
-    }).then(function () {
+    CommuniquesCommon.sendDialogMessage(currentUser.uid, ref, text).then(function () {
       onDone(null);
     }).catch(function (err) {
       onDone(err);
@@ -412,9 +454,15 @@
           var data = change.doc.data();
           if (data.seen === true || seenLocallyNow.indexOf(change.doc.id) !== -1) return;
           newlyAdded.push(change.doc);
-          if (isViewingLinkPath(data.linkPath)) return;
+          // A Dialog message beep-boops even when its window is already
+          // open, as AIM did (Chris, 2026-10-25) - unless the member turned
+          // it off in the Friends List's Options.
+          if (isViewingLinkPath(data.linkPath)) {
+            if (data.type === "dialog_message" && knockOn()) playChime(data.type);
+            return;
+          }
 
-          playChime(data.type);
+          if (data.type !== "dialog_message" || knockOn()) playChime(data.type);
           if (popDialog(data)) return;
           showToast(data, 0);
         });

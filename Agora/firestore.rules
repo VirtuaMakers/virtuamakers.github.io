@@ -1,6 +1,8 @@
 // Agora Firestore security rules.
-// Not deployed automatically (Agora has no Firebase CLI/build step) - paste
-// this into the Firebase console under Firestore Database -> Rules.
+// Deployed with the Functions in one command, from main (CLAUDE.md, "The
+// standard deploy procedure"): firebase deploy --only functions,firestore:rules
+// This file is the source of truth - edits made in the console are
+// overwritten by the next deploy.
 //
 // One document per member in `profiles`, keyed by their Auth UID. Anyone
 // (including signed-out visitors) can read every profile, matching the
@@ -368,27 +370,52 @@ service cloud.firestore {
     // friends - when you were last on Agora is a private fact, shared
     // with friends the same way the friendship itself is. awayMessage
     // (Chris, 2026-10-13) is an optional AIM-style status line, up to 100
-    // characters, shown to those same friends.
+    // characters, shown to those same friends. away (chose 🟡 Away) and
+    // idle (no click/key/scroll for a while) are booleans (Chris,
+    // 2026-10-25) - either one shows the member as Away.
     match /presence/{uid} {
       allow read: if request.auth != null
         && (request.auth.uid == uid || isFriendsWith(request.auth.uid, uid));
 
       allow create: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage', 'away', 'idle'])
         && (!('lastActive' in request.resource.data) || request.resource.data.lastActive == request.time)
         && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && (!('away' in request.resource.data) || request.resource.data.away is bool)
+        && (!('idle' in request.resource.data) || request.resource.data.idle is bool)
         && validAwayMessage(request.resource.data);
 
       allow update: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage'])
+        && request.resource.data.keys().hasOnly(['lastActive', 'appearOffline', 'awayMessage', 'away', 'idle'])
         && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastActive'])
             || request.resource.data.lastActive == request.time)
         && (!('appearOffline' in request.resource.data) || request.resource.data.appearOffline is bool)
+        && (!('away' in request.resource.data) || request.resource.data.away is bool)
+        && (!('idle' in request.resource.data) || request.resource.data.idle is bool)
         && validAwayMessage(request.resource.data);
 
       allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Hashtags #️⃣ (Chris, 2026-10-24/25) - kept by the server alone
+    // (functions/lib/hashtags.js); nobody writes them from a browser. A
+    // tag's page is public; the list of where it appears is for signed-in
+    // members. hashtagAuthors/ and hashtagSources/ have no rule, so no
+    // browser can read them (who used a tag in a Dialog stays private).
+    match /hashtags/{key} {
+      allow read: if true;
+      match /appearances/{id} {
+        allow read: if request.auth != null;
+      }
+    }
+
+    // The tags that have passed the rule of 5 at a Friday reveal - public,
+    // so every page knows which #tag links to its own page and which to
+    // how hashtags work. Server-written only.
+    match /hashtagIndex/{doc} {
+      allow read: if true;
     }
 
     // Blocking (Chris, 2026-09-14) - a real per-person block, the gap

@@ -817,3 +817,64 @@
   border-radius: 8px;
   vertical-align: middle;
 }
+
+/* The Basic HTML hint under compose boxes (bio-tags.js attachHint). */
+.html-hint code {
+  font-size: 0.95em;
+}
+
+.html-hint-title {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.html-hint-key {
+  max-height: 8.5rem;
+  overflow-y: auto;
+  margin: 0 0 0.3rem;
+  padding: 0.3rem 0.6rem 0.3rem 1.4rem;
+  border: 1px solid var(--line, #d8dee0);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+}
+
+.html-hint-links {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.html-hint-toggle {
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--blue, #2b57d6);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Quotes on Product Page Walls (Chris, 2026-10-27) - same look as
+   Agora/style.css's ❝ Quote link and quote box. */
+.quote-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: #2b57d6;
+  cursor: pointer;
+}
+
+.quote-btn:hover {
+  text-decoration: underline;
+}
+
+.communique-body blockquote {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid #8fb2ee;
+  border-radius: 8px;
+  background: #f5f8fe;
+  color: #5f7178;
+  font-size: 0.95em;
+}

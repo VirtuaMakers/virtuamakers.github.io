@@ -75,6 +75,13 @@
     } catch (e) {}
   }
 
+  // The Agora folder, from wherever this page is - the static profiles
+  // live one level down (Agora/profiles/), where a bare "member.html"
+  // pointed at a page that doesn't exist (deep bug hunt, 2026-10-26).
+  function agoraBase() {
+    return window.location.pathname.indexOf("/profiles/") !== -1 ? "../" : "";
+  }
+
   function isNarrowViewport() {
     return window.innerWidth < NARROW_VIEWPORT_MAX;
   }
@@ -87,8 +94,27 @@
   // the bottom-right corner - the most recently opened/focused window sits
   // closest to the corner, older ones stack further left. A window the
   // member has dragged keeps whatever position they put it at instead.
+  //
+  // The row also keeps clear of the Friends List 📨 (Chris, 2026-10-26):
+  // while the list is open on the right, the row starts just to its left,
+  // a few pixels apart, instead of sliding underneath it.
+  var FRIENDS_LIST_GAP_PX = 4;
+  var CORNER_PX = 19; // ~1.2rem at a 16px root font-size, matches the CSS default
+
+  function friendsListBox() {
+    if (isNarrowViewport()) return null;
+    var list = document.querySelector(".friends-list");
+    if (!list) return null;
+    var rect = list.getBoundingClientRect(); // (offsetParent is always null for a fixed element)
+    // Only when it's showing and still in the right-hand column (not
+    // dragged away).
+    if (!rect.width || rect.right < window.innerWidth - 120) return null;
+    return { clearRight: window.innerWidth - rect.left + FRIENDS_LIST_GAP_PX };
+  }
+
   function relayout() {
-    var rightPx = 19; // ~1.2rem at a 16px root font-size, matches the CSS default
+    var list = friendsListBox();
+    var rightPx = list ? Math.max(CORNER_PX, list.clearRight) : CORNER_PX;
     for (var i = windowOrder.length - 1; i >= 0; i--) {
       var win = windows[windowOrder[i]];
       if (!win || win.dragged || win.maximized) continue;
@@ -139,6 +165,14 @@
   function setMinimized(win, minimized) {
     if (minimized && win.maximized) setMaximized(win, false);
     win.minimized = minimized;
+    // Minimize puts the window back into its place in the row, whatever
+    // shape or spot it was dragged into (Chris, 2026-10-26): undo a drag
+    // and a stretched text box.
+    if (minimized) {
+      win.dragged = false;
+      var box = win.el.querySelector(".im-window-compose textarea");
+      if (box) box.style.height = "";
+    }
     if (!minimized) win.el.classList.remove("im-window-unread");
     if (!minimized && win.conversationId) C.markDialogRead(win.conversationId, win.currentUser.uid, win.newestId ? win.newestId() : undefined);
     win.el.classList.toggle("im-window-minimized", minimized);
@@ -146,6 +180,13 @@
     win.minimizeBtn.textContent = minimized ? "▢" : "−";
     win.minimizeBtn.setAttribute("aria-label", label);
     win.minimizeBtn.title = label;
+    // Opening a minimized window shows the newest message (Chris,
+    // 2026-10-25) - while minimized the list has no height, so the
+    // scroll-to-bottom done when messages arrived didn't stick.
+    if (!minimized && win.messagesEl) {
+      requestAnimationFrame(function () { win.messagesEl.scrollTop = win.messagesEl.scrollHeight; });
+    }
+    relayout();
     writePersisted();
   }
 
@@ -253,7 +294,7 @@
     var sender = document.createElement("p");
     sender.className = "message-sender " + colorClass;
     var senderLink = document.createElement("a");
-    senderLink.href = "member.html?uid=" + encodeURIComponent(data.authorUid);
+    senderLink.href = agoraBase() + "member.html?uid=" + encodeURIComponent(data.authorUid);
     senderLink.textContent = (win.participantNames && win.participantNames[data.authorUid]) || "Member";
     sender.appendChild(senderLink);
     bubble.appendChild(sender);
@@ -387,6 +428,7 @@
 
     var messages = document.createElement("div");
     messages.className = "im-window-messages";
+    win.messagesEl = messages;
     messages.textContent = "Connecting…";
     el.appendChild(messages);
 
@@ -433,20 +475,7 @@
           return;
         }
 
-        var now = firebase.firestore.FieldValue.serverTimestamp();
-        return C.writeThrottled(currentUser.uid, "dialog", conversationRef.collection("messages").doc(), {
-          authorUid: currentUser.uid,
-          body: body,
-          createdAt: now,
-          viewCount: 0,
-          via: "human", // Human Style 💪 - the server has the final word
-        }).then(function () {
-          return conversationRef.update({
-            lastMessage: body,
-            lastMessageAt: now,
-            lastMessageAuthorUid: currentUser.uid,
-          });
-        }).then(function () {
+        return C.sendDialogMessage(currentUser.uid, conversationRef, body).then(function () {
           textarea.value = "";
         });
       });
@@ -551,7 +580,7 @@
       if (windows[otherUid] !== win) return; // closed while this was in flight
       win.conversationId = conversationId;
       sendBtn.disabled = false;
-      expandLink.href = "communiques-dm.html?c=" + encodeURIComponent(conversationId);
+      expandLink.href = agoraBase() + "communiques-dm.html?c=" + encodeURIComponent(conversationId);
       if (!win.minimized && lastSnap) C.markDialogRead(conversationId, currentUser.uid, newestId());
 
       // participants/participantNames tell buildBubble() who's who and
@@ -644,5 +673,7 @@
     isNarrow: isNarrowViewport,
     isOpenFor: isOpenFor,
     occupiedCornerHeight: occupiedCornerHeight,
+    // The Friends List calls this when it opens, closes, minimizes or moves.
+    relayout: relayout,
   };
 })(window);

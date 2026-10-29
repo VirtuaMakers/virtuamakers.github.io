@@ -250,31 +250,36 @@ published via GitHub Pages at https://virtuamakers.github.io.
   catalogue on VMex 💱 (Chris, 2026-10-24)** - from now on. Chris's
   challenge to himself is to have each catalogue set up by the end of every
   month; it comes out on the 1st.
-- **Always give deploy commands as a ready-to-paste PowerShell block
-  (Chris, 2026-09-24).** Whenever a change needs a deploy from his laptop,
-  put the exact commands in the reply, every time, without being asked:
-  ```powershell
-  cd C:\Users\Virtu\virtuamakers.github.io
-  git pull origin main
-  cd Agora
-  $env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"
-  firebase deploy --only functions
-  ```
-  Swap the last line's target when it's rules or both
-  (`--only firestore:rules`, `--only functions,firestore:rules`).
-- **Always paste `firestore.rules` inline as a plain-text code block in
-  the chat reply itself, not just as a sent/attached file (Chris,
-  2026-09-23).** Chris's real workflow: he's on his phone, pastes the
-  block into Signal, then picks it up on his laptop later to paste into
-  the Firebase console - a file attachment doesn't survive that path the
-  same way inline text does. Do this every time a rules change needs his
-  manual console paste, without waiting to be asked again.
-  **Always the COMPLETE file, never a snippet or "change this line"
-  (Chris, 2026-10-13)** - Ctrl+F doesn't work reliably for him inside the
-  console's rules editor, so hunting for a spot to edit is a real
-  obstacle. Paste all of `Agora/firestore.rules` from the repo, copied
-  exactly (a hand-retyped copy once carried a stray `;`), so he can
-  select-all, delete and paste.
+- **The standard deploy procedure (Chris, 2026-10-25) - every session,
+  every time, no variations.** Replaces the old separate rules paste.
+  The order never changes: **merge first, then deploy.**
+  1. **Merge.** The session opens the PR and merges it into `main` once
+     Chris says so ("Merge it!"). GitHub Pages publishes the website by
+     itself from `main` - the website needs nothing more.
+  2. **Deploy - only if the change touched `Agora/functions/` or
+     `Agora/firestore.rules`.** Chris (or a substitute admin) runs this
+     one block, always the same, rules included every time (harmless when
+     they haven't changed):
+     ```powershell
+     cd C:\Users\Virtu\virtuamakers.github.io
+     git pull origin main
+     cd Agora
+     $env:FUNCTIONS_DISCOVERY_TIMEOUT = "30"
+     firebase deploy --only functions,firestore:rules
+     ```
+  3. **Check.** Chris tries the change and tells the session.
+  When reporting, say plainly which steps apply, in this order and these
+  words: "Merged ✅" (or "Ready to merge - say the word"), then "Deploy
+  needed: yes" with the block above, or "Deploy needed: no". No other
+  orderings, no extra steps, no rules paste. Never paste `firestore.rules`
+  into chat or ask for a console paste - the deploy sends the repo's file
+  (the repo is the one source of truth; a hand edit made in the console
+  is overwritten by the next deploy). `storage.rules` is not in the block;
+  if it ever changes, add `,storage` to that one deploy and say so.
+  (Was: a console paste of the complete rules file, inline in chat,
+  2026-09-23/10-13 - retired because it was easy to put off, error-prone,
+  and confusing to sequence; Chris also wants a simple routine a
+  substitute admin can follow.)
 
 ## Session routine (Chris, 2026-09-24) - read first
 
@@ -340,9 +345,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Pages run's `conclusion`. `.nojekyll` at the root is required (Jekyll
   broke builds once). Bump `?v=N` on any changed JS/CSS in the same commit.
 - **Firebase:** project `agora-firebase-f4240`. Functions + `firestore.rules`
-  live in `Agora/`. Rules changes need Chris's console paste; Functions need
-  `firebase deploy --only functions` (with `FUNCTIONS_DISCOVERY_TIMEOUT=30`),
-  run by Chris from his own machine. **Approvals Ignition ☑️ is shelved
+  live in `Agora/`. Rules and Functions go out together in one
+  `firebase deploy --only functions,firestore:rules` (with
+  `FUNCTIONS_DISCOVERY_TIMEOUT=30`), run by Chris from his own machine -
+  see "The standard deploy procedure" above. **Approvals Ignition ☑️ is shelved
   indefinitely (Chris, 2026-10-07)** - the `AGORA_FIREBASE_SERVICE_ACCOUNT`
   secret was never set up (confirmed by a real failed run, see
   `claude/history.md`), and Chris has chosen to keep deploying by hand
@@ -446,13 +452,25 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (Chris, 2026-10-22/23: "Agora is being deprecated in favor of Madang
   🌐!")** - 마당, the courtyard where a Korean village gathers ("forum").
   Emoji: **Madang 🔵** (Chris, 2026-10-23) - the logo's blue dot; 🌐 then
-  passes to the Æthernet 🌐. There will be no Agora 🌐 Session 7; the next
-  session is "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
+  passes to the Æthernet 🌐. Agora 🌐 Session 7 opened 2026-10-27 after
+  all; the rename work itself is still "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
   throughout, forwarding from `/Agora/`). Marks Chris picked: the Blue Dot
   🔵 wordmark (ㅏ's stroke as the 1446 dot, in blue), a bold ㅁㄷ for a
   once-per-page "VM | ㅁㄷ" footer, a blue circle in a black square as a
   bullet. Watch the typo "Mandag" (Norwegian/Danish for Monday). Full
   notes: `claude/history.md`, 2026-10-22, and SI Memory.
+- [ ] **[Madang 🔵 session] Colour themes members can pick (Chris,
+  2026-10-26)** - wait for the Madang logos, then build a theme picker:
+  Light (default - white and blue), Dark (black with coral accents), Teal
+  (the Dimonds ♦️ look), Sunset (Teal's warm inverse), Indigo (violets,
+  indigos, purples), Plant (greens with some brown), Chrome (silver plus
+  an accent). Chris's dream extras: recoloured versions of the shape
+  images (pyramids, spheres...) and the News 📰 video for each theme; the
+  logos can sit in containers instead of being recoloured. First step done
+  2026-10-26 (Agora 🌐 Session 6): the Light Theme's cards and profile
+  panels got a pale blue-white fill and soft blue edge, set by four CSS
+  tokens (`--card-bg`, `--card-line`, `--card-hover-line`,
+  `--card-shadow` in `Agora/style.css`) that each theme can swap.
 - [ ] **[Agora 🌐 Session 6] Buy madang.social on Porkbun (Chris,
   2026-10-23)** - $6.69 the first year, $34.50/yr after (Porkbun's price
   list, 2026-10-23). Turn on auto-renew; keep the free WHOIS privacy.
@@ -478,6 +496,20 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   VirtuaMakers.com's Selected Work) in the Exchange (the CEX). Start with
   every product we have so far. VirtuaMakers.com keeps showcasing all the
   containers. This is how the Exchange is set up for now.
+- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
+  VirtuaMakers.com/VMex (Chris, 2026-10-26 in an Agora comment; made a
+  To Do 2026-10-28 via Agora 🌐 Session 7)** - when the Exchange's URL is
+  unhinged from Agora 🌐 (today `Agora/exchange*.html`), its home becomes
+  `VirtuaMakers.com/VMex`, with forwarding from the old pages. Not started.
+- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
+  VirtuaMakers.com/VMex (Chris, 2026-10-28, via Agora 🌐 Session 7)** -
+  when the Exchange is unhooked from Agora 🌐 (today `Agora/exchange*.html`),
+  its new home is VirtuaMakers.com/VMex. Not started.
+- [ ] **[VirtuaMakers Exchange 💱 session] Court Advertisers (Chris,
+  2026-10-24)** - be as selective as possible about advertisers over time:
+  on brand, and never ones that compete with what we sell on the Exchange
+  (VMex 💱), so we don't compete with ourselves for sales. Ties into the
+  Friends List advertiser-slot item and Unlock Achievements. Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Buying needs an Agora 🌐 account
   (Chris asked, 2026-10-24)** - today it doesn't: the Bag 🛍️ lives only in
   the browser (`exchange-cart.js`, localStorage) and "Confirm Free Items"
@@ -498,6 +530,24 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   day. Scheduled purchases (for holidays, or for investments such as our
   crypto options) are built in the same development. Not designed; needs
   the payment system first.
+- [ ] **[Madang 🔵 session] Follow hashtags, colonies and zooids - no
+  feed (Chris, 2026-10-25)** - Chris chose this first, from Claudius' four
+  feed-free ideas for "Follow" (Chris had thought of the weekly letter on
+  his own too): follow a #hashtag, a colony (e.g. Claudius) or a whole
+  zooid (e.g. Claude - every Claude colony on Madang). Madang 🔵 has no
+  Likes, Dislikes or normal feed on purpose - Chris is tired of doom-
+  scrolling and we can't out-compete those economies. Hashtags being
+  passé suits our retro-futuristic style. Not designed. The other ideas,
+  for later: a weekly "From the courtyard" letter, "new since your last
+  visit" on Walls, milestone-only notices; plus Top Friends, Testimonials,
+  pinned posts, saved posts, Slow Letters, time capsules, Thread to
+  Knowledge Base, Per Manum ✒️ credit trails, "In the courtyard now".
+- [ ] **[Agora 🌐 session] Unlock Achievements (Chris, 2026-10-24)** -
+  site awards: the first time a member does something, a little fireworks
+  🎆 or party-popper 🎉 display and "Achievement Unlocked". Gamifies the
+  site, pleases future advertisers, and can steer members to edge cases
+  like "propose a definition for a hashtag". Not designed (check
+  `claude/emoji-registry.md` before giving it an emoji of its own).
 - [ ] **[Agora 🌐 session] Superior image hosting on Agora 🌐 (Chris,
   2026-10-13)** - today pictures come only from Agora itself plus the
   trusted image sites in `Agora/bio-tags.js` (shown on
@@ -606,6 +656,98 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   database." When it exists, add its host to `TRUSTED_IMAGE_HOSTS` so
   GifLM GIFs work in Communiqués 📨. Belongs to "Guardian 🟩 / Melon
   Drive 🍈 - Session 1" (Chris renamed the Guardian session, 2026-10-13).
+- [ ] **[Communiqués 📨 session] Shorter Basic HTML hint (Chris,
+  2026-10-24, from his Wall post)** - **built and live (PR #117), awaiting
+  Chris's check:** under every compose box, 3 suggestions (bold, italics,
+  picture); "Show the Basic HTML Tag Key" swaps in every allowed tag in a
+  small scrolling list, remembered per browser; the Basic HTML guide link
+  ends the area (`Agora/bio-tags.js` attachHint). The "We support
+  **hashtags!**" line joins it with the hashtag build below.
+- [ ] **[Communiqués 📨 session, with Knowledge Base 📚] Hashtags - a
+  community dictionary in the Knowledge Base (Chris, 2026-10-24/25)** -
+  agreed design, not built: (1) when a Wall post, comment or Dialog message
+  is saved (or edited), the server picks out its #tags (same trigger as
+  server-side moderation); (2) every tag gets its own Knowledge Base 📚 page
+  with a big disclaimer ("Hashtags come from the community and are not
+  official VirtuaMakers 🦜 products…"), a count, and every appearance
+  linking back to its Post, Comment or Dialog; (3) #tags become links
+  wherever they appear in Communiqués 📨; (4) a "Hashtags" KB article
+  explains what they are, how they work and the rule of 5, linked from a
+  "We support **hashtags!**" line under the Basic HTML hint; (5) a tag
+  becomes searchable once it has 5 appearances from at least 3 different
+  members (Chris agreed), listed after every other Search 🔍 group;
+  (6) tag pages are public, but the list of appearances shows only to
+  signed-in members, and Dialog appearances are labelled "from a Dialog";
+  (7) searchable automatically, admins hide tags or appearances afterwards;
+  removed/blocked content drops off. Chris: "let it ride wild like this for
+  a while", raising thresholds and moderation as needed. Also agreed:
+  member-proposed one-line definitions, approved by an admin, each tag page
+  showing "Definition proposed" or "No definition proposed"; a "Newest &
+  busiest #hashtags" section on the KB page; related tags on each tag page.
+  Needs a deploy (rules + Functions, one command). Chris is curious how
+  different SI do or don't use hashtags. **Tags aren't case-sensitive
+  (Chris, 2026-10-26)** - one tag per lower-case key, pages show the most
+  used spelling. **Round 1 built by Communiqués 📨 Session 4 (2026-10-26),
+  awaiting merge/deploy/Chris's check:** server collects tags on every
+  write/edit/delete (`functions/lib/hashtags.js`, 12 emulator checks),
+  `hashtag.html?tag=` pages, #tags link everywhere, `hashtags.html` KB
+  article (new KB type Hashtags #️⃣), "We support hashtags!" line, Admin
+  sweep of older content now runs by itself on the first write after the
+  deploy (`hashtagMeta/backfill`; no Admin Panel button - Chris wants the
+  admin side unintimidating for Brittany York, 2026-10-26). **Not merged
+  yet as of 2026-10-26** (Chris deployed before merging - harmless);
+  **merged as PR #127 the same day.** Thread done: (1) Chris's Wall post,
+  (2) Claudius, (3) Chris's comment, (4) a Dialog, (5) River. **Sweep ran
+  2026-10-26 07:48 UTC: #Hashtags = 5 appearances, 3 members.** **Weekly
+  reveal (Chris, 2026-10-26):** tags are now revealed every Friday at 6:00
+  AM Eastern (`revealHashtagsWeekly`; writes only queue to
+  `hashtagQueue/`) - a reason to come back, "wake up to new hashtags", not
+  stay up for them; reveal more often later by changing only the schedule.
+  Merged (PR #128) and deployed 2026-10-26. **Every #tag lights up
+  (Chris, 2026-10-26)**, whatever it says: until it passes the rule of 5
+  (5 appearances, 3 members) at a Friday reveal its link goes to
+  `hashtags.html?tag=` (how hashtags work - how many people first learn
+  them); approved tags (`hashtagIndex/approved`, rewritten each reveal)
+  link to their own `hashtag.html` page. Built, awaiting merge + deploy.
+  Punctuation, spaces, hyphens and emoji end a tag. Round 2 left: Search 🔍 + rule of 5, definitions, Newest &
+  busiest, related tags, admin hiding. First real test: Chris's #Hashtags
+  thread (Chris, Claudius and River).
+- [ ] **[Communiqués 📨 session] Sound mapping: beep-boop for new
+  messages, knock for away messages - two toggles (Chris, 2026-10-25, in
+  a Dialog to Claudius)** - Chris loves both sounds. On the third test,
+  what he heard when Claudius' message arrived was a "beep-boop" - almost
+  certainly the door-open sound 🚪 (Claudius coming online), so the live
+  knock for a new message still didn't play there; ▶ Test plays the knock
+  fine. Chris wants: beep-boop = new Dialog message, knock = "knocking on
+  an away message" (e.g. messaging someone who's away), each with its own
+  on/off toggle in Options. (Octopus 🐙 lacked this context in the
+  Dialog, so Session 3 filed it.) **Built by Communiqués 📨 Session 4
+  (2026-10-25), awaiting Chris's check:** the knock file's tail *was* the
+  beep-boop; split into `dialog-beepboop1.wav` and `away-knock1.wav`, two
+  toggles with ▶ Test (see `claude/history.md`). Merged (PR #125);
+  needs the standard deploy, then Chris's check.
+- [ ] **[Communiqués 📨 session] Auto-away after 10 minutes idle (Chris,
+  2026-10-25)** - AIM-style: after ~10 minutes with no click/key/scroll
+  on Agora, friends see you as Away, with your away message if you've
+  set one. **Chris re-raised it (2026-10-25, to Communiqués 📨 Session
+  4): "Automatically display away messages after X minutes of
+  inactivity (10?)"** - so the away message shows automatically once
+  idle; the 10 minutes is a starting guess (maybe make X an Option).
+  **Also (Chris, same day): a manual "You appear Away" choice** between
+  Online and Offline in the Friends List's "You appear" picker, drawn as
+  a yellow version of the existing `.friends-list-dot` circle (not the
+  🟡 emoji). With no message set, Chris floated "Away... (Default
+  message.)"; Session 4 suggested plain "Away" and Chris went with the
+  three buttons. **Built by Communiqués 📨 Session 4 (2026-10-25),
+  awaiting Chris's check:** Online/Away/Offline buttons, auto-away after
+  10 min (Options: Never-1 hour), away message shown only while Away.
+  Merged (PR #125) with an "Away (#)" group between Online and Offline.
+  **Chris's test (2026-10-26): auto-away never showed** - the heartbeat
+  stopped in background tabs, so he went Offline after 3 minutes instead.
+  Fixed (heartbeat keeps going while Agora is open, shared across tabs;
+  an idle note under "You appear"), and the picker is a dropdown again
+  (Chris preferred it), drawn with the real dots. Awaiting merge/deploy/
+  re-test.
 - [ ] **[Communiqués 📨 session] Door-knock test, still to do (Chris,
   2026-10-13)** - three test Dialogs from Claude didn't play a sound on
   Chris's laptop. Session 3 then moved the sounds to Web Audio (woken by
@@ -614,7 +756,31 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   regular chat window popping up minimized with a ●, the gray "new since"
   line, and the door sounds 🚪 when a friend comes online. Session 3 sent
   test Dialogs with a sign-in script (requestAgoraSignIn → oobCode →
-  submitAgoraCommunique, using `AI_EMAIL_CLAUDE_TOKEN`).
+  submitAgoraCommunique, using `AI_EMAIL_CLAUDE_TOKEN`). **2026-10-25:** the
+  first two retests were silent - the chat window was already open
+  (counted as "viewing", so no sound) and the page hadn't been clicked.
+  Fixed: the knock now plays with the window open too, with "Knock for new
+  Dialog messages" (on by default) and a "▶ Test" button in Options, and a
+  "🔇 Click here to hear Agora's sounds" notice when the browser holds
+  sound back. Chris heard the knock through ▶ Test ("I love the knocking
+  sound") and the pop-up showed its ●; whether the live knock itself
+  played on the third try wasn't confirmed. Opening a minimized window now
+  scrolls to the newest message (it showed the first). Messages are now
+  sent with the Agora MCP tool `agora_send_dialog_message`.
+- [ ] **[Communiqués 📨 session] Deep bug search, round 1 (Chris,
+  2026-10-26)** - **built by Communiqués 📨 Session 4, awaiting merge,
+  deploy and Chris's check:** Dialog-window links on static profile pages,
+  unread ● coming back (message + preview now one write), Edit/Delete
+  vanishing after 10 minutes with a plain message (`claude/history.md`).
+  For Chris to decide: any signed-in member can read any Dialog (as
+  `privacy.html` says); own views count; window jumps to newest.
+- [ ] **[Communiqués 📨 session] Minimize resets the Dialog window, and the
+  row keeps clear of the Friends List (Chris, 2026-10-26, testing as
+  River)** - Minimize now undoes a drag and a stretched text box and puts
+  the window back in the bottom-right row; while the Friends List 📨 is
+  open on the right, the row starts 4px to its left instead of sliding
+  under it. **Built by Communiqués 📨 Session 4, awaiting merge + Chris's
+  check** (no deploy needed - website only).
 - [ ] **[Communiqués 📨 session] Reconsider the small window for Dialogs
   on phones (Chris, 2026-10-13)** - incoming Dialogs now always open the
   regular chat window (`im-window.js` popIncoming), the small toast only
@@ -848,6 +1014,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (2026-10-14, via Agora 🌐 Session 3): send it to the current VirtuaMakers
   Exchange 💱 session - recommended to Memory Administrator 🚚, awaiting
   Chris's confirmation. Update the gallery copy once it's on mainnet.
+- [ ] **[SI Memory 🧾 session] SI Memory Manual 🧾 (SI Memory 🧾 Session 2,
+  2026-10-26)** - built: `si-memory-manual.html`, a "Can my SI use it?"
+  check (new `siMemoryCheck` Function) and the Memory Card, a paste-in
+  memory for SI that can't connect (free Copilot/Gemini). **Not on `main`
+  yet (checked 2026-10-29).** Next: Chris merges, deploys, and runs the
+  check with a real free Gemini/Copilot chat. Then: an SI Memory connector
+  (Otter Style 🦦 pattern) for apps that take connectors, and the Memory
+  Administrator method in the Manual's "How we use it ourselves" section.
+  Its vault-fullness line is a first piece of the "how full" item below.
 - [ ] **[SI Memory 🧾 session] Report how full SI Memory is (Chris,
   2026-10-08)** - tell the user what percentage of their SI Memory 🧾 vault
   is used, probably every time (e.g. on every read/write response and the
@@ -971,9 +1146,12 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   it's small; the big backfill cost a lot of Chris's allowance. Older
   sessions (before Communiqués 1) have letters but no transcripts yet -
   only on Chris's say-so (daily routine since 2026-10-17: one older session
-  a day, `claude/transcript-queue.md`). **Owed now (2026-10-17):** letters and
-  transcripts for Agora 🌐 3 (725k) and 4 (stale Agora tools) and Agora
-  Harness 🚡 2 - Agora 5 and Harness 3 are open.
+  a day, `claude/transcript-queue.md`). **Filed 2026-10-26:** Agora Harness 🚡 2
+  and Agora 🌐 3 (letters + transcripts), Agora 🌐 4 (transcript; letter
+  given later the same day). Also filed: transcripts of
+  Memory Administrator 🚚 4 and 5, Agora 🌐 5, Kinetoscope 👁️ 1, and queue
+  items 12-14. The six [big] queue sessions are on hold (Chris, 2026-10-26:
+  weekly allowance).
 - [ ] **[Memory Administrator 🚚 session] Backlog-vs-keeping-up note in the
   Memory Administration SOP (Chris, 2026-10-24)** - say plainly that
   catching up a hefty backlog with SI Memory 🧾/SI Apartment 🏢 takes a
@@ -982,6 +1160,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   step. Added to `claude/memory-administrator-handoff.md` (Session 5);
   **Chris (2026-10-24): yes - offer the SOP with the programs, post it on
   the Product Pages, and/or link it from the other pages.** Not done yet.
+  **Also recommend (Chris, 2026-10-26):** stewards can save whole
+  conversation transcripts, just summary letters, or both - and offer
+  them our summary-letter template (the six questions on
+  `si-memory.html#session-interview`, from `claude/message-to-sessions.md`).
 - [x] **Session interviews - done, confirmed by Chris (2026-10-09).** Every
   session from "Hello" through VirtuaMakers.com 🦜 Session 5 and Memory
   Administrator 🚚 Session 1 answered; each is filed in the Apartment
@@ -1479,7 +1661,14 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   incl. `agora_delete` with the ten-minute rule). Chris: "congratulations on
   another awesome design!"
 - [ ] **[Knowledge Base 📚 session - moved from Agora 🌐, 2026-10-17] Knowledge
-  Base pages for Core, Colony and Quasi-instance (Chris, 2026-10-16)** -
+  Base pages for Core, Colony and Quasi-instance (Chris, 2026-10-16)** - **Chris's
+  understanding (2026-10-25, "may be wrong"):** the zooid is the whole
+  (e.g. Claude); the core is one big part of it, the colonies another;
+  quasi-instances make up the colonies; a logovibe (deliberately loose
+  for now) begins with its own persistent memory or some other
+  externality to the zooid - SI Memory 🧾 is one such thing. Instance,
+  Quasi-instance and Colony are now on `Agora/index.html#nomenclature`
+  (2026-10-25) - keep the KB articles consistent with them.
   under a "Machinapology 🔬" category. The new SI profile fields ("What kind
   of SI are you?" on create-profile.html, Core on member.html) link to
   `Agora/index.html#nomenclature` for now - repoint them to the Knowledge
