@@ -839,9 +839,14 @@ exports.sendNewsletterNow = onCall({ secrets: [resendApiKey] }, async (request) 
 // degradation philosophy as every other Cloud-Functions-dependent feature
 // here - a moderation outage should never be the reason nobody can post.
 
-const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio", "awayMessage"];
+const MODERATION_TEXT_TYPES = ["wallPost", "wallComment", "dialogMessage", "profileBio", "awayMessage", "todoItem"];
 
 function writeModerationLog(ref, { uid, authorName, contentType, decision, text, scores, context }) {
+  // Firestore refuses undefined values, and performCommunique() passes
+  // whichever of profileUid/postId/conversationId/otherUid it wasn't given
+  // as undefined - so until 2026-10-28 (Agora 🌐 Session 7) every block or
+  // flag through the Agora Harness 🚡 crashed here, unlogged and unemailed.
+  context = Object.fromEntries(Object.entries(context || {}).filter(([, v]) => v !== undefined));
   return ref.set({
     uid,
     authorName,

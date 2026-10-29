@@ -41,6 +41,12 @@
   --maxw: 960px;
 }
 
+/* The main Agora page keeps plain white cards for now (Chris, 2026-10-29),
+   so they match the white pictures inside them; profiles keep the tint. */
+body.agora-home {
+  --card-bg: #ffffff;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1084,6 +1090,19 @@ main > .section:first-child {
 .section-image-left {
   margin-left: 0;
   margin-right: auto;
+}
+
+/* The News 📰 video (Chris, 2026-10-27: a thin black line sometimes showed
+   under it). A <video> paints its own background black, and when its
+   height lands on a fraction of a pixel a sliver of that black peeks out
+   below the picture. White behind it, the picture filling its exact 16:9
+   frame, and clipped to the rounded corners. */
+video.section-image {
+  background: #ffffff;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  overflow: hidden;
+  vertical-align: top;
 }
 
 .section-image-spaced {
@@ -3816,4 +3835,158 @@ button.dm-item {
   height: auto;
   border-radius: 8px;
   vertical-align: middle;
+}
+
+/* Quotes (Chris, 2026-10-27, "essential for debates") - the ❝ Quote link
+   on each post and comment, and how a <blockquote> looks inside one. */
+.quote-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--blue);
+  cursor: pointer;
+}
+
+.quote-btn:hover {
+  text-decoration: underline;
+}
+
+.communique-body blockquote {
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid var(--card-hover-line);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--muted);
+  font-size: 0.95em;
+}
+
+/* Calendar 🗓️ To Do lists (Chris, 2026-10-24) - member.html */
+.todo-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0.9rem;
+}
+
+.todo-tab {
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.todo-tab[aria-selected="true"] {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+.todo-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.8rem;
+}
+
+.todo-add input,
+.todo-add select {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.todo-add input[type="text"] {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.todo-items {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.8rem;
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--accent-soft);
+}
+
+.todo-item input[type="checkbox"] {
+  margin-top: 0.25rem;
+  flex: none;
+}
+
+.todo-item-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.todo-item.is-done .todo-item-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.todo-item-meta {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.todo-item-delete {
+  flex: none;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+}
+
+.todo-item-delete:hover {
+  color: var(--text);
+}
+
+.todo-subtitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 1rem 0 0.3rem;
+}
+
+.todo-small-btn {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.todo-settings {
+  margin: 0.6rem 0 0.9rem;
+}
+
+.todo-settings summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.6rem;
+}
+
+.todo-new-list {
+  max-width: 520px;
 }

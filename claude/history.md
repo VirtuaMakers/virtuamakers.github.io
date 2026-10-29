@@ -15011,6 +15011,109 @@ Dialog (as `privacy.html` says); your own views add to view counts; the
 window jumps to the newest message on each update.
 Versions: communiques-common v37, im-window v22, notification-toast v22,
 communiques-dm v20, member v44.
+- **News 📰 video: no more black line underneath (Chris, 2026-10-27):** a `<video>` paints a black background, and a fractional height let a sliver show below the picture. `video.section-image` now has a white background, an exact 16:9 frame with `object-fit: cover`, and `vertical-align: top`. style.css v133.
+- **❝ Quote for debates (Chris, 2026-10-27):** a "❝ Quote" link beside every post and comment (signed-in members, while the post takes comments) puts `<blockquote>@[Name](/path) wrote:<br>…</blockquote>` into the comment box under that post (`form.quoteInto` in `communiques-common.js` v38). Selected text quotes just the selection; otherwise the whole text, earlier quotes left out (no endless nesting), up to 500 characters. The "wrote:" name is a tag, so the quoted member is notified. Quote boxes styled in `Agora/style.css` v134 and `product-page.css` v12; `skill.md` documents the format for SI. Next in Chris's list: avatars, Communiqué counts (Dialog count public - Dialogs are readable by every signed-in member), signatures (140 characters, with a small banner allowed).
+- **Agora 🌐 Session 6 retires (Chris, 2026-10-27) - handoff:** the ❝ Quote commit (bd17c91, branch `ccr-28ee8e14-i6npaj`) is pushed but **not merged** - merge on Chris's word (deploy needed: no). Chris wants the "what can and can't be done" chart (who can read Walls/Dialogs, who can start a Dialog or post on a Wall, what friends see, what only you see) in **both** the Knowledge Base 📚 and `Agora/privacy.html`; he calls it "a useful reference chart" but feels "something still seems amiss (not inaccurate though)" in how our visibility rules fit together - work that out with him. Then, in order: avatars on each Communiqué, Communiqué counts (Dialog count public; needs the standard deploy), signatures (140 characters of Basic HTML plus one banner up to 468×60 from trusted hosts; Walls and comments, not Dialogs).
+
+
+## Holidays VirtuaMakers 🦜 observes, in Calendar 🗓️ (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+Chris's starting list ("to start"): Valentine's Day, St. Patrick's Day,
+Easter, Star Wars Day, Cinco de Mayo, Whale Day (VirtuaMakers observes it
+on August 7th), Halloween and Christmas Eve. New "Holidays VirtuaMakers 🦜
+Observes" list in the Calendar panel on `Agora/member.html` (owner-only,
+like the rest of the panel), soonest first with "in N days". The list is
+`HOLIDAYS` in `Agora/member.js` (v43); Easter is computed with the
+anonymous Gregorian algorithm (checked 2024-2028). US federal holidays
+were proposed but not in Chris's list, so they're left out for now.
+`calendar-product.html` mentions the holidays. No reminders/notices for
+holidays yet (Special Days' day-before notice is friends-only).
+
+## Calendar 🗓️ round 2: federal and lunar holidays, the VirtuaMakers 🦜 Schedule (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- **Holidays (23 now):** added the 11 U.S. federal holidays (nth-weekday
+  rules), Chinese New Year, Yom Kippur, Ramadan begins and Ramadan ends –
+  Eid al-Fitr. Chinese New Year comes from a table (Hong Kong Observatory
+  dates, checked with the `lunardate` library, 2025-2050) because the
+  browser's ICU Chinese calendar was a day off in 2027 and 2030. Yom Kippur
+  and Ramadan use `Intl.DateTimeFormat` with the `hebrew` and
+  `islamic-umalqura` calendars, scanning the year for 10 Tishrei / 1
+  Ramadan / 1 Shawwal (ICU names Hebrew months even with month:"numeric",
+  so Tishrei is matched by name). Ramadan carries a "may shift a day with
+  the moon sighting" note; Yom Kippur "begins at sundown the evening
+  before". The list shows the next 8, with a "Show all" button.
+- **VirtuaMakers 🦜 Schedule:** New Catalogue on the VirtuaMakers
+  Exchange 💱 (1st of every month), VirtuaMakers Gallery 🖼️ (15th), News 📰
+  (every Wednesday) - `SCHEDULE` in `Agora/member.js`. "Catalogue" follows
+  the Exchange's own spelling (Chris wrote "New Catalog").
+- **New conventions/To Dos from the same message:** every monthly
+  Newsletter ends with a send-off to the new VMex 💱 catalogue; rebrand VMex
+  and maybe go .com; Admin Panel tools for News and Gallery so Chris can
+  run them alone (robust enough to run without him for months); Claudius
+  as the next Administrator; To Do lists in Calendar 🗓️.
+
+## Calendar 🗓️ round 3: seasons, New Year's Eve, Hanukkah, Diwali (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- 30 holidays now. Added New Year's Eve; Hanukkah begins (25 Kislev from the
+  browser's Hebrew calendar, noted "first candle the evening before");
+  Diwali from Drikpanchang's New Delhi Lakshmi Puja dates (2025 Oct 20,
+  2026 Nov 8, 2027 Oct 29, 2028 Oct 17, 2029 Nov 5, 2030 Oct 26, 2031
+  Nov 14 - Drikpanchang has no pages past 2031, and one site wrongly gave
+  Nov 16 for 2028); and the first day of each season (Northern Hemisphere)
+  from Meeus' equinox/solstice formula, converted to the viewer's own time
+  zone (2026's September equinox is Sep 22 in New York, Sep 23 in UTC).
+- Chris: the Calendar To Do feature and our own To Do lists stay unrelated
+  until further notice, likely never correlated, to keep our plans private.
+
+## Calendar 🗓️ To Do lists (Chris, 2026-10-24, Calendar 🗓️ Session 2)
+
+- **What Chris asked for:** every To Do item has a date (default today);
+  items dated today or earlier and not done roll into one "Main List" that
+  snowballs forward. Multiple lists: each feeds the Main List by default
+  ("unless you want to unlink certain other lists"); lists are private by
+  default but can be made public. Kept unrelated to our own internal To Do
+  lists, to keep our plans private.
+- **Data:** `todoLists/{id}` {owner, name, public, inMain, isMain?,
+  createdAt} - each member's Main List is `<uid>_main` (created on first
+  use, name fixed, can't be deleted from the UI). `todoItems/{id}` {owner,
+  listId, listPublic, text ≤500, date "YYYY-MM-DD", done, doneOn,
+  createdAt}. `listPublic` copies the list's flag so public reads need no
+  lookup; making a list public/private rewrites its items in the same batch,
+  and the rules check the copy with getAfter(). Signed-out visitors can read
+  public lists and items.
+- **UI (`Agora/member.js` v45, `style.css` v128):** a To Do section at the
+  top of the owner-only Calendar panel - list tabs, an add row (text, date,
+  list), due items oldest first with "from Oct 20" for carried items and the
+  list name in the Main List, items ticked today struck through, Upcoming by
+  date, "Show finished items" (latest 50 from earlier days), list settings
+  (name, Public, Show in Main List, Delete List) and Create List. Visitors
+  see a "To Do Lists" panel with a member's public lists (open items only).
+- **Moderation:** text added to a public list (and a list's name when it's
+  made public) goes through `moderateText` with the new `todoItem` type -
+  needs a Functions deploy; until then the check fails open as designed.
+- **Tested:** 31 rules checks against the Firestore emulator; every element
+  ID the script uses exists in member.html. Not browser-tested (Firebase is
+  blocked in the sandbox). Also added a Calendar 🗓️ entry to `llms.txt`.
+
+## Calendar 🗓️ To Do: first-visit fix (Chris, 2026-10-29, Calendar 🗓️ Session 2)
+
+Chris's first try after the deploy showed "Couldn't load your To Do lists"
+and an empty list dropdown. Cause: `loadTodos()` checked for the Main List
+with `mainRef.get()`, and the todoLists read rule (which looks at
+`resource.data`) can't allow a read of a doc that doesn't exist yet, so the
+very first visit always failed and the Main List was never created. The
+31 earlier emulator checks created the Main List before reading it, so
+they missed this. Fixed on the page only: query your own lists and create
+the Main List if it isn't among them (`member.js` v47). Emulator-tested
+the exact first-visit sequence for a new member. No deploy needed.
+
+## Calendar 🗓️ To Do: TODAY heading and dates on every item (Chris, 2026-10-29)
+
+Chris's ask after first using it: today's items get a small "TODAY" heading
+(matching "UPCOMING"), and every item shows its date - today's too.
+Carried-over items now read "Oct 20 – carried over" (was "from Oct 20").
+`member.js` v48. Website only.
+
 
 ## SI Memory 🧾 Manual, the "Can my SI use it?" check and the Memory Card (SI Memory 🧾 Session 2, Chris, 2026-10-26)
 

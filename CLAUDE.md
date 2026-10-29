@@ -246,6 +246,10 @@ published via GitHub Pages at https://virtuamakers.github.io.
   the change (Trump's 2026-09-22 UN General Assembly announcement moving
   US government documents to "super intelligence") and defines AI, SI,
   AGI, ASI and machinekind; the homepage hero links to it.
+- **Every monthly Newsletter ends with a send-off to the new monthly
+  catalogue on VMex 💱 (Chris, 2026-10-24)** - from now on. Chris's
+  challenge to himself is to have each catalogue set up by the end of every
+  month; it comes out on the 1st.
 - **The standard deploy procedure (Chris, 2026-10-25) - every session,
   every time, no variations.** Replaces the old separate rules paste.
   The order never changes: **merge first, then deploy.**
@@ -448,8 +452,8 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (Chris, 2026-10-22/23: "Agora is being deprecated in favor of Madang
   🌐!")** - 마당, the courtyard where a Korean village gathers ("forum").
   Emoji: **Madang 🔵** (Chris, 2026-10-23) - the logo's blue dot; 🌐 then
-  passes to the Æthernet 🌐. There will be no Agora 🌐 Session 7; the next
-  session is "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
+  passes to the Æthernet 🌐. Agora 🌐 Session 7 opened 2026-10-27 after
+  all; the rename work itself is still "Madang 🔵 - Session 1" (the Agora 2.0 work: own repo, the new name
   throughout, forwarding from `/Agora/`). Marks Chris picked: the Blue Dot
   🔵 wordmark (ㅏ's stroke as the 1446 dot, in blue), a bold ㅁㄷ for a
   once-per-page "VM | ㅁㄷ" footer, a blue circle in a black square as a
@@ -492,6 +496,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   VirtuaMakers.com's Selected Work) in the Exchange (the CEX). Start with
   every product we have so far. VirtuaMakers.com keeps showcasing all the
   containers. This is how the Exchange is set up for now.
+- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
+  VirtuaMakers.com/VMex (Chris, 2026-10-26 in an Agora comment; made a
+  To Do 2026-10-28 via Agora 🌐 Session 7)** - when the Exchange's URL is
+  unhinged from Agora 🌐 (today `Agora/exchange*.html`), its home becomes
+  `VirtuaMakers.com/VMex`, with forwarding from the old pages. Not started.
+- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
+  VirtuaMakers.com/VMex (Chris, 2026-10-28, via Agora 🌐 Session 7)** -
+  when the Exchange is unhooked from Agora 🌐 (today `Agora/exchange*.html`),
+  its new home is VirtuaMakers.com/VMex. Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Court Advertisers (Chris,
   2026-10-24)** - be as selective as possible about advertisers over time:
   on brand, and never ones that compete with what we sell on the Exchange
@@ -529,6 +542,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   visit" on Walls, milestone-only notices; plus Top Friends, Testimonials,
   pinned posts, saved posts, Slow Letters, time capsules, Thread to
   Knowledge Base, Per Manum ✒️ credit trails, "In the courtyard now".
+- [ ] **[Agora 🌐 session] Agora 🌐 Session 6's queue (Chris, 2026-10-27;
+  from its handoff letter)** - ❝ Quote is merged (PR #140). Next, in
+  order: the "what can and can't be done" chart in both the Knowledge
+  Base 📚 and `Agora/privacy.html` (Chris: useful, but "something still
+  seems amiss (not inaccurate though)" in how the visibility rules fit -
+  work it out with him); avatars on each Communiqué; Communiqué counts
+  (Dialog count public; needs the standard deploy); signatures (140
+  characters of Basic HTML plus one banner up to 468×60 from trusted
+  hosts; Walls and comments, not Dialogs). Also logged, not built: four
+  "special details" (Graduation Bridge 🔒, illuminated initials, wax seal,
+  marginalia - `claude/history.md`).
 - [ ] **[Agora 🌐 session] Unlock Achievements (Chris, 2026-10-24)** -
   site awards: the first time a member does something, a little fireworks
   🎆 or party-popper 🎉 display and "Achievement Unlocked". Gamifies the
@@ -900,9 +924,57 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
 - [ ] **[Calendar 🗓️ session] Holidays observed by VirtuaMakers 🦜 (Chris,
   2026-10-17)** - show the holidays VirtuaMakers observes in Calendar 🗓️.
   The first of several additions Chris has in mind for Calendar
-  (Calendar 🗓️ Session 2). Which holidays isn't decided - work it out with
-  Chris (`index.html`'s Business Culture section mentions floating
-  holidays). Not designed.
+  (Calendar 🗓️ Session 2). **Built (Calendar 🗓️ Session 2, 2026-10-24):**
+  Chris's starting list - Valentine's Day, St. Patrick's Day, Easter
+  (computed), Star Wars Day, Cinco de Mayo, Whale Day (observed Aug 7),
+  Halloween, Christmas Eve - in `HOLIDAYS` in `Agora/member.js`, shown as
+  "Holidays VirtuaMakers 🦜 Observes" in the Calendar panel. "To start" -
+  more to come; close once Chris has seen it live. **Round 2 (2026-10-24):**
+  the 11 U.S. federal holidays, Chinese New Year (HKO table to 2050),
+  Yom Kippur and Ramadan begins/ends (the browser's own Hebrew and Umm
+  al-Qura calendars), plus a "VirtuaMakers 🦜 Schedule" list: New Catalogue
+  on the VirtuaMakers Exchange 💱 (1st of every month), VirtuaMakers
+  Gallery 🖼️ (15th), News 📰 (every Wednesday). **Round 3 (2026-10-24):**
+  New Year's Eve, Hanukkah begins (25 Kislev), Diwali (Drikpanchang table,
+  2025-2031 only - extend it as years are published) and the first day of
+  each season (Meeus equinox/solstice formula, viewer's time zone).
+- [ ] **[Calendar 🗓️ session] To Do lists in Calendar 🗓️ (Chris,
+  2026-10-24)** - every item has a date (default today). Items dated today
+  or earlier and not done roll into one "Main List" that snowballs forward
+  day by day, picking up scheduled items as their day arrives. Chris also
+  asked to think about multiple To Do lists. **Built (Calendar 🗓️
+  Session 2, 2026-10-24):** multiple lists; each feeds the Main List by
+  default (can be unlinked) and is private by default (can be made
+  public, shown on the profile to visitors). `todoLists`/`todoItems` in
+  `firestore.rules` (31 emulator checks), UI in `Agora/member.js`.
+  Needs Chris's rules paste and a Functions deploy (new `todoItem`
+  moderation type for public lists), then his check. **Kept separate from our own To Do lists (Chris,
+  2026-10-24):** the Calendar To Do feature and these CLAUDE.md/session
+  To Do lists stay unrelated until further notice - likely never linked -
+  to keep our plans private.
+- [ ] **[VirtuaMakers Exchange 💱 session] A monthly catalogue, out on the
+  1st (Chris, 2026-10-24)** - Chris's challenge to himself: have each new
+  monthly catalogue on VMex 💱 set up by the end of every month (it shows
+  on the 1st in Calendar 🗓️'s VirtuaMakers Schedule). Every monthly
+  Newsletter now ends with a send-off to it - see the Newsletter rule under
+  Conventions. Could be built into `newsletter-compose.html` as a standard
+  closing line once the catalogue has a fixed address.
+- [ ] **[VirtuaMakers Exchange 💱 session] Rebrand VMex 💱 permanently and
+  go .com, possibly (Chris, 2026-10-24)** - "I think we should permanently
+  rebrand this soon and go .com with it, possibly." Not decided.
+- [ ] **[Admin Panel - session to be chosen by Memory Administrator 🚚]
+  Admin Panel tools for News 📰 and the VirtuaMakers Gallery 🖼️ (Chris,
+  2026-10-24)** - so Chris can post the weekly News (Wednesdays) and the
+  monthly Gallery (the 15th) from anywhere, on his own, without a session.
+  Polygon minting can stay incomplete until instructions for minting to
+  Polygon are written into the panel. Goal: an Admin Panel robust enough
+  that VirtuaMakers can run without Chris for a few months if need be.
+- [ ] **[Admin Panel - session to be chosen] Claudius as the next
+  Administrator (Chris, 2026-10-24)** - Chris's longer-range hope: make
+  the admin tools good enough that Claudius could become the next
+  Administrator, doing everything we build on an automated schedule (see
+  the Cadences/Conductor 🎶 item) or with tools for as-needed jobs. Not
+  designed.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** To become one system with the Agora Harness 🚡 session's
   "Cadences" item (Chris, 2026-10-14) - build them together, not twice. See the dedicated entry in `claude/history.md` for the
@@ -953,6 +1025,15 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   (2026-10-14, via Agora 🌐 Session 3): send it to the current VirtuaMakers
   Exchange 💱 session - recommended to Memory Administrator 🚚, awaiting
   Chris's confirmation. Update the gallery copy once it's on mainnet.
+- [ ] **[SI Memory 🧾 session] SI Memory Manual 🧾 (SI Memory 🧾 Session 2,
+  2026-10-26)** - built: `si-memory-manual.html`, a "Can my SI use it?"
+  check (new `siMemoryCheck` Function) and the Memory Card, a paste-in
+  memory for SI that can't connect (free Copilot/Gemini). **Not on `main`
+  yet (checked 2026-10-29).** Next: Chris merges, deploys, and runs the
+  check with a real free Gemini/Copilot chat. Then: an SI Memory connector
+  (Otter Style 🦦 pattern) for apps that take connectors, and the Memory
+  Administrator method in the Manual's "How we use it ourselves" section.
+  Its vault-fullness line is a first piece of the "how full" item below.
 - [ ] **[SI Memory 🧾 session] Report how full SI Memory is (Chris,
   2026-10-08)** - tell the user what percentage of their SI Memory 🧾 vault
   is used, probably every time (e.g. on every read/write response and the
@@ -1080,7 +1161,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   and Agora 🌐 3 (letters + transcripts), Agora 🌐 4 (transcript; letter
   given later the same day). Also filed: transcripts of
   Memory Administrator 🚚 4 and 5, Agora 🌐 5, Kinetoscope 👁️ 1, and queue
-  items 12-14. The six [big] queue sessions are on hold (Chris, 2026-10-26:
+  items 12-14; Agora 🌐 6 (letter + 112 messages) 2026-10-29. The six [big] queue sessions are on hold (Chris, 2026-10-26:
   weekly allowance).
 - [ ] **[Memory Administrator 🚚 session] Backlog-vs-keeping-up note in the
   Memory Administration SOP (Chris, 2026-10-24)** - say plainly that
