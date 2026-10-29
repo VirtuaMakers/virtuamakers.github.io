@@ -1433,8 +1433,8 @@
       var list = todoListById(item.listId);
       if (list) meta.push(list.name);
     }
-    if (opts.carried && item.date < opts.today) meta.push("from " + shortDate(item.date));
-    if (opts.showDate) meta.push(shortDate(item.date));
+    // Every item shows its date; one still open from an earlier day says so.
+    meta.push(shortDate(item.date) + (!item.done && item.date < opts.today ? " – carried over" : ""));
     if (meta.length) {
       var metaEl = document.createElement("span");
       metaEl.className = "todo-item-meta";
@@ -1490,12 +1490,12 @@
       .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
 
     todoDue.textContent = "";
-    due.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, carried: true, today: today })); });
+    due.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, today: today })); });
     doneToday.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, today: today })); });
     todoEmpty.hidden = due.length > 0;
 
     todoUpcoming.textContent = "";
-    upcoming.forEach(function (i) { todoUpcoming.appendChild(todoRow(i, { showList: isMain, showDate: true, today: today })); });
+    upcoming.forEach(function (i) { todoUpcoming.appendChild(todoRow(i, { showList: isMain, today: today })); });
     todoUpcomingTitle.hidden = !upcoming.length;
 
     todoShowDone.hidden = false;
