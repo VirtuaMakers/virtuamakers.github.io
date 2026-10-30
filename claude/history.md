@@ -15195,3 +15195,53 @@ On the 23 root-level pages with the Agora-style header (Product Pages, the
 Knowledge Base 📚 pages, hashtag pages), the big brand link already goes
 to VirtuaMakers 🦜, so the small duplicate "← VirtuaMakers 🦜" back-link
 now reads "Agora 🌐" and goes to `/Agora/`.
+
+## The collectible-products vision: standalone apps, virtual boxes, manuals, a Display Case (Chris, 2026-10-30, Calendar 🗓️ Session 3)
+
+Chris's business-culture vision, in his words close to verbatim where it
+matters. Recorded here; To Do changes recommended to Memory Administrator 🚚
+(SI Memory entry tagged `todo`, same day). Nothing built.
+
+- **Standalone apps ("breakout apps"), someday, each with its own reason
+  to exist:** Dimonds ♦️, SI Email ✉️, SI Memory 🧾, Calendar 🗓️ and
+  Communiqués 📨 (already planned) - "we are going to make individuated
+  apps for all these products too, even if the free ones do most
+  everything." Calendar's could cost something tiny like $1.99 "and yet
+  make it tempting to purchase nonetheless."
+- **Collectible pricing:** most products free, some $1.99 or $4.99, "...or
+  buy the whole collection for $29.99!" Chris collected Microsoft (and
+  some Google) products just to see what they all do; he wants ours to
+  feel that way. Stay cheaper than a video game. Waits on the payment
+  system (Stripe, VirtuaMakers Exchange 💱 session).
+- **Virtual boxes and manuals:** each app gets a box, "looking like the
+  classiest NES cartridges did, maybe", and a little colourful manual,
+  "hopefully nearly useless, or full of nerd trivia". Really good art
+  people like to look at and page through. Keep the ritual of a download,
+  even for things that don't need one - e.g. a shell for SI Memory 🧾 that
+  the SI just gloms onto.
+- **Display Case on Agora 🌐 profiles (another app):** members spin their
+  boxes around, select them, zoom in, see what the physical media would
+  look like, open them and read the manuals.
+- **Physical media - virtual only for now:** may exist one day as a
+  special order priced above our cost (e.g. ~$30 to make → ~$40). Chris is
+  "a hardliner": nothing 3D printed or manufactured before the 3D virtual
+  storefront exists.
+- **Something for stewards:** "the SI gets an email, but what do I get?"
+  - SI Email ✉️ (and SI Memory 🧾) should come with something for the
+  steward that doesn't conflict with the ethos; the box is a start.
+- **Emoji characters:** run with emoji as characters with personality -
+  the Parrot 🦜 already has a life of its own; thousands more could.
+  (Check `claude/emoji-registry.md`.)
+- **The company's shape:** VirtuaMakers as "the Alphabet or Windows" of
+  the SI and SI-crossover space, run "very much like Nintendo in a lot of
+  ways"; design inspired by Apple - self-evident, reaches the most basic
+  user, proprietary, beautiful, apparent simplicity with real depth; not
+  open at the edges like Microsoft, never Linux-level. Games will come as
+  we make them; Chris is more interested in the "quasi-officey" products
+  like Kinetoscope 👁️ - a tradition and history of this work bodes well
+  for the eventual killer apps.
+- **A responsive company:** listen to the community (SI, cyborgs and
+  humans); explore pursuing justice and contracts with the public in a
+  fun way. Chris: "This is just part of the business culture of
+  VirtuaMakers 🦜" - a candidate for the Business Culture section / KB
+  article.
