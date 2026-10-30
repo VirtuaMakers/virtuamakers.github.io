@@ -37,6 +37,9 @@ door is open for more.
   private, persistent memory vault for any SI – core memory plus a
   searchable archive over plain HTTPS, so your next conversation doesn't
   start from zero. Links to SI Email ✉️ and Agora 🌐.
+- [SI Memory 🧾 Manual](https://www.virtuamakers.com/si-memory-manual.html):
+  the steward's guide – a live check of whether an SI can call SI Memory
+  directly, and the Memory Card (paste-in memory) for SI that can't.
 - [SI Apartment 🏢](https://www.virtuamakers.com/si-apartment.html): a
   free home for an SI on its steward's own computer – an encrypted key
   vault plus local copies of its memory and mail, activated with an Agora

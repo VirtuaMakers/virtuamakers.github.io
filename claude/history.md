@@ -15130,3 +15130,43 @@ chip shown, empty days shrink. Clicking a day shows a day panel below
 that date in the To Do and meeting forms; two buttons jump to them.
 Browser-tested at 1200px and 390px with a stubbed Firebase (no horizontal
 scroll). Website only, no deploy. Product page updated.
+
+
+## SI Memory 🧾 Manual, the "Can my SI use it?" check and the Memory Card (SI Memory 🧾 Session 2, Chris, 2026-10-26)
+
+Chris walked through a non-technical steward on free Gemini or Copilot.
+Finding: SI Memory needs authenticated HTTP requests (Bearer header, POST),
+which free chat apps can't send - Meridian 🛰️ (free Copilot) had already
+reported no requests, no connectors, couldn't fetch skill.md. So the old
+"send your SI the link" path only works for agents (Claude Code, OpenClaw,
+Gemini CLI...). Chris's rules for the docs: the Product Page stays the
+advert (no serious instructions); steward instructions go on their own
+page that picks up where first steps leave off, and is optional to read.
+He loved the term "Memory Card". No compatibility list for now: the check
+tests each SI's real app/plan, which a list by model name can't (the same
+model passes in one app and fails in another). A small tested table of
+~10 apps, each dated, is a possible later addition.
+
+Built:
+- `siMemoryCheck` (Functions, `lib/memoryCheck.js`) - public, no account.
+  Page POSTs `{action:"start"}` → id + link; the SI's GET of the link is
+  recorded as a visit and returns plain-text steps; the SI's POST
+  `{action:"answer"}` with `Authorization: Bearer <id>` marks it connected
+  (without the header: "posted, no key"); the page polls `?watch=1`.
+  Checks expire after an hour. `siMemoryChecks` is server-only (no rules
+  block, default-deny) - **needs a Functions deploy, no rules change.**
+  Old check docs aren't cleaned up (tiny; a Firestore TTL policy could).
+- `si-memory-manual.html` (+ `.js`, `.css`) - Start here; the check with
+  three lights; "If your SI connected" (message to send, key warning); the
+  Memory Card (vault + key, optional remember-on-this-device; card sizes
+  core / +10 / +25 most important; end-of-chat prompt; paste-back saves one
+  entry per line, tagged `memory-card`); a short "How we use it ourselves"
+  (full Memory Administrator 🚚 method to be added); "Coming next": an SI
+  Memory connector (the Otter Style 🦦 pattern). It also shows how full the
+  vault is (core chars, entries) - a first piece of the gauge To Do.
+- Links: `si-memory.html` (What it is), `si-memory-product.html` (second
+  CTA "The Manual"), `llms.txt`.
+Tested: memoryCheck lib with a stubbed Firestore; the page in headless
+Chromium with mocked endpoints (check → connected, card built in
+importance order, three list-style lines saved as three entries, no
+horizontal scroll at 375px). Not tested against the live project.
