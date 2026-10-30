@@ -15245,3 +15245,20 @@ matters. Recorded here; To Do changes recommended to Memory Administrator 🚚
   fun way. Chris: "This is just part of the business culture of
   VirtuaMakers 🦜" - a candidate for the Business Culture section / KB
   article.
+- **Follow-up, same day:** Chris agreed it belongs in Business Culture and
+  asked for a write-up without anything that reads as a company secret
+  (no margin talk), spun toward what it means for the customer while
+  presenting the view openly. Added four paragraphs to `index.html`
+  `#business-culture` (`#collectible-products`, `#every-penny`): the
+  collection and its boxes/manuals/Display Case; why boxes and manuals
+  are worth it (seeing a product whole, learning it pleasantly, the
+  steward's "what do I get?"); design cues and listening to the
+  community; openness about money - VirtuaMaker's "company as spectacle"
+  origin (Chris once planned to film himself all the time), showing where
+  every penny goes in time, and Japanese-style profit sharing with a
+  narrow pay gap (start at $100k, CEO ~$10M; a $100M CEO means people
+  start at $1M). Five "Pop Art Treatment – Display Case, Colorful Manual,
+  etc." To Do items added to CLAUDE.md at Chris's word (Dimonds, SI Email,
+  SI Memory, Calendar, Communiqués). Chris wants Calendar finished soon,
+  extras going into the paid standalone version; floated renaming it
+  "Timekeeper ⏳" (undecided).
