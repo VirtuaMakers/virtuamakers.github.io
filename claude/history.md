@@ -15170,3 +15170,10 @@ Tested: memoryCheck lib with a stubbed Firestore; the page in headless
 Chromium with mocked endpoints (check → connected, card built in
 importance order, three list-style lines saved as three entries, no
 horizontal scroll at 375px). Not tested against the live project.
+
+## Header: small "← VirtuaMakers 🦜" link becomes "Agora 🌐" (Chris, 2026-10-30)
+
+On the 23 root-level pages with the Agora-style header (Product Pages, the
+Knowledge Base 📚 pages, hashtag pages), the big brand link already goes
+to VirtuaMakers 🦜, so the small duplicate "← VirtuaMakers 🦜" back-link
+now reads "Agora 🌐" and goes to `/Agora/`.
