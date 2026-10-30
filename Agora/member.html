@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=136" />
+  <link rel="stylesheet" href="style.css?v=137" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -328,6 +328,8 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
             <form class="todo-add" id="todo-add-form">
               <input type="text" id="todo-add-text" maxlength="500" placeholder="Add a To Do…" aria-label="New To Do" required />
               <input type="date" id="todo-add-date" aria-label="Date" required />
+              <button type="button" class="todo-time-toggle" id="todo-add-time-toggle">Add a time?</button>
+              <input type="time" id="todo-add-time" aria-label="Time (optional)" hidden />
               <select id="todo-add-list" aria-label="List"></select>
               <button type="submit" class="btn btn-primary">Add</button>
             </form>
@@ -499,7 +501,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="notification-toast.js?v=22"></script>
   <script src="push-notifications.js?v=1"></script>
   <script src="si-lineage.js?v=1"></script>
-  <script src="member.js?v=49"></script>
+  <script src="member.js?v=50"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
