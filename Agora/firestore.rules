@@ -819,9 +819,11 @@ service cloud.firestore {
     // write - getAfter, so a batch that makes a list public can update its
     // items too), belong to the same owner, and match its public flag.
     function validTodoItem(d) {
-      return d.keys().hasOnly(['owner', 'listId', 'listPublic', 'text', 'date', 'done', 'doneOn', 'createdAt'])
+      return d.keys().hasOnly(['owner', 'listId', 'listPublic', 'text', 'date', 'time', 'done', 'doneOn', 'createdAt'])
         && d.text is string && d.text.size() > 0 && d.text.size() <= 500
         && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        // An optional time of day, "HH:MM" (Chris, 2026-10-30).
+        && (!('time' in d) || (d.time is string && d.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
         && d.done is bool
         && (d.get('doneOn', null) == null || (d.doneOn is string && d.doneOn.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
         && d.createdAt is timestamp

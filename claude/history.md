@@ -15170,3 +15170,21 @@ Tested: memoryCheck lib with a stubbed Firestore; the page in headless
 Chromium with mocked endpoints (check → connected, card built in
 importance order, three list-style lines saved as three entries, no
 horizontal scroll at 375px). Not tested against the live project.
+
+## Calendar 🗓️ To Do: edit in place and optional times (Chris, 2026-10-30, Calendar 🗓️ Session 3)
+
+Chris, after first using the month grid ("looks and feels amazing"): To Do
+items couldn't be edited, and he wanted an optional "Add a time?". Built:
+a ✎ beside every item's × opens an inline form (text, date, time; Save /
+Cancel), new words on a public list go through the filter first; an "Add a
+time?" link in the add row reveals a time box. Stored as optional `time`
+"HH:MM" on `todoItems` (`firestore.rules` validTodoItem; clearing deletes
+the field). Shown as "Oct 30, 9:30 AM" and as a time on calendar chips;
+within a day untimed items come first, then timed ones in order (also on
+visitors' public lists). `member.js` v50, `style.css` v137. 10 emulator
+rules checks (valid/invalid times, edit, clear, other member/owner change
+refused) and a browser check. Needs the standard deploy for the rules -
+editing works without it; saving a time is refused until then.
+Chris's two open questions, answered in chat, not built: tagging someone
+in a To Do (recommended: a "Make it a meeting" step, not silent tags) and
+hashtags in public To Do lists.

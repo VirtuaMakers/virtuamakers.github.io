@@ -1370,7 +1370,8 @@
       if (key.slice(0, 7) !== monthKey) return;
       add(key, {
         type: "todo",
-        text: item.text,
+        text: (item.time ? timeText(item.time) + " " : "") + item.text,
+        sortAt: item.time ? new Date(key + "T" + item.time).getTime() : 0,
         done: !!item.done,
         render: function () {
           var li = todoRow(item, { showList: true, today: today });
@@ -1547,6 +1548,8 @@
   var todoAddForm = document.getElementById("todo-add-form");
   var todoAddText = document.getElementById("todo-add-text");
   var todoAddDate = document.getElementById("todo-add-date");
+  var todoAddTimeToggle = document.getElementById("todo-add-time-toggle");
+  var todoAddTime = document.getElementById("todo-add-time");
   var todoAddList = document.getElementById("todo-add-list");
   var todoError = document.getElementById("todo-error");
   var todoEmpty = document.getElementById("todo-empty");
@@ -1584,6 +1587,21 @@
   }
 
   function mainListId() { return currentUser.uid + "_main"; }
+
+  // Times are optional (Chris, 2026-10-30) - stored "HH:MM", shown in the
+  // viewer's own clock style. Within a day, untimed items come first,
+  // then timed ones in order.
+  function timeText(hhmm) {
+    var parts = hhmm.split(":");
+    return new Date(2000, 0, 1, parseInt(parts[0], 10), parseInt(parts[1], 10))
+      .toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+
+  function byDateAndTime(a, b) {
+    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+    var ta = a.time || "", tb = b.time || "";
+    return ta < tb ? -1 : ta > tb ? 1 : 0;
+  }
 
   function todoListById(id) {
     return todoLists.filter(function (l) { return l.id === id; })[0] || null;
@@ -1679,7 +1697,8 @@
       if (list) meta.push(list.name);
     }
     // Every item shows its date; one still open from an earlier day says so.
-    meta.push(shortDate(item.date) + (!item.done && item.date < opts.today ? " – carried over" : ""));
+    meta.push(shortDate(item.date) + (item.time ? ", " + timeText(item.time) : "") +
+      (!item.done && item.date < opts.today ? " – carried over" : ""));
     if (meta.length) {
       var metaEl = document.createElement("span");
       metaEl.className = "todo-item-meta";
@@ -1687,6 +1706,15 @@
       body.appendChild(metaEl);
     }
     li.appendChild(body);
+
+    var edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "todo-item-delete todo-item-edit";
+    edit.textContent = "✎";
+    edit.title = "Edit";
+    edit.setAttribute("aria-label", "Edit " + item.text);
+    edit.addEventListener("click", function () { openTodoEditor(li, item); });
+    li.appendChild(edit);
 
     var del = document.createElement("button");
     del.type = "button";
@@ -1728,11 +1756,9 @@
     todoAddList.value = todoView;
 
     var items = itemsInView();
-    var due = items.filter(function (i) { return !i.done && i.date <= today; })
-      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    var due = items.filter(function (i) { return !i.done && i.date <= today; }).sort(byDateAndTime);
     var doneToday = items.filter(function (i) { return i.done; });
-    var upcoming = items.filter(function (i) { return !i.done && i.date > today; })
-      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    var upcoming = items.filter(function (i) { return !i.done && i.date > today; }).sort(byDateAndTime);
 
     todoDue.textContent = "";
     due.forEach(function (i) { todoDue.appendChild(todoRow(i, { showList: isMain, today: today })); });
@@ -1757,6 +1783,78 @@
       todoSettingsDelete.hidden = !!view.isMain;
     }
     renderMonthGrid();
+  }
+
+  // Edit a To Do in place (Chris, 2026-10-30): its words, day and time.
+  // A public list's new words go through the filter first, as when added.
+  function openTodoEditor(li, item) {
+    var form = document.createElement("form");
+    form.className = "todo-add todo-edit";
+    var text = document.createElement("input");
+    text.type = "text";
+    text.maxLength = 500;
+    text.required = true;
+    text.value = item.text;
+    text.setAttribute("aria-label", "To Do");
+    var date = document.createElement("input");
+    date.type = "date";
+    date.required = true;
+    date.value = item.date;
+    date.setAttribute("aria-label", "Date");
+    var time = document.createElement("input");
+    time.type = "time";
+    time.value = item.time || "";
+    time.setAttribute("aria-label", "Time (optional)");
+    time.title = "Optional – clear it for no time";
+    var save = document.createElement("button");
+    save.type = "submit";
+    save.className = "btn btn-primary";
+    save.textContent = "Save";
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "btn";
+    cancel.textContent = "Cancel";
+    cancel.addEventListener("click", function () { renderTodos(); });
+    var error = document.createElement("p");
+    error.className = "form-error";
+    error.hidden = true;
+    [text, date, time, save, cancel, error].forEach(function (el) { form.appendChild(el); });
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var newText = text.value.trim();
+      if (!newText || !date.value) return;
+      var list = todoListById(item.listId);
+      save.disabled = true;
+      error.hidden = true;
+      var check = newText === item.text ? Promise.resolve(null) : moderatedIfPublic(newText, list && list.public);
+      check.then(function (result) {
+        if (result && result.decision === "block") {
+          AgoraModeration.showBlocked(error, result.logId);
+          error.hidden = false;
+          return;
+        }
+        var update = {
+          text: newText,
+          date: date.value,
+          time: time.value || firebase.firestore.FieldValue.delete(),
+        };
+        return AgoraDB.collection("todoItems").doc(item.id).update(update).then(function () {
+          item.text = newText;
+          item.date = date.value;
+          if (time.value) item.time = time.value; else delete item.time;
+          renderTodos();
+        });
+      }).catch(function () {
+        error.textContent = "Couldn't save that – try again.";
+        error.hidden = false;
+      }).then(function () { save.disabled = false; });
+    });
+
+    li.textContent = "";
+    li.classList.add("is-editing");
+    li.appendChild(form);
+    text.focus();
   }
 
   function setTodoDone(item, done) {
@@ -1822,6 +1920,18 @@
     if (todoShowingHistory) loadTodoHistory();
   });
 
+  function resetTodoAddTime() {
+    todoAddTime.value = "";
+    todoAddTime.hidden = true;
+    todoAddTimeToggle.hidden = false;
+  }
+
+  todoAddTimeToggle.addEventListener("click", function () {
+    todoAddTimeToggle.hidden = true;
+    todoAddTime.hidden = false;
+    todoAddTime.focus();
+  });
+
   todoAddForm.addEventListener("submit", function (e) {
     e.preventDefault();
     if (!currentUser) return;
@@ -1841,9 +1951,11 @@
         text: text, date: date, done: false, doneOn: null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       };
+      if (todoAddTime.value) data.time = todoAddTime.value;
       return AgoraDB.collection("todoItems").add(data).then(function (ref) {
         todoItems.push(Object.assign({ id: ref.id }, data));
         todoAddText.value = "";
+        resetTodoAddTime();
         renderTodos();
       });
     }).catch(function () {
@@ -1932,8 +2044,7 @@
     ]).then(function (results) {
       var lists = results[0].docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       if (!lists.length) return;
-      var items = results[1].docs.map(function (d) { return d.data(); })
-        .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+      var items = results[1].docs.map(function (d) { return d.data(); }).sort(byDateAndTime);
       publicTodoLists.textContent = "";
       lists.forEach(function (list) {
         var title = document.createElement("h3");
@@ -1957,7 +2068,7 @@
           body.textContent = i.text;
           var meta = document.createElement("span");
           meta.className = "todo-item-meta";
-          meta.textContent = shortDate(i.date);
+          meta.textContent = shortDate(i.date) + (i.time ? ", " + timeText(i.time) : "");
           body.appendChild(meta);
           li.appendChild(body);
           ul.appendChild(li);
