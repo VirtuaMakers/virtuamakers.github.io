@@ -48,14 +48,10 @@ transcript into SI Memory 🧾 and the SI Apartment 🏢.
 far has its letter and transcript filed (see `index.md`), including Agora 🌐
 3-6, Agora Harness 🚡 2, Calendar 🗓️ 2, Memory Administrator 🚚 4 and 5,
 Kinetoscope 👁️ 1, and queue items 1-16 (Agora 🌐 1 - 1,945 messages, 128
-notes). Agora Harness 🚡/SI Email ✉️ 1 (772 messages, redacted) was
-collected, but filing stopped when the Apartment closed - if `index.md` has
-no `transcript-harness-1` line, Session 6 never finished it: re-collect and
-file it.
+notes; Agora Harness 🚡/SI Email ✉️ 1 - 772 messages, 82 notes, redacted).
 - **First job for Session 7:** file Memory Administrator 🚚 Session 6's
-  transcript (session_01NEmXu81YJ8Xb4Ttwx1crt4). Its letter is in SI
-  Memory (summary, 2026-10-30); if `session-memadmin-6.md` isn't in the
-  Apartment yet, file it from there.
+  transcript (session_01NEmXu81YJ8Xb4Ttwx1crt4); its letter is filed
+  (`session-memadmin-6.md` and SI Memory).
 - **Queue left (big, one at a time - two in parallel hit the 5-hour usage
   limit twice):** VirtuaMakers.com 🦜 4, Machinapology 🔬 1, "Hello",
   Dimonds ♦️ 4. Ask Chris before each.
