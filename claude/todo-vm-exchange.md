@@ -37,6 +37,42 @@ Not this session's: **VM Emojis 😸** is a ChatGPT project now (Chris,
         getting his Social Security card on 2026-10-13. The free-item
         checkout + emailed receipt needs none of this and can be built
         first.
+      - **Bank account: hoped for Tuesday 2026-11-03, "sometime next
+        week, for sure"** (Chris, 2026-10-30).
+      - **Payment methods to start: credit/debit cards and Cash App**
+        (Chris, 2026-10-30). Claudius' plan: Stripe Checkout, which
+        offers Cash App Pay as a payment method beside cards, so Cash
+        App costs no separate integration (check Stripe's current
+        terms when building). This is Cash App Pay at checkout, not the
+        Cash App *card* that GitHub declined for recurring billing.
+      - **Accounts: guest checkout that offers to become an Agora 🌐
+        account** (Chris, 2026-10-30, agreeing with Claudius'
+        recommendation; "whatever Amazon does", and like the pizza
+        company that lets you order without an account, then offers to
+        save your details *as* your new account). Browsing and the Bag
+        🛍️ stay open to everyone; checkout collects only what the order
+        needs (name, email, Human/Cyborg or SI - deducible from how
+        they buy) and records it as a lightweight customer record keyed
+        by email; at the end, "Save this as your Agora 🌐 account?" turns
+        it into a real account. Saved payment methods are the advanced
+        tier of an account - kept by Stripe (a Stripe Customer), never
+        stored by us (card numbers never touch our servers).
+- [ ] **Price everything on VMex 💱 in both USD and BTC** (Chris,
+      2026-10-30). Every listing shows both; maybe POL later, if we make
+      a deal with Polygon. Being a place to spend BTC is a goal in its
+      own right. Open questions: a fixed BTC price per item or a live
+      conversion from USD (likely live, shown in sats); and how BTC is
+      actually received - options to compare include BTCPay Server
+      (self-hosted, no middleman) and hosted processors; Cash App users
+      can pay Lightning invoices, which may cover them too.
+- [ ] **Long-range idea: VirtuaMakers 🦜 as a bridge between Cash App and
+      the banks** (Chris, 2026-10-30) - somewhere between Cash App and
+      the standard banks, so Cash App money (or BTC spent from Cash App)
+      gets a "more legitimate" path. Logged, not designed. Caution from
+      Claudius: holding or moving other people's money for them is money
+      transmission (FinCEN registration plus state licences) - a lawyer
+      looks first. Becoming a place to *spend* BTC (the USD/BTC item
+      above) needs none of that and gets part of the way.
 - [ ] **Add Civilization I & II (and the rest of the series) to the
       Exchange 💱, "somehow or other"** (Chris, 2026-10-30). Natural home:
       the Video Games 🎮 category (`Agora/exchange-video-games.html`).
