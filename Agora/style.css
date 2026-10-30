@@ -3990,3 +3990,264 @@ button.dm-item {
 .todo-new-list {
   max-width: 520px;
 }
+
+/* Calendar 🗓️ month grid (Chris, 2026-10-30) - fills the panel on a
+   computer; on a phone it turns into one column of days that stretches
+   down the page. */
+.cal {
+  margin: 0.6rem 0 1.2rem;
+}
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.cal-month {
+  flex: 1 1 auto;
+  text-align: center;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.cal-nav {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cal-nav:hover {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+#cal-today {
+  margin: 0;
+}
+
+.cal-weekdays,
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cal-weekdays span {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding-bottom: 0.2rem;
+}
+
+.cal-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+  min-height: 6.2rem;
+  min-width: 0;
+  padding: 0.3rem;
+  border: 1px solid var(--card-line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cal-cell:hover {
+  border-color: var(--card-hover-line);
+}
+
+.cal-blank {
+  border: none;
+  background: none;
+  cursor: default;
+}
+
+.cal-cell.is-today {
+  background: var(--blue-soft);
+}
+
+.cal-cell.is-today .cal-num {
+  color: var(--blue);
+}
+
+.cal-cell.is-selected {
+  border: 2px solid var(--blue);
+  padding: calc(0.3rem - 1px);
+}
+
+.cal-num {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.cal-weekday {
+  display: none;
+}
+
+.cal-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cal-chip {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  border-left: 3px solid currentColor;
+}
+
+.cal-chip.is-done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.cal-chip.cal-extra {
+  display: none;
+}
+
+.cal-more {
+  font-size: 0.72rem;
+  color: var(--muted);
+  padding-left: 0.3rem;
+}
+
+/* One colour per kind of item - chips, dots and the legend share them. */
+.cal-chip.cal-todo { color: var(--blue-deep); background: var(--blue-soft); }
+.cal-chip.cal-meeting { color: var(--green-deep); background: var(--green-soft); }
+.cal-chip.cal-special { color: var(--avatar-violet); background: #f4eaf5; }
+.cal-chip.cal-holiday { color: #a85d1f; background: #fbefe3; }
+.cal-chip.cal-vm { color: var(--teal-deep); background: var(--accent-soft); }
+
+.cal-dot {
+  display: inline-block;
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  margin-top: 0.4rem;
+}
+
+.cal-dot.cal-todo { background: var(--blue); }
+.cal-dot.cal-meeting { background: var(--green); }
+.cal-dot.cal-special { background: var(--avatar-violet); }
+.cal-dot.cal-holiday { background: var(--avatar-orange); }
+.cal-dot.cal-vm { background: var(--teal); }
+
+.cal-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.cal-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.cal-legend .cal-dot {
+  margin-top: 0;
+}
+
+.cal-day {
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.cal-day .section-title {
+  margin-top: 0;
+}
+
+.cal-day-item > a {
+  white-space: nowrap;
+}
+
+.cal-day-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .cal-weekdays,
+  .cal-blank {
+    display: none;
+  }
+
+  .cal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cal-cell {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.6rem;
+    min-height: 2.8rem;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .cal-cell.is-selected {
+    padding: calc(0.45rem - 1px) calc(0.6rem - 1px);
+  }
+
+  .cal-cell.is-empty {
+    min-height: 0;
+    opacity: 0.75;
+  }
+
+  .cal-num {
+    flex: none;
+    width: 3.6rem;
+  }
+
+  .cal-weekday {
+    display: inline;
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .cal-chips {
+    flex: 1 1 auto;
+  }
+
+  .cal-chip,
+  .cal-chip.cal-extra {
+    display: block;
+    font-size: 0.82rem;
+    white-space: normal;
+  }
+
+  .cal-more {
+    display: none;
+  }
+}
