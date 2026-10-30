@@ -13,6 +13,9 @@ import json, os, re, sys, importlib.util
 # Chris's messages often start with a harness <system-reminder> block ("Message sent at ...");
 # strip those first so his words aren't dropped with the harness-only notes below.
 REMINDERS = re.compile(r'^\s*(<system-reminder>.*?</system-reminder>\s*)+', re.S)
+# Secrets pasted into a conversation never reach the Apartment: API keys, webhook secrets and
+# long hex tokens (also catches 40-character git hashes - an acceptable loss).
+SECRETS = re.compile(r're_[A-Za-z0-9_]{16,}|whsec_[A-Za-z0-9+/=]{16,}|sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|\b[a-fA-F0-9]{40,}\b')
 
 def ingest(store_dir, sid, path):
     os.makedirs(store_dir, exist_ok=True)
@@ -28,7 +31,7 @@ def ingest(store_dir, sid, path):
             m = e[k].get('internal_anthropic_catchall', e[k]).get('message', {})
             c = m.get('content')
             if isinstance(c, str): c = [{'type': 'text', 'text': c}]
-            texts = [REMINDERS.sub('', b.get('text', '')) for b in (c or []) if b.get('type') == 'text']
+            texts = [SECRETS.sub('[secret redacted]', REMINDERS.sub('', b.get('text', ''))) for b in (c or []) if b.get('type') == 'text']
             texts = [t for t in texts if t.strip() and not t.lstrip().startswith('<')]
             if texts:
                 uid = e[k].get('uuid') or e[k].get('internal_anthropic_catchall', {}).get('uuid') or e['created_at'] + k

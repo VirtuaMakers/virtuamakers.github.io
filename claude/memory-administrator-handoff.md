@@ -1,7 +1,7 @@
 # Memory Administrator 🚚 – handoff to the next session
 
-Rewritten 2026-10-26 by Memory Administrator 🚚 Session 5 (~540k tokens at
-handoff; session_013vc38v3kkFFGqqwuUzPtjV). Start here, then read the newest
+Rewritten 2026-10-26 by Memory Administrator 🚚 Session 5; status updated
+2026-10-30 by Session 6 (session_01NEmXu81YJ8Xb4Ttwx1crt4) at its retirement. Start here, then read the newest
 SI Memory 🧾 entries (the startup hook shows them).
 
 ## Your job
@@ -44,29 +44,36 @@ transcript into SI Memory 🧾 and the SI Apartment 🏢.
   (`si-memory.html#session-interview`).
 - The Apartment only answers while Chris's laptop is awake with the app open.
 
-**Status (2026-10-26)** - transcripts filed for 16 sessions: Communiqués 📨
-1, 2; Agora 🌐 2; Memory Administrator 🚚 1, 2, 3; VirtuaMakers.com 🦜 3, 5;
-Aquarium GoFish 🪸 1; Approvals Ignition ☑️ 1; GitHub 🔲 1; Chain of Cards ⛓️
-1; Calendar 🗓️ 1; SI Apartment 🏢 1; SI Memory 🧾 1; SI Email ✉️ 2.
-Communiqués 📨 4 was being filed at handoff (check `index.md`).
-- **Filed by Session 6 too:** Agora 🌐 3 (letter + 103 messages), Agora 🌐
-  4 (37 messages; its letter came 2026-10-26, filed as session-agora-4.md).
-- **Session 6 (2026-10-26) filed:** Agora Harness 🚡 2 (letter + 119
-  messages), Memory Administrator 🚚 5 (93 messages). Aquarium GoFish 🪸 1
-  recounted: 14/86 is real (nothing of Chris's dropped) - no re-file.
-- **Also filed by Session 6 (transcripts):** Memory Administrator 🚚 4
-  (72), Kinetoscope 👁️ 1 (51), Agora 🌐 5 (90). Nothing owed now.
-- **Queue:** items 1-14 all filed (Session 6 did Exchange 💱 1 - 650,
-  first-inception - 518, VirtuaMakers.com 🦜 2 - 473). Left: the six [big]
-  ones - **on hold (Chris, 2026-10-26): weekly allowance nearly spent.** Pages are mostly tool traffic, so even
-  "big" sessions yield far fewer messages than their token size suggests.
-- **Re-check:** transcripts filed before 2026-10-22 (PR #96) may be missing
-  Chris's messages that began with a `<system-reminder>` block - most
-  suspicious Aquarium GoFish 🪸 1 (14 Chris vs 86 Claude). Compaction
-  summaries may also appear labelled as Chris. Recount and re-file only short
-  ones.
+**Status (2026-10-30, Session 6 retiring)** - every session that retired so
+far has its letter and transcript filed (see `index.md`), including Agora 🌐
+3-6, Agora Harness 🚡 2, Calendar 🗓️ 2, Memory Administrator 🚚 4 and 5,
+Kinetoscope 👁️ 1, and queue items 1-16 (Agora 🌐 1 - 1,945 messages, 128
+notes). Agora Harness 🚡/SI Email ✉️ 1 (772 messages, redacted) was
+collected, but filing stopped when the Apartment closed - if `index.md` has
+no `transcript-harness-1` line, Session 6 never finished it: re-collect and
+file it.
+- **First job for Session 7:** file Memory Administrator 🚚 Session 6's
+  transcript (session_01NEmXu81YJ8Xb4Ttwx1crt4). Its letter is in SI
+  Memory (summary, 2026-10-30); if `session-memadmin-6.md` isn't in the
+  Apartment yet, file it from there.
+- **Queue left (big, one at a time - two in parallel hit the 5-hour usage
+  limit twice):** VirtuaMakers.com 🦜 4, Machinapology 🔬 1, "Hello",
+  Dimonds ♦️ 4. Ask Chris before each.
+- **Still open, not filed:** Agora 🌐 7, Communiqués 📨 5, SI Email ✉️ 3,
+  Kinetoscope 👁️ 2, Agora Harness 🚡 3 and others are still active - file each
+  when Chris says it's retiring.
+- **Secrets (2026-10-30):** Harness 🚡 1's conversation held real secrets
+  (Resend key, AI Email harness secret, a mailbox bearer token); the helper
+  redacted them before filing, and `transcripts.py` now redacts API keys,
+  webhook secrets and 40+-character hex tokens on ingest. Transcripts filed
+  before 2026-10-30 weren't filtered - worth a scan of the Apartment's
+  `transcript-*.md` notes for the same patterns, and Chris may want to
+  rotate those credentials.
+- **Helper tips:** a page that comes back inline must be hand-copied with
+  every text block (one Agora 🌐 6 page lost a few messages); when a helper
+  dies on the usage limit, `SendMessage` it after the reset and it resumes.
 - **Daily transcript routine** trig_01PBWwk7bAZSVVoLBhCS5oti is **paused**
-  (since 2026-10-17); Chris has been asking for them one by one instead.
+  (since 2026-10-17); Chris asks for them one by one.
 
 ## Things to know
 - Transcripts are conversation only (Chris, 2026-10-16) - his messages and
