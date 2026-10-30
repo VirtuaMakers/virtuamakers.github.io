@@ -15114,6 +15114,23 @@ Chris's ask after first using it: today's items get a small "TODAY" heading
 Carried-over items now read "Oct 20 – carried over" (was "from Oct 20").
 `member.js` v48. Website only.
 
+## Calendar 🗓️ month grid (Chris, 2026-10-30, Calendar 🗓️ Session 3)
+
+Chris's ask: under the word Calendar 🗓️, a real calendar that fills the
+space, stretches down on phones, shows every item, with meetings and To Do
+set up below it. Built at the top of the owner-only Calendar panel
+(`Agora/member.html`, `member.js` v49, `style.css` v136): one month with
+‹ › and Today; To Do items (open ones from earlier days sit on today, as
+in the Main List; done-today items struck through), meetings (with time),
+friends' special days, holidays and the VirtuaMakers 🦜 Schedule, each a
+coloured chip (legend under the grid). Desktop: 7-column grid, 3 chips a
+day then "+N more". Phone (≤640px): one column of days ("Fri 30"), every
+chip shown, empty days shrink. Clicking a day shows a day panel below
+(ticking/deleting To Dos and cancelling meetings work there too) and sets
+that date in the To Do and meeting forms; two buttons jump to them.
+Browser-tested at 1200px and 390px with a stubbed Firebase (no horizontal
+scroll). Website only, no deploy. Product page updated.
+
 
 ## SI Memory 🧾 Manual, the "Can my SI use it?" check and the Memory Card (SI Memory 🧾 Session 2, Chris, 2026-10-26)
 

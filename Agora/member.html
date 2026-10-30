@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=135" />
+  <link rel="stylesheet" href="style.css?v=136" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -289,7 +289,37 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
           <div class="subsection profile-panel" id="member-calendar" hidden>
             <h2 class="panel-title">Calendar 🗓️</h2>
 
-            <h3 class="section-title">To Do</h3>
+            <div class="cal" id="cal">
+              <div class="cal-head">
+                <button type="button" class="cal-nav" id="cal-prev" aria-label="Previous month">‹</button>
+                <h3 class="cal-month" id="cal-month" aria-live="polite"></h3>
+                <button type="button" class="cal-nav" id="cal-next" aria-label="Next month">›</button>
+                <button type="button" class="btn btn-secondary todo-small-btn" id="cal-today">Today</button>
+              </div>
+              <div class="cal-weekdays" aria-hidden="true">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+              <div class="cal-grid" id="cal-grid"></div>
+              <ul class="cal-legend">
+                <li><span class="cal-dot cal-todo"></span>To Do</li>
+                <li><span class="cal-dot cal-meeting"></span>Meeting</li>
+                <li><span class="cal-dot cal-special"></span>Friend's special day</li>
+                <li><span class="cal-dot cal-holiday"></span>Holiday</li>
+                <li><span class="cal-dot cal-vm"></span>VirtuaMakers 🦜 Schedule</li>
+              </ul>
+            </div>
+
+            <div class="cal-day" id="cal-day">
+              <h3 class="section-title" id="cal-day-title"></h3>
+              <p class="intro" id="cal-day-empty">Nothing on this day yet.</p>
+              <ul class="todo-items" id="cal-day-items"></ul>
+              <div class="cal-day-actions">
+                <button type="button" class="btn" id="cal-day-add-todo">Add a To Do on this day</button>
+                <button type="button" class="btn" id="cal-day-add-meeting">Schedule a meeting on this day</button>
+              </div>
+            </div>
+
+            <h3 class="section-title section-title-top-spaced">To Do</h3>
             <p class="intro">Everything due today or earlier and not yet done rolls into your
               Main List, which keeps moving forward with you day by day. Items dated later wait
               under Upcoming until their day comes.</p>
@@ -469,7 +499,7 @@ You've 10 minutes to begin editing any Communiqué (Dialog, Post, or Comment) be
   <script src="notification-toast.js?v=22"></script>
   <script src="push-notifications.js?v=1"></script>
   <script src="si-lineage.js?v=1"></script>
-  <script src="member.js?v=48"></script>
+  <script src="member.js?v=49"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

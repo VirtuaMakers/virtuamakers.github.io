@@ -1289,7 +1289,252 @@
     }).sort(function (a, b) { return a.next - b.next; }).forEach(function (entry) {
       calendarSchedule.appendChild(dateLine(entry.item.name, entry.next, now, entry.item.every));
     });
+    renderMonthGrid();
   }
+
+  // --- Calendar 🗓️ month grid (Chris, 2026-10-30) ---------------------
+  // One month at a time under the Calendar heading, with everything on it:
+  // To Do items, meetings, friends' special days, holidays and the
+  // VirtuaMakers 🦜 Schedule. On a phone the grid becomes one column of
+  // days that stretches down the page. Clicking a day lists all of it
+  // below the grid and sets that day in the To Do and meeting forms.
+  // Open To Do items from earlier days sit on today, as in the Main List.
+  var calGrid = document.getElementById("cal-grid");
+  var calMonthLabel = document.getElementById("cal-month");
+  var calDayTitle = document.getElementById("cal-day-title");
+  var calDayEmpty = document.getElementById("cal-day-empty");
+  var calDayItems = document.getElementById("cal-day-items");
+  var CAL_CHIPS_SHOWN = 3;
+  var WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  var calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  var calSelected = localDateKey(new Date());
+  var calendarMeetings = [];     // calendarEvents docs you're part of
+  var calendarSpecialDays = [];  // [{uid, name, label, monthDay "MM-DD"}]
+
+  function calTextItem(type, text, meta) {
+    return {
+      type: type,
+      text: text,
+      render: function () {
+        var li = document.createElement("li");
+        li.className = "todo-item cal-day-item";
+        var dot = document.createElement("span");
+        dot.className = "cal-dot cal-" + type;
+        li.appendChild(dot);
+        var body = document.createElement("div");
+        body.className = "todo-item-body";
+        body.appendChild(document.createTextNode(text));
+        if (meta) {
+          var metaEl = document.createElement("span");
+          metaEl.className = "todo-item-meta";
+          metaEl.textContent = meta;
+          body.appendChild(metaEl);
+        }
+        li.appendChild(body);
+        return li;
+      },
+    };
+  }
+
+  // Everything on the calendar for the month shown, keyed "YYYY-MM-DD".
+  function calendarItemsByDay(year, month) {
+    var days = {};
+    function add(key, item) { (days[key] = days[key] || []).push(item); }
+    var today = localDateKey(new Date());
+    var monthKey = year + "-" + String(month + 1).padStart(2, "0");
+    var lastDay = new Date(year, month + 1, 0).getDate();
+
+    calendarMeetings.forEach(function (doc) {
+      var data = doc.data();
+      if (!data.startAt || !data.startAt.toDate) return;
+      var start = data.startAt.toDate();
+      var key = localDateKey(start);
+      if (key.slice(0, 7) !== monthKey) return;
+      add(key, {
+        type: "meeting",
+        text: start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) + " " + data.title,
+        sortAt: start.getTime(),
+        render: function () {
+          var li = renderMeetingItem(doc);
+          li.className = "todo-item cal-day-item";
+          var dot = document.createElement("span");
+          dot.className = "cal-dot cal-meeting";
+          li.insertBefore(dot, li.firstChild);
+          return li;
+        },
+      });
+    });
+
+    todoItems.forEach(function (item) {
+      var key = item.done ? (item.doneOn || item.date) : (item.date < today ? today : item.date);
+      if (key.slice(0, 7) !== monthKey) return;
+      add(key, {
+        type: "todo",
+        text: item.text,
+        done: !!item.done,
+        render: function () {
+          var li = todoRow(item, { showList: true, today: today });
+          li.classList.add("cal-day-item");
+          return li;
+        },
+      });
+    });
+
+    calendarSpecialDays.forEach(function (s) {
+      if (s.monthDay.slice(0, 2) !== monthKey.slice(5)) return;
+      var day = parseInt(s.monthDay.slice(3), 10);
+      if (day > lastDay) return; // a Feb 29 birthday in a non-leap year
+      var item = calTextItem("special", s.name + (/s$/i.test(s.name) ? "' " : "'s ") + s.label);
+      var render = item.render;
+      item.render = function () {
+        var li = render();
+        var link = document.createElement("a");
+        link.href = "member.html?uid=" + encodeURIComponent(s.uid);
+        link.textContent = "View profile";
+        li.querySelector(".todo-item-body").appendChild(document.createTextNode(" "));
+        li.querySelector(".todo-item-body").appendChild(link);
+        return li;
+      };
+      add(monthKey + "-" + s.monthDay.slice(3), item);
+    });
+
+    HOLIDAYS.forEach(function (holiday) {
+      // A lunar holiday can fall twice in one year, so look one year
+      // either side as well.
+      [year - 1, year, year + 1].forEach(function (y) {
+        var date = holidayDateIn(holiday, y);
+        if (date && date.getFullYear() === year && date.getMonth() === month) {
+          add(localDateKey(date), calTextItem("holiday", holiday.name, holiday.note));
+        }
+      });
+    });
+
+    SCHEDULE.forEach(function (s) {
+      for (var d = 1; d <= lastDay; d++) {
+        var date = new Date(year, month, d);
+        if (s.monthDay === d || s.weekday === date.getDay()) {
+          add(localDateKey(date), calTextItem("vm", s.name, s.every));
+        }
+      }
+    });
+
+    var ORDER = { meeting: 0, todo: 1, special: 2, holiday: 3, vm: 4 };
+    Object.keys(days).forEach(function (key) {
+      days[key].sort(function (a, b) {
+        return (ORDER[a.type] - ORDER[b.type]) || ((a.sortAt || 0) - (b.sortAt || 0));
+      });
+    });
+    return days;
+  }
+
+  function renderMonthGrid() {
+    var year = calMonth.getFullYear();
+    var month = calMonth.getMonth();
+    var today = localDateKey(new Date());
+    var days = calendarItemsByDay(year, month);
+    calMonthLabel.textContent = MONTH_NAMES[month] + " " + year;
+
+    calGrid.textContent = "";
+    var lead = new Date(year, month, 1).getDay();
+    for (var i = 0; i < lead; i++) {
+      var blank = document.createElement("div");
+      blank.className = "cal-cell cal-blank";
+      calGrid.appendChild(blank);
+    }
+    var lastDay = new Date(year, month + 1, 0).getDate();
+    for (var d = 1; d <= lastDay; d++) {
+      var date = new Date(year, month, d);
+      var key = localDateKey(date);
+      var items = days[key] || [];
+      var cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "cal-cell" + (key === today ? " is-today" : "") + (key === calSelected ? " is-selected" : "") +
+        (items.length ? "" : " is-empty");
+      cell.dataset.day = key;
+      cell.setAttribute("aria-label", WEEKDAY_NAMES[date.getDay()] + ", " + MONTH_NAMES[month] + " " + d +
+        (items.length ? " – " + items.length + (items.length === 1 ? " item" : " items") : ""));
+
+      var num = document.createElement("span");
+      num.className = "cal-num";
+      var wd = document.createElement("span");
+      wd.className = "cal-weekday";
+      wd.textContent = WEEKDAY_NAMES[date.getDay()].slice(0, 3) + " ";
+      num.appendChild(wd);
+      num.appendChild(document.createTextNode(d));
+      cell.appendChild(num);
+
+      var chips = document.createElement("span");
+      chips.className = "cal-chips";
+      // Every item gets a chip; past the first few they show only on a
+      // phone, where the day has room to grow.
+      items.forEach(function (item, index) {
+        var chip = document.createElement("span");
+        chip.className = "cal-chip cal-" + item.type + (item.done ? " is-done" : "") +
+          (index >= CAL_CHIPS_SHOWN ? " cal-extra" : "");
+        chip.textContent = item.text;
+        chips.appendChild(chip);
+      });
+      if (items.length > CAL_CHIPS_SHOWN) {
+        var more = document.createElement("span");
+        more.className = "cal-more";
+        more.textContent = "+" + (items.length - CAL_CHIPS_SHOWN) + " more";
+        chips.appendChild(more);
+      }
+      cell.appendChild(chips);
+      cell.addEventListener("click", selectCalendarDay.bind(null, key));
+      calGrid.appendChild(cell);
+    }
+    // The chosen day can sit in another month after paging with ‹ ›.
+    renderCalendarDay(calSelected.slice(0, 7) === localDateKey(calMonth).slice(0, 7) ? days : null);
+  }
+
+  function renderCalendarDay(days) {
+    var parts = calSelected.split("-").map(function (p) { return parseInt(p, 10); });
+    var date = new Date(parts[0], parts[1] - 1, parts[2]);
+    if (!days) days = calendarItemsByDay(date.getFullYear(), date.getMonth());
+    var items = days[calSelected] || [];
+    calDayTitle.textContent = (calSelected === localDateKey(new Date()) ? "Today – " : "") +
+      WEEKDAY_NAMES[date.getDay()] + ", " + MONTH_NAMES[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+    calDayItems.textContent = "";
+    items.forEach(function (item) { calDayItems.appendChild(item.render()); });
+    calDayEmpty.hidden = items.length > 0;
+  }
+
+  function selectCalendarDay(key) {
+    calSelected = key;
+    todoAddDate.value = key;
+    meetingDateField.value = key;
+    Array.prototype.forEach.call(calGrid.querySelectorAll(".cal-cell"), function (cell) {
+      cell.classList.toggle("is-selected", cell.dataset.day === key);
+    });
+    renderCalendarDay();
+  }
+
+  function shiftCalendarMonth(by) {
+    calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + by, 1);
+    renderMonthGrid();
+  }
+
+  document.getElementById("cal-prev").addEventListener("click", function () { shiftCalendarMonth(-1); });
+  document.getElementById("cal-next").addEventListener("click", function () { shiftCalendarMonth(1); });
+  document.getElementById("cal-today").addEventListener("click", function () {
+    var now = new Date();
+    calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    calSelected = localDateKey(now);
+    todoAddDate.value = calSelected;
+    meetingDateField.value = calSelected;
+    renderMonthGrid();
+  });
+  document.getElementById("cal-day-add-todo").addEventListener("click", function () {
+    todoAddDate.value = calSelected;
+    todoAddText.scrollIntoView({ behavior: "smooth", block: "center" });
+    todoAddText.focus({ preventScroll: true });
+  });
+  document.getElementById("cal-day-add-meeting").addEventListener("click", function () {
+    meetingDateField.value = calSelected;
+    meetingTitleField.scrollIntoView({ behavior: "smooth", block: "center" });
+    meetingTitleField.focus({ preventScroll: true });
+  });
 
   // --- Calendar 🗓️ To Do lists (Chris, 2026-10-24) ---------------------
   // Every item has a date (today by default). Anything not done and dated
@@ -1511,6 +1756,7 @@
       todoSettingsInMain.checked = view.inMain !== false;
       todoSettingsDelete.hidden = !!view.isMain;
     }
+    renderMonthGrid();
   }
 
   function setTodoDone(item, done) {
@@ -1740,11 +1986,13 @@
     })).then(function (snaps) {
       var now = new Date();
       var entries = [];
+      calendarSpecialDays = [];
 
       function addIfFull(uid, name, rawDate, label, shown) {
         if (shown === false || typeof rawDate !== "string") return;
         var m = rawDate.match(/^\d{4}-(\d{2})-(\d{2})$/);
         if (!m) return;
+        calendarSpecialDays.push({ uid: uid, name: name, label: label, monthDay: m[1] + "-" + m[2] });
         entries.push({
           uid: uid,
           name: name,
@@ -1764,6 +2012,7 @@
       });
 
       entries.sort(function (a, b) { return a.next - b.next; });
+      renderMonthGrid();
 
       calendarList.textContent = "";
       if (!entries.length) {
@@ -1936,6 +2185,8 @@
       .where("participants", "array-contains", currentUser.uid)
       .get()
       .then(function (snap) {
+        calendarMeetings = snap.docs;
+        renderMonthGrid();
         var now = Date.now();
         var docs = snap.docs.filter(function (doc) {
           var startAt = doc.data().startAt;
