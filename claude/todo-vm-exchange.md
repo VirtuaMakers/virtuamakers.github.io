@@ -37,3 +37,11 @@ Not this session's: **VM Emojis 😸** is a ChatGPT project now (Chris,
         getting his Social Security card on 2026-10-13. The free-item
         checkout + emailed receipt needs none of this and can be built
         first.
+- [ ] **Add Civilization I & II (and the rest of the series) to the
+      Exchange 💱, "somehow or other"** (Chris, 2026-10-30). Natural home:
+      the Video Games 🎮 category (`Agora/exchange-video-games.html`).
+      The series belongs to Take-Two/2K/Firaxis, so we can't host or sell
+      copies ourselves; the likely shape is listing cards that link out
+      to wherever each game is legally sold (Steam, GOG...), possibly as
+      affiliate links later. First step: check which entries, especially
+      I and II, are still sold anywhere official.
