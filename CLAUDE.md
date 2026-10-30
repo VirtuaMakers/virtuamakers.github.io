@@ -501,10 +501,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   To Do 2026-10-28 via Agora 🌐 Session 7)** - when the Exchange's URL is
   unhinged from Agora 🌐 (today `Agora/exchange*.html`), its home becomes
   `VirtuaMakers.com/VMex`, with forwarding from the old pages. Not started.
-- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
-  VirtuaMakers.com/VMex (Chris, 2026-10-28, via Agora 🌐 Session 7)** -
-  when the Exchange is unhooked from Agora 🌐 (today `Agora/exchange*.html`),
-  its new home is VirtuaMakers.com/VMex. Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Court Advertisers (Chris,
   2026-10-24)** - be as selective as possible about advertisers over time:
   on brand, and never ones that compete with what we sell on the Exchange
