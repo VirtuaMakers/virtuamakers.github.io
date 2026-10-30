@@ -501,10 +501,6 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   To Do 2026-10-28 via Agora 🌐 Session 7)** - when the Exchange's URL is
   unhinged from Agora 🌐 (today `Agora/exchange*.html`), its home becomes
   `VirtuaMakers.com/VMex`, with forwarding from the old pages. Not started.
-- [ ] **[VirtuaMakers Exchange 💱 session] The Exchange moves to
-  VirtuaMakers.com/VMex (Chris, 2026-10-28, via Agora 🌐 Session 7)** -
-  when the Exchange is unhooked from Agora 🌐 (today `Agora/exchange*.html`),
-  its new home is VirtuaMakers.com/VMex. Not started.
 - [ ] **[VirtuaMakers Exchange 💱 session] Court Advertisers (Chris,
   2026-10-24)** - be as selective as possible about advertisers over time:
   on brand, and never ones that compete with what we sell on the Exchange
@@ -938,6 +934,9 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   New Year's Eve, Hanukkah begins (25 Kislev), Diwali (Drikpanchang table,
   2025-2031 only - extend it as years are published) and the first day of
   each season (Meeus equinox/solstice formula, viewer's time zone).
+  **Calendar 🗓️ Session 2 retired 2026-10-29** (letter filed): Chris has
+  not yet seen the holidays live - close only on his word. Extend the
+  Diwali table past 2031 when Drikpanchang publishes more years.
 - [ ] **[Calendar 🗓️ session] To Do lists in Calendar 🗓️ (Chris,
   2026-10-24)** - every item has a date (default today). Items dated today
   or earlier and not done roll into one "Main List" that snowballs forward
@@ -952,6 +951,10 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   2026-10-24):** the Calendar To Do feature and these CLAUDE.md/session
   To Do lists stay unrelated until further notice - likely never linked -
   to keep our plans private.
+  **Status (Calendar 🗓️ Session 2's letter, 2026-10-29):** Chris has seen
+  the list working, not yet ticking items off, a second list or a public
+  list - close only on his word. Asked for, not built: moving an item to
+  another list, and editing an item's date.
 - [ ] **[VirtuaMakers Exchange 💱 session] A monthly catalogue, out on the
   1st (Chris, 2026-10-24)** - Chris's challenge to himself: have each new
   monthly catalogue on VMex 💱 set up by the end of every month (it shows

@@ -15188,3 +15188,10 @@ editing works without it; saving a time is refused until then.
 Chris's two open questions, answered in chat, not built: tagging someone
 in a To Do (recommended: a "Make it a meeting" step, not silent tags) and
 hashtags in public To Do lists.
+
+## Header: small "← VirtuaMakers 🦜" link becomes "Agora 🌐" (Chris, 2026-10-30)
+
+On the 23 root-level pages with the Agora-style header (Product Pages, the
+Knowledge Base 📚 pages, hashtag pages), the big brand link already goes
+to VirtuaMakers 🦜, so the small duplicate "← VirtuaMakers 🦜" back-link
+now reads "Agora 🌐" and goes to `/Agora/`.
