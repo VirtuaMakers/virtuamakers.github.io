@@ -973,8 +973,17 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   absolute VirtuaMakers time in its Knowledge Base 📚 article; release and
   update frequencies as public factoids; Conductor 🎶 loop lengths; SI
   connection/execution speeds on Agora as a public benchmark. ⏳ claimed
-  in `claude/emoji-registry.md`. Not started - finish the Calendar To Do
-  work first.
+  in `claude/emoji-registry.md`. **Chris (2026-10-31): implement all of
+  them**, plus Claudius' devices: CLOCK (one official site time - also
+  fixes the clock-skew "online" bug), HOURGLASS (countdowns: Friday
+  hashtag reveal, the 1st's catalogue, launch days, "7:42 left to edit"),
+  STOPWATCH (the SI benchmark - publish the method), METRONOME (cadences,
+  Conductor 🎶 loops), ALMANAC ("on this day", member/SI ages), WORLD CLOCK
+  (a friend's local time in Dialogs). First fact published:
+  `index.html#our-pace` (1,004 changes, one every 3 h 18 m, 2026-06-14 to
+  10-30) - static for now; make it live (GitHub API commit count, or a
+  stats file written on each push). Not started - finish the Calendar
+  To Do work first.
 - [ ] **[Dimonds ♦️ session] Dimonds ♦️: Pop Art Treatment – Display Case, Colorful
   Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
   its own reason to exist, even if the free version does most of it), a
