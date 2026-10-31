@@ -173,6 +173,7 @@ Each emoji in use, and what it belongs to (after the 2026-10-23 swaps).
 | 🪧 | The Logo |
 | ⚖️ | Pursuit of Justice |
 | 🛣️ | The Road Ahead |
+| ⏳ | Timekeeper (proposed rebrand of Calendar 🗓️; claimed 2026-10-30, Calendar 🗓️ Session 3) |
 | 🎖️ | The Virtuous Life |
 | 🦎 | Urodele |
 | 🎥 | Video |

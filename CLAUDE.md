@@ -962,6 +962,19 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   the list working, not yet ticking items off, a second list or a public
   list - close only on his word. Asked for, not built: moving an item to
   another list, and editing an item's date.
+- [ ] **[Calendar 🗓️ session] Timekeeper ⏳ Rebrand (Chris, 2026-10-30/31)**
+  - Calendar 🗓️ becomes **Timekeeper ⏳**, the literal timekeeper for the
+  whole site (days, months and years are just a few subsets of time;
+  Agora 🌐 already records time to the second everywhere). Because people
+  won't link "Timekeeper" to a calendar at first, always pair the name
+  with the device: **Timekeeper ⏳: CALENDAR**, **Timekeeper ⏳: CLOCK**,
+  etc. Anything connected to Agora ultimately connects to the Timekeeper.
+  Ideas so far (Chris + Claudius, `claude/history.md` 2026-10-31): the
+  absolute VirtuaMakers time in its Knowledge Base 📚 article; release and
+  update frequencies as public factoids; Conductor 🎶 loop lengths; SI
+  connection/execution speeds on Agora as a public benchmark. ⏳ claimed
+  in `claude/emoji-registry.md`. Not started - finish the Calendar To Do
+  work first.
 - [ ] **[Dimonds ♦️ session] Dimonds ♦️: Pop Art Treatment – Display Case, Colorful
   Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
   its own reason to exist, even if the free version does most of it), a
