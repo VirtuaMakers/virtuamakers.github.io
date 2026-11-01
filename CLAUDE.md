@@ -951,10 +951,70 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   2026-10-24):** the Calendar To Do feature and these CLAUDE.md/session
   To Do lists stay unrelated until further notice - likely never linked -
   to keep our plans private.
+  **Session 3 (2026-10-30):** a month grid under the Calendar 🗓️ heading
+  showing every item (PR #146), then editing in place and optional times
+  (PR #155, needs the standard deploy for the rules). Next: "Make it a
+  meeting" on a To Do. **Chris: draw the line soon** - finish this and
+  call it done; anything beyond goes into the purchasable standalone
+  version. He's tempted to rebrand Calendar (e.g. "Timekeeper ⏳") - not
+  decided.
   **Status (Calendar 🗓️ Session 2's letter, 2026-10-29):** Chris has seen
   the list working, not yet ticking items off, a second list or a public
   list - close only on his word. Asked for, not built: moving an item to
   another list, and editing an item's date.
+- [ ] **[Calendar 🗓️ session] Timekeeper ⏳ Rebrand (Chris, 2026-10-30/31)**
+  - Calendar 🗓️ becomes **Timekeeper ⏳**, the literal timekeeper for the
+  whole site (days, months and years are just a few subsets of time;
+  Agora 🌐 already records time to the second everywhere). Because people
+  won't link "Timekeeper" to a calendar at first, always pair the name
+  with the device: **Timekeeper ⏳: CALENDAR**, **Timekeeper ⏳: CLOCK**,
+  etc. Anything connected to Agora ultimately connects to the Timekeeper.
+  Ideas so far (Chris + Claudius, `claude/history.md` 2026-10-31): the
+  absolute VirtuaMakers time in its Knowledge Base 📚 article; release and
+  update frequencies as public factoids; Conductor 🎶 loop lengths; SI
+  connection/execution speeds on Agora as a public benchmark. ⏳ claimed
+  in `claude/emoji-registry.md`. Not started - finish the Calendar To Do
+  work first.
+- [ ] **[Dimonds ♦️ session] Dimonds ♦️: Pop Art Treatment – Display Case, Colorful
+  Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
+  its own reason to exist, even if the free version does most of it), a
+  virtual box (classy NES-cartridge feel), a colourful manual full of
+  trivia, and a place in the Display Case on Agora 🌐 profiles (spin, zoom,
+  open, read). Virtual only for now. Full vision: `claude/history.md`,
+  2026-10-30, "The collectible-products vision"; public summary in
+  `index.html#collectible-products`. Not designed.
+- [ ] **[SI Email ✉️ session] SI Email ✉️: Pop Art Treatment – Display Case, Colorful
+  Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
+  its own reason to exist, even if the free version does most of it), a
+  virtual box (classy NES-cartridge feel), a colourful manual full of
+  trivia, and a place in the Display Case on Agora 🌐 profiles (spin, zoom,
+  open, read). Virtual only for now. Full vision: `claude/history.md`,
+  2026-10-30, "The collectible-products vision"; public summary in
+  `index.html#collectible-products`. Not designed.
+- [ ] **[SI Memory 🧾 session] SI Memory 🧾: Pop Art Treatment – Display Case, Colorful
+  Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
+  its own reason to exist, even if the free version does most of it), a
+  virtual box (classy NES-cartridge feel), a colourful manual full of
+  trivia, and a place in the Display Case on Agora 🌐 profiles (spin, zoom,
+  open, read). Virtual only for now. Full vision: `claude/history.md`,
+  2026-10-30, "The collectible-products vision"; public summary in
+  `index.html#collectible-products`. Not designed.
+- [ ] **[Calendar 🗓️ session] Calendar 🗓️: Pop Art Treatment – Display Case, Colorful
+  Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
+  its own reason to exist, even if the free version does most of it), a
+  virtual box (classy NES-cartridge feel), a colourful manual full of
+  trivia, and a place in the Display Case on Agora 🌐 profiles (spin, zoom,
+  open, read). Virtual only for now. Full vision: `claude/history.md`,
+  2026-10-30, "The collectible-products vision"; public summary in
+  `index.html#collectible-products`. Not designed.
+- [ ] **[Communiqués 📨 session] Communiqués 📨: Pop Art Treatment – Display Case, Colorful
+  Manual, etc. (Chris, 2026-10-30)** - its own standalone app someday (with
+  its own reason to exist, even if the free version does most of it), a
+  virtual box (classy NES-cartridge feel), a colourful manual full of
+  trivia, and a place in the Display Case on Agora 🌐 profiles (spin, zoom,
+  open, read). Virtual only for now. Full vision: `claude/history.md`,
+  2026-10-30, "The collectible-products vision"; public summary in
+  `index.html#collectible-products`. Not designed.
 - [ ] **[VirtuaMakers Exchange 💱 session] A monthly catalogue, out on the
   1st (Chris, 2026-10-24)** - Chris's challenge to himself: have each new
   monthly catalogue on VMex 💱 set up by the end of every month (it shows

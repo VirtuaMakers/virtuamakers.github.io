@@ -54,7 +54,10 @@ notes; Agora Harness 🚡/SI Email ✉️ 1 - 772 messages, 82 notes, redacted).
   (`session-memadmin-6.md` and SI Memory).
 - **Queue left (big, one at a time - two in parallel hit the 5-hour usage
   limit twice):** VirtuaMakers.com 🦜 4, Machinapology 🔬 1, "Hello",
-  Dimonds ♦️ 4. Ask Chris before each.
+  Dimonds ♦️ 4. Ask Chris before each. **Chris (2026-10-30):** Dimonds ♦️ 4
+  is still active - file it only when it reaches 500k and hands off;
+  VirtuaMakers.com 🦜 4 (the biggest, ~1.8M output tokens) waits until the
+  week of 2026-11-02.
 - **Still open, not filed:** Agora 🌐 7, Communiqués 📨 5, SI Email ✉️ 3,
   Kinetoscope 👁️ 2, Agora Harness 🚡 3 and others are still active - file each
   when Chris says it's retiring.
