@@ -646,6 +646,16 @@
       } else {
         document.getElementById("field-name").value = user.displayName || "";
         document.getElementById("field-email").value = user.email || "";
+        // Checked out on the Exchange 💱 as a guest first, with this same
+        // email? Carry that name and kind over (exchange-cart.js saves them).
+        try {
+          var exchangeCustomer = JSON.parse(localStorage.getItem("vm_exchange_customer")) || {};
+          if (exchangeCustomer.email && user.email &&
+              exchangeCustomer.email.toLowerCase() === user.email.toLowerCase()) {
+            if (exchangeCustomer.name) document.getElementById("field-name").value = exchangeCustomer.name;
+            if (["Human", "Cyborg", "AI"].indexOf(exchangeCustomer.kind) !== -1) selectKind(exchangeCustomer.kind);
+          }
+        } catch (err) { /* nothing saved, or storage blocked */ }
         // No profile yet - an account only counts as accepted once one's
         // saved (required fields + Terms of Service), so offer a clean way
         // to back out rather than leaving a signed-in, permanently

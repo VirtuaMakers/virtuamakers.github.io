@@ -92,6 +92,15 @@
   // agoraOnAuthChange listener, same as a popup sign-in would be. This
   // resolves harmlessly with no user on every normal page load where no
   // redirect was pending, so it's safe to call unconditionally.
+  // VirtuaMakers Exchange 💱's "Save as my Agora 🌐 account" (after a
+  // guest checkout, exchange-cart.js) opens sign-up with the email ready.
+  window.agoraOpenSignUp = function (email) {
+    setMode(true);
+    openModal();
+    if (emailInput && email) emailInput.value = email;
+    if (passwordInput) passwordInput.focus();
+  };
+
   AgoraAuth.getRedirectResult().catch(function (err) {
     openModal();
     showError(err.message);

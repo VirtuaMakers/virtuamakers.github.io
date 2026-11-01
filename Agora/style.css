@@ -1308,6 +1308,65 @@ video.section-image {
   opacity: 0.9;
 }
 
+.flyer-item-icon--high {
+  bottom: 35%;
+}
+
+.crypto-price {
+  display: block;
+  font-size: 0.8em;
+  opacity: 0.85;
+}
+
+.flyer-item-price .crypto-price {
+  display: block;
+  font-size: 0.66rem;
+  opacity: 0.85;
+}
+
+/* VirtuaMakers 🦜 Products list on the Catalogue Cover, $0.00 for now. */
+.vm-products {
+  list-style: none;
+  margin-top: 1.2rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.vm-product {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--card-line, var(--line));
+  border-radius: 10px;
+}
+
+.vm-product-name {
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.vm-product-description {
+  font-size: 0.88rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
+.vm-product-price {
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .vm-product {
+    grid-template-columns: 1fr auto;
+  }
+  .vm-product .btn {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 640px) {
   .catalogue-flyer {
     grid-template-columns: repeat(2, 1fr);
@@ -2483,6 +2542,57 @@ label.field-checkbox-inline {
 .bag-group,
 .checkout-section {
   margin-top: 1.2rem;
+}
+
+/* Free-item checkout form (exchange-cart.js builds it). */
+.checkout-form {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+.checkout-field {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.checkout-field input {
+  font: inherit;
+  font-weight: 400;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.checkout-kind {
+  border: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.9rem;
+}
+
+.checkout-kind legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.checkout-status {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.checkout-done {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.checkout-done-title {
+  font-weight: 700;
 }
 
 .bag-group-title {

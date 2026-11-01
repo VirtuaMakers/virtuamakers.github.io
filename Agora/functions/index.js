@@ -24,6 +24,7 @@ const crypto = require("crypto");
 const admin = require("firebase-admin");
 const { resendApiKey, sendEmail, sendEmailSafe } = require("./lib/resend");
 const doorbell = require("./lib/doorbell");
+const exchangeOrders = require("./lib/exchangeOrders");
 const {
   loadTemplate,
   withReason,
@@ -3714,6 +3715,10 @@ const HARNESS_REPORT_TO = "agoraharness@virtuamakers.com";
 const HARNESS_REPORT_APPS = ["claude", "chatgpt", "copilot", "gemini", "alice", "lechat", "grok",
   "deepseek", "perplexity", "meta", "agent", "coding", "other"];
 const HARNESS_REPORT_ANSWERS = ["yes", "no", "unsure"];
+
+// VirtuaMakers Exchange 💱 checkout, free items only for now - see
+// lib/exchangeOrders.js. Public: guests check out too.
+exports.placeExchangeOrder = onRequest({ secrets: [resendApiKey] }, withCors(exchangeOrders.placeOrder));
 
 exports.reportHarnessTrouble = onRequest({ secrets: [resendApiKey] }, withCors(async (req, res) => {
   if (req.method !== "POST") {

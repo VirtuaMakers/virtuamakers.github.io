@@ -15303,3 +15303,32 @@ matters. Recorded here; To Do changes recommended to Memory Administrator 🚚
 - Chris's framing: VirtuaMakers is on its way to "a Willy Wonka experience
   in Super Intelligence, in a good way" - transparency meant to be artful
   and educational.
+
+## VMex 💱 Session 3: the free checkout, live BTC/POL prices and the November catalogue (Chris, 2026-10-30 → 11-01)
+
+- **Accounts, the pizza-shop way** (Chris agreed with Claudius'
+  recommendation, 2026-10-30): browsing and the Bag 🛍️ stay open; a guest
+  checks out with a name, email and kind; afterwards, "Save as my Agora 🌐
+  account". Saved payment methods are the advanced account tier, kept by
+  Stripe (never by us).
+- **Payments to start:** cards and Cash App, both through Stripe Checkout
+  (Cash App Pay is one of its payment methods). Waits on Chris's bank
+  account (hoped for 2026-11-03, "sometime next week, for sure").
+- **Free checkout built:** `placeExchangeOrder` + `functions/lib/exchangeOrders.js`
+  (server-side FREE_ITEMS list; `exchangeOrders`, `exchangeCustomers`,
+  `exchangeOrderThrottle` - server-only, no rules needed since Firestore
+  denies anything unmatched); receipts from exchange@virtuamakers.com,
+  reply-to Admin@ (`lib/resend.js` sendEmail now takes optional
+  from/replyTo). Checkout form injected by `exchange-cart.js` into all 19
+  Exchange pages' modal; `auth-ui.js` gained `window.agoraOpenSignUp(email)`;
+  `profile-form.js` prefills name/kind from `vm_exchange_customer` when the
+  emails match. Bag prices now read "$0.00", not "Free".
+- **Live prices:** `Agora/exchange-prices.js` - BTC (sats under 0.001 BTC)
+  and POL beside every `data-usd` price, from CoinGecko's free API.
+- **November catalogue:** see `claude/todo-vm-exchange.md`. Research notes:
+  the original HTC Vive is long discontinued; HTC's current Vive Focus
+  Vision (~$999-1,299) is good for PC VR but Valve's Steam Frame (from
+  $1,059, launched 2026-09 via a reservation lottery) is the pick; PS VR2
+  is $399.99 since the March 2025 cut; Spot has no public price (launched
+  at $74,500 in 2020); 1X NEO is $20,000 or $499/month. Polygon's Village
+  Grants appear replaced by the Community Grants Program.

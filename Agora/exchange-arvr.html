@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=134" />
+  <link rel="stylesheet" href="style.css?v=138" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -70,6 +70,16 @@
         virtual reality – anything that layers a digital world over or
         around the real one.</p>
       <div class="catalogue-grid">
+        <a class="card catalogue-item" href="https://store.steampowered.com/steamframe" target="_blank" rel="noopener noreferrer">
+          <img class="catalogue-image" src="assets/catalogue/steam-frame.jpg" alt="Valve Steam Frame headset and controllers" loading="lazy" />
+          <h3>Steam Frame</h3>
+          <p class="member-org" data-usd="1059">From $1,059</p>
+        </a>
+        <a class="card catalogue-item" href="https://www.playstation.com/en-us/ps-vr2/" target="_blank" rel="noopener noreferrer">
+          <img class="catalogue-image" src="assets/catalogue/playstation-vr2.jpg" alt="PlayStation VR2 headset and controllers" loading="lazy" />
+          <h3>PlayStation VR2</h3>
+          <p class="member-org" data-usd="399.99">$399.99</p>
+        </a>
         <a class="card catalogue-item" href="https://www.meta.com/quest/quest-3/" target="_blank" rel="noopener noreferrer">
           <img class="catalogue-image" src="assets/catalogue/meta-quest-3.webp" alt="Meta Quest 3" loading="lazy" />
           <h3>Meta Quest 3</h3>
@@ -183,7 +193,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=4"></script>
   <script src="auth.js?v=6"></script>
-  <script src="auth-ui.js?v=23"></script>
+  <script src="auth-ui.js?v=25"></script>
   <script src="site-search.js?v=17"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="communiques-common.js?v=38"></script>
@@ -193,7 +203,8 @@
   <script src="push-notifications.js?v=1"></script>
   <script src="im-window.js?v=22"></script>
   <script src="friends-list.js?v=16"></script>
-  <script src="exchange-cart.js?v=1"></script>
+  <script src="exchange-cart.js?v=2"></script>
+  <script src="exchange-prices.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
