@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=134" />
+  <link rel="stylesheet" href="style.css?v=138" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -68,7 +68,18 @@
       <h1>Robotics ⚙️</h1>
       <p class="body-text">Humanoid and consumer robots – for the home,
         the workshop, or anywhere else a robot might actually help.</p>
-      <span class="pill pill-soon">Coming soon</span>
+      <div class="catalogue-grid">
+        <a class="card catalogue-item" href="https://bostondynamics.com/products/spot/" target="_blank" rel="noopener noreferrer">
+          <img class="catalogue-image" src="assets/catalogue/boston-dynamics-spot.jpg" alt="Boston Dynamics Spot on a staircase" loading="lazy" />
+          <h3>Boston Dynamics Spot</h3>
+          <p class="member-org">Price on request (launched at $74,500)</p>
+        </a>
+        <a class="card catalogue-item" href="https://www.1x.tech/neo" target="_blank" rel="noopener noreferrer">
+          <img class="catalogue-image" src="assets/catalogue/1x-neo.jpg" alt="1X NEO humanoid robot beside a man" loading="lazy" />
+          <h3>1X NEO – a home humanoid</h3>
+          <p class="member-org" data-usd="20000">$20,000 or $499/mo.</p>
+        </a>
+      </div>
       <p class="category-nav-label">Page 2 of 18</p>
       <div class="category-nav">
         <a href="exchange-si-products.html" class="category-nav-prev">← SI Products 📦</a>
@@ -176,7 +187,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=4"></script>
   <script src="auth.js?v=6"></script>
-  <script src="auth-ui.js?v=23"></script>
+  <script src="auth-ui.js?v=25"></script>
   <script src="site-search.js?v=17"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="communiques-common.js?v=38"></script>
@@ -186,7 +197,8 @@
   <script src="push-notifications.js?v=1"></script>
   <script src="im-window.js?v=22"></script>
   <script src="friends-list.js?v=16"></script>
-  <script src="exchange-cart.js?v=1"></script>
+  <script src="exchange-cart.js?v=2"></script>
+  <script src="exchange-prices.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>

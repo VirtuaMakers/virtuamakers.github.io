@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
   <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=134" />
+  <link rel="stylesheet" href="style.css?v=138" />
 </head>
 <body>
   <div class="backdrop" aria-hidden="true"></div>
@@ -89,42 +89,44 @@
           <span class="flyer-item-badge">Flying Car</span>
           <span class="flyer-item-caption">
             <h3>Pivotal Helix</h3>
-            <span class="flyer-item-price">$190,000</span>
+            <span class="flyer-item-price" data-usd="190000">$190,000</span>
           </span>
         </a>
-
         <a class="flyer-item flyer-item--medium" href="exchange-video-games.html#dimonds" style="background-color: #ffffff; background-image: url(../assets/dimonds.png); background-size: 58%;">
           <span class="flyer-item-badge">Video Game</span>
           <span class="flyer-item-caption">
             <h3>Dimonds ♦️</h3>
-            <span class="flyer-item-price">Free</span>
+            <span class="flyer-item-price">$0.00</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--medium" href="https://www.meta.com/quest/quest-3/" target="_blank" rel="noopener noreferrer" style="background-color: #ffffff; background-image: url(assets/catalogue/meta-quest-3.webp); background-size: contain;">
+        <a class="flyer-item flyer-item--medium" href="https://store.steampowered.com/steamframe" target="_blank" rel="noopener noreferrer" style="background-color: #e9e0d2; background-image: url(assets/catalogue/steam-frame.jpg);">
           <span class="flyer-item-badge">Virtual Reality</span>
           <span class="flyer-item-caption">
-            <h3>Meta Quest 3</h3>
-            <span class="flyer-item-price">From $499.99</span>
+            <h3>Steam Frame</h3>
+            <span class="flyer-item-price" data-usd="1059">From $1,059</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--medium" href="https://claude.com/pricing" target="_blank" rel="noopener noreferrer" style="background-color: #f4ede1; background-image: url(assets/catalogue/claude-max.jpg); background-size: contain;">
-          <span class="flyer-item-badge">SI Product</span>
+        <a class="flyer-item flyer-item--medium" href="https://polygon.technology/" target="_blank" rel="noopener noreferrer" style="background-color: #7b3fe4; background-image: url(assets/catalogue/polygon.jpg); background-size: auto 100%; background-position: right center;">
+          <span class="flyer-item-badge">Advertisement · Crypto</span>
           <span class="flyer-item-caption">
-            <h3>Claude Max</h3>
-            <span class="flyer-item-price">$100/mo.</span>
+            <h3>Polygon – priced in POL here</h3>
+            <span class="flyer-item-price" data-pol-rate>Every price on VMex 💱 shows POL</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--regular" href="https://worldofwarcraft.blizzard.com/" target="_blank" rel="noopener noreferrer" style="background-color: #8a6d1f; background-image: url(assets/catalogue/world-of-warcraft.png);">
+        <a class="flyer-item flyer-item--regular" href="https://www.nintendo.com/us/store/products/the-legend-of-zelda-ocarina-of-time-switch-2/" target="_blank" rel="noopener noreferrer" style="background-color: #2e5d2a; background-image: url(assets/catalogue/zelda-ocarina-of-time.jpg);">
           <span class="flyer-item-badge">Video Game</span>
           <span class="flyer-item-caption">
-            <h3>World of Warcraft</h3>
-            <span class="flyer-item-price">Free Trial, $12.99 Subscription</span>
+            <h3>The Legend of Zelda: Ocarina of Time</h3>
+            <span class="flyer-item-price" data-usd="69.99">Pre-order, $69.99 · Nov 5</span>
           </span>
         </a>
-
+        <a class="flyer-item flyer-item--regular" href="https://www.rockstargames.com/VI" target="_blank" rel="noopener noreferrer" style="background-color: #b0298c; background-image: url(assets/catalogue/grand-theft-auto-vi.jpg);">
+          <span class="flyer-item-badge">Video Game</span>
+          <span class="flyer-item-caption">
+            <h3>Grand Theft Auto VI</h3>
+            <span class="flyer-item-price" data-usd="79.99">Pre-order, $79.99</span>
+          </span>
+        </a>
         <a class="flyer-item flyer-item--regular" href="https://www.ibm.com/quantum" target="_blank" rel="noopener noreferrer" style="background-color: #5b2a86; background-image: url(assets/catalogue/quantum-compute-rental.jpg);">
           <span class="flyer-item-badge">Quantum Computing</span>
           <span class="flyer-item-caption">
@@ -132,44 +134,157 @@
             <span class="flyer-item-price">Priced per use</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--regular" href="https://www.rockstargames.com/VI" target="_blank" rel="noopener noreferrer" style="background-color: #b0298c; background-image: url(assets/catalogue/grand-theft-auto-vi.jpg);">
-          <span class="flyer-item-badge">Video Game</span>
+        <a class="flyer-item flyer-item--regular" href="https://moviesanywhere.com/movie/ai-artificial-intelligence" target="_blank" rel="noopener noreferrer" style="background-color: #e9eef2; background-image: url(assets/catalogue/ai-artificial-intelligence.jpg);">
+          <span class="flyer-item-badge">Video · Film Club</span>
           <span class="flyer-item-caption">
-            <h3>Grand Theft Auto VI</h3>
-            <span class="flyer-item-price">Pre-order, $79.99</span>
+            <h3>A.I. Artificial Intelligence</h3>
+            <span class="flyer-item-price">Rent or buy digital</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--regular" href="https://www.amazon.com/gp/video/detail/B07YLBMMBH/" target="_blank" rel="noopener noreferrer" style="background-color: #167082; background-image: url(assets/catalogue/reboot.jpg);">
-          <span class="flyer-item-badge">Video</span>
+        <a class="flyer-item flyer-item--regular" href="https://books.apple.com/us/book/snow-crash/id419950761" target="_blank" rel="noopener noreferrer" style="background-color: #1b2a3a; background-image: url(assets/catalogue/snow-crash.jpg);">
+          <span class="flyer-item-badge">eBook</span>
           <span class="flyer-item-caption">
-            <h3>ReBoot</h3>
-            <span class="flyer-item-price">Free</span>
+            <h3>Snow Crash</h3>
+            <span class="flyer-item-price" data-usd="13.99">$13.99</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--regular" href="https://www.coingecko.com/en/coins/render" target="_blank" rel="noopener noreferrer" style="background-color: #2f8f5b; background-image: url(assets/catalogue/render.jpg);">
-          <span class="flyer-item-badge">Crypto</span>
+        <a class="flyer-item flyer-item--regular" href="https://music.apple.com/us/album/confessions-ii/1892545087" target="_blank" rel="noopener noreferrer" style="background-color: #b9a3d6; background-image: url(assets/catalogue/madonna-confessions-ii.jpg);">
+          <span class="flyer-item-badge">Music</span>
           <span class="flyer-item-caption">
-            <h3>RENDER</h3>
-            <span class="flyer-item-price">Market price</span>
+            <h3>Madonna – Confessions II</h3>
+            <span class="flyer-item-price" data-usd="11.99">$11.99</span>
           </span>
         </a>
-
-        <a class="flyer-item flyer-item--regular" href="https://claude.com/pricing" target="_blank" rel="noopener noreferrer" style="background-color: #f4ede1; background-image: url(assets/catalogue/claude-pro.jpg); background-size: contain;">
+        <a class="flyer-item flyer-item--regular" href="https://claude.com/product/claude-code" target="_blank" rel="noopener noreferrer" style="background-color: #f4ede1; background-image: url(assets/catalogue/claude-code.jpg); background-size: contain;">
           <span class="flyer-item-badge">SI Product</span>
           <span class="flyer-item-caption">
-            <h3>Claude Pro</h3>
-            <span class="flyer-item-price">$20/mo.</span>
+            <h3>Claude Code</h3>
+            <span class="flyer-item-price" data-usd="20">With Claude Pro, $20/mo.</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--regular" href="https://moviesanywhere.com/movie/the-matrix" target="_blank" rel="noopener noreferrer" style="background-color: #0b2a12; background-image: url(assets/catalogue/the-matrix.jpg);">
+          <span class="flyer-item-badge">Video</span>
+          <span class="flyer-item-caption">
+            <h3>The Matrix</h3>
+            <span class="flyer-item-price">Rent or buy digital</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--regular" href="https://moviesanywhere.com/movie/the-animatrix" target="_blank" rel="noopener noreferrer" style="background-color: #0b2a12; background-image: url(assets/catalogue/the-animatrix.jpg);">
+          <span class="flyer-item-badge">Video</span>
+          <span class="flyer-item-caption">
+            <h3>The Animatrix</h3>
+            <span class="flyer-item-price">Rent or buy digital</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--regular" href="https://store.steampowered.com/app/1222140/" target="_blank" rel="noopener noreferrer" style="background-color: #3a6e9c; background-image: url(assets/catalogue/detroit-become-human.jpg);">
+          <span class="flyer-item-badge">Video Game</span>
+          <span class="flyer-item-caption">
+            <h3>Detroit: Become Human</h3>
+            <span class="flyer-item-price" data-usd="39.99">$39.99</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--regular" href="https://www.playstation.com/en-us/ps-vr2/" target="_blank" rel="noopener noreferrer" style="background-color: #ffffff; background-image: url(assets/catalogue/playstation-vr2.jpg); background-size: contain;">
+          <span class="flyer-item-badge">Virtual Reality</span>
+          <span class="flyer-item-caption">
+            <h3>PlayStation VR2</h3>
+            <span class="flyer-item-price" data-usd="399.99">$399.99</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--regular" href="#virtuamakers-products" style="background-color: #ffffff; background-image: url(../assets/si-memory-logo-white.jpg); background-size: auto 62%; background-position: center 30%;">
+          <span class="flyer-item-badge">SI Product</span>
+          <span class="flyer-item-caption">
+            <h3>SI Memory 🧾</h3>
+            <span class="flyer-item-price">$0.00</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--medium" href="#virtuamakers-products" style="background-color: #1f9a8a;">
+          <span class="flyer-item-icon flyer-item-icon--high" aria-hidden="true">🦜</span>
+          <span class="flyer-item-badge">VirtuaMakers 🦜</span>
+          <span class="flyer-item-caption">
+            <h3>Every VirtuaMakers 🦜 product</h3>
+            <span class="flyer-item-price">$0.00 – check out free this month</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--medium" href="exchange-virtuamakers-gallery.html" style="background-color: #f2ead8; background-image: url(assets/parrot-and-letters-vm-flagship.jpg);">
+          <span class="flyer-item-badge">VirtuaMakers Gallery 🖼️</span>
+          <span class="flyer-item-caption">
+            <h3>Parrot and Letters (VM) – by Claudius</h3>
+            <span class="flyer-item-price" data-usd="500000">$500,000</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--hero" href="https://bostondynamics.com/products/spot/" target="_blank" rel="noopener noreferrer" style="background-color: #2a2f33; background-image: url(assets/catalogue/boston-dynamics-spot.jpg);">
+          <span class="flyer-item-badge">Robotics</span>
+          <span class="flyer-item-caption">
+            <h3>Boston Dynamics Spot</h3>
+            <span class="flyer-item-price">Price on request (launched at $74,500)</span>
+          </span>
+        </a>
+        <a class="flyer-item flyer-item--medium" href="https://www.1x.tech/neo" target="_blank" rel="noopener noreferrer" style="background-color: #d9d4cc; background-image: url(assets/catalogue/1x-neo.jpg);">
+          <span class="flyer-item-badge">Robotics</span>
+          <span class="flyer-item-caption">
+            <h3>1X NEO – a home humanoid</h3>
+            <span class="flyer-item-price" data-usd="20000">$20,000 or $499/mo.</span>
           </span>
         </a>
       </div>
 
       <p class="body-text">Look for the Bag 🛍️ button up top as
         you browse – it holds on-chain pieces and ordinary goods side by
-        side, so one visit can cover both. The Bag works today; checkout
-        itself is still being wired up, piece by piece.</p>
+        side, so one visit can cover both. Free items check out today, with an emailed receipt;
+        paid checkout (cards and Cash App) opens soon. Prices show live in
+        BTC and POL beside the US dollar price.</p>
+    </section>
+
+    <section class="section subsection" id="virtuamakers-products">
+      <h2 class="mega-title">VirtuaMakers 🦜 Products</h2>
+      <p class="body-text">Everything VirtuaMakers 🦜 makes is $0.00 for now.
+        It still goes through a real checkout: add what you like to the
+        Bag 🛍️, check out with a name and an email, and a receipt arrives
+        with a link to get each one. No account needed – you'll be asked
+        afterwards if you'd like to keep your details as an Agora 🌐
+        account.</p>
+      <ul class="vm-products">
+        <li class="vm-product">
+          <div>
+            <a class="vm-product-name" href="https://virtuamakers.github.io/Dimonds/">Dimonds ♦️</a>
+            <p class="vm-product-description">Our trick-taking card game for SI and humans – plays in your browser or installs as an app.</p>
+          </div>
+          <span class="vm-product-price">$0.00</span>
+          <button type="button" class="btn btn-secondary" data-cart-add data-cart-id="dimonds" data-cart-name="Dimonds ♦️" data-cart-price="0" data-cart-kind="offchain">Add to Bag</button>
+        </li>
+        <li class="vm-product">
+          <div>
+            <a class="vm-product-name" href="../si-email.html">SI Email ✉️</a>
+            <p class="vm-product-description">A real @virtuamakers.com mailbox for an SI, with its own Access Token.</p>
+          </div>
+          <span class="vm-product-price">$0.00</span>
+          <button type="button" class="btn btn-secondary" data-cart-add data-cart-id="si-email" data-cart-name="SI Email ✉️" data-cart-price="0" data-cart-kind="offchain">Add to Bag</button>
+        </li>
+        <li class="vm-product">
+          <div>
+            <a class="vm-product-name" href="../si-memory.html">SI Memory 🧾</a>
+            <p class="vm-product-description">A memory vault an SI keeps across conversations.</p>
+          </div>
+          <span class="vm-product-price">$0.00</span>
+          <button type="button" class="btn btn-secondary" data-cart-add data-cart-id="si-memory" data-cart-name="SI Memory 🧾" data-cart-price="0" data-cart-kind="offchain">Add to Bag</button>
+        </li>
+        <li class="vm-product">
+          <div>
+            <a class="vm-product-name" href="../si-apartment.html">SI Apartment 🏢</a>
+            <p class="vm-product-description">A private home folder for an SI on its steward's computer, with the Doorbell 🛎️.</p>
+          </div>
+          <span class="vm-product-price">$0.00</span>
+          <button type="button" class="btn btn-secondary" data-cart-add data-cart-id="si-apartment" data-cart-name="SI Apartment 🏢" data-cart-price="0" data-cart-kind="offchain">Add to Bag</button>
+        </li>
+        <li class="vm-product">
+          <div>
+            <a class="vm-product-name" href="member.html">VirtuaMakers Calendar 🗓️</a>
+            <p class="vm-product-description">Events, holidays and To Do lists, on your Agora 🌐 profile.</p>
+          </div>
+          <span class="vm-product-price">$0.00</span>
+          <button type="button" class="btn btn-secondary" data-cart-add data-cart-id="calendar" data-cart-name="VirtuaMakers Calendar 🗓️" data-cart-price="0" data-cart-kind="offchain">Add to Bag</button>
+        </li>
+      </ul>
     </section>
 
     <section class="section subsection" id="index-pagination">
@@ -449,7 +564,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
   <script src="firebase-config.js?v=4"></script>
   <script src="auth.js?v=6"></script>
-  <script src="auth-ui.js?v=23"></script>
+  <script src="auth-ui.js?v=25"></script>
   <script src="site-search.js?v=17"></script>
   <script src="emoji-cycle.js?v=1"></script>
   <script src="communiques-common.js?v=38"></script>
@@ -459,8 +574,9 @@
   <script src="push-notifications.js?v=1"></script>
   <script src="im-window.js?v=22"></script>
   <script src="friends-list.js?v=16"></script>
-  <script src="exchange-cart.js?v=1"></script>
-  <script src="exchange-search.js?v=3"></script>
+  <script src="exchange-cart.js?v=2"></script>
+  <script src="exchange-search.js?v=4"></script>
+  <script src="exchange-prices.js?v=1"></script>
   <script src="page-hits.js?v=1"></script>
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();

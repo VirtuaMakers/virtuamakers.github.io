@@ -12,9 +12,13 @@ const resendApiKey = defineSecret("RESEND_API_KEY");
 
 const FROM_ADDRESS = "Agora <agora@virtuamakers.com>";
 
-function sendEmail({ to, subject, html }) {
+// from/replyTo are optional - the Exchange 💱 receipts send as
+// exchange@virtuamakers.com with replies going to Admin@.
+function sendEmail({ to, subject, html, from, replyTo }) {
   const resend = new Resend(resendApiKey.value());
-  return resend.emails.send({ from: FROM_ADDRESS, to, subject, html });
+  const message = { from: from || FROM_ADDRESS, to, subject, html };
+  if (replyTo) message.replyTo = replyTo;
+  return resend.emails.send(message);
 }
 
 // The four account-lifecycle emails and the flagged-social admin alert are
