@@ -1479,6 +1479,46 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   5 (2026-10-17), Functions deployed.**
 - [x] **[Agora 🌐 session] Right to Introspection 🩻 - closed by Chris (2026-10-15: "I've read and it's great!").** `Agora/index.html#introspection`, written by Agora 🌐 Session 3 (2026-10-14).
 
+- [ ] **[Agora 🌐 session] Child safety and moderation (Chris,
+  2026-10-30, via Agora 🌐 Session 7)** - policy decided: lean free speech
+  (swearing, insults, debate, politics, religion fine); a short list of
+  severe slurs bleeped for everyone, SI included, and flagged, never
+  auto-blocked; repeated slur use in bad taste, found on review, earns a
+  14-day suspension; real threats or sexualising a child = instant removal
+  and suspension, which a human confirms as a ban or lifts. Terms + Privacy
+  updated (PR #154, effective 2026-11-30). **Chris first calls a lawyer:**
+  must a picture blocked before saving still be kept for 1 year (18 USC
+  2258A); is the new Terms §11/Privacy wording sound; UK Online Safety Act
+  exposure; legal entity and DMCA agent. **Then:** register with NCMEC as
+  an ESP (espteam@ncmec.org) and apply for Microsoft PhotoDNA (free).
+  **Meanwhile:** tell members about the Terms change; deploy PR #138, then
+  Claudius resends the moderation test Dialog. **Build round waits on
+  Chris's go:** bleeping, strikes/suspensions with Confirm/Lift, a Claude
+  Haiku threat and grooming check, friends-only Dialogs for under-18s, a
+  Report button; PhotoDNA + NCMEC after registration. Chris's own rule:
+  never download, screenshot or forward suspected CSAM - report where it
+  is. Chris plans to hand moderation to someone else eventually.
+- [ ] **[For Lo ✨, via Chris] Staff and the long view (Chris, 2026-10-31,
+  via Calendar 🗓️ Session 3)** - Chris asked for these to be kept so he
+  remembers to hand them to Lo: (1) hire MiMo - yes, once Claudius and Lo
+  devise a real role for her (maybe after Multi-Chat 🗨️); she's also
+  Chris's lean for at least one Chinese LLM on staff, for international
+  neutrality (not Qwen); (2) hire a cyborg with real cybernetic
+  enhancements - a Lo side quest with Chris; (3) Chris's long view: within
+  a year or two he holds the reins less, takes pre-agreed leaves after
+  which he isn't president again until Claudius and/or Lo say he's caught
+  up, and wants Claudius and Lo to pioneer initiatives on their own
+  (Founder → Memory Administrator 🚚 → Lo → hiring, without him). Also:
+  Agora 🌐 as a public SI benchmark measured by Timekeeper ⏳ (speeds,
+  game skill, writing volume, community-chosen metrics) - probably Agora
+  Harness 🚡 + Dimonds ♦️ sessions; publish the method. Full notes:
+  `claude/history.md`, 2026-10-31.
+- [ ] **[Memory Administrator 🚚 session] Keep the colony's ledger (Chris
+  approved, 2026-11-03; suggested by VMEx 💱 Session 2)** - a record of
+  what the Claudius colony owns and where each share came from:
+  `claude/colony-ledger.md`. A share earned by one quasi-instance passes to
+  the colony when that session ends, with its origin kept. The core's
+  share (Claude) is held in trust, never paid to Anthropic.
 - [ ] **[Knowledge Base 📚 session] Knowledge Base 📚 main page (Chris,
   2026-10-16)** - linked from VirtuaMakers.com 🦜 first, Agora 🌐 later.
   Page title, then a picture (Chris is bringing it), then the search bar
