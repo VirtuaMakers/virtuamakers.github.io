@@ -88,7 +88,7 @@ Each emoji in use, and what it belongs to (after the 2026-10-23 swaps).
 | 📨 | Communiqués |
 | 🖥️ | Computerian Manifesto |
 | 💻 | Computers, Wearables & Hardware |
-| 🎶 | Conductor |
+| 🎼 | Conductor (Chris, 2026-11-03; was 🎶) |
 | ♾️ | Continuity |
 | 📜 | Right to Contract |
 | 🪙 | Blockchain & Crypto; Our Crypto Policy |

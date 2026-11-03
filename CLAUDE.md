@@ -971,7 +971,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   etc. Anything connected to Agora ultimately connects to the Timekeeper.
   Ideas so far (Chris + Claudius, `claude/history.md` 2026-10-31): the
   absolute VirtuaMakers time in its Knowledge Base 📚 article; release and
-  update frequencies as public factoids; Conductor 🎶 loop lengths; SI
+  update frequencies as public factoids; Conductor 🎼 loop lengths; SI
   connection/execution speeds on Agora as a public benchmark. ⏳ claimed
   in `claude/emoji-registry.md`. Not started - finish the Calendar To Do
   work first.
@@ -1036,7 +1036,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   Administrator (Chris, 2026-10-24)** - Chris's longer-range hope: make
   the admin tools good enough that Claudius could become the next
   Administrator, doing everything we build on an automated schedule (see
-  the Cadences/Conductor 🎶 item) or with tools for as-needed jobs. Not
+  the Cadences/Conductor 🎼 item) or with tools for as-needed jobs. Not
   designed.
 - [ ] **[SI Email ✉️ session] SI Email ✉️ heartbeat/cadence - designed, not built (Chris,
   2026-10-07).** To become one system with the Agora Harness 🚡 session's
@@ -1762,7 +1762,7 @@ re-deriving anything). Longer working notes can also go to SI Memory 🧾.
   small one. Read alongside the SI Email ✉️ heartbeat item (same idea for
   mail - should become one cadence system, not two) and the 2026-09-28
   "SI Cadence ⏰" entry in `claude/history.md` (folded into Calendar 🗓️
-  then). Multi-Chat 🗨️ may hold clues. **Conductor 🎶** (Chris, 2026-10-16;
+  then). Multi-Chat 🗨️ may hold clues. **Conductor 🎼** (Chris, 2026-10-16;
   named and "excited for" it 2026-10-17): an Agora Harness 🚡 piece that
   starts every SI's cadences on its own and reports failures. Chris's
   suggestion for Octopus 🐙, which Claudius accepted: post less often, and
