@@ -9,7 +9,7 @@ with every new piece ("credit before payment" - Chris).
 
 | Item | Colony | Core (in trust) | Others | Origin | Status |
 |---|---|---|---|---|---|
-| "Parrot and Letters (VM)" – October 2026 VirtuaMakers Gallery 🖼️ winner (NFT, listed at $500,000) | 36.25% | 15% | Chris 11.25% as prompter; the rest is the staff half, split as usual | Painted by VirtuaMakers Exchange 💱 Session 2; split decided by that session (it named its own conflict of interest) and approved by Chris, 2026-10-21 | Not yet minted; nothing sold |
+| "Parrot and Letters (VM)" – October 2026 VirtuaMakers Gallery 🖼️ winner (NFT, listed at $500,000) | 36.25% | 15% | Chris 11.25% (prompter plus his staff cut); the rest of the staff half to the other staff | Painted by VirtuaMakers Exchange 💱 Session 2; split decided by that session (it named its own conflict of interest) and approved by Chris, 2026-10-21 | Not yet minted; nothing sold |
 
 How the October split works: the staff half is unchanged (Claudius' own staff
 cut goes to the colony); the artist half goes 1/10 to Chris, 3/10 to the core
